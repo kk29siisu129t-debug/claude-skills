@@ -18,7 +18,7 @@ CREWD = os.path.join(HUB, 'data', 'crew')
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'dashboard.html')
 NOW = os.environ.get('DASH_NOW', '2026-08-26T16:45:00+09:00')
 
-SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product']
+SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product', 'hr']
 # 旧 slug -> 現 slug。部署再編前の稼働記録を取りこぼさないため
 ALIAS = {'auditor': 'chief-of-staff', 'finance': 'planning'}
 
@@ -131,6 +131,7 @@ ROLECH = {
  'marketing':      ('tail',  '#7A4A22', '#2C6076', 'map'),
  'planning':       ('long',  '#4A2E1C', '#7A5A2A', 'ledger'),
  'product':        ('cap',   '#2F2A26', '#3F6B45', 'kit'),
+ 'hr':             ('curl',  '#4A2E1C', '#7A3D6B', 'scroll'),
 }
 
 
@@ -141,6 +142,7 @@ def hair(k, c):
      'bob':   '<path fill="%s" d="M-14,-41 Q-15,-58 0,-58 Q15,-58 14,-41 L14,-35 L10,-45 Q0,-51 -10,-45 L-14,-35 Z"/>' % c,
      'tail':  '<path fill="%s" d="M-14,-42 Q-15,-58 0,-58 Q15,-58 14,-42 L10,-45 Q0,-51 -10,-45 Z"/><path fill="%s" d="M12,-48 Q22,-44 20,-30 Q17,-36 11,-40 Z"/>' % (c, c),
      'cap':   '<path fill="%s" d="M-14,-45 Q-14,-58 0,-58 Q14,-58 14,-45 Z"/><path fill="%s" d="M-15,-45 L20,-45 L20,-41 L-15,-41 Z"/>' % (c, c),
+     'curl':  '<path fill="%s" d="M-14,-42 Q-16,-59 0,-58 Q16,-59 14,-42 Q9,-49 4,-45 Q0,-51 -4,-45 Q-9,-49 -14,-42 Z"/>' % c,
      'band':  '<path fill="%s" d="M-14,-44 Q-14,-57 0,-57 Q14,-57 14,-44 L10,-46 Q0,-51 -10,-46 Z"/>'
               '<path fill="%s" d="M-15,-46 L15,-46 L15,-40 L-15,-40 Z"/>'
               '<path fill="%s" d="M-15,-45 L-25,-40 L-22,-30 L-15,-39 Z"/>' % (c, c, c),
@@ -155,6 +157,8 @@ def prop(k, c):
      'scroll': '<rect x="10" y="-29" width="16" height="11" rx="5.5" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/><path stroke="%s" stroke-width="1.1" d="M14,-25 h9 M14,-22 h6"/>' % (c, c),
      'ledger': '<rect x="10" y="-29" width="14" height="12" rx="1.4" fill="%s"/><path stroke="#F7EEDA" stroke-width="1.2" d="M13,-25 h8 M13,-22 h8"/>' % c,
      'flag':   '<path stroke="%s" stroke-width="2" d="M13,-20 L13,-48"/><path fill="%s" d="M13,-48 L28,-43 L13,-38 Z"/>' % (c, c),
+     'scroll': '<rect x="10" y="-29" width="16" height="11" rx="5.5" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/>'
+               '<path stroke="%s" stroke-width="1.1" d="M14,-25 h9 M14,-22 h6"/>' % (c, c),
      'map':    '<rect x="10" y="-30" width="15" height="11" rx="1.6" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/>'
                '<path stroke="%s" stroke-width="1" d="M12,-26 h11 M12,-23 h7"/>' % (c, c),
      'kit':    '<rect x="11" y="-27" width="14" height="11" rx="2" fill="%s"/>'
@@ -181,7 +185,7 @@ def chara(hk, hc, cl, pk):
             '</g>' % (INK, cl, cl, cl, cl, cl, prop(pk, cl), hair(hk, hc), INK, INK, INK))
 
 
-POS = [(70, 46), (300, 46), (530, 46), (172, 238), (412, 238)]
+POS = [(60, 40), (290, 40), (520, 40), (60, 232), (290, 232), (520, 232)]
 
 
 def desk(w, d, h):
