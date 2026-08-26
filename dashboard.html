@@ -1,0 +1,283 @@
+<title>経営ダッシュボード</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reggae+One&family=Zen+Maru+Gothic:wght@400;500;700&family=DotGothic16&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --ground:#EFE2C6;--surface:#F7EEDA;--ink:#2A1C12;--ink-soft:#6B563F;--ink-faint:#9A876D;
+  --rule:#D3BE96;--rule-strong:#A98F63;--accent:#B8451F;--gold:#B5821F;
+  --sea:#8FB4B8;--sea2:#7AA3A8;--hi:#3F6B45;--mid:#B5821F;--lo:#A32117;
+  --band:#E5D3AE;--logbg:#241A12;--logink:#E8D5AC;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;--ink-faint:#7E6C53;
+  --rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--gold:#E0B054;
+  --sea:#1E3A46;--sea2:#17303B;--hi:#7FB98A;--mid:#DFA945;--lo:#E8705C;
+  --band:#1F2E38;--logbg:#0A1016;--logink:#CDE3EE;}}
+:root[data-theme="dark"]{
+  --ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;--ink-faint:#7E6C53;
+  --rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--gold:#E0B054;
+  --sea:#1E3A46;--sea2:#17303B;--hi:#7FB98A;--mid:#DFA945;--lo:#E8705C;
+  --band:#1F2E38;--logbg:#0A1016;--logink:#CDE3EE;}
+
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);margin:0;padding:0 18px 64px;
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
+  font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
+  gap:16px;padding:38px 0 16px;border-bottom:4px double var(--ink)}
+h1{font-family:"Reggae One",sans-serif;font-weight:400;font-size:clamp(26px,4.4vw,40px);
+  margin:0;letter-spacing:.04em;line-height:1.2;text-shadow:2px 2px 0 var(--band)}
+h1 .sm{display:block;font-size:.36em;letter-spacing:.3em;color:var(--accent);
+  margin-bottom:5px;text-shadow:none}
+.stats{display:flex;gap:22px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
+  color:var(--ink-soft);text-align:right;flex-wrap:wrap}
+.stats b{display:block;font-size:24px;color:var(--ink);line-height:1.2;
+  font-variant-numeric:tabular-nums}
+
+/* ── 3D ─────────────────────────── */
+.stagewrap{margin-top:22px;border:3px solid var(--ink);background:
+  radial-gradient(120% 90% at 50% 20%, var(--sea) 0%, var(--sea2) 100%);
+  box-shadow:6px 6px 0 var(--band);position:relative;overflow:hidden}
+.stage{height:min(64vh,520px);perspective:1500px;perspective-origin:50% 42%;
+  touch-action:none;cursor:grab;position:relative}
+.stage.drag{cursor:grabbing}
+.world{position:absolute;inset:0;transform-style:preserve-3d;
+  transform:translateZ(-120px) rotateX(var(--rx,58deg)) rotateZ(var(--rz,-32deg));
+  transition:transform .12s linear}
+.plate{position:absolute;left:50%;top:50%;width:760px;height:520px;margin:-260px 0 0 -380px;
+  transform-style:preserve-3d;background:
+    repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 52px),
+    repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 52px);
+  border:2px solid rgba(255,255,255,.22)}
+
+.tower{position:absolute;transform-style:preserve-3d;cursor:pointer}
+.f{position:absolute;transform-style:preserve-3d;backface-visibility:hidden}
+.top{background:var(--c);border:2px solid var(--ink)}
+.sd{background:var(--cd);border:2px solid var(--ink);border-top:none}
+.gh .top{background:rgba(163,33,23,.10);border:2px dashed var(--lo)}
+.gh .sd{background:rgba(163,33,23,.07);border:2px dashed var(--lo);border-top:none}
+.lbl{position:absolute;width:120px;left:-12px;text-align:center;pointer-events:none;
+  font-size:11.5px;font-weight:700;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.55)}
+.lbl small{display:block;font-family:"DotGothic16",monospace;font-size:10px;
+  color:var(--ink-soft);font-weight:400}
+.tower:hover .top{filter:brightness(1.12)}
+.tower.sel .top{box-shadow:0 0 0 3px var(--accent)}
+
+.crewpost{position:absolute;transform-style:preserve-3d}
+.crewpost .top{background:var(--band);border:2px solid var(--accent)}
+.crewpost .sd{background:var(--rule);border:2px solid var(--accent);border-top:none}
+
+.ctrl{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;align-items:center;
+  background:rgba(0,0,0,.34);padding:7px 11px;border:2px solid var(--ink);flex-wrap:wrap}
+.ctrl button{font-family:"DotGothic16",monospace;font-size:12px;background:var(--surface);
+  color:var(--ink);border:2px solid var(--ink);padding:3px 10px;cursor:pointer}
+.ctrl button:hover{background:var(--band)}
+.ctrl button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.ctrl span{font-family:"DotGothic16",monospace;font-size:11px;color:#fff}
+.legend{position:absolute;right:12px;top:12px;background:rgba(0,0,0,.34);
+  border:2px solid var(--ink);padding:8px 11px;font-family:"DotGothic16",monospace;
+  font-size:11px;color:#fff;line-height:1.9}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;
+  border:1.5px solid var(--ink);vertical-align:-1px}
+
+/* ── panels ─────────────────────── */
+.cols{display:grid;grid-template-columns:1fr;gap:22px;margin-top:26px}
+@media(min-width:900px){.cols{grid-template-columns:1.15fr .85fr}}
+h2{font-family:"Reggae One",sans-serif;font-weight:400;font-size:19px;margin:0 0 12px;
+  letter-spacing:.05em;display:flex;align-items:baseline;gap:12px}
+h2 .n{font-family:"DotGothic16",monospace;font-size:12px;color:var(--accent);
+  border:2px solid var(--accent);padding:1px 7px}
+
+#detail{border:3px solid var(--ink);background:var(--surface);padding:18px 20px;
+  box-shadow:5px 5px 0 var(--band);min-height:250px}
+#detail h3{font-family:"Reggae One",sans-serif;font-weight:400;font-size:20px;margin:0 0 3px}
+#detail .rl{font-size:12px;color:var(--ink-soft);margin:0 0 14px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 14px;
+  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+.kv div{padding:6px 0;border-bottom:1px dotted var(--rule-strong)}
+.kv .v{text-align:right;font-weight:600}
+.kv .v.gap{color:var(--lo)}
+.bar{height:9px;background:var(--band);border:1.5px solid var(--ink);margin-top:14px;
+  display:flex;overflow:hidden}
+.bar i{display:block;height:100%}
+.bar .k{background:var(--hi)}
+.bar .g{background:repeating-linear-gradient(45deg,var(--lo) 0 4px,transparent 4px 8px)}
+.hint{font-size:12px;color:var(--ink-soft);margin-top:12px}
+
+table.crew{width:100%;border-collapse:collapse;font-size:13px}
+table.crew th{font-family:"DotGothic16",monospace;font-size:11px;text-align:left;
+  color:var(--ink-soft);padding:9px 10px 9px 0;border-bottom:2px solid var(--ink);
+  font-weight:400;white-space:nowrap}
+table.crew td{padding:12px 10px 12px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.crew .r{font-weight:700;white-space:nowrap}
+table.crew .r small{display:block;font-weight:400;font-size:11px;color:var(--ink-soft);
+  font-family:"DotGothic16",monospace}
+table.crew .num{font-family:"IBM Plex Mono",monospace;text-align:right;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.zero{color:var(--ink-faint)}
+
+footer{margin-top:44px;padding-top:18px;border-top:4px double var(--ink);
+  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);line-height:1.95}
+@media (prefers-reduced-motion:reduce){.world{transition:none}}
+</style>
+
+<div class="wrap">
+<header>
+  <h1><span class="sm">FLEET STATUS</span>経営ダッシュボード</h1>
+  <div class="stats">
+    <div>蓄積<b id="sK">103</b>項目</div>
+    <div>未確認<b id="sG">24</b>項目</div>
+    <div>乗組員稼働<b id="sR">0</b>回</div>
+  </div>
+</header>
+
+<div class="stagewrap">
+  <div class="stage" id="stage">
+    <div class="world" id="world"><div class="plate" id="plate"></div></div>
+  </div>
+  <div class="legend">
+    <div><i style="background:var(--hi)"></i>確度 高</div>
+    <div><i style="background:var(--mid)"></i>確度 中</div>
+    <div><i style="background:var(--lo)"></i>確度 低</div>
+    <div><i style="border-style:dashed;background:transparent"></i>未確認</div>
+  </div>
+  <div class="ctrl">
+    <button id="rl">← 回す</button><button id="rr">回す →</button>
+    <button id="tu">起こす</button><button id="td">寝かす</button>
+    <button id="rs">正面</button><span id="ang"></span>
+  </div>
+</div>
+
+<div class="cols">
+  <div>
+    <h2><span class="n">01</span>乗組員の蓄積</h2>
+    <table class="crew">
+      <thead><tr><th>役職</th><th class="num">稼働</th><th class="num">判定基準</th>
+      <th class="num">指摘</th><th class="num">外した</th></tr></thead>
+      <tbody id="crewBody"></tbody>
+    </table>
+    <p class="hint">空席だった5つの役職に Claude の人格が座っています。人の採用ではありません。
+    実行するたびに専門知識を溜め、<b>外した指摘</b>を記録して精度を上げます。</p>
+  </div>
+  <div>
+    <h2><span class="n">02</span>事業の詳細</h2>
+    <div id="detail"></div>
+  </div>
+</div>
+
+<footer id="ft"></footer>
+</div>
+
+<script>
+const D = {"biz": [{"slug": "extage", "name": "EXTAGE", "role": "経営に関与（朝礼・グロース朝礼を主催）", "conf": "高", "updated": "2026-08-26", "depts": 5, "kpi": 5, "how": 4, "lim": 3, "gap": 3, "log": 1, "known": 18}, {"slug": "potex", "name": "POTEX", "role": "経営に関与（朝会・task会・クリエイティブ定例に参加）", "conf": "高", "updated": "2026-08-26", "depts": 4, "kpi": 4, "how": 3, "lim": 2, "gap": 2, "log": 1, "known": 14}, {"slug": "t-clinic", "name": "Tクリニック", "role": "マーケティング・経営支援", "conf": "中", "updated": "2026-08-26", "depts": 4, "kpi": 5, "how": 3, "lim": 3, "gap": 3, "log": 1, "known": 16}, {"slug": "origin", "name": "origin", "role": "共同経営（法人：株式会社オリジン）", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 2, "lim": 2, "gap": 3, "log": 1, "known": 11}, {"slug": "exosome", "name": "エクソソーム", "role": "増資により51%取得予定", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 2, "how": 2, "lim": 3, "gap": 3, "log": 1, "known": 11}, {"slug": "passlabo", "name": "passlabo", "role": "経営支援（パスカル事業）", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 3, "lim": 2, "gap": 3, "log": 1, "known": 12}, {"slug": "unemployment", "name": "失業保険サポート", "role": "共同出資（法人：黒水流／クロスイリュウ）", "conf": "低", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 3, "lim": 2, "gap": 3, "log": 1, "known": 12}, {"slug": "subsidy", "name": "補助金コンサル", "role": "新規（2026-09-01 始動予定）", "conf": "低", "updated": "2026-08-26", "depts": 1, "kpi": 1, "how": 3, "lim": 3, "gap": 4, "log": 1, "known": 9}], "crew": [{"slug": "auditor", "role": "監査役", "ship": "見張り番", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "chief-of-staff", "role": "秘書・経営補佐", "ship": "舵取り補佐", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "legal", "role": "法務", "ship": "掟の番人", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "finance", "role": "財務・資金繰り", "ship": "会計長", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "data-steward", "role": "情報システム・数値基盤", "ship": "船大工", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}]};
+const CC = {'高':'--hi','中':'--mid','低':'--lo'};
+const plate = document.getElementById('plate');
+const CW = 92, CH = 62;   // cell
+const cols = 4;
+
+function box(w, d, h, cls, style){
+  const g = document.createElement('div');
+  g.className = cls; g.style.cssText = style || '';
+  const mk = (c, s) => { const e = document.createElement('div'); e.className = 'f ' + c; e.style.cssText = s; g.appendChild(e); };
+  mk('top', `width:${w}px;height:${d}px;transform:translateZ(${h}px)`);
+  mk('sd', `width:${w}px;height:${h}px;transform-origin:top;transform:rotateX(-90deg);top:${d}px`);
+  mk('sd', `width:${w}px;height:${h}px;transform-origin:top;transform:translateZ(${h}px) rotateX(-90deg)`);
+  mk('sd', `width:${d}px;height:${h}px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-${h}px);left:0`);
+  mk('sd', `width:${d}px;height:${h}px;transform-origin:left top;transform:translateX(${w}px) rotateY(90deg) rotateX(-90deg) translateY(-${h}px)`);
+  return g;
+}
+
+D.biz.forEach((b, i) => {
+  const cx = 60 + (i % cols) * 165, cy = 70 + Math.floor(i / cols) * 190;
+  const kh = Math.max(16, b.known * 5.2);
+  const gh = Math.max(8, b.gap * 5.2);
+  const c = CC[b.conf] || '--lo';
+  const t = box(96, 74, kh, 'tower',
+    `left:${cx}px;top:${cy}px;--c:var(${c});--cd:color-mix(in srgb, var(${c}) 72%, #000)`);
+  t.dataset.i = i;
+  const g = box(96, 74, gh, 'gh', `left:0;top:0;transform:translateZ(${kh}px)`);
+  t.appendChild(g);
+  const l = document.createElement('div');
+  l.className = 'lbl';
+  l.style.cssText = `top:${-26}px;left:-12px;transform:translateZ(${kh + gh + 6}px)`;
+  l.innerHTML = b.name + '<small>' + b.known + ' / ?' + b.gap + '</small>';
+  t.appendChild(l);
+  plate.appendChild(t);
+});
+
+D.crew.forEach((c, i) => {
+  const p = box(60, 46, 14 + c.runs * 4, 'crewpost',
+    `left:${86 + i * 122}px;top:${430}px`);
+  const l = document.createElement('div');
+  l.className = 'lbl';
+  l.style.cssText = `top:-24px;left:-30px;transform:translateZ(${20 + c.runs * 4}px)`;
+  l.innerHTML = c.role + '<small>Claude</small>';
+  p.appendChild(l);
+  plate.appendChild(p);
+});
+
+// ── detail panel
+const det = document.getElementById('detail');
+function show(i){
+  const b = D.biz[i];
+  document.querySelectorAll('.tower').forEach(t => t.classList.toggle('sel', +t.dataset.i === i));
+  const tot = b.known + b.gap || 1;
+  det.innerHTML =
+   `<h3>${b.name}</h3><p class="rl">${b.role}　／　確度 ${b.conf}　／　更新 ${b.updated}</p>
+    <div class="kv">
+      <div>部署・持ち場</div><div class="v">${b.depts}</div>
+      <div>KPIの定義</div><div class="v">${b.kpi}</div>
+      <div>意思決定の型</div><div class="v">${b.how}</div>
+      <div>制約・越えない線</div><div class="v">${b.lim}</div>
+      <div>判断ログ</div><div class="v">${b.log}</div>
+      <div>未確認</div><div class="v gap">${b.gap}</div>
+    </div>
+    <div class="bar"><i class="k" style="width:${b.known / tot * 100}%"></i>
+    <i class="g" style="width:${b.gap / tot * 100}%"></i></div>
+    <p class="hint">実線の高さが分かっていること、上の点線が未確認です。
+    点線が低くなるほど、この事業の判断を任せられます。</p>`;
+}
+plate.addEventListener('click', e => {
+  const t = e.target.closest('.tower');
+  if (t) show(+t.dataset.i);
+});
+show(0);
+
+// ── crew table
+document.getElementById('crewBody').innerHTML = D.crew.map(c =>
+  `<tr><td class="r">${c.role}<small>${c.ship}</small></td>
+   <td class="num ${c.runs ? '' : 'zero'}">${c.runs}</td>
+   <td class="num ${c.rules ? '' : 'zero'}">${c.rules}</td>
+   <td class="num ${c.hits ? '' : 'zero'}">${c.hits}</td>
+   <td class="num ${c.miss ? '' : 'zero'}">${c.miss}</td></tr>`).join('');
+
+// ── rotate
+const world = document.getElementById('world'), stage = document.getElementById('stage');
+let rx = 58, rz = -32, down = false, px = 0, py = 0;
+function apply(){
+  rx = Math.min(84, Math.max(18, rx));
+  world.style.setProperty('--rx', rx + 'deg');
+  world.style.setProperty('--rz', rz + 'deg');
+  document.getElementById('ang').textContent = `X${Math.round(rx)}° Z${Math.round(rz)}°`;
+}
+stage.addEventListener('pointerdown', e => { down = true; px = e.clientX; py = e.clientY;
+  stage.classList.add('drag'); stage.setPointerCapture(e.pointerId); });
+stage.addEventListener('pointermove', e => { if (!down) return;
+  rz += (e.clientX - px) * .38; rx -= (e.clientY - py) * .30; px = e.clientX; py = e.clientY; apply(); });
+stage.addEventListener('pointerup', e => { down = false; stage.classList.remove('drag'); });
+stage.addEventListener('pointercancel', () => { down = false; stage.classList.remove('drag'); });
+const B = (id, fn) => document.getElementById(id).addEventListener('click', () => { fn(); apply(); });
+B('rl', () => rz -= 15); B('rr', () => rz += 15);
+B('tu', () => rx -= 8);  B('td', () => rx += 8);
+B('rs', () => { rx = 58; rz = -32; });
+apply();
+
+document.getElementById('ft').innerHTML =
+  '出典 — claude-hub/data/businesses/*.md ・ data/crew/*.md を集計。'
+  + '数字は蓄積された項目数で、事業規模ではありません。<br>'
+  + '再生成 — <code>python scripts/build-dashboard.py</code>。蓄積が増えたら実行し直してください。<br>'
+  + '乗組員は Claude の人格です。実在の担当者ではありません。';
+</script>
