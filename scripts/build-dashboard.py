@@ -18,7 +18,9 @@ CREWD = os.path.join(HUB, 'data', 'crew')
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'dashboard.html')
 NOW = os.environ.get('DASH_NOW', '2026-08-26T16:45:00+09:00')
 
-SLUGS = ['auditor', 'chief-of-staff', 'legal', 'finance', 'data-steward']
+SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product']
+# 旧 slug -> 現 slug。部署再編前の稼働記録を取りこぼさないため
+ALIAS = {'auditor': 'chief-of-staff', 'finance': 'planning'}
 
 
 def fm(t):
@@ -78,7 +80,8 @@ for slug in SLUGS:
     fp = os.path.join(CREWD, slug + '.md')
     t = io.open(fp, encoding='utf-8').read() if os.path.isfile(fp) else ''
     f = fm(t)
-    mine = [r for r in runs if r.get('crew') == slug]
+    mine = [r for r in runs
+            if ALIAS.get(r.get('crew'), r.get('crew')) == slug]
     last = mine[0] if mine else None
     # 未完了の running を探す
     open_task, stale = None, False
@@ -109,6 +112,7 @@ for slug in SLUGS:
         last=(last or {}).get('ts', ''), lastAgo=ago(last['ts']) if last else '—',
         total=len(mine),
         found=sum(int(r.get('found', 0) or 0) for r in mine),
+        axis=f.get('axis', ''),
         rules=bullets(sect(t, '判定基準（増やしていく）')),
         notes=rows(sect(t, '事業ごとの注意点')),
         hits=rows(sect(t, '指摘の履歴')),
@@ -122,11 +126,11 @@ LOG = [dict(r, ago=ago(r.get('ts', ''))) for r in runs[:40]]
 DATA = json.dumps(dict(crew=crew, log=LOG, metrics=M, now=NOW), ensure_ascii=False)
 
 ROLECH = {
- 'auditor':       ('spike', '#2F2A26', '#1F4A6B', 'sword'),
- 'chief-of-staff':('bob',   '#3A2A1E', '#B8451F', 'bag'),
- 'legal':         ('long',  '#4A2E1C', '#5A3D7A', 'scroll'),
- 'finance':       ('tail',  '#7A4A22', '#2C6076', 'ledger'),
- 'data-steward':  ('cap',   '#6B4A22', '#4A6B45', 'wrench'),
+ 'chief-of-staff': ('bob',   '#3A2A1E', '#B8451F', 'bag'),
+ 'sales':          ('band',  '#5A2A18', '#1F4A6B', 'flag'),
+ 'marketing':      ('tail',  '#7A4A22', '#2C6076', 'map'),
+ 'planning':       ('long',  '#4A2E1C', '#7A5A2A', 'ledger'),
+ 'product':        ('cap',   '#2F2A26', '#3F6B45', 'kit'),
 }
 
 
@@ -137,6 +141,9 @@ def hair(k, c):
      'bob':   '<path fill="%s" d="M-14,-41 Q-15,-58 0,-58 Q15,-58 14,-41 L14,-35 L10,-45 Q0,-51 -10,-45 L-14,-35 Z"/>' % c,
      'tail':  '<path fill="%s" d="M-14,-42 Q-15,-58 0,-58 Q15,-58 14,-42 L10,-45 Q0,-51 -10,-45 Z"/><path fill="%s" d="M12,-48 Q22,-44 20,-30 Q17,-36 11,-40 Z"/>' % (c, c),
      'cap':   '<path fill="%s" d="M-14,-45 Q-14,-58 0,-58 Q14,-58 14,-45 Z"/><path fill="%s" d="M-15,-45 L20,-45 L20,-41 L-15,-41 Z"/>' % (c, c),
+     'band':  '<path fill="%s" d="M-14,-44 Q-14,-57 0,-57 Q14,-57 14,-44 L10,-46 Q0,-51 -10,-46 Z"/>'
+              '<path fill="%s" d="M-15,-46 L15,-46 L15,-40 L-15,-40 Z"/>'
+              '<path fill="%s" d="M-15,-45 L-25,-40 L-22,-30 L-15,-39 Z"/>' % (c, c, c),
     }
     return H.get(k, H['bob'])
 
@@ -147,7 +154,11 @@ def prop(k, c):
      'bag':    '<rect x="11" y="-27" width="14" height="11" rx="2" fill="%s"/><path stroke="%s" stroke-width="1.6" fill="none" d="M15,-27 Q18,-32 21,-27"/>' % (c, c),
      'scroll': '<rect x="10" y="-29" width="16" height="11" rx="5.5" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/><path stroke="%s" stroke-width="1.1" d="M14,-25 h9 M14,-22 h6"/>' % (c, c),
      'ledger': '<rect x="10" y="-29" width="14" height="12" rx="1.4" fill="%s"/><path stroke="#F7EEDA" stroke-width="1.2" d="M13,-25 h8 M13,-22 h8"/>' % c,
-     'wrench': '<path stroke="%s" stroke-width="3" d="M13,-22 L24,-38"/><path fill="none" stroke="%s" stroke-width="2.6" d="M24,-40 a4,4 0 1,0 3,3"/>' % (c, c),
+     'flag':   '<path stroke="%s" stroke-width="2" d="M13,-20 L13,-48"/><path fill="%s" d="M13,-48 L28,-43 L13,-38 Z"/>' % (c, c),
+     'map':    '<rect x="10" y="-30" width="15" height="11" rx="1.6" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/>'
+               '<path stroke="%s" stroke-width="1" d="M12,-26 h11 M12,-23 h7"/>' % (c, c),
+     'kit':    '<rect x="11" y="-27" width="14" height="11" rx="2" fill="%s"/>'
+               '<path stroke="#F7EEDA" stroke-width="1.9" d="M18,-24 v5 M15.5,-21.5 h5"/>' % c,
     }
     return P.get(k, '')
 
@@ -185,9 +196,10 @@ def desk(w, d, h):
 CARDS = "".join(
  '<div class="post %s" data-i="%d" style="left:%dpx;top:%dpx">%s<div class="ring"></div>'
  '<div class="bill"><svg viewBox="0 0 74 80" class="fig">%s</svg>'
- '<div class="pn">%s</div><div class="ps">%s</div><div><span class="pb">%s</span></div></div></div>'
+ '<div class="pn">%s</div><div class="ps">%s ／ %s</div>'
+'<div><span class="pb">%s</span></div></div></div>'
  % (c['state'], i, POS[i][0], POS[i][1], desk(90, 60, 26),
-    chara(*ROLECH[c['slug']]), c['role'], c['ship'], c['label'])
+    chara(*ROLECH[c['slug']]), c['role'], c['axis'], c['ship'], c['label'])
  for i, c in enumerate(crew))
 
 HTML = r"""<title>乗組員の状況</title>
@@ -370,7 +382,7 @@ function show(i){
   document.querySelectorAll('.post').forEach(p => p.classList.toggle('sel', +p.dataset.i === i));
   const nothing = c.state === 'never';
   det.innerHTML =
-    `<h3>${c.role}</h3><p class="sub">${c.ship}　/　agents/${c.slug}.md</p>
+    `<h3>${c.role}</h3><p class="sub">${c.axis} ／ ${c.ship}　/　agents/${c.slug}.md</p>
      <div class="now"><b>${nothing ? 'まだ一度も起動していません' : c.task}</b>
      <span>${nothing ? 'このダッシュボードに何か出すには、まず1回起こす必要があります。'
                       : (c.detail || '') + (c.lastAgo !== '—' ? '　（' + c.lastAgo + '）' : '')}</span></div>
