@@ -1,0 +1,3 @@
+{"ts":"2026-08-26T16:20:00+09:00","crew":"system","status":"done","task":"乗組員5人を配置し、蓄積ファイルを初期化","detail":"監査役・秘書・法務・財務・情シス。~/.claude/agents に接続済み","found":0}
+{"ts":"2026-08-26T16:50:00+09:00","crew":"auditor","status":"running","task":"POTEXとEXTAGEの報告値を検算","detail":"達成率と実額、月次と累計の突き合わせ","found":0}
+{"ts":"2026-08-26T17:12:00+09:00","crew":"auditor","status":"done","task":"POTEXとEXTAGEの報告値を検算","detail":"3件確定。いずれも数字ではなく議事録のラベル誤り（分母の取り違え・月次と累計の混在・基準切替の未記載）。当初の疑い2件は発言記録にあたって外した","found":3}
