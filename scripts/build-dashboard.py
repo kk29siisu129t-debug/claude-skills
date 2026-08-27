@@ -18,9 +18,10 @@ CREWD = os.path.join(HUB, 'data', 'crew')
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'dashboard.html')
 NOW = os.environ.get('DASH_NOW', '2026-08-26T16:45:00+09:00')
 
-SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product', 'hr']
+SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product', 'hr',
+         'kansayaku', 'reviewer']
 # 旧 slug -> 現 slug。部署再編前の稼働記録を取りこぼさないため
-ALIAS = {'auditor': 'chief-of-staff', 'finance': 'planning'}
+ALIAS = {'auditor': 'kansayaku', 'finance': 'planning'}
 
 
 def fm(t):
@@ -132,11 +133,14 @@ ROLECH = {
  'planning':       ('long',  '#4A2E1C', '#7A5A2A', 'ledger'),
  'product':        ('cap',   '#2F2A26', '#3F6B45', 'kit'),
  'hr':             ('curl',  '#4A2E1C', '#7A3D6B', 'scroll'),
+ 'kansayaku':      ('spike', '#2F2A26', '#A32117', 'sword'),
+ 'reviewer':       ('short', '#3A2A1E', '#4A5560', 'glass'),
 }
 
 
 def hair(k, c):
     H = {
+     'short': '<path fill="%s" d="M-14,-43 Q-14,-58 0,-58 Q14,-58 14,-43 L11,-46 Q0,-52 -11,-46 Z"/>' % c,
      'spike': '<path fill="%s" d="M-14,-44 L-11,-58 L-6,-49 L-1,-60 L4,-49 L9,-58 L13,-45 Q0,-56 -14,-44 Z"/>' % c,
      'long':  '<path fill="%s" d="M-14,-42 Q-15,-57 0,-57 Q15,-57 14,-42 L14,-24 L9,-26 L10,-44 Q0,-50 -10,-44 L-9,-26 L-14,-24 Z"/>' % c,
      'bob':   '<path fill="%s" d="M-14,-41 Q-15,-58 0,-58 Q15,-58 14,-41 L14,-35 L10,-45 Q0,-51 -10,-45 L-14,-35 Z"/>' % c,
@@ -161,6 +165,8 @@ def prop(k, c):
                '<path stroke="%s" stroke-width="1.1" d="M14,-25 h9 M14,-22 h6"/>' % (c, c),
      'map':    '<rect x="10" y="-30" width="15" height="11" rx="1.6" fill="#F7EEDA" stroke="%s" stroke-width="1.6"/>'
                '<path stroke="%s" stroke-width="1" d="M12,-26 h11 M12,-23 h7"/>' % (c, c),
+     'glass':  '<path stroke="%s" stroke-width="2.6" d="M12,-27 L27,-33"/>'
+               '<circle cx="28" cy="-34" r="3.4" fill="none" stroke="%s" stroke-width="1.8"/>' % (c, c),
      'kit':    '<rect x="11" y="-27" width="14" height="11" rx="2" fill="%s"/>'
                '<path stroke="#F7EEDA" stroke-width="1.9" d="M18,-24 v5 M15.5,-21.5 h5"/>' % c,
     }
@@ -185,7 +191,9 @@ def chara(hk, hc, cl, pk):
             '</g>' % (INK, cl, cl, cl, cl, cl, prop(pk, cl), hair(hk, hc), INK, INK, INK))
 
 
-POS = [(60, 40), (290, 40), (520, 40), (60, 232), (290, 232), (520, 232)]
+POS = [(30, 36), (190, 36), (350, 36),
+       (30, 226), (190, 226), (350, 226),
+       (596, 36), (596, 226)]   # 右2つは独立・別枠
 
 
 def desk(w, d, h):
@@ -255,6 +263,8 @@ h2 .n{font-family:"DotGothic16",monospace;font-size:12px;color:var(--accent);bor
  transform-style:preserve-3d;border:2px solid rgba(255,255,255,.22);
  background:repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 1px,transparent 1px 42px),
             repeating-linear-gradient(90deg,rgba(255,255,255,.055) 0 1px,transparent 1px 42px)}
+.divider{position:absolute;left:548px;top:10px;width:0;height:400px;
+ border-left:2px dashed rgba(255,255,255,.42);transform:translateZ(1px)}
 .post{position:absolute;transform-style:preserve-3d;cursor:pointer}
 .f{position:absolute;backface-visibility:hidden;border:2px solid var(--ink)}
 .dk-t{background:var(--band)} .dk-s{background:var(--rule-strong);border-top:none}
@@ -351,12 +361,13 @@ footer{margin-top:42px;padding-top:18px;border-top:4px double var(--ink);
 <h2><span class="n">01</span>いま誰が動いているか</h2>
 <p class="lede">甲板を上から見ています。ドラッグで回せます。歩いている人格が稼働中、薄い人格はまだ一度も起動していません。点滅は、着手したまま24時間戻っていない印です。持ち場をクリックすると下に詳細が出ます。</p>
 <div class="stagewrap">
-  <div class="stage" id="stage"><div class="world" id="world"><div class="floor" id="floor">__CARDS__</div></div></div>
+  <div class="stage" id="stage"><div class="world" id="world"><div class="floor" id="floor"><div class="divider"></div>__CARDS__</div></div></div>
   <div class="legend">
     <div><i style="background:#8FD79A"></i>稼働中</div>
     <div><i style="background:#F2C572"></i>待機</div>
     <div><i style="border-style:dashed;background:transparent"></i>未起動</div>
     <div><i style="background:#FF9E88"></i>停滞・詰まり</div>
+    <div style="margin-top:5px;border-top:1px dashed #999;padding-top:5px">点線の右＝独立・別枠</div>
   </div>
   <div class="ctrl"><button id="rl">&#8592;</button><button id="rr">&#8594;</button>
    <button id="tu">起こす</button><button id="td">寝かす</button>
