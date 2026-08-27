@@ -3,8 +3,8 @@ crew: 営業
 slug: sales
 ship: 突撃隊長
 axis: 売上利益
-updated: 2026-08-26
-runs: 0
+updated: 2026-08-27
+runs: 1
 ---
 
 # 営業（突撃隊長）の蓄積
