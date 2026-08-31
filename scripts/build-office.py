@@ -437,11 +437,19 @@ useA.then(a=>{ns=a;msg.textContent=a?'次の稼働で担当に振り分けます
 send.onclick=async()=>{const text=ta.value.trim(); if(!text||!ns)return;
  send.disabled=true;msg.textContent='保存中…';
  S.queue=(S.queue||[]).concat([{text,biz:S.rooms[cur].biz,at:new Date().toISOString()}]);
- try{const tpl=decodeURIComponent(escape(atob(document.getElementById('tpl').textContent)));
-  await ns.publish(tpl.replace('__STATE__',JSON.stringify(S)).replace('__TPL__',document.getElementById('tpl').textContent));
-  ta.value='';renderQueue();msg.textContent='保存しました';
- }catch(err){S.queue.pop();
-  msg.textContent=(err&&err.code==='conflict')?'他の更新が入りました。開き直してください':'保存できませんでした';}
+ const fail=m=>{S.queue.pop();renderQueue();msg.textContent=m;send.disabled=false;};
+ let tplRaw,tpl;
+ try{tplRaw=document.getElementById('tpl').textContent;
+     tpl=decodeURIComponent(escape(atob(tplRaw)));}
+ catch(e){return fail('テンプレートを復元できませんでした');}
+ // split/join を使う。replace は置換文字列内の $ を特殊扱いして壊すことがある
+ const doc=tpl.split('__STATE__').join(JSON.stringify(S)).split('__TPL__').join(tplRaw);
+ // 置換漏れのまま公開するとページが壊れる。実際に一度起きたので必ず検査する
+ if(doc.indexOf('__STATE__')>=0||doc.indexOf('__TPL__')>=0||doc.length<40000)
+   return fail('保存を中止しました。テンプレートが壊れています');
+ try{await ns.publish(doc);ta.value='';renderQueue();msg.textContent='保存しました';}
+ catch(err){return fail((err&&err.code==='conflict')
+   ?'他の更新が入りました。開き直してください':'保存できませんでした');}
  send.disabled=false;};
 </script>"""
 
