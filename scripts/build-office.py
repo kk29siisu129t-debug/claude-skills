@@ -442,11 +442,17 @@ send.onclick=async()=>{const text=ta.value.trim(); if(!text||!ns)return;
  try{tplRaw=document.getElementById('tpl').textContent;
      tpl=decodeURIComponent(escape(atob(tplRaw)));}
  catch(e){return fail('テンプレートを復元できませんでした');}
+ // 目印は実行時に組み立てる。コード中に literal を書くと、置換で自分自身が壊れる
+ const T1='__'+'STATE'+'__', T2='__'+'TPL'+'__';
+ if(tpl.split(T1).length!==2||tpl.split(T2).length!==2)
+   return fail('保存を中止しました。目印の数が想定と違います('
+     +(tpl.split(T1).length-1)+'/'+(tpl.split(T2).length-1)+')');
  // split/join を使う。replace は置換文字列内の $ を特殊扱いして壊すことがある
- const doc=tpl.split('__STATE__').join(JSON.stringify(S)).split('__TPL__').join(tplRaw);
- // 置換漏れのまま公開するとページが壊れる。実際に一度起きたので必ず検査する
- if(doc.indexOf('__STATE__')>=0||doc.indexOf('__TPL__')>=0||doc.length<40000)
-   return fail('保存を中止しました。テンプレートが壊れています');
+ const doc=tpl.split(T1).join(JSON.stringify(S)).split(T2).join(tplRaw);
+ if(doc.indexOf(T1)>=0||doc.indexOf(T2)>=0)
+   return fail('保存を中止しました。置換が残っています');
+ if(doc.length<40000)
+   return fail('保存を中止しました。サイズが小さすぎます('+doc.length+')');
  try{await ns.publish(doc);ta.value='';renderQueue();msg.textContent='保存しました';}
  catch(err){return fail((err&&err.code==='conflict')
    ?'他の更新が入りました。開き直してください':'保存できませんでした');}
