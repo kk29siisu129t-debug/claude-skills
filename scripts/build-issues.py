@@ -18,7 +18,7 @@ OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'issues.html')
 WB = D['priority']['weights']
 AXN = {'csat': '顧客満足度', 'hiring': '採用数', 'pl': '売上・利益'}
 ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
-         'エクソソーム', '失業保険', '補助金コンサル']
+         'エクソソーム', '失業保険', '補助金コンサル', 'MUSE', 'AI company']
 
 for it in D['issues']:
     w = WB.get(it['biz'], {})

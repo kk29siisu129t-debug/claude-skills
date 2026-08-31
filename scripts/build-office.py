@@ -26,7 +26,7 @@ MEMBERS = [
 ]
 AXIS_OWNER = {'csat': 'product', 'hiring': 'hr', 'pl': 'planning'}
 BIZ_ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
-             'エクソソーム', '失業保険', '補助金コンサル']
+             'エクソソーム', '失業保険', '補助金コンサル', 'MUSE', 'AI company']
 
 ISS = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
 WB = ISS['priority']['weights']
@@ -186,8 +186,28 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
  background:rgba(10,16,26,.93);border:1px solid var(--line);color:#DDE4EF;font-size:10.5px;line-height:1.55;text-align:left}
 .bub.real{border-color:var(--go);color:#CDEFD8}
 .bub .w{display:block;font-family:"DotGothic16",monospace;font-size:8.5px;color:#8DBE9C;margin-top:2px}
+.unit .av{animation:idle 3.4s ease-in-out infinite}
+.unit:nth-child(3n) .av{animation-duration:4.1s;animation-delay:-1.2s}
+.unit:nth-child(3n+1) .av{animation-duration:3.7s;animation-delay:-2.4s}
+@keyframes idle{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-1.5px) scaleY(1.015)}}
 .unit.running .av{animation:bob .85s ease-in-out infinite}
 @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-3.5px)}}
+
+/* 巡回する人 — 常に歩いている */
+.walk{position:absolute;transform-style:preserve-3d;offset-rotate:0deg;pointer-events:none}
+.walk .bill2{position:absolute;width:120px;left:-60px;top:-70px;text-align:center;
+ transform:translateZ(74px) rotateZ(calc(-1 * var(--rz,-36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
+.walk .av{width:52px;height:62px;display:block;margin:0 auto;
+ filter:drop-shadow(0 3px 4px rgba(0,0,0,.42));animation:step .62s ease-in-out infinite}
+@keyframes step{0%,100%{transform:translateY(0) rotate(-1.4deg)}50%{transform:translateY(-3px) rotate(1.4deg)}}
+.walk .tag{display:inline-block;margin-top:2px;padding:2px 7px;border-radius:10px;font-size:9.5px;
+ background:rgba(10,16,26,.9);border:1px solid var(--line);color:#C6D0DE;white-space:nowrap}
+.w1{animation:loopA 26s linear infinite}
+.w2{animation:loopA 26s linear infinite;animation-delay:-9s}
+.w3{animation:loopB 31s linear infinite}
+.w4{animation:loopB 31s linear infinite;animation-delay:-16s}
+@keyframes loopA{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes loopB{from{offset-distance:0%}to{offset-distance:100%}}
 .unit.never .av{opacity:.4}
 .unit.stale .av,.unit.blocked .av{animation:al 1.4s ease-in-out infinite}
 @keyframes al{0%,100%{opacity:1}50%{opacity:.3}}
@@ -234,7 +254,8 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .ordbar span{display:block;font-family:"DotGothic16",monospace;font-size:9.5px;color:var(--dim);margin-top:2px}
 .lg{position:absolute;left:10px;top:98px;z-index:6;font-family:"DotGothic16",monospace;font-size:9.5px;color:var(--dim);line-height:1.85}
 .lg i{display:inline-block;width:9px;height:9px;margin-right:5px}
-@media (prefers-reduced-motion:reduce){.unit .av,.live i{animation:none}.world{transition:none}}
+@media (prefers-reduced-motion:reduce){.unit .av,.live i,.walk,.walk .av{animation:none}
+ .walk{offset-distance:30%}.world{transition:none}}
 @media(max-width:760px){#iss,#seat,#chat{width:calc(100vw - 20px);max-height:26vh}
  #iss{top:auto;bottom:calc(26vh + 78px)}}
 </style>
@@ -349,6 +370,18 @@ function render(){
  [[812,442],[38,452],[822,58]].forEach(([x,y])=>{
   h+=`<div class="plant" style="left:${x}px;top:${y}px"><div class="pot"></div><div class="lf"></div></div>`;});
  h+=box(322,362,186,62,22,'#CBC6DC','#A29DB8');
+
+ // 巡回する人 — 部屋の通路をぐるぐる回り続ける
+ const PATH_A="M60,180 L820,180 L820,420 L60,420 Z";
+ const PATH_B="M60,150 L500,150 L500,470 L840,470 L840,120 L60,120 Z";
+ const ROAM=[['w1',PATH_A,'chief-of-staff','資料を回しています'],
+             ['w2',PATH_A,'reviewer','検品に向かっています'],
+             ['w3',PATH_B,'kansayaku','数字を突き合わせています'],
+             ['w4',PATH_B,'sales','商談メモを届けています']];
+ ROAM.forEach(([cls,path,slug,say])=>{
+  const c=S.crew[slug]; if(!c)return;
+  h+=`<div class="walk ${cls}" style="offset-path:path('${path}')">
+   <div class="bill2">${avatar(c)}<div class="tag">${say}</div></div></div>`;});
  room.innerHTML=h;
  const AX={csat:'顧客満足',hiring:'採用',pl:'売上'}, bn=s=>s>=2?'hi':(s>=1?'mid':'lo');
  document.getElementById('issb').innerHTML=R.issues.length?R.issues.map(i=>
