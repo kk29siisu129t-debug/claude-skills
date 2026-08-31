@@ -282,7 +282,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
   <div class="pn" id="chat"><h3>稼働ログ</h3><div class="bd" id="logs"></div></div>
   <div class="pn" id="seat"><h3>代表の席<span id="qc"></span></h3>
     <div class="bd"><div id="queue"></div>
-      <textarea id="ta" placeholder="指示を入力（例: 継続率、今週の打ち手を出して）"></textarea>
+      <textarea id="ta" placeholder="指示を入力（Enterで送信 / Shift+Enterで改行）"></textarea>
       <div class="row"><button id="send">送信</button><span id="msg"></span></div></div></div>
 </div>
 
@@ -434,6 +434,10 @@ let ns=null;
 const useA=(window.claude&&claude.use)?claude.use('artifact'):Promise.resolve(null);
 useA.then(a=>{ns=a;msg.textContent=a?'次の稼働で担当に振り分けます':'このビューでは保存できません';
  if(!a){send.disabled=true;ta.disabled=true;}}).catch(()=>{send.disabled=true;msg.textContent='読み込めませんでした';});
+ta.addEventListener('keydown',e=>{
+ // Enter で送信、Shift+Enter で改行。日本語変換の確定 Enter では送らない
+ if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing&&e.keyCode!==229){
+  e.preventDefault(); if(!send.disabled) send.click();}});
 send.onclick=async()=>{const text=ta.value.trim(); if(!text||!ns)return;
  send.disabled=true;msg.textContent='保存中…';
  S.queue=(S.queue||[]).concat([{text,biz:S.rooms[cur].biz,at:new Date().toISOString()}]);
