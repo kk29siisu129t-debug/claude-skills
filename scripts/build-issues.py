@@ -15,13 +15,15 @@ HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'issues.html')
 
-W = D['priority']['weight']
+WB = D['priority']['weights']
 AXN = {'csat': '顧客満足度', 'hiring': '採用数', 'pl': '売上・利益'}
 ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
          'エクソソーム', '失業保険', '補助金コンサル']
 
 for it in D['issues']:
-    it['score'] = round(W.get(it['axis'], 1.0) * it['sev'] * it['urg'], 3)
+    w = WB.get(it['biz'], {})
+    it['score'] = round(w.get(it['axis'], 1.0) * it['sev'] * it['urg'], 3)
+    it['order'] = w.get('order', '')
 
 bybiz = {}
 for it in D['issues']:
@@ -74,8 +76,10 @@ for biz, items in biz_sorted:
                E(it.get('owner', '—')),
                ('<b>' + E(dec) + '</b>') if dec and dec != 'なし' else '<i>なし</i>'))
     top = max(i['score'] for i in items)
-    blocks.append('<section class="biz"><h3>%s<span class="n">%d件 ／ 最高 %.2f</span></h3>%s</section>'
-                  % (E(biz), len(items), top, ''.join(cards)))
+    od = WB.get(biz, {}).get('order', '')
+    blocks.append('<section class="biz"><h3>%s<span class="n">%d件 ／ 最高 %.2f</span></h3>'
+                  '<p class="ord">優先順位 — <b>%s</b></p>%s</section>'
+                  % (E(biz), len(items), top, E(od), ''.join(cards)))
 BLOCKS = ''.join(blocks)
 
 DEC = [it for it in allsorted if it.get('decide') and it['decide'] != 'なし']
@@ -109,6 +113,12 @@ h1 .sm{display:block;font-size:.35em;letter-spacing:.3em;color:var(--acc);margin
 .prio{margin-top:14px;padding:13px 16px;background:var(--band);border-left:5px solid var(--acc)}
 .prio b{font-size:16px}
 .prio .src{font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--soft);display:block;margin-top:4px}
+.ptab{display:grid;grid-template-columns:1fr;gap:2px;margin-top:10px;font-size:12.5px}
+.ptab div{display:grid;grid-template-columns:110px 1fr;gap:10px;padding:3px 0;
+ border-top:1px solid var(--rs)}
+.ptab b{font-weight:700}
+.ord{font-family:"DotGothic16",monospace;font-size:11px;color:var(--soft);margin:0 0 10px}
+.ord b{color:var(--acc)}
 h2{font-family:"Reggae One",sans-serif;font-weight:400;font-size:20px;margin:38px 0 8px;
  letter-spacing:.05em;display:flex;align-items:baseline;gap:12px}
 h2 .n{font-family:"DotGothic16",monospace;font-size:12px;color:var(--acc);
@@ -156,8 +166,9 @@ footer{margin-top:52px;padding-top:20px;border-top:4px double var(--ink);
 <header>
   <h1><span class="sm">PRIORITISED ISSUES</span>経営課題 重要度順</h1>
   <div class="prio">
-    <b>優先順位 — 顧客満足度 ＞ 採用数 ＞ 売上・利益</b>
+    <b>優先順位は事業ごとに違う</b>
     <span class="src">__PSRC__</span>
+    <div class="ptab">__PTAB__</div>
   </div>
 </header>
 
@@ -184,7 +195,11 @@ __BLOCKS__
 </footer>
 </div>"""
 
-HTML = (HTML.replace('__PSRC__', E(D['priority']['statement'] + '　（出典: ' + D['priority']['source'] + '）'))
+PTAB = ''.join('<div><b>%s</b><span>%s</span></div>' % (E(k), E(v['order']))
+               for k, v in D['priority']['weights'].items())
+
+HTML = (HTML.replace('__PSRC__', E(D['priority']['source']))
+            .replace('__PTAB__', PTAB)
             .replace('__TOP__', TOP).replace('__DEC__', DECROWS).replace('__BLOCKS__', BLOCKS)
             .replace('__AS__', D['asOf']).replace('__N__', str(len(D['issues'])))
             .replace('__F__', E(D['scoring']['formula']))
