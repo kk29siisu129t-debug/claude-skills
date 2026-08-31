@@ -121,6 +121,38 @@ tri(px, [(33, 30), (30.5, 35), (35.5, 35)], RED)
 disc(px, 33, 35, 1.6, GOLD)
 write_ico(os.path.join(ICO_DIR, 'brief.ico'), px)
 
+# ── 3) 重要度順（経営課題） ──────────────────────────────────
+px = blank()
+rect(px, 6, 7, 42, 41, INK)
+rect(px, 8, 9, 40, 39, PARCH)
+# 順位バー（上ほど長く・赤）
+for i,(w,c) in enumerate([(28, RED), (21, GOLD), (14, GREEN)]):
+    y = 15 + i*9
+    rect(px, 17, y, 17+w, y+4, c)
+    disc(px, 12.5, y+2, 2.2, INK)      # 順位ドット
+write_ico(os.path.join(ICO_DIR, 'issues.ico'), px)
+
+# ── 4) バーチャルオフィス（建物） ────────────────────────────
+px = blank()
+# 手前の棟
+rect(px, 8, 16, 27, 43, INK)
+rect(px, 10, 18, 25, 41, PARCH)
+# 奥の棟（高い）
+rect(px, 27, 8, 41, 43, INK)
+rect(px, 29, 10, 39, 41, SEA)
+# 窓
+for y in range(21, 39, 6):
+    for x in range(12, 24, 6):
+        rect(px, x, y, x+3, y+3, SEA)
+for y in range(13, 39, 6):
+    for x in range(31, 38, 5):
+        rect(px, x, y, x+2, y+2, GOLD)
+# 入口
+rect(px, 15, 36, 20, 41, RED)
+# 地面
+rect(px, 5, 43, 43, 44, INK)
+write_ico(os.path.join(ICO_DIR, 'office.ico'), px)
+
 print('icons ->', ICO_DIR)
 
 # ── 3) ショートカット ────────────────────────────────────────
@@ -137,6 +169,10 @@ LINKS = [
      os.path.join(ICO_DIR, 'crew.ico')),
     ('経営日次ブリーフ.url', 'https://claude.ai/code/artifact/0778d136-f252-4c7e-8719-713ecda24d06',
      os.path.join(ICO_DIR, 'brief.ico')),
+    ('バーチャルオフィス.url', 'https://claude.ai/code/artifact/f7b26faa-d5ec-4822-bc4d-c69eff4f548a',
+     os.path.join(ICO_DIR, 'office.ico')),
+    ('経営課題 重要度順.url', 'https://claude.ai/code/artifact/260753a8-2a51-430d-b2e3-b3b4b34ec84c',
+     os.path.join(ICO_DIR, 'issues.ico')),
 ]
 
 for name, url, ico in LINKS:
