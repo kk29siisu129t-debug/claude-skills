@@ -166,7 +166,11 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .board{position:absolute;background:#F5F3EB;border:4px solid #7C7898}
 .board .ln{position:absolute;height:3px;background:#BAB5C9;border-radius:2px}
 .board .ln.a{background:var(--acc);opacity:.75}
-.logo{position:absolute;font-family:"Reggae One",sans-serif;font-size:26px;color:rgba(58,54,82,.32);letter-spacing:.1em}
+.sign{position:absolute;transform-style:preserve-3d;pointer-events:none}
+.sign b{position:absolute;width:420px;left:-210px;top:-16px;text-align:center;font-weight:400;
+ font-family:"Reggae One",sans-serif;font-size:27px;letter-spacing:.11em;color:rgba(58,54,82,.44);
+ text-shadow:0 1px 0 rgba(255,255,255,.3);
+ transform:translateZ(104px) rotateZ(calc(-1 * var(--rz,-36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .obj{position:absolute;transform-style:preserve-3d}
 .tp,.sd{position:absolute;border:1px solid rgba(58,54,82,.45)}
 .sd{border-top:none}
@@ -343,7 +347,6 @@ function box(x,y,w,d,h,top,side,extra){
 function render(){
  const R=S.rooms[cur];
  let h='<div class="floor"></div><div class="wallN">';
- h+=`<div class="logo" style="left:40px;top:22px">${R.biz}</div>`;
  [300,440,580].forEach(x=>{h+=`<div class="win" style="left:${x}px;top:34px;width:110px;height:84px"></div>`;});
  h+=`<div class="board" style="left:700px;top:30px;width:160px;height:96px">
    <div class="ln a" style="left:14px;top:18px;width:110px"></div>
@@ -352,6 +355,8 @@ function render(){
    <div class="ln" style="left:14px;top:68px;width:62px"></div></div></div><div class="wallW">`;
  [70,210,350].forEach(x=>{h+=`<div class="win" style="left:${x}px;top:40px;width:100px;height:82px"></div>`;});
  h+='</div><div class="rug" style="left:300px;top:336px;width:300px;height:158px"></div>';
+ // 社名。壁の面ではなく板に載せる。壁に貼ると裏から見たとき鏡文字になるため
+ h+=`<div class="sign" style="left:450px;top:6px"><b>${R.biz}</b></div>`;
  const POS=[[110,70],[330,70],[550,70],[110,268],[330,268],[550,268]];
  // 誰がどの軸の課題を話すか。同じ課題を2人が言わないよう claimed で押さえる
  const PREF={sales:'pl',marketing:'csat',planning:'pl',product:'csat',hr:'hiring'};
