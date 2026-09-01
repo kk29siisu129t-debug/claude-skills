@@ -16,3 +16,4 @@
 {"ts":"2026-08-27T10:00:00+09:00","crew":"kansayaku","status":"running","task":"代表(田原さん)本人の発言に対するフィードバック。2026年8月の会議発言記録から代表発言を拾い、reports/代表FB_2026-08-27.mdを作成","detail":"SearchTranscripts/SearchMeetingsで田原さんの発言者名揺れ(K T / Kosei Tahara / 田原洸星 / 洸星田原)を全て同一人物として扱い検索開始","found":0}
 {"crew":"marketing","ts":"2026-09-01T00:00:00+09:00","status":"running","task":"Tクリニック チャネル横断マーケ課題出し（代表指示）"}
 {"ts": "2026-09-01T00:35:00+09:00", "crew": "marketing", "status": "blocked", "task": "Tクリニック チャネル横断マーケ課題出し（代表指示）", "detail": "1.27MBのシートを読み切れず中断。1回目は下請けを立てようとして停止、2回目はAPIエラー。抽出を専任に切り出す方針に変更", "found": 0}
+{"ts": "2026-09-01T00:50:00+09:00", "crew": "system", "status": "blocked", "task": "T CLINIC DB の読み取り（3回失敗）", "detail": "1.27MBのシート。マーケ2回・抽出専任1回、いずれも The response stopped arriving で失敗。約15万トークン消費。同じ方法での再試行を禁止し、代表に小さい形での提供を依頼する", "found": 0}
