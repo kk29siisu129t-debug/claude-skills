@@ -1,0 +1,579 @@
+<title>安売りと指名の分岐点</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@500;600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+
+<style>
+/* ── 明るい側を既定に置く。暗い側は下でトークンだけ差し替える ── */
+:root{
+  --ground:#F5F3EE; --panel:#FFFFFF; --sunk:#EDEAE2;
+  --rule:#D9D4C8; --rule-soft:#E7E3DA;
+  --ink:#1B2028; --ink-2:#48525E; --ink-3:#7B848F;
+  --brass:#9A6E18;      /* 自社が本来立っている価格帯 */
+  --rose:#B4413F;       /* 値引き・原価の側 */
+  --teal:#2E7368;       /* 打ち手の側 */
+  --brass-fill:rgba(154,110,24,.13);
+  --rose-fill:rgba(180,65,63,.12);
+  --teal-fill:rgba(46,115,104,.11);
+  --grid:rgba(27,32,40,.09);
+  --shadow:0 1px 2px rgba(27,32,40,.05), 0 8px 24px -12px rgba(27,32,40,.16);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F151C; --panel:#161E27; --sunk:#121A22;
+    --rule:#2A3742; --rule-soft:#212C36;
+    --ink:#E8E4DA; --ink-2:#A3AEBA; --ink-3:#77828E;
+    --brass:#D9A64A; --rose:#E27B72; --teal:#63B8A6;
+    --brass-fill:rgba(217,166,74,.15);
+    --rose-fill:rgba(226,123,114,.14);
+    --teal-fill:rgba(99,184,166,.12);
+    --grid:rgba(232,228,218,.09);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F151C; --panel:#161E27; --sunk:#121A22;
+  --rule:#2A3742; --rule-soft:#212C36;
+  --ink:#E8E4DA; --ink-2:#A3AEBA; --ink-3:#77828E;
+  --brass:#D9A64A; --rose:#E27B72; --teal:#63B8A6;
+  --brass-fill:rgba(217,166,74,.15);
+  --rose-fill:rgba(226,123,114,.14);
+  --teal-fill:rgba(99,184,166,.12);
+  --grid:rgba(232,228,218,.09);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 10px 30px -14px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  font-size:15.5px; line-height:1.85; -webkit-font-smoothing:antialiased;
+  font-feature-settings:"palt" 1;
+}
+.wrap{max-width:840px; margin:0 auto; padding:0 22px 96px}
+.num{font-family:"JetBrains Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* ── 見出し ── */
+h1,h2,h3{font-family:"Shippori Mincho","Hiragino Mincho ProN",serif; text-wrap:balance; margin:0}
+h1{font-size:clamp(30px,5.2vw,46px); font-weight:800; line-height:1.32; letter-spacing:.01em}
+h2{font-size:clamp(21px,3vw,26px); font-weight:600; line-height:1.45}
+h3{font-size:17.5px; font-weight:600; line-height:1.5}
+p{margin:0}
+strong{font-weight:700; color:var(--ink)}
+
+.eyebrow{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; font-weight:500;
+  letter-spacing:.19em; text-transform:uppercase; color:var(--ink-3);
+}
+
+/* ── ヘッダ ── */
+header{padding:68px 0 0; display:flex; flex-direction:column; gap:22px}
+.src{
+  display:flex; flex-direction:column; gap:9px;
+  border-left:2px solid var(--brass); padding:2px 0 2px 18px;
+}
+.src q{
+  font-family:"Shippori Mincho",serif; font-size:16.5px; line-height:1.78;
+  color:var(--ink-2); quotes:"「" "」";
+}
+.src cite{font-style:normal; font-size:12.5px; color:var(--ink-3); letter-spacing:.02em}
+
+/* ── 結論 ── */
+.thesis{
+  margin-top:40px; background:var(--panel); border:1px solid var(--rule);
+  border-radius:3px; padding:30px 32px; box-shadow:var(--shadow);
+  display:flex; flex-direction:column; gap:18px;
+}
+.thesis .lead{font-family:"Shippori Mincho",serif; font-size:20px; line-height:1.72; font-weight:600}
+.split{display:grid; grid-template-columns:1fr 1fr; gap:1px; background:var(--rule-soft); border:1px solid var(--rule-soft); border-radius:2px}
+.split>div{background:var(--panel); padding:17px 19px; display:flex; flex-direction:column; gap:7px}
+.split .t{font-size:13px; font-weight:700; letter-spacing:.02em}
+.split .s{font-size:12.5px; color:var(--ink-3); font-family:"JetBrains Mono",monospace; letter-spacing:.03em}
+.split .d{font-size:13.5px; color:var(--ink-2); line-height:1.7}
+.split .a .t{color:var(--ink-2)}
+.split .b .t{color:var(--rose)}
+
+/* ── セクション ── */
+section{margin-top:76px; display:flex; flex-direction:column; gap:20px}
+.shead{display:flex; flex-direction:column; gap:7px; padding-bottom:14px; border-bottom:1px solid var(--rule)}
+
+/* ── 価格の梯子 ── */
+figure{margin:0; background:var(--panel); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow); overflow:hidden}
+.ladder{position:relative; height:560px; margin:34px 20px 14px; --l:50; --r:50}
+@media(max-width:640px){.ladder{margin:34px 12px 14px; height:600px}}
+.axis{position:absolute; left:50%; top:0; bottom:0; width:1px; background:var(--rule); transform:translateX(-.5px)}
+.gl{position:absolute; left:0; right:0; height:1px; background:var(--grid)}
+.gl span{
+  position:absolute; left:0; top:0; transform:translateY(-50%); background:var(--panel);
+  padding:0 7px 0 0; font-family:"JetBrains Mono",monospace; font-size:10px; color:var(--ink-3);
+}
+@media(max-width:520px){.gl span{display:none}}
+
+.band{position:absolute; z-index:1; border-radius:2px; transition:height .8s cubic-bezier(.2,.7,.3,1), bottom .8s cubic-bezier(.2,.7,.3,1)}
+.band.L{right:calc(50% + 13px); width:min(42%,248px)}
+.band.R{left:calc(50% + 13px); width:min(42%,248px)}
+.band.comp{background:var(--sunk); border:1px solid var(--rule)}
+.band.own{background:var(--brass-fill); border:1px solid var(--brass)}
+
+.bl{position:absolute; top:0; left:0; right:0; padding:9px 12px; display:flex; flex-direction:column; gap:3px}
+.band.tight .bl{top:auto; bottom:100%; padding-bottom:6px}
+.bl .k{font-size:11.5px; letter-spacing:.03em; color:var(--ink-3); font-weight:500}
+.bl .v{font-family:"JetBrains Mono",monospace; font-size:14px; font-weight:600}
+.bl .n{font-size:11px; color:var(--ink-3); line-height:1.6}
+
+/* 広告オファーの線 */
+.mark{position:absolute; z-index:3; display:flex; align-items:center; height:0; transition:bottom .8s cubic-bezier(.2,.7,.3,1) .25s}
+.mark .rule{height:2px; flex:0 0 auto}
+.mark.R{left:calc(50% - 13px); right:0}
+.mark.R .rule{width:26px; background:var(--rose)}
+.mark .lbl{
+  padding:6px 11px; border-radius:2px; display:flex; flex-direction:column; gap:2px;
+  background:linear-gradient(var(--rose-fill),var(--rose-fill)), var(--panel);
+  border:1px solid var(--rose); margin-left:-1px;
+}
+.mark .lbl .k{font-size:11px; font-weight:700; color:var(--rose); letter-spacing:.03em}
+.mark .lbl .v{font-family:"JetBrains Mono",monospace; font-size:16px; font-weight:700; color:var(--rose)}
+
+/* CPA の床 */
+.floor{position:absolute; z-index:2; left:0; right:0; display:flex; align-items:center; gap:0; transition:bottom .8s cubic-bezier(.2,.7,.3,1) .4s}
+.floor .dash{flex:1; height:0; border-top:1px dashed var(--rose)}
+.floor .tag{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; color:var(--rose);
+  background:var(--panel); padding:2px 8px; letter-spacing:.03em; white-space:nowrap;
+}
+.figcap{
+  border-top:1px solid var(--rule-soft); padding:16px 22px 20px;
+  font-size:12.5px; color:var(--ink-3); line-height:1.8;
+}
+.figcap b{color:var(--ink-2); font-weight:600}
+
+/* ── CPA比率 ── */
+.ratio{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule-soft); border:1px solid var(--rule-soft); border-radius:3px; overflow:hidden}
+@media(max-width:620px){.ratio{grid-template-columns:1fr}}
+.ratio>div{background:var(--panel); padding:22px 20px; display:flex; flex-direction:column; gap:11px}
+.ratio .price{font-family:"JetBrains Mono",monospace; font-size:15px; color:var(--ink-2); letter-spacing:.02em}
+.ratio .pct{font-family:"JetBrains Mono",monospace; font-size:38px; font-weight:700; line-height:1}
+.ratio .bar{height:5px; background:var(--sunk); border-radius:3px; overflow:hidden}
+.ratio .bar i{display:block; height:100%; border-radius:3px; transition:width .9s cubic-bezier(.2,.7,.3,1)}
+.ratio .cap{font-size:12.5px; color:var(--ink-3); line-height:1.7}
+.ratio .hot .pct,.ratio .hot .price{color:var(--rose)}
+.ratio .hot .bar i{background:var(--rose)}
+.ratio .mid .pct{color:var(--ink-2)} .ratio .mid .bar i{background:var(--ink-3)}
+.ratio .ok .pct{color:var(--teal)} .ratio .ok .bar i{background:var(--teal)}
+
+/* ── 課題 ── */
+.issues{display:flex; flex-direction:column; gap:1px; background:var(--rule-soft); border:1px solid var(--rule-soft); border-radius:3px}
+.iss{background:var(--panel); padding:24px 26px; display:grid; grid-template-columns:auto 1fr; gap:0 20px; align-items:start}
+@media(max-width:560px){.iss{grid-template-columns:1fr; gap:12px}}
+.iss .rank{
+  font-family:"JetBrains Mono",monospace; font-size:12px; font-weight:700; color:var(--ink-3);
+  padding-top:4px; letter-spacing:.06em;
+}
+.iss .body{display:flex; flex-direction:column; gap:11px; min-width:0}
+.iss p{font-size:14.5px; color:var(--ink-2); line-height:1.85}
+.iss.top .rank{color:var(--rose)}
+
+table{width:100%; border-collapse:collapse; font-size:13.5px}
+.scroll{overflow-x:auto; border:1px solid var(--rule-soft); border-radius:2px}
+th,td{text-align:left; padding:9px 13px; border-bottom:1px solid var(--rule-soft); vertical-align:top}
+th{font-size:11px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-3); font-weight:600; background:var(--sunk); white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td.n{font-family:"JetBrains Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+td.hi{color:var(--rose); font-weight:600}
+td.br{color:var(--brass); font-weight:600}
+
+/* ── 解決策 ── */
+.fix{background:var(--panel); border:1px solid var(--rule); border-left:3px solid var(--teal); border-radius:3px; padding:24px 26px; display:flex; flex-direction:column; gap:13px}
+.fix .top{display:flex; align-items:baseline; gap:13px; flex-wrap:wrap}
+.fix .when{
+  font-family:"JetBrains Mono",monospace; font-size:10.5px; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--teal); border:1px solid var(--teal); padding:2px 8px; border-radius:2px; white-space:nowrap;
+}
+.fix p{font-size:14.5px; color:var(--ink-2)}
+.fix ul{margin:0; padding-left:20px; display:flex; flex-direction:column; gap:6px; font-size:14px; color:var(--ink-2)}
+.fix .who{font-size:12.5px; color:var(--ink-3); padding-top:4px; border-top:1px solid var(--rule-soft)}
+
+/* ── 未確認 ── */
+.unknown{background:var(--sunk); border:1px solid var(--rule); border-radius:3px; padding:26px 28px; display:flex; flex-direction:column; gap:14px}
+.unknown ol{margin:0; padding-left:22px; display:flex; flex-direction:column; gap:10px; font-size:14px; color:var(--ink-2)}
+
+/* ── 出典 ── */
+.srcs{display:grid; grid-template-columns:1fr 1fr; gap:26px; font-size:12.5px; color:var(--ink-3); line-height:1.9}
+@media(max-width:620px){.srcs{grid-template-columns:1fr}}
+.srcs h3{font-size:12px; font-family:"JetBrains Mono",monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-bottom:8px; font-weight:500}
+.srcs a{color:var(--ink-2); text-decoration:none; border-bottom:1px solid var(--rule); word-break:break-word}
+.srcs a:hover{color:var(--brass); border-color:var(--brass)}
+a:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--brass); outline-offset:3px}
+
+footer{margin-top:64px; padding-top:22px; border-top:1px solid var(--rule); font-size:12px; color:var(--ink-3); display:flex; justify-content:space-between; gap:14px; flex-wrap:wrap}
+
+@media (prefers-reduced-motion: reduce){
+  *{transition:none !important; animation:none !important}
+}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">T CLINIC ／ 2026-09-01</div>
+  <h1>安売りと指名の分岐点</h1>
+  <div class="src">
+    <q>価格訴求が強すぎて安売り感が強い。ブランディングがもっともマーケティングのCPA高騰に悪影響を与えている。そこからweb上の検索をくまなくかけて課題と解決策を提示して</q>
+    <cite>代表の席 ／ 2026-09-01 05:16 UTC</cite>
+  </div>
+</header>
+
+<div class="thesis">
+  <p class="lead">見立ては数字で裏が取れる。ただし価格訴求は「CPA高騰の主因」ではなく、<strong>CPAの下限を決めている構造</strong>のほう。</p>
+  <div class="split">
+    <div class="a">
+      <div class="t">クリエイティブの枯れ</div>
+      <div class="s">週 〜 月</div>
+      <div class="d">最終週のCPA急騰。今朝の定例で主因として特定済み</div>
+    </div>
+    <div class="b">
+      <div class="t">価格訴求 ／ ブランド</div>
+      <div class="s">四半期 〜 年</div>
+      <div class="d">CPAが下がっても利益が残らない体質をつくる</div>
+    </div>
+  </div>
+  <p style="font-size:14px;color:var(--ink-2)">時間軸が違うので、どちらかを主因と決める必要はない。<strong>枯れの差し替えは今週やる。そのとき何に差し替えるかが、構造側の答えになる。</strong></p>
+</div>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">事実</div>
+    <h2>広告と自社サイトが、別々のクリニックを売っている</h2>
+  </div>
+
+  <figure>
+    <div class="ladder" id="ladder">
+      <div class="axis"></div>
+
+      <div class="gl" data-v="100000"><span>10万</span></div>
+      <div class="gl" data-v="200000"><span>20万</span></div>
+      <div class="gl" data-v="300000"><span>30万</span></div>
+      <div class="gl" data-v="400000"><span>40万</span></div>
+
+      <div class="band comp L" data-lo="58000" data-hi="113000">
+        <div class="bl">
+          <div class="k">大手の入口価格帯</div>
+          <div class="v">¥58,000 – ¥113,000</div>
+        </div>
+      </div>
+
+      <div class="band comp L" data-lo="173800" data-hi="458000">
+        <div class="bl">
+          <div class="k">大手の上位メニュー</div>
+          <div class="v">¥173,800 – ¥458,000</div>
+          <div class="n">TCB スーパーナチュラル 〜 エクセレント</div>
+        </div>
+      </div>
+
+      <div class="band own R" data-lo="162800" data-hi="382800">
+        <div class="bl">
+          <div class="k" style="color:var(--brass);font-weight:700">T CLINIC 自社サイト</div>
+          <div class="v" style="color:var(--brass)">¥162,800 – ¥382,800</div>
+          <div class="n">バレない黄金比クマ取り</div>
+        </div>
+      </div>
+
+      <div class="mark R" data-v="97700">
+        <div class="rule"></div>
+        <div class="lbl">
+          <div class="k">T CLINIC 広告オファー</div>
+          <div class="v">¥97,700 <span style="font-size:11px;font-weight:500">（50% OFF）</span></div>
+        </div>
+      </div>
+
+      <div class="floor" data-v="71000">
+        <div class="tag">8月CPA ¥71,000</div>
+        <div class="dash"></div>
+      </div>
+    </div>
+    <div class="scroll" style="border:none;border-top:1px solid var(--rule-soft)"><table>
+      <tr><th>クリニック</th><th>メニュー</th><th>価格（税込）</th></tr>
+      <tr><td>品川美容外科</td><td>脱脂／プレミアム</td><td class="n">¥58,000 ／ ¥88,000</td></tr>
+      <tr><td>湘南美容クリニック</td><td>切らないクマ取り（モニター）／裏ハムラ</td><td class="n">¥113,000（¥79,100）／ ¥380,000〜</td></tr>
+      <tr><td>TCB東京中央美容外科</td><td>スタンダード → エクセレント</td><td class="n">¥83,600 → ¥458,000</td></tr>
+      <tr><td class="br">T CLINIC 自社サイト</td><td>バレない黄金比クマ取り</td><td class="n br">¥162,800 – ¥382,800</td></tr>
+      <tr><td class="hi">T CLINIC 広告オファー</td><td>50% OFF（新宿・横浜のみ、銀座NG）</td><td class="n hi">¥97,700</td></tr>
+    </table></div>
+    <div class="figcap">
+      縦軸は税込価格。左が競合、右がT CLINIC。破線は<b>8月のCPA（全体クロス）¥71,000</b>。
+      広告オファー <b>¥97,700</b> は自社サイト下限 <b>¥162,800</b> の <b>60%</b> で、大手の入口価格帯のなかに着地している。
+      経結膜脱脂の市場相場は ¥100,000〜¥300,000。
+    </div>
+  </figure>
+
+  <p>サイトのファーストビューに価格・OFF・モニター・限定の表示は<strong>無い</strong>。出しているのは症例10,000件以上、医師100名以上を指導した技術指導医、顔整形のみへの特化、「感動と信頼の追求」。<strong>サイトは高単価・専門特化のポジションを取っている。</strong></p>
+  <p>一方、広告とLINEはクマ取り50%OFF、ヒアルロン酸の「安い」中心のプッシュ、肌治療は価格で勝てないという結論。<strong>院数・症例数・広告予算のどれでも大手に勝てない土俵に、自分から降りている。</strong></p>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">課題 1 ／ 最重要</div>
+    <h2>CPAが利益を食い切っている</h2>
+  </div>
+  <div class="ratio">
+    <div class="hot">
+      <div class="price">¥97,700</div>
+      <div class="pct" data-pct="72.7">0%</div>
+      <div class="bar"><i data-w="72.7"></i></div>
+      <div class="cap">広告オファー。売上の4分の3がCPAで消える</div>
+    </div>
+    <div class="mid">
+      <div class="price">¥162,800</div>
+      <div class="pct" data-pct="43.6">0%</div>
+      <div class="bar"><i data-w="43.6"></i></div>
+      <div class="cap">自社サイトの下限</div>
+    </div>
+    <div class="ok">
+      <div class="price">¥382,800</div>
+      <div class="pct" data-pct="18.5">0%</div>
+      <div class="bar"><i data-w="18.5"></i></div>
+      <div class="cap">自社サイトの上限</div>
+    </div>
+  </div>
+  <p><strong>同じCPA ¥71,000 でも、売る単価で意味が3.9倍変わる。</strong>CPAを下げる前に、CPAを載せる単価を上げるほうが効く。</p>
+  <p style="font-size:13px;color:var(--ink-3)">※ 施術原価・人件費を含まない粗い比率。正確な採算は経営企画で出す必要がある。</p>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">課題 2 — 5</div>
+    <h2>価格で戦うほど、勝てる材料が使われなくなる</h2>
+  </div>
+  <div class="issues">
+
+    <div class="iss top">
+      <div class="rank">02</div>
+      <div class="body">
+        <h3>割引訴求が医療広告ガイドラインの禁止事例に該当する</h3>
+        <p>厚労省の医療広告ガイドラインは、費用を強調した表現を「品位を損ねる広告」として禁止している。<strong>「期間限定！施術費用50%OFF！」は禁止事例としてそのまま挙がっている。</strong>「通常X円のところ今月中ならY円」「モニター価格」「割引クーポン配布中」も同様。「○○円〜」でリーズナブルに見せて実額が収まらない場合は誇大広告。</p>
+        <p><strong>クマ取り50%OFF（¥97,700）は、この類型に正面から当たる。</strong>湘南が「モニター価格 ¥79,100」を出していることは、やってよい根拠にならない。</p>
+        <p style="font-size:13px;color:var(--ink-3)">※ 限定解除（自由診療で一定要件を満たせば規制が緩む仕組み）の適用可否は、厚労省の一次資料で未確認。本レポートは「禁止事例の類型に当たる」までしか言えない。</p>
+      </div>
+    </div>
+
+    <div class="iss">
+      <div class="rank">03</div>
+      <div class="body">
+        <h3>失注理由の1位が「他院との比較」</h3>
+        <p>失注の最大要因は<strong>他院との比較・検討 57.1%</strong>。比較されたときに勝てる材料が、広告側に載っていない。サイトには症例10,000件・指導医100名という材料があるのに、広告は価格を出している。</p>
+        <p><strong>比較の土俵を価格から実績に移すことが、失注率の直接の打ち手になる。</strong></p>
+      </div>
+    </div>
+
+    <div class="iss">
+      <div class="rank">04</div>
+      <div class="body">
+        <h3>第三者の比較記事に載っていない</h3>
+        <p>「クマ取り おすすめ クリニック」の主要比較記事に <strong>T CLINICの掲載が無い</strong>。載っているのは THE CLINIC 東京など別法人。</p>
+        <p>これらの記事の評価軸は、料金／カウンセリング無料／麻酔／治療法／<strong>再施術保証</strong>／術後WEB相談／分割払い。<strong>保証とアフターは、価格を下げずに差がつく軸。</strong></p>
+      </div>
+    </div>
+
+    <div class="iss">
+      <div class="rank">05</div>
+      <div class="body">
+        <h3>口コミの数字が社内と外で食い違っている</h3>
+        <div class="scroll"><table>
+          <tr><th>出所</th><th>件数</th><th>評価</th></tr>
+          <tr><td>自社サイト</td><td class="n">500件以上</td><td class="n">4.8以上</td></tr>
+          <tr><td>社内報告（2026-08-24）</td><td class="n">304件（銀座院）</td><td class="n">4.5</td></tr>
+          <tr><td>競合 L'or Clinic</td><td class="n hi">2,052件</td><td class="n">—</td></tr>
+        </table></div>
+        <p>全院合算か銀座単体か、集計時点がいつかが食い違っている。<strong>どちらかが古い。</strong>口コミ増加は「急務」と社内で結論が出ているのに、母数の定義が揃っていない。</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">解決策 ／ 効果 ÷ 着手コスト の順</div>
+    <h2>値引き分を、価格以外の価値に置き換える</h2>
+  </div>
+
+  <div class="fix">
+    <div class="top"><h3>1. 割引オファーを止め、同額を「保証」に振り替える</h3><span class="when">今週</span></div>
+    <p>50%OFF を止めると予約数は一時的に落ちる。<strong>落とさずに止めるには、値引き分を価格以外の価値に置き換える。</strong>比較記事の評価軸から、価格を下げずに刺さるものを取る。</p>
+    <ul>
+      <li>術後1年の再施術保証（比較記事の主要評価軸。大手も出している）</li>
+      <li>術後WEB相談窓口</li>
+      <li>カウンセリング無料の明示／分割払いの明示</li>
+    </ul>
+    <p>「¥97,700」を<strong>「¥162,800 ＋ 1年保証」</strong>に置き換えて、同じ枠でA/Bを回す。<strong>予約数ではなく、CPAと契約単価の積で判定する。</strong></p>
+    <div class="who">担当：西元大賀・pierrot ／ 判断：代表</div>
+  </div>
+
+  <div class="fix">
+    <div class="top"><h3>2. クリエイティブを実績訴求へ寄せ切る</h3><span class="when">今週</span></div>
+    <p>材料はすでにサイトにある。広告に載っていないだけ。症例10,000件以上／医師100名以上を指導した技術指導医／顔整形のみに特化／相原先生の形成外科医としての専門性。</p>
+    <p><strong>「黄金比ブランディング訴求」の広告は8/1開始予定が8/24に遅延している。</strong>これが今どうなっているかを最初に確認する。既に走っているなら、数字を取る。</p>
+    <p>枯れたクリエイティブの差し替え先を、値引き版ではなく実績版にする。<strong>枯れ対策と脱・価格訴求は、同じ1回の差し替えで両方やれる。</strong></p>
+    <div class="who">担当：pierrot・西元大賀</div>
+  </div>
+
+  <div class="fix">
+    <div class="top"><h3>3. 指名検索の受け皿を固める</h3><span class="when">今月</span></div>
+    <p>外部調査で一貫していた指摘：<strong>高単価層は契約前に必ずクリニック名・医師名で評判を調べる。</strong>そこで公式サイト・Googleビジネスプロフィール・権威メディア・学会情報が上位を占めている状態をつくる。</p>
+    <ul>
+      <li>「T CLINIC 評判」「相原 医師」等で実際に何が出るかを記録する</li>
+      <li>Googleビジネスプロフィールを全院分整備</li>
+      <li>比較記事への掲載を取りに行く — 現在ゼロ</li>
+      <li>たくや先生のメディア露出（他YouTube出演・記事）— 8/13に合意済み、進捗未確認</li>
+    </ul>
+    <p><strong>指名検索が増えるとCPAは構造的に下がる。</strong>広告費をかけずに入ってくる分が増えるため。</p>
+    <div class="who">担当：宮田空翔・岩﨑</div>
+  </div>
+
+  <div class="fix">
+    <div class="top"><h3>4. 口コミの母数定義を揃えて、増加を数字で管理する</h3><span class="when">今月</span></div>
+    <ul>
+      <li>全院合算／院別を分け、集計時点を明記した1枚をつくる</li>
+      <li>銀座304件 → 競合2,052件 のギャップを、月あたり何件で埋めるか目標を置く</li>
+      <li><strong>見返りを提示する口コミ依頼はプラットフォーム規約違反。</strong>施術後の自然な導線で行う</li>
+    </ul>
+    <div class="who">担当：金子さん</div>
+  </div>
+
+  <div class="fix">
+    <div class="top"><h3>5. 単価帯の再設計</h3><span class="when">今月方針／10月実装</span></div>
+    <p>肌治療は「価格面での競合優位が難しい」と社内で結論が出ている。<strong>であれば、肌治療で価格勝負をしないと決めるほうが早い。</strong></p>
+    <ul>
+      <li>クマ治療で関係をつくり肌治療へクロスセルする方針は既に合意済み</li>
+      <li>クロスセル率の実数が取れていない。ここを先に測る</li>
+      <li>LTV単価40万円以上への引き上げは保留中の課題として残っている</li>
+    </ul>
+    <div class="who">担当：経営企画・金子さん</div>
+  </div>
+</section>
+
+<section>
+  <div class="shead">
+    <div class="eyebrow">正直に残す</div>
+    <h2>この報告で確認できていないこと</h2>
+  </div>
+  <div class="unknown">
+    <ol>
+      <li><strong>限定解除の適用可否。</strong>厚労省の一次資料に当たっていない。50%OFFが完全に違反かは専門家の確認が要る</li>
+      <li><strong>黄金比ブランディング広告の現在の稼働状況。</strong>8/24開始予定以降の記録が無い</li>
+      <li><strong>施術原価と粗利。</strong>CPA比率は売上に対する粗い比率で、実際の採算は未算出</li>
+      <li><strong>予約フォームUI改修の実装状況。</strong>プロトが7/31に共有された以降が追えていない</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <div class="shead"><div class="eyebrow">出典</div></div>
+  <div class="srcs">
+    <div>
+      <h3>社内 ／ Circleback</h3>
+      meet Tクリ 2026-09-01・08-20・08-18・08-04<br>
+      t 2026-08-24・08-03<br>
+      TCLINIC 金子さん 2026-08-24・08-10<br>
+      【Origin.】定例 2026-08-25・08-17<br>
+      田原さんMTG 2026-08-13<br>
+      西元大賀さん 2026-07-31
+    </div>
+    <div>
+      <h3>外部</h3>
+      <a href="https://www.visca-hp.jp/homepage-support/guideline-discount/">医療広告ガイドラインで「割引表示」はなぜNG？</a><br>
+      <a href="https://primenumbers.co.jp/blog/marketing-kowhow/medical-advertising-overview/">医療広告ガイドライン 2026年最新版</a><br>
+      <a href="https://medica-web.jp/column/">医療広告で絶対禁止されている6項目</a><br>
+      <a href="https://geniee.co.jp/cx-navi/marketing/beauty-clinic-ad-cost/">美容クリニックの集患戦略・広告費相場</a><br>
+      <a href="https://www.delight-solutions.co.jp/column/seo/wealthy-beauty-clinic-marketing/">富裕層向け美容クリニック集客ガイド</a><br>
+      <a href="https://note.com/stocksun_note/n/n2729ca80df77">美容クリニックの集客でCPAが悪化する理由</a><br>
+      <a href="https://my-best.com/16206">クマ取り比較（評価軸の参照）</a><br>
+      <a href="https://glownavi.com/kumatori-price/">クマ取り費用相場</a><br>
+      <a href="https://fairclinic.jp/af/tcb-dark-circle-sbc-compare/">TCB／湘南 価格比較</a><br>
+      <a href="https://tclinic-official.com/">T CLINIC 公式サイト</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <span>content/t-clinic-branding-2026-09-01.md</span>
+  <span>作成 2026-09-01</span>
+</footer>
+
+</div>
+
+<script>
+(function(){
+  var LO = 50000, HI = 470000, SPAN = HI - LO;
+  function pos(v){ return (v - LO) / SPAN * 100; }
+
+  var L = document.getElementById('ladder');
+
+  L.querySelectorAll('.gl').forEach(function(g){
+    g.style.bottom = pos(+g.dataset.v) + '%';
+  });
+
+  var bands = L.querySelectorAll('.band');
+  bands.forEach(function(b){
+    b.style.bottom = pos(+b.dataset.lo) + '%';
+    b.style.height = '0%';
+  });
+
+  L.querySelectorAll('.mark').forEach(function(m){
+    m.style.bottom = '0%';
+  });
+  var floor = L.querySelector('.floor');
+  floor.style.bottom = '0%';
+
+  function play(){
+    bands.forEach(function(b){
+      b.style.height = (pos(+b.dataset.hi) - pos(+b.dataset.lo)) + '%';
+    });
+    L.querySelectorAll('.mark').forEach(function(m){
+      m.style.bottom = pos(+m.dataset.v) + '%';
+    });
+    floor.style.bottom = pos(+floor.dataset.v) + '%';
+
+    document.querySelectorAll('.ratio .bar i').forEach(function(i){
+      i.style.width = i.dataset.w + '%';
+    });
+    document.querySelectorAll('.ratio .pct').forEach(function(el){
+      var target = parseFloat(el.dataset.pct), t0 = null;
+      function step(ts){
+        if(t0 === null) t0 = ts;
+        var k = Math.min((ts - t0) / 900, 1);
+        k = 1 - Math.pow(1 - k, 3);
+        el.textContent = (target * k).toFixed(1) + '%';
+        if(k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+    });
+  }
+
+  function fitLabels(){
+    if(!L.getBoundingClientRect().width) return;
+    bands.forEach(function(b){
+      b.classList.remove('tight');
+      var lbl = b.querySelector('.bl');
+      if(lbl.getBoundingClientRect().height > b.getBoundingClientRect().height - 2){
+        b.classList.add('tight');
+      }
+    });
+  }
+  window.addEventListener('resize', fitLabels);
+  setTimeout(fitLabels, 950);
+  setTimeout(fitLabels, 2200);
+
+  var reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){
+    bands.forEach(function(b){ b.style.height = (pos(+b.dataset.hi) - pos(+b.dataset.lo)) + '%'; });
+    L.querySelectorAll('.mark').forEach(function(m){ m.style.bottom = pos(+m.dataset.v) + '%'; });
+    floor.style.bottom = pos(+floor.dataset.v) + '%';
+    document.querySelectorAll('.ratio .bar i').forEach(function(i){ i.style.width = i.dataset.w + '%'; });
+    document.querySelectorAll('.ratio .pct').forEach(function(el){ el.textContent = el.dataset.pct + '%'; });
+    fitLabels();
+  } else {
+    requestAnimationFrame(function(){ requestAnimationFrame(play); });
+  }
+})();
+</script>
