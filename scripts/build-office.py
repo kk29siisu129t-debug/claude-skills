@@ -359,7 +359,8 @@ function render(){
   h+=box(x-16,y+12,100,58,28,'#E8E4F0','#B6B1C8',
     `<div class="mon" style="left:34px;top:8px;width:36px;height:24px;transform:translateZ(28px)"></div>`);
   h+=box(x+6,y+80,42,28,16,'#8E8AA6','#6D6986');
-  const q=S.quotes.find(q=>q.dept===slug), real=!!q;
+  // 事業が一致する発言だけを出す。dept だけで引くと他社の発言が混ざる（2026-09-01 のバグ）
+  const q=S.quotes.find(q=>q.dept===slug&&q.biz===R.biz), real=!!q;
   const say=real?q.text:(c.task?c.task.slice(0,40):c.label);
   h+=`<div class="unit ${c.state}" data-s="${slug}" style="left:${x}px;top:${y}px">
    <div class="bill">${avatar(c)}
