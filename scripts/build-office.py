@@ -29,6 +29,14 @@ BIZ_ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
              'エクソソーム', '失業保険', '補助金コンサル', 'MUSE', 'AI company']
 
 ISS = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
+
+# 代表の席に届いた未処理の指示。ビルドし直しても消えないよう、ここから読む。
+# 以前は queue=[] で作り直していたため、公開のたびに未処理分が消えていた（2026-09-01）
+_QP = os.path.join(HUB, 'data', 'crew', 'queue.json')
+QUEUE = json.load(io.open(_QP, encoding='utf-8')) if os.path.exists(_QP) else []
+# 処理し終えた指示の目印。端末の控えから復活させないために持たせる
+_QD = os.path.join(HUB, 'data', 'crew', 'queue-done.json')
+QDONE = json.load(io.open(_QD, encoding='utf-8')) if os.path.exists(_QD) else []
 WB = ISS['priority']['weights']
 for it in ISS['issues']:
     w = WB.get(it['biz'], {})
@@ -115,7 +123,7 @@ for biz in BIZ_ORDER:
                       issues=items, staff=staff[:6]))
 
 STATE = dict(now=NOW, crew=crew, rooms=rooms, arts=ARTS, quotes=QUOTES,
-             log=[dict(r, ago=ago(r.get('ts', ''))) for r in runs[:26]], queue=[])
+             log=[dict(r, ago=ago(r.get('ts', ''))) for r in runs[:26]], queue=QUEUE, qDone=QDONE)
 
 BODY = r"""<title>バーチャルオフィス</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -247,6 +255,9 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .row{display:flex;gap:8px;margin-top:8px;align-items:center}
 #send{font-family:"DotGothic16",monospace;font-size:12px;background:var(--acc);color:#12161F;border:none;padding:7px 16px;cursor:pointer;font-weight:700}
 #send:disabled{opacity:.4;cursor:default}
+.qd{float:right;margin-left:8px;font-family:"DotGothic16",monospace;font-size:10px;
+ background:none;border:1px solid var(--line);color:var(--dim);padding:1px 7px;cursor:pointer}
+.qd:hover{color:var(--ink);border-color:var(--acc)}
 #msg{font-family:"DotGothic16",monospace;font-size:10px;color:var(--dim);flex:1}
 .ctl{position:absolute;left:10px;top:10px;display:flex;gap:6px;z-index:6;flex-wrap:wrap}
 .ctl button{font-family:"DotGothic16",monospace;font-size:11px;background:rgba(9,14,24,.9);color:var(--ink);
@@ -424,10 +435,32 @@ document.getElementById('logs').innerHTML=S.log.map(r=>
   <span><b>${NM[r.crew]||r.crew}</b> ${SL[r.status]||r.status}　${(r.task||'').slice(0,30)}</span></div>`).join('');
 const run=Object.values(S.crew).filter(c=>c.state==='running').length;
 document.getElementById('hd').textContent=S.now.slice(0,16).replace('T',' ')+'　作業中 '+run+' / 全 '+Object.keys(S.crew).length;
-function renderQueue(){const q=S.queue||[];
- document.getElementById('queue').innerHTML=q.length
-  ?q.map(x=>`<div class="q"><em>未処理</em>${x.biz?'['+x.biz+'] ':''}${x.text}</div>`).join('')
+// 指示はこの端末にも控える。Claude 側が作り直して公開すると、
+// 埋め込みのキューは上書きで消える。控えが無いと入力が失われる（2026-09-01 に気づいた）
+const QK='office.pending.v1';
+const key=x=>(x.at||'')+'|'+(x.text||'');
+function lsGet(){try{return JSON.parse(localStorage.getItem(QK)||'[]')}catch(e){return[]}}
+function lsSet(a){try{localStorage.setItem(QK,JSON.stringify(a))}catch(e){}}
+function renderQueue(){
+ const done=new Set(S.qDone||[]);
+ // 済んだものは控えからも落とす。そうしないと処理後に未処理として戻ってくる
+ const keep=lsGet().filter(x=>!done.has(key(x)));
+ if(keep.length!==lsGet().length) lsSet(keep);
+ const seen=new Set(), q=[];
+ for(const x of (S.queue||[]).concat(keep)){
+  const k=key(x); if(seen.has(k)||done.has(k))continue; seen.add(k); q.push(x);}
+ q.sort((a,b)=>(a.at||'').localeCompare(b.at||''));
+ S.queue=q;  // 公開するときも控えの分を持っていく
+ const el=document.getElementById('queue');
+ el.innerHTML=q.length
+  ?q.map(x=>`<div class="q"><em>未処理</em>${x.biz?'['+x.biz+'] ':''}${x.text}`
+    +`<button class="qd" data-k="${key(x).replace(/"/g,'&quot;')}">済</button></div>`).join('')
   :'<div class="q" style="color:#66748A">未処理の指示はありません</div>';
+ el.querySelectorAll('.qd').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.k;
+  S.queue=(S.queue||[]).filter(x=>key(x)!==k);
+  lsSet(lsGet().filter(x=>key(x)!==k));
+  renderQueue();});
  document.getElementById('qc').textContent=q.length;}
 renderQueue(); render();
 const world=document.getElementById('world'), stage=document.getElementById('stage');
@@ -460,8 +493,11 @@ ta.addEventListener('keydown',e=>{
   e.preventDefault(); if(!send.disabled) send.click();}});
 send.onclick=async()=>{const text=ta.value.trim(); if(!text||!ns)return;
  send.disabled=true;msg.textContent='保存中…';
- S.queue=(S.queue||[]).concat([{text,biz:S.rooms[cur].biz,at:new Date().toISOString()}]);
- const fail=m=>{S.queue.pop();renderQueue();msg.textContent=m;send.disabled=false;};
+ const item={text,biz:S.rooms[cur].biz,at:new Date().toISOString()};
+ S.queue=(S.queue||[]).concat([item]);
+ lsSet(lsGet().concat([item]));   // 公開の成否にかかわらず、まず端末に残す
+ const fail=m=>{S.queue=S.queue.filter(x=>key(x)!==key(item));
+   renderQueue();msg.textContent=m+'（入力はこの端末に残しました）';send.disabled=false;};
  let tplRaw,tpl;
  try{tplRaw=document.getElementById('tpl').textContent;
      tpl=decodeURIComponent(escape(atob(tplRaw)));}
