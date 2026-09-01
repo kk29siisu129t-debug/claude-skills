@@ -353,6 +353,9 @@ function render(){
  [70,210,350].forEach(x=>{h+=`<div class="win" style="left:${x}px;top:40px;width:100px;height:82px"></div>`;});
  h+='</div><div class="rug" style="left:300px;top:336px;width:300px;height:158px"></div>';
  const POS=[[110,70],[330,70],[550,70],[110,268],[330,268],[550,268]];
+ // 誰がどの軸の課題を話すか。同じ課題を2人が言わないよう claimed で押さえる
+ const PREF={sales:'pl',marketing:'csat',planning:'pl',product:'csat',hr:'hiring'};
+ const claimed=new Set();
  R.staff.forEach((slug,i)=>{
   const c=S.crew[slug]; if(!c||!POS[i])return;
   const [x,y]=POS[i];
@@ -361,7 +364,18 @@ function render(){
   h+=box(x+6,y+80,42,28,16,'#8E8AA6','#6D6986');
   // 事業が一致する発言だけを出す。dept だけで引くと他社の発言が混ざる（2026-09-01 のバグ）
   const q=S.quotes.find(q=>q.dept===slug&&q.biz===R.biz), real=!!q;
-  const say=real?q.text:(c.task?c.task.slice(0,40):c.label);
+  // グレーの吹き出しも、その部屋の会社の話にする。
+  // 担当の最新タスクをそのまま出すと、別事業の話が並ぶ（2026-09-01 のバグ）
+  let say;
+  if(real){ say=q.text; }
+  else if(c.task && c.task.indexOf(R.biz)>=0){ say=c.task.slice(0,40); }
+  else {
+    const ax=PREF[slug];
+    let pick=R.issues.find(i=>!claimed.has(i.title)&&(!ax||i.axis===ax));
+    if(!pick) pick=R.issues.find(i=>!claimed.has(i.title));
+    if(pick){ claimed.add(pick.title); say=pick.title; }
+    else say=c.label;
+  }
   h+=`<div class="unit ${c.state}" data-s="${slug}" style="left:${x}px;top:${y}px">
    <div class="bill">${avatar(c)}
     <div class="nm"><i style="background:${COL[c.state]}"></i>${c.nick}</div>
