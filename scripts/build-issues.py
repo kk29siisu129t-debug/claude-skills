@@ -13,6 +13,11 @@ import io, os, sys, json, html
 
 HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 D = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
+# 宿題（判断が要らず、聞けば/作れば終わるもの）は順位に入れない。
+# 2026-09-02、Tクリの1位に「代理店の一覧が無い」が出て「絶対些末」と指摘された
+TODOS = [i for i in D['issues'] if i.get('kind') == 'todo']
+D['issues'] = [i for i in D['issues'] if i.get('kind') != 'todo']
+
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'issues.html')
 
 WB = D['priority']['weights']

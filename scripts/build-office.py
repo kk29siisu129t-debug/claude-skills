@@ -29,6 +29,11 @@ BIZ_ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
              'エクソソーム', '失業保険', '補助金コンサル', 'MUSE', 'AI company']
 
 ISS = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
+# 宿題（判断が要らず、聞けば/作れば終わるもの）は順位に入れない。
+# 2026-09-02、Tクリの1位に「代理店の一覧が無い」が出て「絶対些末」と指摘された
+TODOS = [i for i in ISS['issues'] if i.get('kind') == 'todo']
+ISS['issues'] = [i for i in ISS['issues'] if i.get('kind') != 'todo']
+
 
 # 代表の席に届いた未処理の指示。ビルドし直しても消えないよう、ここから読む。
 # 以前は queue=[] で作り直していたため、公開のたびに未処理分が消えていた（2026-09-01）
