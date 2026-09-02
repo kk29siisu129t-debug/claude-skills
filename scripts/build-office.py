@@ -149,7 +149,11 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .live{font-family:"DotGothic16",monospace;font-size:11px;color:#FF6B6B;white-space:nowrap}
 .live i{display:inline-block;width:7px;height:7px;border-radius:50%;background:#FF6B6B;margin-right:5px;animation:bl 1.4s ease-in-out infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.2}}
-.tabs{display:flex;overflow-x:auto;padding:0 10px}
+.tabrow{display:flex;align-items:center;gap:10px;padding-right:14px}
+.tabhint{font-family:"IBM Plex Mono",monospace;font-size:10px;color:var(--dim);
+ border:1px solid var(--line);border-radius:4px;padding:2px 7px;white-space:nowrap;flex:none}
+@media(max-width:760px){.tabhint{display:none}}
+.tabs{display:flex;overflow-x:auto;padding:0 10px;flex:1;min-width:0;scroll-behavior:smooth}
 .tabs button{font-family:"Zen Maru Gothic",sans-serif;font-size:13px;background:none;border:none;
  border-bottom:3px solid transparent;color:var(--dim);padding:9px 14px;cursor:pointer;white-space:nowrap}
 .tabs button:hover{color:var(--ink)}
@@ -283,7 +287,10 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
       <div><b>4</b>審査</div><div><b>5</b>納品</div></div>
     <span class="live"><i></i>LIVE</span>
   </div>
-  <div class="tabs" id="tabs"></div>
+  <div class="tabrow">
+    <div class="tabs" id="tabs" title="Alt + ↑ / ↓ で切り替え"></div>
+    <span class="tabhint">Alt + ↑ ↓</span>
+  </div>
 </div>
 
 <div class="wrap">
@@ -428,6 +435,22 @@ document.getElementById('tabs').innerHTML=S.rooms.map((r,i)=>
  `<button data-i="${i}">${r.biz}<i>${r.issues.length}</i></button>`).join('');
 document.getElementById('tabs').addEventListener('click',e=>{
  const b=e.target.closest('button'); if(!b)return; cur=+b.dataset.i; render();});
+// スプレッドシートと同じ操作感。Alt+↓ で次の事業、Alt+↑ で前の事業。
+// 端まで行ったら反対の端に回る。文字入力中は横取りしない。
+function gotoTab(i){
+ const n=S.rooms.length; if(!n)return;
+ cur=(i%n+n)%n; render();
+ const b=document.querySelector('#tabs button[data-i="'+cur+'"]');
+ if(b) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+}
+document.addEventListener('keydown',e=>{
+ if(!e.altKey||e.ctrlKey||e.metaKey) return;
+ if(e.key!=='ArrowDown'&&e.key!=='ArrowUp') return;
+ const t=e.target;
+ if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
+ e.preventDefault();
+ gotoTab(cur+(e.key==='ArrowDown'?1:-1));
+});
 const NM={}; Object.values(S.crew).forEach(c=>NM[c.slug]=c.nick); NM.system='システム';
 const SL={done:'完了',running:'着手',blocked:'詰まり',skipped:'見送り'};
 document.getElementById('logs').innerHTML=S.log.map(r=>
