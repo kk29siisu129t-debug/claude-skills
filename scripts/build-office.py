@@ -112,7 +112,9 @@ ARTS = scan('content/drafts', '下書') + scan('reports', '報告') + scan('cont
 
 rooms = []
 for biz in BIZ_ORDER:
-    items = sorted([i for i in ISS['issues'] if i['biz'] == biz], key=lambda x: -x['score'])
+    # 代表が優先度高と指定したもの（pin）は重みに関わらず先頭。重み自体は変えない
+    items = sorted([i for i in ISS['issues'] if i['biz'] == biz],
+                   key=lambda x: (not x.get('pin'), -x['score']))
     staff, seen = ['chief-of-staff'], {'chief-of-staff'}
     for it in items:
         s = AXIS_OWNER.get(it['axis'])
@@ -264,6 +266,8 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .row{display:flex;gap:8px;margin-top:8px;align-items:center}
 #send{font-family:"DotGothic16",monospace;font-size:12px;background:var(--acc);color:#12161F;border:none;padding:7px 16px;cursor:pointer;font-weight:700}
 #send:disabled{opacity:.4;cursor:default}
+.ic.pin{border-left:3px solid var(--acc)}
+.pinf{font-family:"DotGothic16",monospace;font-size:9px;color:var(--acc);border:1px solid var(--acc);padding:0 5px;margin-left:6px}
 .hint{font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--never);margin-left:10px;white-space:nowrap}
 .qd{float:right;margin-left:8px;font-family:"DotGothic16",monospace;font-size:10px;
  background:none;border:1px solid var(--line);color:var(--dim);padding:1px 7px;cursor:pointer}
@@ -430,7 +434,8 @@ function render(){
  room.innerHTML=h;
  const AX={csat:'顧客満足',hiring:'採用',pl:'売上'}, bn=s=>s>=2?'hi':(s>=1?'mid':'lo');
  document.getElementById('issb').innerHTML=R.issues.length?R.issues.map(i=>
-  `<div class="ic"><div class="r"><span class="ax ${i.axis}">${AX[i.axis]}</span>
+  `<div class="ic${i.pin?' pin':''}"><div class="r"><span class="ax ${i.axis}">${AX[i.axis]}</span>
+   ${i.pin?'<span class="pinf">代表指定</span>':''}
    <span class="sc ${bn(i.score)}">${i.score.toFixed(2)}</span></div>
    <div class="t">${i.title}</div><div class="o">任せる ${i.owner}</div></div>`).join('')
   :'<div class="ic"><div class="t">課題は登録されていません</div></div>';

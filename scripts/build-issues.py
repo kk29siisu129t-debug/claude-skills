@@ -34,13 +34,13 @@ bybiz = {}
 for it in D['issues']:
     bybiz.setdefault(it['biz'], []).append(it)
 for b in bybiz:
-    bybiz[b].sort(key=lambda x: -x['score'])
+    bybiz[b].sort(key=lambda x: (not x.get('pin'), -x['score']))
 
 biz_sorted = sorted(bybiz.items(),
                     key=lambda kv: (-max(i['score'] for i in kv[1]),
                                     ORDER.index(kv[0]) if kv[0] in ORDER else 99))
 
-allsorted = sorted(D['issues'], key=lambda x: -x['score'])
+allsorted = sorted(D['issues'], key=lambda x: (not x.get('pin'), -x['score']))
 E = html.escape
 
 
@@ -75,7 +75,8 @@ for biz, items in biz_sorted:
             '<div class="kv"><span>任せる</span><div>%s</div></div>'
             '<div class="kv dec"><span>あなたが決める</span><div>%s</div></div>'
             '</div>'
-            % (band(it['score']), it['axis'], AXN[it['axis']],
+            % (band(it['score']) + (' pin' if it.get('pin') else ''),
+               it['axis'], AXN[it['axis']] + ('　★代表指定' if it.get('pin') else ''),
                band(it['score']), it['score'], E(it['title']), E(it['fact']),
                E(it['basis']), E(it.get('cause', '—')), E(it.get('move', '—')),
                E(it.get('owner', '—')),
@@ -149,6 +150,7 @@ section.biz h3 .n{font-family:"DotGothic16",monospace;font-size:11px;color:var(-
 .iss{border:2px solid var(--rule);background:var(--sf);padding:15px 17px;margin-bottom:11px;
  box-shadow:4px 4px 0 var(--band)}
 .iss.hi{border-color:var(--hi)} .iss.mid{border-color:var(--mid)}
+.iss.pin{border-left:6px solid var(--acc)}
 .iss .hd{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap}
 .iss h4{margin:7px 0 6px;font-size:16.5px;font-weight:700;line-height:1.55}
 .fact{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--soft);margin:0 0 3px;line-height:1.75}
