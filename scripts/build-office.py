@@ -259,6 +259,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .row{display:flex;gap:8px;margin-top:8px;align-items:center}
 #send{font-family:"DotGothic16",monospace;font-size:12px;background:var(--acc);color:#12161F;border:none;padding:7px 16px;cursor:pointer;font-weight:700}
 #send:disabled{opacity:.4;cursor:default}
+.hint{font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--never);margin-left:10px;white-space:nowrap}
 .qd{float:right;margin-left:8px;font-family:"DotGothic16",monospace;font-size:10px;
  background:none;border:1px solid var(--line);color:var(--dim);padding:1px 7px;cursor:pointer}
 .qd:hover{color:var(--ink);border-color:var(--acc)}
@@ -296,7 +297,8 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 <div class="wrap">
   <div class="stage" id="stage"><div class="world" id="world"><div class="room" id="room"></div></div></div>
   <div class="ctl"><button id="cam">自動カメラ</button><button id="rs">正面</button>
-    <button id="zi">＋</button><button id="zo">−</button></div>
+    <button id="zi">＋</button><button id="zo">−</button>
+    <span class="hint">Alt＋矢印で回転／Alt＋0 で正面</span></div>
   <div class="ordbar" id="ord"></div>
   <div class="lg"><div><i style="background:var(--go)"></i>緑＝MTGログの実発言</div>
     <div><i style="background:#233149"></i>灰＝AIの生成</div></div>
@@ -504,6 +506,29 @@ document.getElementById('cam').onclick=function(){auto=!auto;this.classList.togg
 setInterval(()=>{if(auto&&!down){rz+=0.15;apply();}},40);
 room.addEventListener('click',e=>{const u=e.target.closest('.unit');if(!u)return;
  document.querySelectorAll('.unit').forEach(x=>x.classList.remove('sel'));u.classList.add('sel');});
+
+// キーボードでカメラを動かす。Alt+矢印（Shift+矢印も同じ）。
+// 素の矢印はページのスクロールに使うので奪わない
+window.addEventListener('keydown',e=>{
+ const t=e.target, tag=t&&t.tagName;
+ if(tag==='TEXTAREA'||tag==='INPUT'||(t&&t.isContentEditable))return;  // 指示の入力中は無効
+ if(!e.altKey&&!e.shiftKey)return;
+ let hit=true;
+ switch(e.key){
+  case 'ArrowUp':    rx-=4; break;                    // 見下ろしを浅く
+  case 'ArrowDown':  rx+=4; break;                    // 見下ろしを深く
+  case 'ArrowLeft':  rz-=6; break;
+  case 'ArrowRight': rz+=6; break;
+  case '+': case ';': case '=': z=Math.min(240,z+70); break;
+  case '-': z=Math.max(-760,z-70); break;
+  case '0': rx=57; rz=-36; z=-150; break;
+  default: hit=false;
+ }
+ if(!hit)return;
+ e.preventDefault();
+ auto=false; document.getElementById('cam').classList.remove('on');
+ apply();
+});
 apply();
 const ta=document.getElementById('ta'),send=document.getElementById('send'),msg=document.getElementById('msg');
 let ns=null;
