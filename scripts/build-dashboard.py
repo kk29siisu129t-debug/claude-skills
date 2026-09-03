@@ -16,7 +16,8 @@ import io, os, sys, json, re, datetime
 HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREWD = os.path.join(HUB, 'data', 'crew')
 OUT = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HUB, 'dashboard.html')
-NOW = os.environ.get('DASH_NOW', '2026-08-26T16:45:00+09:00')
+# 既定はビルドした瞬間の時刻。固定値にしていたため、ページの日付が何日も止まって見えていた（2026-09-04）
+NOW = os.environ.get('DASH_NOW') or datetime.datetime.now().astimezone().replace(microsecond=0).isoformat()
 
 SLUGS = ['chief-of-staff', 'sales', 'marketing', 'planning', 'product', 'hr',
          'kansayaku', 'reviewer']
@@ -61,6 +62,16 @@ if os.path.isfile(rp):
         if line:
             try: runs.append(json.loads(line))
             except Exception: pass
+# 稼働ログには2つの書き方が混ざっている。
+#   旧: ts / status / detail   新: at / state / note
+# ビルダーが旧しか読んでおらず、新しく書いた13件が丸ごと見えていなかった（2026-09-04 に発覚）。
+# 消さずに、読むときに揃える。
+def _norm(r):
+    r.setdefault('ts', r.get('at', ''))
+    r.setdefault('status', r.get('state', ''))
+    r.setdefault('detail', r.get('note', ''))
+    return r
+runs = [_norm(r) for r in runs]
 runs.sort(key=lambda r: r.get('ts', ''), reverse=True)
 
 now = datetime.datetime.fromisoformat(NOW)
