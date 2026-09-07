@@ -121,6 +121,21 @@ def scan(rel, kind):
 
 ARTS = scan('content/drafts', '下書') + scan('reports', '報告') + scan('content/reviews', '審査')
 
+# 会社ごとの内装。壁2色・床2色・ラグ。同じ系統の彩度に揃えて、並べても散らからないようにする
+PALETTE = {
+ 'POTEX':      dict(wall='#C8C4DE', wall2='#A8A4C8', flrA='#DAD6E6', flrB='#CBC6DC', rug='232,112,63'),
+ 'EXTAGE':     dict(wall='#B6D2CE', wall2='#93B8B3', flrA='#D2E4E1', flrB='#C0D8D4', rug='38,120,110'),
+ 'Tクリニック':  dict(wall='#E0C3C8', wall2='#C79FA7', flrA='#F0DCDF', flrB='#E4CBD0', rug='176,74,88'),
+ 'origin':     dict(wall='#C2D6B4', wall2='#9FBA8E', flrA='#DCE8D2', flrB='#CBDCBF', rug='74,124,56'),
+ 'passlabo':   dict(wall='#E2D2A8', wall2='#C9B37E', flrA='#F0E6CC', flrB='#E5D8B8', rug='166,120,30'),
+ 'エクソソーム':  dict(wall='#D3C0D8', wall2='#B29AB9', flrA='#E8DCEC', flrB='#DCCDE1', rug='128,66,140'),
+ '失業保険':     dict(wall='#BEC8D4', wall2='#98A6B6', flrA='#D8DFE8', flrB='#C8D2DE', rug='60,90,124'),
+ '補助金コンサル': dict(wall='#D8CBAE', wall2='#B8A783', flrA='#E9E0C8', flrB='#DDD2B6', rug='140,106,42'),
+ 'MUSE':       dict(wall='#C6BEDE', wall2='#A199C4', flrA='#DEDAEE', flrB='#CFC9E4', rug='96,74,168'),
+ 'AI company': dict(wall='#B8CBDE', wall2='#92AAC4', flrA='#D4E2EE', flrB='#C2D5E6', rug='40,100,158'),
+}
+DEFAULT_PAL = PALETTE['POTEX']
+
 rooms = []
 for biz in BIZ_ORDER:
     # 代表が優先度高と指定したもの（pin）は重みに関わらず先頭。重み自体は変えない
@@ -137,7 +152,8 @@ for biz in BIZ_ORDER:
         staff.append('marketing'); seen.add('marketing')
     if 'kansayaku' not in seen:
         staff.append('kansayaku')
-    rooms.append(dict(biz=biz, order=WB.get(biz, {}).get('order', ''),
+    rooms.append(dict(biz=biz, pal=PALETTE.get(biz, DEFAULT_PAL),
+                      order=WB.get(biz, {}).get('order', ''),
                       issues=items, staff=staff[:6]))
 
 STATE = dict(now=NOW, crew=crew, rooms=rooms, arts=ARTS, quotes=QUOTES,
@@ -183,11 +199,12 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .stage{position:absolute;inset:0;perspective:1750px;perspective-origin:50% 32%;cursor:grab;touch-action:none}
 .stage.drag{cursor:grabbing}
 .world{position:absolute;inset:0;transform-style:preserve-3d;
- transform:translateZ(var(--z,-150px)) rotateX(var(--rx,57deg)) rotateZ(var(--rz,-36deg));transition:transform .12s linear}
+ transform:translateZ(var(--z,-150px)) rotateX(var(--rx,57deg)) rotateZ(var(--rz,36deg));transition:transform .12s linear}
 .room{position:absolute;left:50%;top:50%;width:900px;height:520px;margin:-260px 0 0 -450px;transform-style:preserve-3d}
 .floor{position:absolute;inset:0;border:1px solid rgba(255,255,255,.25);
  background:repeating-conic-gradient(var(--flrA) 0% 25%, var(--flrB) 0% 50%) 0 0/68px 68px}
-.rug{position:absolute;background:rgba(232,112,63,.18);border:2px solid rgba(232,112,63,.4);transform:translateZ(1px);border-radius:6px}
+.rug{position:absolute;background:rgba(var(--rug,232,112,63),.18);
+ border:2px solid rgba(var(--rug,232,112,63),.4);transform:translateZ(1px);border-radius:6px}
 .wallN{position:absolute;left:0;top:0;width:900px;height:168px;transform-origin:top;transform:rotateX(90deg);
  background:linear-gradient(180deg,var(--wall),var(--wall2));border-bottom:2px solid rgba(0,0,0,.16)}
 .wallW{position:absolute;left:0;top:0;width:520px;height:168px;transform-origin:left top;
@@ -200,7 +217,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 .sign b{position:absolute;width:420px;left:-210px;top:-16px;text-align:center;font-weight:400;
  font-family:"Reggae One",sans-serif;font-size:27px;letter-spacing:.11em;color:rgba(58,54,82,.44);
  text-shadow:0 1px 0 rgba(255,255,255,.3);
- transform:translateZ(104px) rotateZ(calc(-1 * var(--rz,-36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
+ transform:translateZ(104px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .obj{position:absolute;transform-style:preserve-3d}
 .tp,.sd{position:absolute;border:1px solid rgba(58,54,82,.45)}
 .sd{border-top:none}
@@ -211,7 +228,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
  background:radial-gradient(circle at 34% 30%,#83C791,#3B7A50);transform:translateZ(30px)}
 .unit{position:absolute;transform-style:preserve-3d;cursor:pointer}
 .bill{position:absolute;width:210px;left:-58px;top:-16px;text-align:center;
- transform:translateZ(86px) rotateZ(calc(-1 * var(--rz,-36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
+ transform:translateZ(86px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .av{width:66px;height:78px;display:block;margin:0 auto;filter:drop-shadow(0 4px 5px rgba(0,0,0,.45))}
 .nm{font-size:12.5px;font-weight:700;text-shadow:0 1px 5px rgba(0,0,0,.95)}
 .nm i{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px}
@@ -230,7 +247,7 @@ body{margin:0;background:var(--bg);color:var(--ink);overflow-x:hidden;
 /* 巡回する人 — 常に歩いている */
 .walk{position:absolute;transform-style:preserve-3d;offset-rotate:0deg;pointer-events:none}
 .walk .bill2{position:absolute;width:120px;left:-60px;top:-70px;text-align:center;
- transform:translateZ(74px) rotateZ(calc(-1 * var(--rz,-36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
+ transform:translateZ(74px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .walk .av{width:52px;height:62px;display:block;margin:0 auto;
  filter:drop-shadow(0 3px 4px rgba(0,0,0,.42));animation:step .62s ease-in-out infinite}
 @keyframes step{0%,100%{transform:translateY(0) rotate(-1.4deg)}50%{transform:translateY(-3px) rotate(1.4deg)}}
@@ -386,6 +403,10 @@ function box(x,y,w,d,h,top,side,extra){
 
 function render(){
  const R=S.rooms[cur];
+ // 会社ごとの内装。切り替えるたびに壁・床・ラグの色を差し替える
+ const P=R.pal||{}; const st0=document.getElementById('stage');
+ for(const [k,v] of Object.entries({wall:P.wall,wall2:P.wall2,flrA:P.flrA,flrB:P.flrB,rug:P.rug}))
+  if(v) st0.style.setProperty('--'+k, v);
  let h='<div class="floor"></div><div class="wallN">';
  [300,440,580].forEach(x=>{h+=`<div class="win" style="left:${x}px;top:34px;width:110px;height:84px"></div>`;});
  h+=`<div class="board" style="left:700px;top:30px;width:160px;height:96px">
@@ -510,7 +531,8 @@ function renderQueue(){
  document.getElementById('qc').textContent=q.length;}
 renderQueue(); render();
 const world=document.getElementById('world'), stage=document.getElementById('stage');
-let rx=57,rz=-36,z=-150,down=false,mx=0,my=0,auto=false;
+// rz は正。負にすると壁が手前に来て部屋を裏から見る形になる（2026-09-04 に指摘）
+let rx=57,rz=36,z=-150,down=false,mx=0,my=0,auto=false;
 function apply(){rx=Math.min(80,Math.max(24,rx));
  world.style.setProperty('--rx',rx+'deg');world.style.setProperty('--rz',rz+'deg');world.style.setProperty('--z',z+'px');}
 stage.addEventListener('pointerdown',e=>{down=true;auto=false;
@@ -520,7 +542,7 @@ stage.addEventListener('pointermove',e=>{if(!down)return;
  rz+=(e.clientX-mx)*.34;rx-=(e.clientY-my)*.26;mx=e.clientX;my=e.clientY;apply();});
 stage.addEventListener('pointerup',()=>{down=false;stage.classList.remove('drag');});
 stage.addEventListener('pointercancel',()=>{down=false;stage.classList.remove('drag');});
-document.getElementById('rs').onclick=()=>{rx=57;rz=-36;z=-150;apply();};
+document.getElementById('rs').onclick=()=>{rx=57;rz=36;z=-150;apply();};
 document.getElementById('zi').onclick=()=>{z=Math.min(240,z+70);apply();};
 document.getElementById('zo').onclick=()=>{z=Math.max(-760,z-70);apply();};
 document.getElementById('cam').onclick=function(){auto=!auto;this.classList.toggle('on',auto);};
@@ -542,7 +564,7 @@ window.addEventListener('keydown',e=>{
   case 'ArrowRight': rz+=6; break;
   case '+': case ';': case '=': z=Math.min(240,z+70); break;
   case '-': z=Math.max(-760,z-70); break;
-  case '0': rx=57; rz=-36; z=-150; break;
+  case '0': rx=57; rz=36; z=-150; break;
   default: hit=false;
  }
  if(!hit)return;
