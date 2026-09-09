@@ -223,8 +223,6 @@ BODY = r"""<title>バーチャルオフィス</title>
  --go:#7DE39B;--idle:#FFD35C;--never:#8EA0C0;
  --hi:#FF8A6B;--mid:#FFD35C;--lo:#7DE39B;}
 *{box-sizing:border-box}
-/* .sum / .pn / .leftcol は display:flex を持つので、これが無いと hidden が効かない */
-[hidden]{display:none!important}
 html,body{height:100%}
 body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
@@ -270,9 +268,9 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .tabs button i,.tabs button u{font-style:normal;text-decoration:none;
  font-family:"IBM Plex Mono",monospace;font-size:11px;margin-left:5px;
  padding:1px 5px;border-radius:8px;background:rgba(255,255,255,.14);color:var(--dim)}
-.tabs button u{background:rgba(255,255,255,.10);color:#A9B8D4}
+.tabs button u{background:rgba(255,122,92,.22);color:#FFB9A6}
 .tabs button.on i{background:#fff;color:#0E1A44}
-.tabs button.on u{background:rgba(255,255,255,.22);color:#F0F5FF;font-weight:400}
+.tabs button.on u{background:#FF7A5C;color:#2A0A04;font-weight:700}
 
 /* ── 空とステージ ───────────────────────────────────── */
 .wrap{position:relative;height:calc(100vh - 92px);min-height:600px;overflow:hidden;
@@ -387,19 +385,17 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 
 /* 依頼の立て札。代表に残っているものを部屋の中に貼る */
 .quest{position:absolute;transform-style:preserve-3d;pointer-events:none}
-.quest .pole{position:absolute;left:-4px;top:0;width:8px;height:60px;opacity:.7;
+.quest .pole{position:absolute;left:-5px;top:0;width:10px;height:72px;
  background:linear-gradient(90deg,#6B4726,#A8763F 45%,#5E3E20);
  transform-origin:top;transform:rotateX(-90deg)}
-.quest{opacity:.55;transition:opacity .15s}
-.quest:hover{opacity:1}
-.quest .qb{position:absolute;left:-104px;top:-118px;width:208px;padding:7px 10px 9px;
- background:linear-gradient(180deg,rgba(248,240,214,.9),rgba(226,206,158,.9));
- border:3px solid rgba(138,95,50,.75);border-radius:7px;
- box-shadow:0 4px 11px rgba(0,0,0,.3),inset 0 0 0 2px rgba(255,255,255,.4);
+.quest .qb{position:absolute;left:-126px;top:-146px;width:252px;padding:9px 12px 11px;
+ background:linear-gradient(180deg,#F8F0D6,#E2CE9E);
+ border:5px solid #8A5F32;border-radius:7px;
+ box-shadow:0 6px 16px rgba(0,0,0,.45),inset 0 0 0 2px rgba(255,255,255,.6);
  transform:translateZ(96px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
-.quest .qt{text-align:center;font-family:"Reggae One",sans-serif;font-size:12.5px;color:#6B3F16;
+.quest .qt{text-align:center;font-family:"Reggae One",sans-serif;font-size:15px;color:#6B3F16;
  letter-spacing:.1em;border-bottom:2px solid rgba(138,95,50,.45);padding-bottom:5px;margin-bottom:6px}
-.quest .qi{font-size:10px;color:#3E2C12;line-height:1.45;text-align:left;margin-top:5px;
+.quest .qi{font-size:12px;color:#3E2C12;line-height:1.45;text-align:left;margin-top:5px;
  font-family:"Zen Maru Gothic",sans-serif}
 .quest .qi b{color:#A02A1E;font-family:"IBM Plex Mono",monospace;font-size:11px;margin-right:5px}
 .board{position:absolute;background:#F7F4E8;border:4px solid #7C6448;border-radius:3px;
@@ -466,12 +462,11 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .hero .av{width:90px;height:75px;animation:hero 2.4s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes hero{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.95)}}
 .hero .plate{border-color:var(--gold);background:linear-gradient(165deg,#4A2E10,#1A0E04)}
-.cnt{display:inline-block;margin-bottom:4px;padding:2px 9px;border-radius:8px;
- border:1px solid rgba(255,255,255,.55);background:rgba(10,18,40,.72);
- font-family:"DotGothic16",monospace;font-size:11px;color:#E4ECFB;font-weight:400;
- box-shadow:0 1px 5px rgba(0,0,0,.4)}
-.cnt.late{border-color:#FF7A5C;color:#FFB9A6}
-.cnt.zero{border-color:rgba(125,227,155,.6);color:#BFEFCF}
+.cnt{display:inline-block;margin-bottom:5px;padding:3px 11px;border-radius:9px;
+ border:2px solid #fff;background:linear-gradient(180deg,#FF9B5C,#D93B24);
+ font-family:"DotGothic16",monospace;font-size:13px;color:#fff;font-weight:700;
+ box-shadow:0 2px 9px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.4)}
+.cnt.zero{background:linear-gradient(180deg,#7DE39B,#2E9455)}
 .spark{position:absolute;width:6px;height:6px;border-radius:50%;background:#FFF3B0;
  box-shadow:0 0 10px 3px rgba(255,230,150,.8);pointer-events:none;animation:sp 4.6s ease-in-out infinite}
 @keyframes sp{0%,100%{opacity:0;transform:translateZ(30px) translateY(0)}
@@ -525,12 +520,12 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  border-radius:4px;padding:0 5px;margin-left:6px}
 /* 残タスクの行 */
 .mt{padding:8px 12px;border-bottom:1px solid rgba(255,255,255,.09);display:flex;gap:9px;align-items:flex-start}
-.mt .k{flex:none;width:64px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:12px;
+.mt .k{flex:none;width:56px;text-align:center;font-family:"IBM Plex Mono",monospace;font-size:10.5px;
  border:1px solid var(--line);border-radius:5px;padding:2px 0;color:var(--dim)}
 .mt.late .k{border-color:#FF7A5C;color:#FFB9A6;background:rgba(255,90,60,.16)}
 .mt.soon .k{border-color:var(--acc);color:#FFDD9B;background:rgba(255,194,74,.14)}
-.mt .x{font-size:14px;line-height:1.55;color:#F2F6FF}
-.mt .s{font-family:"DotGothic16",monospace;font-size:11.5px;color:var(--dim);margin-top:3px}
+.mt .x{font-size:12.5px;line-height:1.5;color:#F2F6FF}
+.mt .s{font-family:"DotGothic16",monospace;font-size:10px;color:var(--dim);margin-top:2px}
 .mt .s em{font-style:normal;color:#FFB9A6}
 .mt input{flex:none;width:17px;height:17px;margin:1px 0 0;cursor:pointer;accent-color:#7DE39B}
 .mt .nm2{flex:none;margin-left:auto;font-family:"DotGothic16",monospace;font-size:10px;border-radius:5px;
@@ -578,41 +573,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:linear-gradient(165deg,#1B2E66,#0A1231);color:#fff;
  border:2px solid rgba(255,255,255,.8);padding:4px 11px;cursor:pointer}
 .ctl button.on{border-color:var(--acc);color:var(--acc)}
-.sum{position:absolute;left:10px;right:10px;top:10px;bottom:10px;z-index:7;
- display:flex;flex-direction:column;overflow:hidden}
-.sumh{padding:12px 16px;font-family:"Reggae One",sans-serif;font-size:21px;letter-spacing:.08em;
- border-bottom:2px solid rgba(255,255,255,.35);
- background:linear-gradient(180deg,#FFF6D2 0%,#FFD980 44%,#D98F1C 56%,#FFE9A8 100%);
- -webkit-background-clip:text;background-clip:text;color:transparent;
- filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
-.sumb{overflow:auto;padding:0 0 10px}
-.sumb::-webkit-scrollbar{width:9px}
-.sumb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:5px}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;padding:14px 16px}
-.scard{border:2px solid rgba(255,255,255,.38);border-radius:12px;padding:14px 16px 12px;
- background:rgba(255,255,255,.07);cursor:pointer;display:flex;flex-direction:column;gap:10px}
-.scard:hover{border-color:var(--acc);background:rgba(255,255,255,.13)}
-.scard .r1{display:flex;align-items:center;gap:10px}
-.scard .bn{font-size:21px;font-weight:700;color:#fff;letter-spacing:.02em}
-.scard .wxb{font-family:"IBM Plex Mono",monospace;font-size:22px;line-height:1}
-.scard .wxn{margin-left:auto;font-size:13px;font-weight:700;white-space:nowrap}
-.scard .wxn.fine{color:#FFD35C} .scard .wxn.partly{color:#FFE9A8}
-.scard .wxn.cloud{color:#C6D0DE} .scard .wxn.rain{color:#8ACDF0}
-.scard .wxn.storm{color:#FF9C4A} .scard .wxn.fog{color:#93A0B4}
-.scard .r2{display:flex;gap:7px;flex-wrap:wrap;margin-top:2px}
-.scard .kv{font-family:"DotGothic16",monospace;font-size:12px;color:var(--dim);
- border:1px solid var(--line);border-radius:6px;padding:2px 9px}
-.scard .kv b{color:#fff;font-weight:400;font-size:14px}
-.scard .kv.hot{border-color:#FF7A5C;color:#FFB9A6;background:rgba(255,90,60,.14)}
-.scard .kv.by2{border-color:var(--acc);color:var(--acc)}
-.scard .tp2{display:flex;flex-direction:column;gap:3px}
-.scard .tp2 .lb{font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--gold);letter-spacing:.08em}
-.scard .tp2 .tt{font-size:16px;line-height:1.5;color:#fff;font-weight:500}
-.scard .tp2.none .tt{color:#93A0B4;font-size:14px;font-weight:400}
-.scard .wt{font-size:13px;line-height:1.55;color:#FFD9A6;
- border-left:3px solid rgba(255,194,74,.6);padding-left:10px}
-.sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
- background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
 .leftcol{position:absolute;left:10px;top:48px;z-index:6;display:flex;flex-direction:column;
  gap:8px;width:min(390px,46vw);max-height:calc(100% - 100px);overflow:auto}
 .leftcol::-webkit-scrollbar{width:0}
@@ -621,8 +581,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .ordbar b{color:var(--acc)}
 .ordbar .wx{display:inline-block;margin-left:8px;padding:1px 8px;border-radius:8px;
  border:1px solid var(--line);background:rgba(255,255,255,.12);font-size:11px;color:#fff}
-.tabs button.allt{border-color:rgba(255,255,255,.45)}
-.tabs button.allt.on{background:linear-gradient(180deg,#8A6A20,#3A2A08);border-color:var(--gold)}
 .tabs button .wxi{font-family:"IBM Plex Mono",monospace;font-weight:400;margin-right:6px;font-size:13px}
 .tabs button .wxi.fine{color:#FFD35C}
 .tabs button .wxi.partly{color:#FFE9A8}
@@ -672,7 +630,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
   <div class="hill" id="hill"></div>
   <div class="grd"></div>
   <div class="rn"></div><div class="fg"></div><div class="fl"></div>
-  <div class="sum dqw" id="sum" hidden><div class="sumh">全体</div><div class="sumb" id="sumb"></div></div>
   <div class="stage" id="stage"><div class="world" id="world"><div class="room" id="room"></div></div></div>
   <div class="ctl"><button id="cam">自動カメラ</button><button id="rs">正面</button>
     <button id="zi">＋</button><button id="zo">−</button></div>
@@ -881,72 +838,7 @@ function dueCls(t){ if(!t.due) return '';
  return (d-n)/86400000<=3?'soon':''; }
 function dueTxt(t){ return t.due?t.due.replace('-','/'):'期限なし'; }
 
-// 左端の「全体」タブ。部屋は描かず、全事業を1枚にまとめる
-function renderSum(){
- const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
-       is=document.getElementById('iss'), sm=document.getElementById('sum');
- [st,lc,is].forEach(e=>{if(e) e.hidden=true;});
- document.querySelector('.ctl').hidden=true;
- sm.hidden=false;
- const rows=S.rooms.map((r,i)=>{
-  const w=WX[r.wx]||WX.fog, mine=(r.mine||[]).filter(mtLive),
-        late=mine.filter(t=>t.due&&t.due<TODAY).length, T=r.tr||{};
-  // 載せるのは3つだけ。①伸びているか（天気）②いちばんの課題 ③気にしている数字
-  const top=(r.issues||[])[0];
-  // 「注意」は一目で読める1文だけ。長い説明は部屋の中で見る
-  let watch='';
-  if(T.watch){
-   watch=String(T.watch).split('／')[0].split('。')[0].trim();
-   if(watch.length>46) watch=watch.slice(0,45)+'…';
-  }
-  return `<div class="scard" data-i="${i}">
-   <div class="r1"><span class="wxb wxi ${r.wx}">${w.i}</span><span class="bn">${esc(r.biz)}</span>
-    <span class="wxn ${r.wx}">${w.n}</span></div>
-   ${top?`<div class="tp2"><span class="lb">いちばんの課題</span>
-     <span class="tt">${esc(top.title)}</span></div>`
-        :`<div class="tp2 none"><span class="tt">${esc(T.dormant||'課題は挙がっていない')}</span></div>`}
-   ${watch?`<div class="wt">${esc(watch)}</div>`:''}
-   <div class="r2"><span class="kv">課題 <b>${(r.issues||[]).length}</b></span>
-    ${mine.length?`<span class="kv${late?' hot':''}">あなたの残 <b>${mine.length}</b>${late?`／期限切れ ${late}`:''}</span>`:''}
-    ${T.by?`<span class="kv by2">${esc(T.by)}</span>`:''}</div></div>`;}).join('');
- // 自分のタスクは全事業を1本にまとめて期限順。事業ごとに探しにいかなくて済むように
- const all=[]; S.rooms.forEach(r=>(r.mine||[]).filter(mtLive).forEach(t=>all.push(t)));
- all.sort((a,b)=>((a.due?0:1)-(b.due?0:1))||String(a.due||'').localeCompare(String(b.due||''))
-   ||String(a.d||'').localeCompare(String(b.d||'')));
- const FLAG={mis:'割り当てミスの疑い',dup:'重複',done:'完了済みの疑い'};
- let tl=all.map(t=>`<div class="mt ${dueCls(t)}">
-   <input type="checkbox" data-k="${esc(mtKey(t))}" title="済にする">
-   <span class="k">${esc(dueTxt(t))}</span>
-   <span><span class="x">${esc(t.t)}</span>
-    <span class="s">${esc(t.b)}｜${esc(t.m)}｜${esc((t.d||'').replace('-','/'))} 発生`
-   +(t.flag&&FLAG[t.flag]?`　<em>${FLAG[t.flag]}</em>`:'')+`</span></span>
-   <button class="nm2" data-n="${esc(mtKey(t))}">自分のじゃない</button></div>`).join('');
- if(!all.length) tl='<div class="ic"><div class="t">あなたの手が要る残タスクはありません</div></div>';
- document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
-  +`<div class="sech">あなたの残タスク ${all.length}件（全事業まとめ・期限順）</div>`+tl;
- document.getElementById('sumb').querySelectorAll('.scard').forEach(c=>c.onclick=()=>{
-  cur=+c.dataset.i; render();
-  const b=document.querySelector('#tabs button[data-i="'+cur+'"]');
-  if(b) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});});
- document.getElementById('sumb').querySelectorAll('.mt input').forEach(b=>b.onchange=()=>{
-  if(b.checked) MDONE.add(b.dataset.k); else MDONE.delete(b.dataset.k);
-  mdSet([...MDONE]); mdDirty=true; render();});
- document.getElementById('sumb').querySelectorAll('.mt .nm2').forEach(b=>b.onclick=()=>{
-  const k=b.dataset.n;
-  if(MNOT[k]!==undefined) delete MNOT[k]; else MNOT[k]='画面で「自分のじゃない」を指定';
-  mnSet(MNOT); mdDirty=true; render();});
- document.getElementById('tabs').innerHTML=tabsHTML();
- document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));
-}
-
 function render(){
- const sm=document.getElementById('sum');
- if(cur<0) return renderSum();
- const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
-       is=document.getElementById('iss');
- [st,lc,is].forEach(e=>{if(e) e.hidden=false;});
- document.querySelector('.ctl').hidden=false;
- if(sm) sm.hidden=true;
  const R=S.rooms[cur], MINE=(R.mine||[]).filter(mtLive);
  const _w=document.querySelector('.wrap'); if(_w) _w.dataset.wx=R.wx||'fine';
  const P=R.pal||{}, st0=document.getElementById('stage');
@@ -972,7 +864,7 @@ function render(){
  const top3=MINE.slice(0,3);
  h+=`<div class="quest" style="left:646px;top:492px"><div class="pole"></div><div class="qb">
    <div class="qt">依頼の立て札</div>`;
- top3.slice(0,2).forEach(t=>{h+=`<div class="qi"><b>${esc(dueTxt(t))}</b>${esc(t.t.slice(0,26))}</div>`;});
+ top3.forEach(t=>{h+=`<div class="qi"><b>${esc(dueTxt(t))}</b>${esc(t.t.slice(0,30))}</div>`;});
  if(!top3.length) h+='<div class="qi" style="text-align:center">依頼はありません</div>';
  h+='</div></div>';
 
@@ -1009,7 +901,7 @@ function render(){
    nick:'代表',role:'あなた',state:'running',label:''};
  h+=`<div class="unit hero running" style="left:770px;top:400px">
    <div class="bill">
-    <div class="cnt ${MINE.length?(late?'late':''):'zero'}">残 ${MINE.length}${late?'　期限切れ '+late:''}</div>
+    <div class="cnt ${MINE.length?'':'zero'}">残 ${MINE.length}${late?'　期限切れ '+late:''}</div>
     ${avatar(HERO,true)}
     <div class="plate"><div class="nm">代表</div><div class="rl">あなた ／ ${esc(R.biz)}</div></div>
     ${MINE.length?`<div class="bub">${esc(MINE[0].t.slice(0,40))}<span class="w" style="color:#FFC24A">${esc(dueTxt(MINE[0]))}</span></div>`
@@ -1051,7 +943,7 @@ function render(){
     :`<span class="tr w">業績のトレンドが登録されていません</span>`)
   +`<span>課題 ${(R.issues||[]).length}件（重いもの ${R.heavy||0}件）— 課題の量は天気に入れていません</span>`;
  document.getElementById('tabs').innerHTML=tabsHTML();
- document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));
+ document.querySelectorAll('#tabs button').forEach((b,i)=>b.classList.toggle('on',i===cur));
 }
 
 function renderPane(){
@@ -1109,26 +1001,17 @@ function renderPane(){
 document.getElementById('sw0').onclick=()=>{pane=0;renderPane();};
 document.getElementById('sw1').onclick=()=>{pane=1;renderPane();};
 
-function tabsHTML(){
- const all=S.rooms.reduce((a,r)=>a+(r.mine||[]).filter(mtLive).length,0);
- const iss=S.rooms.reduce((a,r)=>a+(r.issues||[]).length,0);
- // 左端は事業ではなく「全体」。ここに全社の天気・課題・自分のタスクをまとめる
- let out=`<button data-i="-1" class="allt" title="全事業のまとめ">全体<i>${iss}</i>`
-  +(all?`<u>残${all}</u>`:'')+`</button>`;
- out+=S.rooms.map((r,i)=>{
-  const n=(r.mine||[]).filter(mtLive).length;
-  return `<button data-i="${i}" title="${(WX[r.wx]||WX.fine).n}">`
-  +`<b class="wxi ${r.wx}">${(WX[r.wx]||WX.fine).i}</b>${esc(r.biz)}<i>${(r.issues||[]).length}</i>`
-  +(n?`<u>残${n}</u>`:'')+`</button>`;}).join('');
- return out;}
+function tabsHTML(){return S.rooms.map((r,i)=>{
+ const n=(r.mine||[]).filter(mtLive).length;
+ return `<button data-i="${i}" title="${(WX[r.wx]||WX.fine).n}">`
+ +`<b class="wxi ${r.wx}">${(WX[r.wx]||WX.fine).i}</b>${esc(r.biz)}<i>${(r.issues||[]).length}</i>`
+ +(n?`<u>残${n}</u>`:'')+`</button>`;}).join('');}
 document.getElementById('tabs').innerHTML=tabsHTML();
 document.getElementById('tabs').addEventListener('click',e=>{
  const b=e.target.closest('button'); if(!b)return; cur=+b.dataset.i; render();});
 function gotoTab(i){
  const n=S.rooms.length; if(!n)return;
- // -1（全体）から n-1 までを一周させる
- const m=n+1;
- cur=(((i+1)%m)+m)%m-1; render();
+ cur=(i%n+n)%n; render();
  const b=document.querySelector('#tabs button[data-i="'+cur+'"]');
  if(b) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
