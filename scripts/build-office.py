@@ -26,8 +26,8 @@ MEMBERS = [
     ('reviewer',       '検品くん',      '品質審査',   'short', '#5B6B7C', '#33302C', 'glass'),
 ]
 AXIS_OWNER = {'csat': 'product', 'hiring': 'hr', 'pl': 'planning'}
-BIZ_ORDER = ['POTEX', 'EXTAGE', 'Tクリニック', 'origin', 'passlabo',
-             'エクソソーム', '失業保険', '補助金コンサル', 'MUSE', 'AI company']
+# 2026-09-09、代表の指示で3事業に絞った。外した分は data/archive/ に退避
+BIZ_ORDER = ['EXTAGE', 'passlabo', 'Tクリニック']
 
 ISS = json.load(io.open(os.path.join(HUB, 'data', 'issues.json'), encoding='utf-8'))
 
@@ -190,14 +190,8 @@ for biz in BIZ_ORDER:
                       issues=items, staff=staff[:6], mine=mine,
                       wx=wx, heavy=heavy, tr=TREND.get('biz', {}).get(biz)))
 
+# 2026-09-09、全社/誤アサインの部屋は代表の指示で廃止
 _placed = set(BIZ_ORDER)
-for _b in ['全社', '誤アサイン']:
-    _m = sorted([t for t in MYTASKS if t['b'] == _b], key=_tkey)
-    if _m:
-        rooms.append(dict(biz=_b, pal=PALETTE.get('MUSE', DEFAULT_PAL),
-                          order='' if _b == '全社' else 'Circleback の割り当てミス',
-                          issues=[], staff=['chief-of-staff', 'kansayaku'], mine=_m,
-                          wx='fine', heavy=0, tr=None))
 
 STATE = dict(now=NOW, crew=crew, rooms=rooms, arts=ARTS, quotes=QUOTES,
              myt=dict(asOf=MYT.get('asOf',''), window=MYT.get('window',''),
