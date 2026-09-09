@@ -1,0 +1,300 @@
+<title>貼るだけの3通</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --bg:#F7F7F5; --card:#FFFFFF; --sunk:#EFEFEC;
+  --rule:#DCDCD6; --rule-2:#EAEAE5;
+  --ink:#16181C; --ink-2:#4B5157; --ink-3:#868C93;
+  --go:#1F6E4A; --go-f:rgba(31,110,74,.09);
+  --warn:#A8541C; --warn-f:rgba(168,84,28,.09);
+  --shadow:0 1px 2px rgba(20,22,26,.05), 0 10px 26px -16px rgba(20,22,26,.28);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131518; --card:#1B1E22; --sunk:#171A1D;
+    --rule:#2E3338; --rule-2:#24282C;
+    --ink:#EDEEEF; --ink-2:#AEB4BA; --ink-3:#7B8188;
+    --go:#5CC28D; --go-f:rgba(92,194,141,.12);
+    --warn:#E0955C; --warn-f:rgba(224,149,92,.12);
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 30px -18px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131518; --card:#1B1E22; --sunk:#171A1D;
+  --rule:#2E3338; --rule-2:#24282C;
+  --ink:#EDEEEF; --ink-2:#AEB4BA; --ink-3:#7B8188;
+  --go:#5CC28D; --go-f:rgba(92,194,141,.12);
+  --warn:#E0955C; --warn-f:rgba(224,149,92,.12);
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 12px 30px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+  font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased;font-feature-settings:"palt" 1}
+.wrap{max-width:780px;margin:0 auto;padding:0 20px 90px}
+h1{font-size:clamp(25px,4.4vw,34px);font-weight:900;letter-spacing:.01em;line-height:1.35;margin:0;text-wrap:balance}
+h2{font-size:19px;font-weight:700;margin:0;line-height:1.45}
+p{margin:0}
+.mono{font-family:"IBM Plex Mono",ui-monospace,monospace}
+.eyebrow{font-family:"IBM Plex Mono",monospace;font-size:10.5px;letter-spacing:.2em;
+  text-transform:uppercase;color:var(--ink-3)}
+
+header{padding:56px 0 0;display:flex;flex-direction:column;gap:14px}
+.lead{font-size:15.5px;color:var(--ink-2)}
+.note{margin-top:20px;border-left:3px solid var(--warn);background:var(--warn-f);
+  padding:14px 18px;border-radius:0 3px 3px 0;font-size:14.5px;line-height:1.75}
+
+.card{margin-top:34px;background:var(--card);border:1px solid var(--rule);border-radius:4px;
+  box-shadow:var(--shadow);overflow:hidden}
+.chead{padding:18px 22px;border-bottom:1px solid var(--rule-2);display:flex;
+  align-items:flex-start;gap:14px;flex-wrap:wrap}
+.chead .meta{flex:1;min-width:200px;display:flex;flex-direction:column;gap:4px}
+.chead .to{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-3);letter-spacing:.02em}
+.tagrow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.tag{font-family:"IBM Plex Mono",monospace;font-size:10.5px;padding:1px 7px;border-radius:3px;
+  border:1px solid var(--ink-3);color:var(--ink-3);white-space:nowrap}
+.tag.hot{border-color:var(--warn);color:var(--warn);background:var(--warn-f)}
+.copy{flex:none;font-family:"Zen Kaku Gothic New",sans-serif;font-size:13.5px;font-weight:700;
+  border:1px solid var(--go);background:var(--go-f);color:var(--go);
+  padding:7px 18px;border-radius:3px;cursor:pointer;transition:.12s;white-space:nowrap}
+.copy:hover{background:var(--go);color:var(--card)}
+.copy:active{transform:translateY(1px)}
+.copy.done{background:var(--go);color:var(--card);border-color:var(--go)}
+.copy:focus-visible{outline:2px solid var(--go);outline-offset:2px}
+
+pre{margin:0;padding:22px;background:var(--sunk);border:none;overflow-x:auto;
+  font-family:"Zen Kaku Gothic New",sans-serif;font-size:14.5px;line-height:1.85;
+  white-space:pre-wrap;word-break:break-word;color:var(--ink)}
+.after{padding:14px 22px 18px;border-top:1px solid var(--rule-2);font-size:13px;color:var(--ink-3);line-height:1.7}
+.after b{color:var(--ink-2);font-weight:600}
+
+footer{margin-top:52px;padding-top:20px;border-top:1px solid var(--rule);
+  font-size:12.5px;color:var(--ink-3);line-height:1.8}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">2026-09-09</div>
+  <h1>貼るだけの3通</h1>
+  <p class="lead">ドラフトを、そのまま送れる形にしました。<strong>コピーして貼るだけです。</strong></p>
+  <div class="note">
+    <strong>私からは送っていません。</strong>Slack・LINE・メールを送る手段を持っていないためです。
+    最後の一手だけ、あなたの手でお願いします。
+  </div>
+</header>
+
+<!-- 1 -->
+<div class="card">
+  <div class="chead">
+    <div class="meta">
+      <h2>1. EXTAGE｜toC商品 3案と優先順位</h2>
+      <div class="to">加藤瞭さん・福田卓馬さん宛 ／ Slack想定</div>
+      <div class="tagrow"><span class="tag">15日放置</span><span class="tag">MTG3回ぶんの結論</span></div>
+    </div>
+    <button class="copy" data-t="m1">コピー</button>
+  </div>
+<pre id="m1">お疲れさまです。toC商品の件、案を3つに整理しました。優先順位もつけています。
+
+まず前提から。売る相手を決めました。**福田さんのYouTube視聴者**です。
+8/25・8/27・8/30 の3回、ここが決まっていなかったので議論が回っていました。ここを固定します。
+
+いま分かっている実数：
+・長尺1本目が公開1日未満でリストイン30件、再生2,000回超
+・コンテンツの型は「アニメ・漫画キャラのペイン × AI活用で解決」に収束
+・ベンチマークは AI木曜会（¥5,980/月・会員2,000人超）
+
+──────────
+
+案1：月額サブスク型コミュニティ（推奨）
+¥980 で入り、プラグイン/エージェントの追加課金で月 ¥10,000 まで伸ばす。
+・8/30 に方向性が固まった案。議論をやり直さずに進められる
+・チャーン対策にプラグイン依存の設計が要る、という認識も既に一致している
+・YouTubeが毎週出る前提なら、月額との相性がいちばん良い
+リスク：¥980 は入口が軽い分チャーンが読めない。AI木曜会が ¥5,980 で2,000人いるなら、価格は上げられる可能性がある。
+
+案2：ワンショット講座（¥30,000〜50,000）
+売上が先に立つ。チャーン管理が要らない。
+ただし買い切りなので次の商品を作り続ける必要があり、長尺が週1本のペースだと供給が追いつかない。
+
+案3：無料コミュニティ ＋ 高単価個別（B向けへの橋）
+C向けを集客装置と割り切り、法人案件（400万円〜のAIパッケージ）へ送る。
+ただし B向けもLP・営業導線が未着手。橋の先がまだ無い。
+
+──────────
+
+優先順位は 案1 → 案3 → 案2 です。
+
+1. 案1は議論が既に到達している場所。3回ぶんの結論を捨てずに進められる
+2. 案3は案1と両立する。サブスクの中から法人案件が出れば、それがそのまま案3になる
+3. 案2だけは他と両立しない。買い切りにすると月額の会員基盤が作れない
+
+──────────
+
+次にやりたいこと：リストイン30件に属性アンケートを出させてください。3問で十分です。
+
+1. お仕事は（会社員／個人事業／経営者／学生・その他）
+2. AIを何に使いたいか（業務効率化／集客／制作／その他）
+3. 学習にかけている月額は（0円／〜3,000円／〜10,000円／それ以上）
+
+3問目が価格を決めます。ここが取れれば ¥980 か ¥5,980 かを推測で決めずに済みます。
+
+加藤さん、8/30にお願いしたファネルの数字（LP遷移数・契約率・チャーン率・売上見込み）とあわせて、今週中にお願いできますか。</pre>
+  <div class="after"><b>この後：</b>加藤さんからファネルの数字が出たら、価格帯を確定します。</div>
+</div>
+
+<!-- 2 -->
+<div class="card">
+  <div class="chead">
+    <div class="meta">
+      <h2>2. passlabo｜受験万博（9/20）の営業誘導設計</h2>
+      <div class="to">水島叶翔さん・宇佐見天彗さん宛 ／ Slack・LINE想定</div>
+      <div class="tagrow"><span class="tag hot">9/20まで残11日</span><span class="tag">当日の台本に入れる必要あり</span></div>
+    </div>
+    <button class="copy" data-t="m2">コピー</button>
+  </div>
+<pre id="m2">お疲れさまです。受験万博の営業誘導、設計をまとめました。水島さん中心で進めてください。
+
+いちばん効く一手は、もう分かっています。
+
+無料相談フォームの回答率が 約3% → 0.25% に落ちていますが、8/26の定例に理由が書かれています。
+「以前はライブ配信内での案内が数値を押し上げていた」
+
+受験万博はライブです。消えた装置を、その日に戻せます。
+
+──────────
+
+当日の設計
+
+1. 配信の中に、口頭案内の枠を明示的に置く
+・台本に「ここで案内する」と書いてください。流れで言えるだろう、では言い忘れます
+・置く場所は2回。中盤（集中が続いている間）と、終盤（サイン会物販の直前）
+・「審査」は口頭で言わない。フォームの一番下に書く方針と揃えます
+・宇佐見さんの口から言う。他の人が言うと数字が落ちます
+
+2. 当日限定のフォームURLを用意する
+万博経由と通常LINE経由を分けて数える。これをやらないと当日の効果が測れません。
+
+3. オフラインとオンラインで導線を変える
+・オフライン250名：サイン会の物理的な列がある。その場で紙の申込を渡すのが最短
+・オンライン750名：配信中のチャット固定＋終了直後のLINE一斉配信。終了後30分以内が勝負
+
+4. 面談キャパを先に出す
+1,000名に案内を出したとき、何人まで面談を捌けるか。ここがまだ空いています。
+捌ける数より申込が多くなるなら、先着で締めるか日程を翌週まで広げるか。
+捌けない数の申込を取ると、待たせた人が冷めます。
+
+──────────
+
+数字の置き方
+
+月5名の入塾（最低ライン）に必要なフォーム件数を、フォーム→面談50%・面談→入塾50%と仮に置くと20件。
+
+・フォーム率 0.25%（現状）→ 1,000名から 2.5件
+・フォーム率 3.0%（以前の水準）→ 1,000名から 30件
+
+3%に戻せば、1回の万博で月間目標を超えます。現状のままだと2.5件で届きません。
+※ 歩留まりの2つは仮置きです。フォーム→面談→入塾を数える表ができたら実測に置き換えます。
+
+──────────
+
+水島さんに決めていただきたいこと：面談の実施キャパ（何人まで捌けるか）。
+ここが出ないと、案内の出し方（全員へ一斉／段階的／先着）が決められません。今週中にお願いします。</pre>
+  <div class="after"><b>この後：</b>面談キャパが出たら、当日の台本に案内枠を書き込みます。</div>
+</div>
+
+<!-- 3 -->
+<div class="card">
+  <div class="chead">
+    <div class="meta">
+      <h2>3. Tクリニック｜銀座院の口コミ増加</h2>
+      <div class="to">金子さん宛 ／ カウンセラーへの依頼文つき</div>
+      <div class="tagrow"><span class="tag">16日放置</span><span class="tag hot">送る前に母数の確認が要る</span></div>
+    </div>
+    <button class="copy" data-t="m3">コピー</button>
+  </div>
+<pre id="m3">金子さん
+
+お疲れさまです。銀座院の口コミの件、カウンセラーの皆さんへの依頼文を作りました。
+そのまま転送していただける形にしています。
+
+先に1点だけ確認をお願いします。
+自社サイトには「口コミ500件以上・4.8以上」と出ていますが、8/24にいただいた数字は銀座院304件・4.5でした。
+全院合算か銀座単体か、集計時点がいつか、が食い違っています。
+どちらが正しいか教えてください。依頼を出す前に揃えたいです。
+
+──────── ここから転送用 ────────
+
+カウンセラーの皆さん
+
+お疲れさまです。
+
+いま銀座院の口コミが304件、近隣の競合が2,052件あります。
+カウンセリングで「他院と比べています」と言われる割合が57%で、その比較の場面でここが効いています。
+
+施術の質は足りています。伝わる場所に残っていないだけです。
+
+お願いしたいのは1つだけです。
+
+施術後、満足していただけた方に、会計の直前で一言お願いします。
+
+「もしよろしければ、銀座で同じように悩んでいる方の参考になるので、感想を残していただけませんか」
+
+・「銀座で」を必ず入れてください。場所の言葉が本文に入ると、地名で検索したときに見つかりやすくなります
+・タイミングは会計の直前です。施術直後は、まだ状態が落ち着いていません
+
+やってはいけないこと
+
+割引・特典・ポイントなど、見返りを提示しての依頼は各プラットフォームの規約違反です。
+「〇〇していただいたら□□します」の形は使わないでください。院全体のアカウントが止まるリスクがあります。
+
+お願いするのは「感想を残していただけませんか」まで。それ以上は言わないでください。
+
+──────── 転送用ここまで ────────
+
+進め方の提案です。
+
+1. 母数の定義を先に揃える（全院合算か院別か、集計時点はいつか）
+2. 月あたり何件増やすかの目標を置く。競合との差1,748件を12ヶ月で埋めるなら月146件。現実的な数字に置き直してください
+3. カウンセラー別の依頼件数は追わない。言えているかどうかだけを1on1で確認する
+
+件数をノルマにすると、見返りを提示する人が出ます。そこが一番のリスクです。</pre>
+  <div class="after"><b>送る前に：</b>口コミ件数の母数（全院合算か銀座単体か）を金子さんに確認してください。<b>本文の304件がずれていると、依頼そのものの説得力が落ちます。</b></div>
+</div>
+
+<footer>
+  claude-hub/content/drafts/ に同じ内容のファイルがあります。<br>
+  POTEX向けの3通（フロント商品設計・採用目標・YOUTRUSTスカウト）も作ってありますが、タスク一覧からは外してあります。必要なときに出します。
+</footer>
+</div>
+
+<script>
+document.querySelectorAll('.copy').forEach(function(b){
+  b.addEventListener('click', function(){
+    var el = document.getElementById(b.dataset.t);
+    var txt = el.textContent;
+    var done = function(){
+      var old = b.textContent;
+      b.textContent = 'コピーしました'; b.classList.add('done');
+      setTimeout(function(){ b.textContent = old; b.classList.remove('done'); }, 1800);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(txt).then(done, function(){ fallback(txt, done); });
+    } else { fallback(txt, done); }
+  });
+});
+function fallback(txt, done){
+  var ta = document.createElement('textarea');
+  ta.value = txt; ta.setAttribute('readonly','');
+  ta.style.position='fixed'; ta.style.left='-9999px';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); done(); } catch(e){
+    var sel = window.getSelection(); var r = document.createRange();
+    r.selectNodeContents(document.getElementById('m1')); sel.removeAllRanges(); sel.addRange(r);
+  }
+  document.body.removeChild(ta);
+}
+</script>
