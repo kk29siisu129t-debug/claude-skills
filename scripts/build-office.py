@@ -109,10 +109,17 @@ def ago(ts):
 QP = os.path.join(HUB, 'data', 'quotes.json')
 QUOTES = json.load(io.open(QP, encoding='utf-8'))['quotes'] if os.path.isfile(QP) else []
 
-# ── 熟練度。根拠は稼働記録と蓄積ファイルの実データだけ。飾りの数字は入れない ──
-EXP_RULE = [('稼働を終えた', 'done', 10), ('成果物を残した', 'out', 20),
-            ('公開まで出した', 'art', 15), ('詰まった記録を残した', 'blocked', 5)]
-LV_TABLE = [0, 50, 120, 220, 350, 510, 700, 940, 1240]   # Lv1..Lv9 の下限
+# ── 専門知識の質。稼働した回数ではなく、蓄積の中身で測る（2026-09-10 代表指摘）──
+#    「動いたかどうかじゃなくて」＝ done や成果物の数は入れない
+QUAL = [('型',       '再現できるやり方を持っている',           25),
+        ('外した',   '外した事例を書いている（判断が校正される）', 30),
+        ('確定',     '出した指摘が確定した',                   20),
+        ('事業知識', '事業ごとの違いを知っている',              10),
+        ('外部の型', '社外の型を当てて結果まで書いた',          40),
+        ('未確認',   '出しっぱなしの指摘',                    -5)]
+LV_TABLE = [0, 50, 120, 220, 350, 510, 700, 940, 1240]
+TITLES = ['見習い', '駆け出し', '一人前', '玄人', '目利き', '練達', '師範', '達人', '名人']
+
 
 def _lv(exp):
     n = 1
@@ -123,36 +130,40 @@ def _lv(exp):
     pct = 100 if nxt is None else int((exp - base) / (nxt - base) * 100)
     return n, nxt, max(0, min(100, pct))
 
+
+def _cells(ln):
+    if not ln.strip().startswith('|'): return None
+    c = [x.strip() for x in ln.strip().strip('|').split('|')]
+    if all(re.fullmatch(r'[-:—\s]*', x) for x in c): return None
+    return c
+
+
 def skill_of(slug):
-    c = {'done': 0, 'out': 0, 'art': 0, 'blocked': 0}
-    for r in runs:
-        if r.get('crew') != slug: continue
-        stt = r.get('state') or r.get('status') or ''
-        if stt in c: c[stt] += 1
-        if r.get('out'): c['out'] += 1
-        if r.get('art'): c['art'] += 1
     kb = os.path.join(CREWD, slug + '.md')
-    chars = len(io.open(kb, encoding='utf-8').read()) if os.path.isfile(kb) else 0
-    # 外部から取り込んだ型は、結果まで書けた行だけ数える。読んだだけは積読
-    got = 0
+    v = dict(型=0, 確定=0, 未確認=0, 外した=0, 事業知識=0, 外部の型=0)
     if os.path.isfile(kb):
         t = io.open(kb, encoding='utf-8').read()
-        sec = t.split('## 外部から取り込んだ型')
-        if len(sec) > 1:
-            body = sec[1].split(chr(10) + '## ')[0]
-            for ln in body.split(chr(10)):
-                cells = [x.strip() for x in ln.split('|')[1:-1]]
-                if len(cells) < 5: continue
-                # 見出し行と区切り線（|---|---|）を数えないこと。結果が空欄の行も積読なので数えない
-                if all(re.fullmatch(r'[-:—\s]*', x) for x in cells): continue
-                if cells[0] in ('日付', '—', ''): continue
-                if cells[4] in ('', '—', '結果'): continue
-                if True:
-                    got += 1
-    exp = (c['done'] * 10 + c['out'] * 20 + c['art'] * 15 + c['blocked'] * 5
-           + int(chars / 100) + got * 30)
+        v['型'] = len(re.findall(r'^###\s*型\s*\d+', t, re.M))
+        name = None
+        for ln in t.split(chr(10)):
+            h = re.match(r'^##\s+(.+?)\s*$', ln)
+            if h:
+                name = h.group(1); continue
+            c = _cells(ln)
+            if not c or not name: continue
+            if c[0] in ('日付', '事業', '') or c[0].startswith('—'): continue
+            if '指摘の履歴' in name and len(c) >= 4:
+                if '未確認' in c[3]: v['未確認'] += 1
+                elif c[3] not in ('', '—'): v['確定'] += 1
+            elif '外した事例' in name and len(c) >= 4 and c[1] not in ('', '—'):
+                v['外した'] += 1
+            elif '事業ごとの注意点' in name and len(c) >= 2 and c[1] not in ('', '—'):
+                v['事業知識'] += 1
+            elif '外部から取り込んだ型' in name and len(c) >= 5 and c[4] not in ('', '—', '結果'):
+                v['外部の型'] += 1
+    exp = sum(v[k] * w for k, _d, w in QUAL for kk in [k] if kk == k) if False else         sum(v[k] * w for k, _d, w in QUAL)
     lv, nxt, pct = _lv(exp)
-    return dict(exp=exp, lv=lv, nxt=nxt, pct=pct, chars=chars, got=got, **c)
+    return dict(exp=exp, lv=lv, nxt=nxt, pct=pct, title=TITLES[min(lv - 1, len(TITLES) - 1)], **v)
 
 crew = {}
 for slug, nick, role, hair, col, hairc, prop in MEMBERS:
@@ -671,6 +682,9 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  -webkit-background-clip:text;background-clip:text;color:transparent;
  filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
 .lvn{font-size:16px;font-weight:700;color:#fff}
+.ttl{font-family:"Reggae One",sans-serif;font-size:12px;color:var(--gold);letter-spacing:.06em}
+.lvc .l3 b{color:#fff;font-size:13px}
+.lvc .mi{color:#FFB9A6}
 .lvr{margin-left:auto;font-family:"DotGothic16",monospace;font-size:11px;color:var(--dim)}
 .lvc .bar{height:9px;border-radius:5px;background:rgba(0,0,0,.35);
  border:1px solid rgba(255,255,255,.25);overflow:hidden}
@@ -995,23 +1009,25 @@ function renderSum(){
    <button class="nm2" data-n="${esc(mtKey(t))}">自分のじゃない</button></div>`).join('');
  if(!all.length) tl='<div class="ic"><div class="t">あなたの手が要る残タスクはありません</div></div>';
  // 乗組員の熟練度。根拠は稼働記録と蓄積ファイルだけ
- const EXPW=[['稼働','done',10],['成果物','out',20],['公開','art',15],['詰まり','blocked',5]];
+ const QW=[['型','型'],['外した','外した'],['確定した指摘','確定'],['事業知識','事業知識']];
  const cr=Object.keys(S.crew).map(sl=>{const c=S.crew[sl],k=c.skill; if(!k)return'';
-  const parts=EXPW.filter(w=>k[w[1]]).map(w=>`${w[0]} ${k[w[1]]}`).concat(
-    k.chars?[`蓄積 ${(k.chars/1000).toFixed(1)}千字`]:[]);
+  const parts=QW.filter(w=>k[w[1]]).map(w=>`${w[0]} <b>${k[w[1]]}</b>`);
+  const minus=k['未確認']?`<span class="mi">未確認のまま ${k['未確認']}</span>`:'';
   return `<div class="lvc${k.got?'':' nogot'}">
    <div class="l1"><span class="lvb">Lv.${k.lv}</span><span class="lvn">${esc(c.nick)}</span>
-    <span class="lvr">${esc(c.role)}</span></div>
+    <span class="ttl">${esc(k.title)}</span><span class="lvr">${esc(c.role)}</span></div>
    <div class="bar"><i style="width:${k.pct}%"></i></div>
    <div class="l2">${k.nxt?`次のレベルまで <b>${k.nxt-k.exp}</b>`:'最上位'}
     <span class="ex">EXP ${k.exp}</span></div>
-   <div class="l3">${parts.join('　')}</div>
+   <div class="l3">${parts.length?parts.join('　'):'<span class="mi">まだ何も溜まっていない</span>'}　${minus}</div>
    <div class="l4">${k.got?`外部から取り込んだ型 ${k.got}`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
  document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
-  +`<div class="sech">乗組員の熟練度（稼働記録と蓄積から算出）</div>`
+  +`<div class="sech">乗組員の専門知識（蓄積の中身だけで算出。稼働した回数は入れない）</div>`
   +`<div class="lvgrid">${cr}</div>`
-  +`<div class="lvnote">外部から取り込んだ型は、<b>結果まで書けた行だけ</b>数えている。読んだだけは積読なので入らない。いま全員 0。</div>`
+  +`<div class="lvnote">型25／外した事例30／確定した指摘20／事業知識10／<b>外部から取り込んだ型40</b>／未確認のまま −5。`
+   +`<br>外した事例が確定した指摘より重いのは、<b>外した記録の方が判断を締めるから</b>。`
+   +`<br>いま <b>外部から取り込んだ型は全員0</b>。一番重い項目が誰も埋まっていない。</div>`
   +`<div class="sech">あなたの残タスク ${all.length}件（全事業まとめ・期限順）</div>`+tl;
  document.getElementById('sumb').querySelectorAll('.scard').forEach(c=>c.onclick=()=>{
   cur=+c.dataset.i; render();
