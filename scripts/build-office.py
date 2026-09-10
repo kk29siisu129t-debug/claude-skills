@@ -7,7 +7,8 @@ claude-hub/scripts/build-office.py
 
   python scripts/build-office.py [出力パス]
 """
-import io, os, sys, json, re, base64, datetime
+import io
+import re, os, sys, json, re, base64, datetime
 
 HUB = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CREWD = os.path.join(HUB, 'data', 'crew')
@@ -108,6 +109,51 @@ def ago(ts):
 QP = os.path.join(HUB, 'data', 'quotes.json')
 QUOTES = json.load(io.open(QP, encoding='utf-8'))['quotes'] if os.path.isfile(QP) else []
 
+# ── 熟練度。根拠は稼働記録と蓄積ファイルの実データだけ。飾りの数字は入れない ──
+EXP_RULE = [('稼働を終えた', 'done', 10), ('成果物を残した', 'out', 20),
+            ('公開まで出した', 'art', 15), ('詰まった記録を残した', 'blocked', 5)]
+LV_TABLE = [0, 50, 120, 220, 350, 510, 700, 940, 1240]   # Lv1..Lv9 の下限
+
+def _lv(exp):
+    n = 1
+    for i, t in enumerate(LV_TABLE):
+        if exp >= t: n = i + 1
+    nxt = LV_TABLE[n] if n < len(LV_TABLE) else None
+    base = LV_TABLE[n - 1]
+    pct = 100 if nxt is None else int((exp - base) / (nxt - base) * 100)
+    return n, nxt, max(0, min(100, pct))
+
+def skill_of(slug):
+    c = {'done': 0, 'out': 0, 'art': 0, 'blocked': 0}
+    for r in runs:
+        if r.get('crew') != slug: continue
+        stt = r.get('state') or r.get('status') or ''
+        if stt in c: c[stt] += 1
+        if r.get('out'): c['out'] += 1
+        if r.get('art'): c['art'] += 1
+    kb = os.path.join(CREWD, slug + '.md')
+    chars = len(io.open(kb, encoding='utf-8').read()) if os.path.isfile(kb) else 0
+    # 外部から取り込んだ型は、結果まで書けた行だけ数える。読んだだけは積読
+    got = 0
+    if os.path.isfile(kb):
+        t = io.open(kb, encoding='utf-8').read()
+        sec = t.split('## 外部から取り込んだ型')
+        if len(sec) > 1:
+            body = sec[1].split(chr(10) + '## ')[0]
+            for ln in body.split(chr(10)):
+                cells = [x.strip() for x in ln.split('|')[1:-1]]
+                if len(cells) < 5: continue
+                # 見出し行と区切り線（|---|---|）を数えないこと。結果が空欄の行も積読なので数えない
+                if all(re.fullmatch(r'[-:—\s]*', x) for x in cells): continue
+                if cells[0] in ('日付', '—', ''): continue
+                if cells[4] in ('', '—', '結果'): continue
+                if True:
+                    got += 1
+    exp = (c['done'] * 10 + c['out'] * 20 + c['art'] * 15 + c['blocked'] * 5
+           + int(chars / 100) + got * 30)
+    lv, nxt, pct = _lv(exp)
+    return dict(exp=exp, lv=lv, nxt=nxt, pct=pct, chars=chars, got=got, **c)
+
 crew = {}
 for slug, nick, role, hair, col, hairc, prop in MEMBERS:
     mine = [r for r in runs if ALIAS.get(r.get('crew'), r.get('crew')) == slug]
@@ -127,7 +173,8 @@ for slug, nick, role, hair, col, hairc, prop in MEMBERS:
     elif open_task:           st, lb = 'running', '作業中'
     elif last and last.get('status') == 'blocked': st, lb = 'blocked', '詰まり'
     else:                     st, lb = 'idle', '待機中'
-    crew[slug] = dict(slug=slug, nick=nick, role=role, hair=hair, col=col, hairc=hairc,
+    crew[slug] = dict(skill=skill_of(slug),
+                      slug=slug, nick=nick, role=role, hair=hair, col=col, hairc=hairc,
                       prop=prop, state=st, label=lb, runs=len(mine),
                       task=(open_task or last or {}).get('task', ''),
                       ago=ago(last['ts']) if last else '')
@@ -611,6 +658,31 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .scard .tp2.none .tt{color:#93A0B4;font-size:14px;font-weight:400}
 .scard .wt{font-size:13px;line-height:1.55;color:#FFD9A6;
  border-left:3px solid rgba(255,194,74,.6);padding-left:10px}
+.lv{display:inline-block;margin-left:7px;padding:0 6px;border-radius:5px;font-size:11px;
+ font-family:"IBM Plex Mono",monospace;color:#2A1A02;font-weight:700;
+ background:linear-gradient(180deg,#FFE9A8,#D98F1C);border:1px solid #fff}
+.lvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px;padding:12px 16px}
+.lvc{border:2px solid rgba(255,255,255,.32);border-radius:11px;padding:11px 13px;
+ background:rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
+.lvc.nogot{border-color:rgba(255,124,92,.45)}
+.lvc .l1{display:flex;align-items:baseline;gap:9px}
+.lvb{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:700;
+ background:linear-gradient(180deg,#FFF6D2,#FFD980 46%,#D98F1C 56%,#FFE9A8);
+ -webkit-background-clip:text;background-clip:text;color:transparent;
+ filter:drop-shadow(0 1px 0 rgba(0,0,0,.6))}
+.lvn{font-size:16px;font-weight:700;color:#fff}
+.lvr{margin-left:auto;font-family:"DotGothic16",monospace;font-size:11px;color:var(--dim)}
+.lvc .bar{height:9px;border-radius:5px;background:rgba(0,0,0,.35);
+ border:1px solid rgba(255,255,255,.25);overflow:hidden}
+.lvc .bar i{display:block;height:100%;background:linear-gradient(90deg,#FFC24A,#FFE9A8)}
+.lvc .l2{font-family:"DotGothic16",monospace;font-size:11.5px;color:#E4ECFB;display:flex;gap:8px}
+.lvc .l2 b{color:var(--acc);font-size:13px}
+.lvc .l2 .ex{margin-left:auto;color:var(--dim)}
+.lvc .l3{font-family:"DotGothic16",monospace;font-size:11px;color:var(--dim)}
+.lvc .l4{font-family:"DotGothic16",monospace;font-size:11px;color:#FFB9A6}
+.lvc .l4 b{color:#FF7A5C;font-size:13px}
+.lvnote{padding:0 16px 8px;font-size:12px;color:var(--dim);line-height:1.7}
+.lvnote b{color:#FFB9A6}
 .sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
  background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
 .leftcol{position:absolute;left:10px;top:48px;z-index:6;display:flex;flex-direction:column;
@@ -922,7 +994,24 @@ function renderSum(){
    +(t.flag&&FLAG[t.flag]?`　<em>${FLAG[t.flag]}</em>`:'')+`</span></span>
    <button class="nm2" data-n="${esc(mtKey(t))}">自分のじゃない</button></div>`).join('');
  if(!all.length) tl='<div class="ic"><div class="t">あなたの手が要る残タスクはありません</div></div>';
+ // 乗組員の熟練度。根拠は稼働記録と蓄積ファイルだけ
+ const EXPW=[['稼働','done',10],['成果物','out',20],['公開','art',15],['詰まり','blocked',5]];
+ const cr=Object.keys(S.crew).map(sl=>{const c=S.crew[sl],k=c.skill; if(!k)return'';
+  const parts=EXPW.filter(w=>k[w[1]]).map(w=>`${w[0]} ${k[w[1]]}`).concat(
+    k.chars?[`蓄積 ${(k.chars/1000).toFixed(1)}千字`]:[]);
+  return `<div class="lvc${k.got?'':' nogot'}">
+   <div class="l1"><span class="lvb">Lv.${k.lv}</span><span class="lvn">${esc(c.nick)}</span>
+    <span class="lvr">${esc(c.role)}</span></div>
+   <div class="bar"><i style="width:${k.pct}%"></i></div>
+   <div class="l2">${k.nxt?`次のレベルまで <b>${k.nxt-k.exp}</b>`:'最上位'}
+    <span class="ex">EXP ${k.exp}</span></div>
+   <div class="l3">${parts.join('　')}</div>
+   <div class="l4">${k.got?`外部から取り込んだ型 ${k.got}`:'外部から取り込んだ型 <b>0</b>'}</div>
+  </div>`;}).join('');
  document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
+  +`<div class="sech">乗組員の熟練度（稼働記録と蓄積から算出）</div>`
+  +`<div class="lvgrid">${cr}</div>`
+  +`<div class="lvnote">外部から取り込んだ型は、<b>結果まで書けた行だけ</b>数えている。読んだだけは積読なので入らない。いま全員 0。</div>`
   +`<div class="sech">あなたの残タスク ${all.length}件（全事業まとめ・期限順）</div>`+tl;
  document.getElementById('sumb').querySelectorAll('.scard').forEach(c=>c.onclick=()=>{
   cur=+c.dataset.i; render();
@@ -998,7 +1087,7 @@ function render(){
   }
   h+=`<div class="unit ${c.state}" data-s="${slug}" style="left:${x}px;top:${y}px">
    <div class="bill">${avatar(c)}
-    <div class="plate"><div class="nm"><i style="background:${COL[c.state]};color:${COL[c.state]}"></i>${esc(c.nick)}</div>
+    <div class="plate"><div class="nm"><i style="background:${COL[c.state]};color:${COL[c.state]}"></i>${esc(c.nick)}${c.skill?`<span class="lv">Lv.${c.skill.lv}</span>`:''}</div>
     <div class="rl">${esc(c.role)} ／ ${esc(c.label)}</div></div>
     <div class="bub ${real?'real':''}">${esc(say)}${real?`<span class="w">${esc(q.who)}｜${esc(q.src)}</span>`:''}</div>
    </div></div>`;});
