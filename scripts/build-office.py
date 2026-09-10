@@ -117,17 +117,28 @@ QUAL = [('型',       '再現できるやり方を持っている',           25
         ('事業知識', '事業ごとの違いを知っている',              10),
         ('外部の型', '社外の型を当てて結果まで書いた',          40),
         ('未確認',   '出しっぱなしの指摘',                    -5)]
-LV_TABLE = [0, 50, 120, 220, 350, 510, 700, 940, 1240]
-TITLES = ['見習い', '駆け出し', '一人前', '玄人', '目利き', '練達', '師範', '達人', '名人']
+LV_MAX = 100
+# Lv1=0 から Lv100 まで。指数を2.15にすると、いまの最上位（監査役455）がLv19に来る。
+# 上限に張り付かず、上がり続ける余地が残る形にした（2026-09-11 代表指定）
+LV_TABLE = [0] + [round(0.9 * (n - 1) ** 2.15) for n in range(2, LV_MAX + 1)]
+TITLE_BAND = [(9, '見習い'), (19, '駆け出し'), (34, '一人前'), (49, '玄人'),
+              (64, '目利き'), (79, '練達'), (94, '師範'), (99, '達人'), (100, '名人')]
+
+
+def _title(lv):
+    for top, name in TITLE_BAND:
+        if lv <= top: return name
+    return TITLE_BAND[-1][1]
 
 
 def _lv(exp):
     n = 1
     for i, t in enumerate(LV_TABLE):
         if exp >= t: n = i + 1
+        else: break
     nxt = LV_TABLE[n] if n < len(LV_TABLE) else None
     base = LV_TABLE[n - 1]
-    pct = 100 if nxt is None else int((exp - base) / (nxt - base) * 100)
+    pct = 100 if nxt is None else int((exp - base) / max(1, nxt - base) * 100)
     return n, nxt, max(0, min(100, pct))
 
 
@@ -163,7 +174,7 @@ def skill_of(slug):
                 v['外部の型'] += 1
     exp = sum(v[k] * w for k, _d, w in QUAL for kk in [k] if kk == k) if False else         sum(v[k] * w for k, _d, w in QUAL)
     lv, nxt, pct = _lv(exp)
-    return dict(exp=exp, lv=lv, nxt=nxt, pct=pct, title=TITLES[min(lv - 1, len(TITLES) - 1)], **v)
+    return dict(exp=exp, lv=lv, nxt=nxt, pct=pct, title=_title(lv), **v)
 
 crew = {}
 for slug, nick, role, hair, col, hairc, prop in MEMBERS:
@@ -677,6 +688,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
 .lvc.nogot{border-color:rgba(255,124,92,.45)}
 .lvc .l1{display:flex;align-items:baseline;gap:9px}
+.lvb em{font-style:normal;font-size:11px;-webkit-text-fill-color:#8FA2C6;color:#8FA2C6;margin-left:1px}
 .lvb{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:700;
  background:linear-gradient(180deg,#FFF6D2,#FFD980 46%,#D98F1C 56%,#FFE9A8);
  -webkit-background-clip:text;background-clip:text;color:transparent;
@@ -1014,7 +1026,7 @@ function renderSum(){
   const parts=QW.filter(w=>k[w[1]]).map(w=>`${w[0]} <b>${k[w[1]]}</b>`);
   const minus=k['未確認']?`<span class="mi">未確認のまま ${k['未確認']}</span>`:'';
   return `<div class="lvc${k.got?'':' nogot'}">
-   <div class="l1"><span class="lvb">Lv.${k.lv}</span><span class="lvn">${esc(c.nick)}</span>
+   <div class="l1"><span class="lvb">Lv.${k.lv}<em>/100</em></span><span class="lvn">${esc(c.nick)}</span>
     <span class="ttl">${esc(k.title)}</span><span class="lvr">${esc(c.role)}</span></div>
    <div class="bar"><i style="width:${k.pct}%"></i></div>
    <div class="l2">${k.nxt?`次のレベルまで <b>${k.nxt-k.exp}</b>`:'最上位'}
@@ -1027,7 +1039,8 @@ function renderSum(){
   +`<div class="lvgrid">${cr}</div>`
   +`<div class="lvnote">型25／外した事例30／確定した指摘20／事業知識10／<b>外部から取り込んだ型40</b>／未確認のまま −5。`
    +`<br>外した事例が確定した指摘より重いのは、<b>外した記録の方が判断を締めるから</b>。`
-   +`<br>いま <b>外部から取り込んだ型は全員0</b>。一番重い項目が誰も埋まっていない。</div>`
+   +`<br>上限は <b>Lv.100</b>。Lv.20 に 505、Lv.50 に 3,874、Lv.100 に 17,573 が要る。`
+   +`<br>いまの最上位は監査役の Lv.19。<b>全員まだ入口にいる。</b></div>`
   +`<div class="sech">あなたの残タスク ${all.length}件（全事業まとめ・期限順）</div>`+tl;
  document.getElementById('sumb').querySelectorAll('.scard').forEach(c=>c.onclick=()=>{
   cur=+c.dataset.i; render();
