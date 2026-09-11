@@ -1025,14 +1025,14 @@ function renderSum(){
  const cr=Object.keys(S.crew).map(sl=>{const c=S.crew[sl],k=c.skill; if(!k)return'';
   const parts=QW.filter(w=>k[w[1]]).map(w=>`${w[0]} <b>${k[w[1]]}</b>`);
   const minus=k['未確認']?`<span class="mi">未確認のまま ${k['未確認']}</span>`:'';
-  return `<div class="lvc${k.got?'':' nogot'}">
+  return `<div class="lvc${k['外部の型']?'':' nogot'}">
    <div class="l1"><span class="lvb">Lv.${k.lv}<em>/100</em></span><span class="lvn">${esc(c.nick)}</span>
     <span class="ttl">${esc(k.title)}</span><span class="lvr">${esc(c.role)}</span></div>
    <div class="bar"><i style="width:${k.pct}%"></i></div>
    <div class="l2">${k.nxt?`次のレベルまで <b>${k.nxt-k.exp}</b>`:'最上位'}
     <span class="ex">EXP ${k.exp}</span></div>
    <div class="l3">${parts.length?parts.join('　'):'<span class="mi">まだ何も溜まっていない</span>'}　${minus}</div>
-   <div class="l4">${k.got?`外部から取り込んだ型 ${k.got}`:'外部から取り込んだ型 <b>0</b>'}</div>
+   <div class="l4">${k['外部の型']?`外部から取り込んだ型 <b>${k['外部の型']}</b>`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
  document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
   +`<div class="sech">乗組員の専門知識（蓄積の中身だけで算出。稼働した回数は入れない）</div>`
