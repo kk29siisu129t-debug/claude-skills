@@ -212,6 +212,9 @@ def scan(rel, kind):
     return o
 
 
+_EP = os.path.join(HUB, 'data', 'enemies.json')
+ENEMIES = json.load(io.open(_EP, encoding='utf-8')) if os.path.exists(_EP) else {}
+
 ARTS = scan('content/drafts', '下書') + scan('reports', '報告') + scan('content/reviews', '審査')
 
 # 会社ごとの内装。壁2色・床2色・ラグ。同じ系統の彩度に揃えて、並べても散らからないようにする
@@ -256,6 +259,7 @@ for biz in BIZ_ORDER:
     heavy = len([i for i in items if i['score'] >= 3])
     wx = weather(biz)
     rooms.append(dict(biz=biz, pal=PALETTE.get(biz, DEFAULT_PAL),
+                      enemies=sorted(ENEMIES.get(biz, []), key=lambda e: -e.get('power', 0)),
                       order=WB.get(biz, {}).get('order', ''),
                       issues=items, staff=staff[:6], mine=mine,
                       wx=wx, heavy=heavy, tr=TREND.get('biz', {}).get(biz)))
@@ -475,6 +479,25 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  box-shadow:0 3px 9px rgba(0,0,0,.28)}
 .board .ln{position:absolute;height:3px;background:#BAB5C9;border-radius:2px}
 .board .ln.a{background:#E8703F;opacity:.8}
+.foe{position:absolute;transform-style:preserve-3d;cursor:pointer}
+.foe .fav{display:block;margin:0 auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));
+ animation:foeb 2.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes foeb{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.97,1.04)}}
+.foe.p5 .fav{animation-duration:1.7s}
+.foe.p4 .fav{animation-duration:2.1s}
+.foe .fb{position:absolute;width:190px;left:-95px;top:-6px;text-align:center;
+ transform:translateZ(76px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
+.foe .fn{display:inline-block;padding:2px 9px;border-radius:8px;font-size:12.5px;font-weight:700;color:#FFE2DC;
+ border:2px solid #E06A55;background:linear-gradient(165deg,rgba(74,16,10,.95),rgba(30,6,4,.95));
+ box-shadow:0 2px 8px rgba(0,0,0,.55)}
+.foe .fk{font-family:"DotGothic16",monospace;font-size:9.5px;color:#FFC24A;margin-top:2px;
+ text-shadow:0 1px 4px rgba(0,0,0,.9)}
+.foe .kd{display:inline-block;border:1px solid;border-radius:4px;padding:0 4px;margin-right:5px}
+.foe .kd.競合{color:#FF9C8A;border-color:#FF9C8A}
+.foe .kd.環境{color:#C9A8E8;border-color:#C9A8E8}
+.foe .kd.規制{color:#E8C46A;border-color:#E8C46A}
+.foe .fd{font-size:10.5px;color:#F2E4E0;margin-top:3px;line-height:1.45;
+ text-shadow:0 1px 5px rgba(0,0,0,.95)}
 .sign{position:absolute;transform-style:preserve-3d;pointer-events:none}
 
 .sign b{position:absolute;width:420px;left:-210px;top:-22px;text-align:center;font-weight:400;
@@ -683,6 +706,19 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .lv{display:inline-block;margin-left:7px;padding:0 6px;border-radius:5px;font-size:11px;
  font-family:"IBM Plex Mono",monospace;color:#2A1A02;font-weight:700;
  background:linear-gradient(180deg,#FFE9A8,#D98F1C);border:1px solid #fff}
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:11px;padding:12px 16px}
+.fc{border:2px solid rgba(255,124,92,.5);border-radius:11px;padding:11px 13px;
+ background:rgba(120,30,20,.22);display:flex;flex-direction:column;gap:6px}
+.fc.k環境{border-color:rgba(180,140,230,.5);background:rgba(70,45,110,.22)}
+.fc.k規制{border-color:rgba(230,190,100,.5);background:rgba(105,80,20,.22)}
+.fc .f1{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.fstar{font-family:"IBM Plex Mono",monospace;font-size:13px;color:#FFC24A;letter-spacing:-1px}
+.fnm{font-size:15.5px;font-weight:700;color:#fff}
+.fbz{margin-left:auto;font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--dim)}
+.fc .f2{font-size:13px;color:#FFD9D2}
+.fc .f3,.fc .f4{font-size:12px;line-height:1.6;color:#E4ECFB}
+.fc .f3 b,.fc .f4 b{display:block;font-family:"DotGothic16",monospace;font-size:10px;
+ color:var(--gold);letter-spacing:.06em;margin-bottom:1px}
 .lvgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:11px;padding:12px 16px}
 .lvc{border:2px solid rgba(255,255,255,.32);border-radius:11px;padding:11px 13px;
  background:rgba(255,255,255,.06);display:flex;flex-direction:column;gap:6px}
@@ -1035,6 +1071,18 @@ function renderSum(){
    <div class="l4">${k['外部の型']?`外部から取り込んだ型 <b>${k['外部の型']}</b>`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
  document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
+  +(()=>{const all=[];S.rooms.forEach(r=>(r.enemies||[]).forEach(e=>all.push([r.biz,e])));
+    if(!all.length)return'';
+    all.sort((a,b)=>b[1].power-a[1].power);
+    return `<div class="sech">外から攻めてきているもの ${all.length}体</div>`
+     +`<div class="fgrid">`+all.map(([bz,e])=>`<div class="fc k${e.kind}">
+       <div class="f1"><span class="fstar">${'★'.repeat(e.power)}${'・'.repeat(5-e.power)}</span>
+        <span class="fnm">${esc(e.name)}</span>
+        <span class="fbz">${esc(bz)}</span></div>
+       <div class="f2">${esc(e.weapon)}</div>
+       <div class="f3"><b>当たっている所</b>${esc(String(e.hits).replace(/\*\*/g,''))}</div>
+       <div class="f4"><b>防ぎ方</b>${esc(String(e.guard).replace(/\*\*/g,''))}</div>
+      </div>`).join('')+`</div>`;})()
   +`<div class="sech">乗組員の専門知識（蓄積の中身だけで算出。稼働した回数は入れない）</div>`
   +`<div class="lvgrid">${cr}</div>`
   +`<div class="lvnote">型25／外した事例30／確定した指摘20／事業知識10／<b>外部から取り込んだ型40</b>／未確認のまま −5。`
@@ -1086,6 +1134,23 @@ function render(){
    <div class="torch" style="left:300px;top:70px"><b></b></div>`;
  h+='</div><div class="rug" style="left:296px;top:332px;width:308px;height:166px"></div>';
  h+=`<div class="sign" style="left:450px;top:2px"><b><span>${esc(R.biz)}</span></b></div>`;
+ // 外から攻めてきているもの。部屋の外（床の外周）に立てる。強いものほど大きく、部屋に近い
+ const EPOS=[[975,165],[975,375],[735,615],[430,635],[180,595],[990,545]];
+ (R.enemies||[]).forEach((e,i)=>{const q=EPOS[i]; if(!q)return;
+  const sz=26+e.power*7, kc={'競合':'#C0392B','環境':'#7D5BA6','規制':'#B7791F'}[e.kind]||'#C0392B';
+  h+=`<div class="foe p${e.power}" data-e="${i}" style="left:${q[0]}px;top:${q[1]}px">
+   <svg class="fav" width="${sz}" height="${sz}" viewBox="0 0 40 40" aria-hidden="true">
+    <ellipse cx="20" cy="37" rx="12" ry="3" fill="rgba(0,0,0,.35)"/>
+    <path d="M20 4C12 4 7 11 7 20c0 8 5 13 13 13s13-5 13-13C33 11 28 4 20 4z"
+      fill="${kc}" stroke="#1A0A08" stroke-width="2.5"/>
+    <path d="M20 4C12 4 7 11 7 20c0 3 .7 5.6 2 7.7C10 20 14 15 20 15s10 5 11 12.7c1.3-2.1 2-4.7 2-7.7C33 11 28 4 20 4z"
+      fill="rgba(255,255,255,.18)"/>
+    <circle cx="14.5" cy="19" r="2.6" fill="#FFE9A8"/><circle cx="25.5" cy="19" r="2.6" fill="#FFE9A8"/>
+    <circle cx="14.5" cy="19" r="1.1" fill="#1A0A08"/><circle cx="25.5" cy="19" r="1.1" fill="#1A0A08"/>
+   </svg>
+   <div class="fb"><div class="fn">${esc(e.name)}</div>
+    <div class="fk"><span class="kd ${e.kind}">${esc(e.kind)}</span>${'★'.repeat(e.power)}</div>
+    <div class="fd">${esc(e.weapon)}</div></div></div>`;});
  // 依頼の立て札。壁に貼らず、常にカメラを向く板にする（壁貼りだと裏から見て鏡文字になる）
  const top3=MINE.slice(0,3);
  h+=`<div class="quest" style="left:646px;top:492px"><div class="pole"></div><div class="qb">
