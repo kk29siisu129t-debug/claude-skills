@@ -403,10 +403,11 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .hill i{position:absolute;bottom:0;border-radius:50% 50% 0 0}
 .grd{position:absolute;left:0;right:0;bottom:0;height:16%;pointer-events:none;
  background:linear-gradient(180deg,#8FD16A,#5FA843 40%,#3E7B34)}
-.stage{position:absolute;inset:0;perspective:1750px;perspective-origin:50% 32%;cursor:grab;touch-action:none;z-index:2}
-.stage.drag{cursor:grabbing}
+.stage{position:absolute;inset:0;perspective:1750px;perspective-origin:50% 32%;z-index:2;pointer-events:none;
+ transform:translate(var(--ox,0px),var(--oy,0px)) scale(var(--s,1));transform-origin:50% 50%}
+.stage .room{pointer-events:auto}
 .world{position:absolute;inset:0;transform-style:preserve-3d;
- transform:translateZ(var(--z,-150px)) rotateX(var(--rx,57deg)) rotateZ(var(--rz,36deg));transition:transform .12s linear}
+ transform:translateZ(-150px) rotateX(var(--rx,57deg)) rotateZ(var(--rz,36deg))}
 .room{position:absolute;left:50%;top:50%;width:900px;height:520px;margin:-260px 0 0 -450px;transform-style:preserve-3d}
 
 /* 石の土台。部屋を空に浮かべるので、床の下に厚みを作る */
@@ -690,11 +691,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:none;border:1px solid var(--line);color:var(--dim);padding:1px 7px;cursor:pointer}
 .qd:hover{color:#fff;border-color:var(--acc)}
 #msg{font-family:"DotGothic16",monospace;font-size:11px;color:var(--dim);flex:1}
-.ctl{position:absolute;left:10px;top:10px;display:flex;gap:6px;z-index:6;flex-wrap:wrap;align-items:center}
-.ctl button{font-family:"DotGothic16",monospace;font-size:12px;border-radius:8px;
- background:linear-gradient(165deg,#1B2E66,#0A1231);color:#fff;
- border:2px solid rgba(255,255,255,.8);padding:4px 11px;cursor:pointer}
-.ctl button.on{border-color:var(--acc);color:var(--acc)}
 .sum{position:absolute;left:10px;right:10px;top:10px;bottom:10px;z-index:7;
  display:flex;flex-direction:column;overflow:hidden}
 .sumh{padding:12px 16px;font-family:"Reggae One",sans-serif;font-size:21px;letter-spacing:.08em;
@@ -772,7 +768,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .lvnote b{color:#FFB9A6}
 .sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
  background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
-.leftcol{position:absolute;left:10px;top:48px;z-index:6;display:flex;flex-direction:column;
+.leftcol{position:absolute;left:10px;top:10px;z-index:6;display:flex;flex-direction:column;
  gap:8px;width:min(390px,46vw);max-height:calc(100% - 100px);overflow:auto}
 .leftcol::-webkit-scrollbar{width:0}
 .ordbar{padding:7px 12px;font-size:12.5px;border-radius:10px;border:2px solid rgba(255,255,255,.8);
@@ -833,8 +829,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
   <div class="rn"></div><div class="fg"></div><div class="fl"></div>
   <div class="sum dqw" id="sum" hidden><div class="sumh">全体</div><div class="sumb" id="sumb"></div></div>
   <div class="stage" id="stage"><div class="world" id="world"><div class="room" id="room"></div></div></div>
-  <div class="ctl"><button id="cam">自動カメラ</button><button id="rs">正面</button>
-    <button id="zi">＋</button><button id="zo">−</button></div>
   <div class="leftcol">
   <div class="ordbar" id="ord"></div>
   <div class="lg"><div><i style="background:#3BAE63"></i>緑＝MTGログの実発言</div>
@@ -1095,7 +1089,6 @@ function renderSum(){
  const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
        is=document.getElementById('iss'), sm=document.getElementById('sum');
  [st,lc,is].forEach(e=>{if(e) e.hidden=true;});
- document.querySelector('.ctl').hidden=true;
  sm.hidden=false;
  const rows=S.rooms.map((r,i)=>{
   const w=WX[r.wx]||WX.fog, mine=(r.mine||[]).filter(mtLive),
@@ -1186,7 +1179,7 @@ function render(){
  const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
        is=document.getElementById('iss');
  [st,lc,is].forEach(e=>{if(e) e.hidden=false;});
- document.querySelector('.ctl').hidden=false;
+ if(window.__fit) __fit();   // 「全体」から戻ったときは幅が取れているので測り直す
  if(sm) sm.hidden=true;
  const R=S.rooms[cur], MINE=(R.mine||[]).filter(mtLive);
  const _w=document.querySelector('.wrap'); if(_w) _w.dataset.wx=R.wx||'fine';
@@ -1452,49 +1445,26 @@ function renderQueue(){
  document.getElementById('qc').textContent=q.length;}
 renderQueue(); render();
 const world=document.getElementById('world'), stage=document.getElementById('stage');
-let rx=57,rz=36,z=-150,down=false,mx=0,my=0,auto=false;
-function apply(){rx=Math.min(80,Math.max(24,rx));
- // rz を回しすぎると北壁・西壁が手前に来て、部屋を裏から見た絵になる（2026-09-08 指摘）
- rz=Math.min(96,Math.max(-32,rz));
- world.style.setProperty('--rx',rx+'deg');world.style.setProperty('--rz',rz+'deg');world.style.setProperty('--z',z+'px');}
-stage.addEventListener('pointerdown',e=>{down=true;auto=false;
- document.getElementById('cam').classList.remove('on');
- mx=e.clientX;my=e.clientY;stage.classList.add('drag');stage.setPointerCapture(e.pointerId);});
-stage.addEventListener('pointermove',e=>{if(!down)return;
- rz+=(e.clientX-mx)*.34;rx-=(e.clientY-my)*.26;mx=e.clientX;my=e.clientY;apply();});
-stage.addEventListener('pointerup',()=>{down=false;stage.classList.remove('drag');});
-stage.addEventListener('pointercancel',()=>{down=false;stage.classList.remove('drag');});
-document.getElementById('rs').onclick=()=>{rx=57;rz=36;z=-150;apply();};
-document.getElementById('zi').onclick=()=>{z=Math.min(240,z+70);apply();};
-document.getElementById('zo').onclick=()=>{z=Math.max(-760,z-70);apply();};
-document.getElementById('cam').onclick=function(){auto=!auto;this.classList.toggle('on',auto);};
-let camDir=1;
-setInterval(()=>{if(auto&&!down){
- if(rz>=96) camDir=-1; else if(rz<=-32) camDir=1;   // 端で折り返す。1周させると裏側に回る
- rz+=0.15*camDir; apply();}},40);
+// カメラは固定（2026-09-17 代表指示：つかんで回す必要はない。その分だけ画面を広く使う）
+const RX=57, RZ=36;                       // rz を負にすると北壁・西壁が手前に来て裏から見た絵になる
+world.style.setProperty('--rx',RX+'deg');
+world.style.setProperty('--rz',RZ+'deg');
+// 倍率1のときの見た目の外寸（実測。壁と人が上に伸びる分を含む）
+const FW=1090, FH=745;
+function fit(){
+ const w=stage.clientWidth, h=stage.clientHeight;
+ // 左右のパネルは半透明の窓なので、床の端が少し潜る前提で4割だけ避ける
+ const wide=w>1200, L=wide?406:0, R=wide?386:0, K=.42;
+ const s=Math.max(.5,Math.min(1.6,Math.min((w-K*(L+R)-16)/FW,(h-16)/FH)));
+ stage.style.setProperty('--s',s);
+ stage.style.setProperty('--ox',(K*(L-R)/2)+'px');
+ stage.style.setProperty('--oy',(-24*s)+'px');
+}
+window.__fit=fit;
+fit();
+addEventListener('resize',fit);
 room.addEventListener('click',e=>{const u=e.target.closest('.unit');if(!u)return;
  document.querySelectorAll('.unit').forEach(x=>x.classList.remove('sel'));u.classList.add('sel');});
-window.addEventListener('keydown',e=>{
- const t=e.target, tag=t&&t.tagName;
- if(tag==='TEXTAREA'||tag==='INPUT'||(t&&t.isContentEditable))return;
- if(!e.altKey&&!e.shiftKey)return;
- let hit=true;
- switch(e.key){
-  case 'ArrowUp':    rx-=4; break;
-  case 'ArrowDown':  rx+=4; break;
-  case 'ArrowLeft':  rz-=6; break;
-  case 'ArrowRight': rz+=6; break;
-  case '+': case ';': case '=': z=Math.min(240,z+70); break;
-  case '-': z=Math.max(-760,z-70); break;
-  case '0': rx=57; rz=36; z=-150; break;
-  default: hit=false;
- }
- if(!hit)return;
- e.preventDefault();
- auto=false; document.getElementById('cam').classList.remove('on');
- apply();
-});
-apply();
 const ta=document.getElementById('ta'),send=document.getElementById('send'),msg=document.getElementById('msg');
 let ns=null;
 const useA=(window.claude&&claude.use)?claude.use('artifact'):Promise.resolve(null);
