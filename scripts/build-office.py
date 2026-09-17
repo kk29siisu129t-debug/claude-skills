@@ -349,6 +349,8 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 
 /* ── 空とステージ ───────────────────────────────────── */
 .wrap{position:relative;height:calc(100vh - 92px);min-height:600px;overflow:hidden;
+ display:grid;grid-template-columns:302px minmax(0,1fr) 328px;grid-template-rows:minmax(0,1fr);
+ gap:10px;padding:10px;
  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 34%,var(--sky3) 66%,var(--sky4) 100%);
  transition:background .4s linear}
 /* 経営課題が重いほど空が悪くなる。晴れ→くもり→雨→雷雨 */
@@ -363,24 +365,22 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .wrap[data-wx="storm"] .sun{opacity:0}
 .wrap[data-wx="fog"]   .sun{opacity:.35}
 .wrap[data-wx="partly"] .cl span{background:#F2F5F8}
-.wrap[data-wx="partly"] .cl{opacity:.9;transform:scale(.72)}
+.wrap[data-wx="partly"] .cl{--cs:.72;opacity:.9}
 .wrap[data-wx="cloud"] .cl span{background:#DFE4EA}
 .wrap[data-wx="rain"]  .cl span{background:#9AA5B4}
 .wrap[data-wx="storm"] .cl span{background:#6C7789}
-.wrap[data-wx="cloud"] .cl{opacity:.85;transform:scale(.8)}
-.wrap[data-wx="rain"]  .cl{opacity:.95;transform:scale(1)}
-.wrap[data-wx="storm"] .cl{opacity:1;transform:scale(1.15)}
+.wrap[data-wx="cloud"] .cl{--cs:.8;opacity:.85}
+.wrap[data-wx="rain"]  .cl{--cs:1;opacity:.95}
+.wrap[data-wx="storm"] .cl{--cs:1.15;opacity:1}
 .wrap[data-wx="partly"] .grd{filter:saturate(.85) brightness(.95)}
 .wrap[data-wx="cloud"] .grd{filter:saturate(.55) brightness(.82)}
 .wrap[data-wx="rain"]  .grd{filter:saturate(.4) brightness(.6)}
 .wrap[data-wx="storm"] .grd{filter:saturate(.3) brightness(.42)}
 .wrap[data-wx="fog"]   .grd{filter:saturate(.25) brightness(.85)}
-.wrap[data-wx="rain"]  .stage,.wrap[data-wx="storm"] .stage{filter:brightness(.86) saturate(.9)}
-.wrap[data-wx="fog"]   .stage{filter:brightness(.95) saturate(.55)}
-.rn{position:absolute;inset:-10% -10% 0;pointer-events:none;opacity:0;z-index:1;
+.rn{position:absolute;inset:-10% -10% -16%;pointer-events:none;opacity:0;z-index:1;
  background:repeating-linear-gradient(102deg,rgba(255,255,255,.42) 0 1px,rgba(255,255,255,0) 1px 9px);
  background-size:auto 120px;animation:pour .5s linear infinite}
-@keyframes pour{from{background-position:0 0}to{background-position:-26px 120px}}
+@keyframes pour{from{transform:translate(0,0)}to{transform:translate(-26px,120px)}}
 .wrap[data-wx="rain"] .rn{opacity:.5}
 .wrap[data-wx="storm"] .rn{opacity:.8;animation-duration:.32s}
 .fg{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:1;
@@ -392,18 +392,19 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 @media (prefers-reduced-motion:reduce){.rn,.wrap[data-wx="storm"] .fl{animation:none}}
 .sun{position:absolute;left:16%;top:6%;width:340px;height:340px;border-radius:50%;pointer-events:none;
  background:radial-gradient(circle,rgba(255,255,225,.85) 0%,rgba(255,240,180,.35) 32%,rgba(255,240,180,0) 68%)}
-.cl{position:absolute;pointer-events:none;opacity:.55;z-index:0;transform:scale(.5);
- transform-origin:0 0;filter:drop-shadow(0 6px 10px rgba(20,60,120,.14))}
+.cl{position:absolute;left:0;pointer-events:none;opacity:.55;z-index:0;--cs:.5;
+ transform-origin:0 0;transform:translateX(-24vw) scale(var(--cs))}
 .cl span{position:absolute;background:#fff;border-radius:50%}
 .c1{top:5%;animation:drift 92s linear infinite}
-.c2{top:15%;transform:scale(.36);animation:drift 124s linear infinite;animation-delay:-46s;opacity:.45}
-.c3{top:24%;transform:scale(.62);animation:drift 158s linear infinite;animation-delay:-104s;opacity:.34}
-@keyframes drift{from{left:-24%}to{left:118%}}
+.c2{top:15%;--cs:.36;animation:drift 124s linear infinite;animation-delay:-46s;opacity:.45}
+.c3{top:24%;--cs:.62;animation:drift 158s linear infinite;animation-delay:-104s;opacity:.34}
+@keyframes drift{from{transform:translateX(-24vw) scale(var(--cs))}
+ to{transform:translateX(118vw) scale(var(--cs))}}
 .hill{position:absolute;left:-6%;right:-6%;bottom:0;height:34%;pointer-events:none}
 .hill i{position:absolute;bottom:0;border-radius:50% 50% 0 0}
 .grd{position:absolute;left:0;right:0;bottom:0;height:16%;pointer-events:none;
  background:linear-gradient(180deg,#8FD16A,#5FA843 40%,#3E7B34)}
-.stage{position:absolute;inset:0;perspective:1750px;perspective-origin:50% 32%;z-index:2;pointer-events:none;
+.stage{position:absolute;inset:0;perspective:1750px;perspective-origin:50% 38%;z-index:2;pointer-events:none;
  transform:translate(var(--ox,0px),var(--oy,0px)) scale(var(--s,1));transform-origin:50% 50%}
 .stage .room{pointer-events:auto}
 .world{position:absolute;inset:0;transform-style:preserve-3d;
@@ -490,7 +491,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .board .ln{position:absolute;height:3px;background:#BAB5C9;border-radius:2px}
 .board .ln.a{background:#E8703F;opacity:.8}
 .foe{position:absolute;transform-style:preserve-3d;cursor:pointer}
-.foe .fav{display:block;margin:0 auto;filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));
+.foe .fav{display:block;margin:0 auto;
  animation:foeb 2.6s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes foeb{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.97,1.04)}}
 .foe.p5 .fav{animation-duration:1.7s}
@@ -539,15 +540,13 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .plant .pot{position:absolute;width:24px;height:24px;border-radius:4px;transform:translateZ(9px);
  background:linear-gradient(160deg,#C98A5C,#8A5330);border:1px solid #5E3A22}
 .plant .lf{position:absolute;width:36px;height:36px;left:-6px;top:-6px;border-radius:50% 50% 45% 55%;
- background:radial-gradient(circle at 34% 28%,#A5DFA8,#8ACC7E 40%,#357A46);transform:translateZ(32px);
- filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+ background:radial-gradient(circle at 34% 28%,#A5DFA8,#8ACC7E 40%,#357A46);transform:translateZ(32px)}
 
 /* ── 人物 ────────────────────────────────────────── */
 .unit{position:absolute;transform-style:preserve-3d;cursor:pointer}
 .bill{position:absolute;width:226px;left:-67px;top:12px;text-align:center;
  transform:translateZ(94px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
-.av{width:72px;height:60px;display:block;margin:0 auto;
- filter:drop-shadow(0 5px 6px rgba(0,0,0,.42));shape-rendering:geometricPrecision}
+.av{width:72px;height:60px;display:block;margin:0 auto;shape-rendering:optimizeSpeed}
 .plate{display:inline-block;padding:3px 9px;border-radius:8px;border:2px solid #fff;
  background:linear-gradient(165deg,#1B2E66,#0A1231);box-shadow:0 2px 8px rgba(0,0,0,.5)}
 .nm{font-size:13.5px;font-weight:700;color:#fff;line-height:1.3}
@@ -593,7 +592,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .walk .bill2{position:absolute;width:130px;left:-65px;top:-47px;text-align:center;
  transform:translateZ(78px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .walk .av{width:53px;height:44px;display:block;margin:0 auto;transform-origin:50% 100%;
- filter:drop-shadow(0 3px 4px rgba(0,0,0,.42));animation:step .7s ease-in-out infinite}
+ animation:step .7s ease-in-out infinite}
 @keyframes step{0%{transform:scale(1.09,.9)}45%{transform:translateY(-8px) scale(.93,1.09)}
  100%{transform:scale(1.09,.9)}}
 .walk .tag{display:inline-block;margin-top:2px;padding:2px 8px;border-radius:9px;font-size:9.5px;
@@ -607,14 +606,14 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 @keyframes loopB{from{offset-distance:0%}to{offset-distance:100%}}
 
 /* ── パネル ─────────────────────────────────────── */
-.pn{position:absolute;z-index:6;display:flex;flex-direction:column}
+.pn{position:relative;z-index:6;display:flex;flex-direction:column;min-height:0}
 .pn h3{margin:0;padding:9px 12px;font-family:"DotGothic16",monospace;font-size:12px;letter-spacing:.1em;
  color:var(--gold);border-bottom:2px solid rgba(255,255,255,.35);display:flex;justify-content:space-between;gap:8px}
 .pn h3 span{color:var(--dim)}
 .pn .bd{overflow:auto}
 .pn .bd::-webkit-scrollbar{width:9px}
 .pn .bd::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:5px}
-#iss{right:10px;top:10px;width:min(360px,46vw);max-height:60vh}
+#iss{flex:1 1 auto;min-height:190px}
 .sw{display:flex;gap:0;padding:6px 8px 0;border-bottom:2px solid rgba(255,255,255,.22)}
 .sw button{flex:1;font-family:"Zen Maru Gothic",sans-serif;font-size:12.5px;cursor:pointer;
  border:2px solid transparent;border-bottom:none;border-radius:8px 8px 0 0;padding:5px 6px;
@@ -669,12 +668,12 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .mt .s.nt{color:#FFD9A6}
 .mth{padding:5px 12px;font-family:"DotGothic16",monospace;font-size:10.5px;color:var(--gold);
  background:rgba(255,255,255,.07);letter-spacing:.06em}
-#chat{left:10px;bottom:10px;width:min(340px,44vw);max-height:26vh}
+#chat{flex:1 1 auto;min-height:110px}
 .cl{padding:5px 12px;font-size:12px;display:grid;grid-template-columns:56px 1fr;gap:8px;
  border-bottom:1px solid rgba(255,255,255,.08)}
 .cl .t{font-family:"IBM Plex Mono",monospace;font-size:10.5px;color:var(--never)}
 .cl b{color:var(--gold);font-weight:400}
-#seat{right:10px;bottom:10px;width:min(360px,46vw)}
+#seat{flex:0 0 auto}
 #seat .bd{padding:10px 12px}
 .q{font-size:12px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.08)}
 .q em{font-style:normal;font-family:"DotGothic16",monospace;font-size:9px;color:var(--acc);
@@ -768,9 +767,11 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .lvnote b{color:#FFB9A6}
 .sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
  background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
-.leftcol{position:absolute;left:10px;top:10px;z-index:6;display:flex;flex-direction:column;
- gap:8px;width:min(390px,46vw);max-height:calc(100% - 100px);overflow:auto}
-.leftcol::-webkit-scrollbar{width:0}
+/* 左＝優先順位・凡例・稼働ログ／中＝オフィス／右＝課題・代表の席。重ねない */
+.leftcol,.rightcol{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;z-index:6}
+.sbox{position:relative;min-width:0;min-height:0;overflow:hidden;z-index:2}
+.ordbar{flex:0 0 auto;max-height:54%;overflow:auto}
+.ordbar::-webkit-scrollbar,.leftcol::-webkit-scrollbar{width:0}
 .ordbar{padding:7px 12px;font-size:12.5px;border-radius:10px;border:2px solid rgba(255,255,255,.8);
  background:linear-gradient(165deg,rgba(27,46,102,.92),rgba(10,18,49,.92));box-shadow:0 3px 12px rgba(0,0,0,.45)}
 .ordbar b{color:var(--acc)}
@@ -801,10 +802,22 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:linear-gradient(165deg,rgba(27,46,102,.92),rgba(10,18,49,.92));
  box-shadow:0 3px 12px rgba(0,0,0,.45)}
 .lg i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+/* 「動き」OFF と、裏に回っているあいだ。動くものが無ければ3Dの面を焼き直さない */
+.wrap.still *,.wrap.still .unit .av,.wrap.still .walk{animation:none!important}
+.wrap.pz *{animation-play-state:paused!important}
+.mo{font-family:"DotGothic16",monospace;font-size:11px;border-radius:7px;cursor:pointer;
+ border:2px solid var(--line);background:rgba(255,255,255,.10);color:#D8E4FA;padding:2px 9px;margin-left:10px}
+.mo.off{border-color:var(--acc);color:var(--acc)}
 @media (prefers-reduced-motion:reduce){.unit .av,.live i,.walk,.walk .av,.cl2,.torch b,.spark{animation:none}
  .walk{offset-distance:30%}.world{transition:none}.c1,.c2,.c3{animation:none;left:20%}}
-@media(max-width:760px){#iss,#seat,#chat{width:calc(100vw - 20px);max-height:28vh}
- #iss{top:auto;bottom:calc(28vh + 84px)}}
+@media(max-width:1380px){.wrap{grid-template-columns:276px minmax(0,1fr) 300px}}
+/* 横に3本入らない幅では縦に積む。重ねない */
+@media(max-width:1080px){
+ .wrap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-rows:auto;
+  height:auto;min-height:calc(100vh - 92px);overflow:auto}
+ .sbox{order:-1;height:46vh;min-height:300px}
+ .ordbar{max-height:none}
+ #iss{max-height:52vh}#chat{max-height:26vh}}
 </style>
 
 <div class="bar">
@@ -813,6 +826,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
     <span class="who" id="hd"></span>
     <div class="pipe"><div><b>1</b>指示</div><div><b>2</b>着手</div><div><b>3</b>制作</div>
       <div><b>4</b>審査</div><div><b>5</b>納品</div></div>
+    <button class="mo" id="mo" title="動きを止めると軽くなります">動き ON</button>
     <span class="live"><i></i>LIVE</span>
   </div>
   <div class="tabrow">
@@ -828,7 +842,6 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
   <div class="grd"></div>
   <div class="rn"></div><div class="fg"></div><div class="fl"></div>
   <div class="sum dqw" id="sum" hidden><div class="sumh">全体</div><div class="sumb" id="sumb"></div></div>
-  <div class="stage" id="stage"><div class="world" id="world"><div class="room" id="room"></div></div></div>
   <div class="leftcol">
   <div class="ordbar" id="ord"></div>
   <div class="lg"><div><i style="background:#3BAE63"></i>緑＝MTGログの実発言</div>
@@ -838,17 +851,21 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
     <div>☀伸びている／未始動 ／ ⛅兆しはあるが未達</div>
     <div>☁足踏み ／ ☂落ちている</div>
     <div>░測れていない（動いているのに数字が無い）</div></div>
+  <div class="pn dqw" id="chat"><h3>稼働ログ</h3><div class="bd" id="logs"></div></div>
   </div>
+  <div class="sbox"><div class="stage" id="stage"><div class="world" id="world">
+    <div class="room" id="room"></div></div></div></div>
+  <div class="rightcol">
   <div class="pn dqw" id="iss">
     <div class="sw"><button id="sw0" class="on">課題<b id="ic">0</b></button>
       <button id="sw1">残タスク<b id="mc">0</b></button>
       <button id="sw2">競合レーダー<b id="fcn">0</b></button></div>
     <div class="bd" id="issb"></div></div>
-  <div class="pn dqw" id="chat"><h3>稼働ログ</h3><div class="bd" id="logs"></div></div>
   <div class="pn dqw" id="seat"><h3>代表の席<span id="qc"></span></h3>
     <div class="bd"><div id="queue"></div>
       <textarea id="ta" placeholder="指示を入力（Enterで送信 / Shift+Enterで改行）"></textarea>
       <div class="row"><button id="send">送信</button><span id="msg"></span></div></div></div>
+  </div>
 </div>
 
 <script id="state" type="application/json">__STATE__</script>
@@ -1179,7 +1196,7 @@ function render(){
  const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
        is=document.getElementById('iss');
  [st,lc,is].forEach(e=>{if(e) e.hidden=false;});
- if(window.__fit) __fit();   // 「全体」から戻ったときは幅が取れているので測り直す
+ if(window.__refit) __refit();   // 部屋が変わるたびに測り直す（人数も敵の数も違う）
  if(sm) sm.hidden=true;
  const R=S.rooms[cur], MINE=(R.mine||[]).filter(mtLive);
  const _w=document.querySelector('.wrap'); if(_w) _w.dataset.wx=R.wx||'fine';
@@ -1289,10 +1306,9 @@ function render(){
 
  const PATH_A="M60,180 L820,180 L820,420 L60,420 Z";
  const PATH_B="M60,150 L500,150 L500,470 L840,470 L840,120 L60,120 Z";
+ // 巡回は2人まで。3Dの面で動くものが増えるほど、毎フレームの焼き直しが重くなる
  const ROAM=[['w1',PATH_A,'chief-of-staff','資料を回しています'],
-             ['w2',PATH_A,'reviewer','検品に向かっています'],
-             ['w3',PATH_B,'kansayaku','数字を突き合わせています'],
-             ['w4',PATH_B,'sales','商談メモを届けています']];
+             ['w3',PATH_B,'kansayaku','数字を突き合わせています']];
  ROAM.forEach(([cls,path,slug,say])=>{
   const c=S.crew[slug]; if(!c)return;
   h+=`<div class="walk ${cls}" style="offset-path:path('${path}')">
@@ -1449,20 +1465,44 @@ const world=document.getElementById('world'), stage=document.getElementById('sta
 const RX=57, RZ=36;                       // rz を負にすると北壁・西壁が手前に来て裏から見た絵になる
 world.style.setProperty('--rx',RX+'deg');
 world.style.setProperty('--rz',RZ+'deg');
-// 倍率1のときの見た目の外寸（実測。壁と人が上に伸びる分を含む）
-const FW=1090, FH=745;
+// 等倍に戻して実際の外接を測り、中央の枠にぴったり入る倍率と寄せを出す。
+// 部屋ごとに人数も敵の数も違うので、決め打ちの寸法だと右や下がはみ出す（2026-09-17）
 function fit(){
  const w=stage.clientWidth, h=stage.clientHeight;
- // 左右のパネルは半透明の窓なので、床の端が少し潜る前提で4割だけ避ける
- const wide=w>1200, L=wide?406:0, R=wide?386:0, K=.42;
- const s=Math.max(.5,Math.min(1.6,Math.min((w-K*(L+R)-16)/FW,(h-16)/FH)));
+ if(!w||!h||stage.hidden) return;
+ stage.style.setProperty('--s',1);
+ stage.style.setProperty('--ox','0px');
+ stage.style.setProperty('--oy','0px');
+ const sb=stage.getBoundingClientRect();
+ let l=1/0,r=-1/0,t=1/0,b=-1/0;
+ room.querySelectorAll('*').forEach(e=>{
+  const q=e.getBoundingClientRect();
+  if(q.width<=0||q.height<=0) return;
+  if(q.left<l)l=q.left; if(q.right>r)r=q.right;
+  if(q.top<t)t=q.top; if(q.bottom>b)b=q.bottom;});
+ if(!isFinite(l)) return;
+ const W=r-l, H=b-t, cx=(l+r)/2, cy=(t+b)/2;
+ const s=Math.max(.3,Math.min(1.7,Math.min((w-12)/W,(h-12)/H)));
  stage.style.setProperty('--s',s);
- stage.style.setProperty('--ox',(K*(L-R)/2)+'px');
- stage.style.setProperty('--oy',(-24*s)+'px');
+ stage.style.setProperty('--ox',(s*(sb.left+sb.width/2-cx))+'px');
+ stage.style.setProperty('--oy',(s*(sb.top+sb.height/2-cy))+'px');
 }
-window.__fit=fit;
-fit();
-addEventListener('resize',fit);
+let fitq=0;
+function refit(){ if(fitq) return; fitq=requestAnimationFrame(()=>{fitq=0;fit();}); }
+const wrapEl=document.querySelector('.wrap'), moBtn=document.getElementById('mo');
+let motion=true; try{motion=localStorage.getItem('office.motion.v1')!=='0';}catch(e){}
+function setMotion(on){motion=on;
+ wrapEl.classList.toggle('still',!on);
+ moBtn.textContent='動き '+(on?'ON':'OFF');
+ moBtn.classList.toggle('off',!on);
+ moBtn.title=on?'動きを止めると軽くなります':'止めています（軽い）';
+ try{localStorage.setItem('office.motion.v1',on?'1':'0');}catch(e){}}
+setMotion(motion);
+moBtn.onclick=()=>setMotion(!motion);
+document.addEventListener('visibilitychange',()=>wrapEl.classList.toggle('pz',document.hidden));
+window.__refit=refit;
+refit();
+addEventListener('resize',refit);
 room.addEventListener('click',e=>{const u=e.target.closest('.unit');if(!u)return;
  document.querySelectorAll('.unit').forEach(x=>x.classList.remove('sel'));u.classList.add('sel');});
 const ta=document.getElementById('ta'),send=document.getElementById('send'),msg=document.getElementById('msg');
