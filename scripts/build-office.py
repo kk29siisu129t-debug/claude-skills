@@ -416,11 +416,17 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .base .bs{position:absolute;background:linear-gradient(180deg,#9C8B6C,#5E5240 70%,#42392C)}
 .floor{position:absolute;inset:0;
  background:
-  linear-gradient(120deg,rgba(255,255,255,.34),rgba(255,255,255,0) 46%,rgba(20,30,60,.14)),
-  repeating-linear-gradient(0deg,rgba(0,0,0,.09) 0 1px,rgba(0,0,0,0) 1px 68px),
-  repeating-linear-gradient(90deg,rgba(0,0,0,.09) 0 1px,rgba(0,0,0,0) 1px 68px),
-  repeating-conic-gradient(var(--flrA) 0% 25%, var(--flrB) 0% 50%) 0 0/68px 68px;
- box-shadow:inset 0 0 90px rgba(30,40,80,.22)}
+  /* 窓からの光 */
+  linear-gradient(118deg,rgba(255,246,222,.42),rgba(255,255,255,0) 44%,rgba(40,26,14,.18)),
+  /* 会社色を薄く乗せる */
+  linear-gradient(0deg,rgba(var(--rug,232,112,63),.07),rgba(var(--rug,232,112,63),.07)),
+  /* 板の継ぎ目（短辺） */
+  repeating-linear-gradient(90deg,rgba(60,38,20,.20) 0 2px,rgba(0,0,0,0) 2px 208px),
+  /* 板の筋 */
+  repeating-linear-gradient(0deg,rgba(72,46,24,.13) 0 1px,rgba(0,0,0,0) 1px 7px),
+  /* 板の並び */
+  repeating-linear-gradient(0deg,#C9A277 0 46px,#BE9468 46px 92px);
+ box-shadow:inset 0 0 110px rgba(60,38,18,.28)}
 .rug{position:absolute;transform:translateZ(1px);border-radius:10px;
  background:
   repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 9px,rgba(0,0,0,0) 9px 18px),
@@ -428,16 +434,19 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  border:3px solid rgba(var(--rug,232,112,63),.62);
  box-shadow:inset 0 0 0 4px rgba(255,255,255,.20)}
 .wallN{position:absolute;left:0;top:0;width:900px;height:186px;transform-origin:top;transform:rotateX(90deg);
- background:linear-gradient(180deg,#FFF 0,rgba(255,255,255,0) 6%),
+ background:linear-gradient(180deg,#FFF 0,rgba(255,255,255,0) 5%),
+  /* 腰板 */
+  linear-gradient(180deg,rgba(0,0,0,0) 0 72%,rgba(150,104,62,.34) 72%,rgba(120,80,44,.44) 100%),
   linear-gradient(180deg,var(--wall),var(--wall2));
- border-bottom:3px solid rgba(0,0,0,.22);box-shadow:inset 0 -22px 34px rgba(40,30,70,.16)}
+ border-bottom:4px solid rgba(96,62,32,.5);box-shadow:inset 0 -26px 38px rgba(70,48,26,.2)}
 .wallW{position:absolute;left:0;top:0;width:520px;height:186px;transform-origin:left top;
  /* 幅(520px)を部屋の +Y へ、高さを北の壁と同じ「上」へ向ける。
     元は rotateY(-90) rotateX(90) translateX(-520) で、幅がZ方向を向いていたため
     北の壁と平行に立ってしまい、部屋の角ができていなかった（2026-09-09 修正） */
  transform:rotateZ(90deg) rotateX(90deg);
- background:linear-gradient(180deg,var(--wall2),var(--wall));
- box-shadow:inset 0 -22px 34px rgba(40,30,70,.22), inset -40px 0 60px rgba(0,0,0,.10)}
+ background:linear-gradient(180deg,rgba(0,0,0,0) 0 72%,rgba(150,104,62,.3) 72%,rgba(120,80,44,.4) 100%),
+  linear-gradient(180deg,var(--wall2),var(--wall));
+ box-shadow:inset 0 -26px 38px rgba(70,48,26,.24), inset -44px 0 66px rgba(0,0,0,.12)}
 .win{position:absolute;border:4px solid #F4F1E4;border-radius:6px 6px 2px 2px;
  background:linear-gradient(175deg,#63B8F0 0%,#9FD9F7 55%,#DFF3FF 100%);
  box-shadow:inset 0 0 0 2px rgba(120,90,60,.35), 0 3px 8px rgba(0,0,0,.22)}
@@ -516,6 +525,15 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .mon{position:absolute;border-radius:3px;
  background:linear-gradient(160deg,#3E4E66,#141A26);border:2px solid #5A6A86;
  box-shadow:0 0 10px rgba(120,190,255,.35)}
+.kb{position:absolute;border-radius:2px;background:linear-gradient(180deg,#F4F1EA,#CFC9BE);
+ border:1px solid rgba(90,70,50,.35)}
+.cup{position:absolute;width:11px;height:11px;border-radius:50% 50% 40% 40%;
+ background:linear-gradient(180deg,#F6F3EC,#D8D2C6);border:1px solid rgba(90,70,50,.4)}
+.bk{position:absolute;border-radius:3px 3px 0 0;
+ background:linear-gradient(180deg,#54607A,#2E3746);border:1px solid rgba(0,0,0,.35)}
+.shelf{position:absolute;left:2px;right:2px;height:3px;background:rgba(60,38,18,.55);transform:translateZ(1px)}
+.bk2{position:absolute;top:20px;width:8px;height:16px;border-radius:1px;background:var(--bc,#C0392B);
+ box-shadow:0 1px 0 rgba(0,0,0,.3);transform:translateZ(2px)}
 .plant{position:absolute;transform-style:preserve-3d}
 .plant .pot{position:absolute;width:24px;height:24px;border-radius:4px;transform:translateZ(9px);
  background:linear-gradient(160deg,#C98A5C,#8A5330);border:1px solid #5E3A22}
@@ -602,6 +620,13 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:rgba(255,255,255,.06);color:var(--dim)}
 .sw button.on{background:linear-gradient(180deg,#2A4A9E,#12235A);color:#fff;border-color:#fff;font-weight:700}
 .sw button b{font-family:"IBM Plex Mono",monospace;font-size:11px;margin-left:5px;color:var(--acc)}
+.sw button{font-size:12px;padding:5px 4px}
+.rdwrap{padding:10px 8px 6px;border-bottom:2px solid rgba(255,255,255,.18)}
+.rdr{display:block;width:100%;height:auto;max-height:44vh}
+.rdlg{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:4px 8px 2px;
+ font-family:"DotGothic16",monospace;font-size:10px;color:var(--dim)}
+.rdlg i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:4px}
+.rdlg em{font-style:normal;flex-basis:100%;color:#FFD9A6;margin-top:2px}
 .ic{padding:9px 12px;border-bottom:1px solid rgba(255,255,255,.09)}
 .ic .r{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
 .ic .ax{font-family:"DotGothic16",monospace;font-size:9.5px;padding:1px 5px;border:1px solid;border-radius:4px}
@@ -821,8 +846,9 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
     <div>░測れていない（動いているのに数字が無い）</div></div>
   </div>
   <div class="pn dqw" id="iss">
-    <div class="sw"><button id="sw0" class="on">この会社の課題<b id="ic">0</b></button>
-      <button id="sw1">代表の残タスク<b id="mc">0</b></button></div>
+    <div class="sw"><button id="sw0" class="on">課題<b id="ic">0</b></button>
+      <button id="sw1">残タスク<b id="mc">0</b></button>
+      <button id="sw2">競合レーダー<b id="fcn">0</b></button></div>
     <div class="bd" id="issb"></div></div>
   <div class="pn dqw" id="chat"><h3>稼働ログ</h3><div class="bd" id="logs"></div></div>
   <div class="pn dqw" id="seat"><h3>代表の席<span id="qc"></span></h3>
@@ -1015,6 +1041,55 @@ function dueCls(t){ if(!t.due) return '';
  return (d-n)/86400000<=3?'soon':''; }
 function dueTxt(t){ return t.due?t.due.replace('-','/'):'期限なし'; }
 
+// 競合レーダー。自社を中心に置き、強い敵ほど内側（近い）に打つ
+function renderRadar(){
+ const R=S.rooms[cur], fo=(R.enemies||[]);
+ const el=document.getElementById('issb');
+ if(!fo.length){ el.innerHTML='<div class="ic"><div class="t">この事業で見ている外敵はありません</div>'
+   +'<div class="o">根拠が書ける相手だけを立てています。想像の競合は置きません</div></div>'; return; }
+ const S2=300, C=S2/2, MAXR=C-34;
+ const KC={'競合':'#FF7A5C','環境':'#C9A8E8','規制':'#E8C46A'};
+ let dots='', labs='';
+ fo.forEach((e,i)=>{
+  const ang=(-90+i*(360/fo.length))*Math.PI/180;
+  const r=MAXR*(6-e.power)/5;
+  const x=C+Math.cos(ang)*r, y=C+Math.sin(ang)*r;
+  const rad=5+e.power*1.9, c=KC[e.kind]||'#FF7A5C';
+  dots+=`<line x1="${C}" y1="${C}" x2="${x.toFixed(1)}" y2="${y.toFixed(1)}"
+    stroke="${c}" stroke-width="1" stroke-dasharray="3 3" opacity=".45"/>
+   <circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${rad}" fill="${c}" fill-opacity=".85"
+    stroke="#1A0A08" stroke-width="1.5"><title>${esc(e.name)}｜★${e.power}</title></circle>`;
+  const lx=C+Math.cos(ang)*(r+rad+9), ly=C+Math.sin(ang)*(r+rad+9);
+  labs+=`<text x="${lx.toFixed(1)}" y="${ly.toFixed(1)}" fill="#EDF2FF" font-size="10.5"
+    text-anchor="${Math.cos(ang)<-0.25?'end':(Math.cos(ang)>0.25?'start':'middle')}"
+    dominant-baseline="middle">${esc(e.name.length>11?e.name.slice(0,10)+'…':e.name)}</text>`;});
+ const rings=[1,.66,.33].map(k=>`<circle cx="${C}" cy="${C}" r="${(MAXR*k).toFixed(1)}"
+   fill="none" stroke="rgba(255,255,255,.16)" stroke-width="1"/>`).join('');
+ el.innerHTML=`<div class="rdwrap"><svg viewBox="0 0 ${S2} ${S2}" class="rdr" role="img"
+    aria-label="競合レーダー"><defs><radialGradient id="rg">
+     <stop offset="0%" stop-color="rgba(120,180,255,.22)"/><stop offset="100%" stop-color="rgba(120,180,255,0)"/>
+    </radialGradient></defs>
+   <circle cx="${C}" cy="${C}" r="${MAXR}" fill="url(#rg)"/>${rings}
+   <line x1="${C}" y1="${C-MAXR}" x2="${C}" y2="${C+MAXR}" stroke="rgba(255,255,255,.1)"/>
+   <line x1="${C-MAXR}" y1="${C}" x2="${C+MAXR}" y2="${C}" stroke="rgba(255,255,255,.1)"/>
+   ${dots}
+   <circle cx="${C}" cy="${C}" r="15" fill="#12235A" stroke="#FFD980" stroke-width="2.5"/>
+   <text x="${C}" y="${C}" fill="#FFD980" font-size="11" font-weight="700"
+     text-anchor="middle" dominant-baseline="middle">自社</text>${labs}</svg>
+   <div class="rdlg"><span><i style="background:#FF7A5C"></i>競合</span>
+    <span><i style="background:#C9A8E8"></i>環境</span>
+    <span><i style="background:#E8C46A"></i>規制</span>
+    <em>内側ほど、いまの数字に当たっている</em></div></div>`
+  +fo.map(e=>`<div class="ic"><div class="r">
+    <span class="ax ${e.kind==='競合'?'pl':(e.kind==='環境'?'csat':'hiring')}">${esc(e.kind)}</span>
+    <span class="sc ${e.power>=4?'hi':(e.power>=3?'mid':'lo')}">★${e.power}</span></div>
+   <div class="t">${esc(e.name)}</div>
+   <div class="o">${esc(e.weapon)}</div>
+   <div class="o" style="color:#FFB9A6;margin-top:4px">当たっている所：${esc(String(e.hits).replace(/\*\*/g,''))}</div>
+   <div class="o" style="color:#BFEFCF;margin-top:3px">防ぎ方：${esc(String(e.guard).replace(/\*\*/g,''))}</div>
+  </div>`).join('');
+}
+
 // 左端の「全体」タブ。部屋は描かず、全事業を1枚にまとめる
 function renderSum(){
  const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
@@ -1165,9 +1240,15 @@ function render(){
  (R.staff||[]).forEach((slug,i)=>{
   const c=S.crew[slug]; if(!c||!POS[i])return;
   const [x,y]=POS[i];
-  h+=box(x-16,y+12,100,58,28,'linear-gradient(150deg,#F3EFFA,#D9D3E8)','linear-gradient(180deg,#BDB7CE,#918BA6)',
-    `<div class="mon" style="left:34px;top:8px;width:38px;height:26px;transform:translateZ(28px)"></div>`);
-  h+=box(x+6,y+80,42,28,16,'linear-gradient(150deg,#A8A3C0,#807BA0)','linear-gradient(180deg,#7A7592,#565272)');
+  // 木の天板＋白い脚。参考画面のオフィス什器に寄せる
+  h+=box(x-18,y+10,108,62,26,'linear-gradient(150deg,#D6AE7E,#B98B57)','linear-gradient(180deg,#F2EFE8,#CFC9BE)',
+    `<div class="mon" style="left:36px;top:9px;width:40px;height:27px;transform:translateZ(26px)"></div>`
+    +`<div class="kb" style="left:30px;top:42px;width:50px;height:12px;transform:translateZ(27px)"></div>`
+    +`<div class="cup" style="left:12px;top:14px;transform:translateZ(27px)"></div>`);
+  // チェア
+  h+=box(x+10,y+82,40,26,14,'linear-gradient(150deg,#4A5568,#2E3746)','linear-gradient(180deg,#3A4354,#232B38)',
+    `<div class="bk" style="left:0;top:-4px;width:40px;height:26px;transform-origin:bottom;`
+    +`transform:translateZ(14px) rotateX(-84deg)"></div>`);
   const q=S.quotes.find(q=>q.dept===slug&&q.biz===R.biz), real=!!q;
   let say;
   if(real){ say=q.text; }
@@ -1201,9 +1282,17 @@ function render(){
  [[300,200],[560,340],[190,420]].forEach(([x,y],i)=>{
   h+=`<div class="spark" style="left:${x}px;top:${y}px;animation-delay:-${i*1.6}s"></div>`;});
 
- [[812,442],[38,452],[822,58]].forEach(([x,y])=>{
+ [[812,442],[38,452],[822,58],[700,478],[132,206],[860,270]].forEach(([x,y])=>{
   h+=`<div class="plant" style="left:${x}px;top:${y}px"><div class="pot"></div><div class="lf"></div></div>`;});
- h+=box(322,362,186,62,22,'linear-gradient(150deg,#DED9EE,#BEB8D4)','linear-gradient(180deg,#ACA6C4,#837DA0)');
+ // 打ち合わせテーブル
+ h+=box(316,356,196,70,24,'linear-gradient(150deg,#DDB98C,#C09461)','linear-gradient(180deg,#F2EFE8,#CFC9BE)');
+ // 壁際の書棚（本の色は会社色）
+ [[604,4],[688,4]].forEach(([x,y])=>{
+  h+=box(x,y,78,26,74,'linear-gradient(150deg,#A87B4C,#8A6038)','linear-gradient(180deg,#B98B57,#8A6038)',
+   [18,38,58].map(t=>`<div class="shelf" style="top:${t}px"></div>`).join('')
+   +[8,20,32,46].map((l,i)=>`<div class="bk2" style="left:${l}px;--bc:rgba(var(--rug,232,112,63),${.5+i*.12})"></div>`).join(''));});
+ // 収納キャビネット
+ h+=box(10,120,34,120,52,'linear-gradient(150deg,#E6E2DA,#C8C2B6)','linear-gradient(180deg,#EFECE4,#BDB6A8)');
 
  const PATH_A="M60,180 L820,180 L820,420 L60,420 Z";
  const PATH_B="M60,150 L500,150 L500,470 L840,470 L840,120 L60,120 Z";
@@ -1241,6 +1330,9 @@ function renderPane(){
  const R=S.rooms[cur], el=document.getElementById('issb');
  document.getElementById('sw0').classList.toggle('on',pane===0);
  document.getElementById('sw1').classList.toggle('on',pane===1);
+ document.getElementById('sw2').classList.toggle('on',pane===2);
+ document.getElementById('fcn').textContent=(R.enemies||[]).length;
+ if(pane===2){ renderRadar(); return; }
  if(pane===0){
   const AX={csat:'顧客満足',hiring:'採用',pl:'売上'}, bn=s=>s>=2?'hi':(s>=1?'mid':'lo');
   el.innerHTML=(R.issues||[]).length?R.issues.map(i=>
@@ -1291,6 +1383,7 @@ function renderPane(){
 }
 document.getElementById('sw0').onclick=()=>{pane=0;renderPane();};
 document.getElementById('sw1').onclick=()=>{pane=1;renderPane();};
+document.getElementById('sw2').onclick=()=>{pane=2;renderPane();};
 
 function tabsHTML(){
  const all=S.rooms.reduce((a,r)=>a+(r.mine||[]).filter(mtLive).length,0);
