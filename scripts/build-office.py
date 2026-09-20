@@ -1008,7 +1008,13 @@ const SHAPE={
  blob: 'M0,-64 C19,-64 33,-51 33,-32 C33,-13 19,0 0,0 C-19,0 -33,-13 -33,-32 C-33,-51 -19,-64 0,-64 Z',
  ghost:'M0,-64 C18,-64 31,-50 31,-31 L31,-6 C31,-1 27,1 24,-2 L17,-9 L10,-2 C8,0 5,0 3,-2 L-3,-9 L-10,-2 C-12,0 -15,0 -17,-2 L-24,-9 L-28,-3 C-30,-1 -31,-2 -31,-6 L-31,-31 C-31,-50 -18,-64 0,-64 Z',
  drop: 'M0,-68 C15,-51 34,-36 34,-20 C34,-7 20,1 0,1 C-20,1 -34,-7 -34,-20 C-34,-36 -15,-51 0,-68 Z',
- cube: 'M-31,-56 L31,-56 C35,-56 37,-54 37,-50 L37,-6 C37,-2 35,0 31,0 L-31,0 C-35,0 -37,-2 -37,-6 L-37,-50 C-37,-54 -35,-56 -31,-56 Z'};
+ cube: 'M-31,-56 L31,-56 C35,-56 37,-54 37,-50 L37,-6 C37,-2 35,0 31,0 L-31,0 C-35,0 -37,-2 -37,-6 L-37,-50 C-37,-54 -35,-56 -31,-56 Z',
+ // 空を飛ぶ玉（ドラキー）。床に着かないので下を丸く残す
+ bat:  'M0,-66 C20,-66 34,-52 34,-34 C34,-16 20,-4 0,-4 C-20,-4 -34,-16 -34,-34 C-34,-52 -20,-66 0,-66 Z',
+ // ローブ。裾を広げて円すいにする（まほうつかい）
+ robe: 'M0,-52 C13,-52 21,-28 25,-2 C26,1 24,2 21,2 L-21,2 C-24,2 -26,1 -25,-2 C-21,-28 -13,-52 0,-52 Z',
+ // キノコの柄
+ stem: 'M-15,-34 C-15,-40 15,-40 15,-34 L17,-4 C18,1 14,2 10,2 L-10,2 C-14,2 -18,1 -17,-4 Z'};
 
 // 目。黒目＋上のキャッチライト＋下の照り返しで、平面に見せない
 function eyes(dx,dy,r,ry){
@@ -1033,10 +1039,10 @@ function gloss(x,y,rx,ry,rot){
   +` transform="rotate(${rot||-24} ${x} ${y})"/>`;}
 // 体。輪郭線は引かず、塗りの縁の暗さで形を出す
 function body(c,shape,face){
- const d=SHAPE[shape]||SHAPE.slime;
+ const d=SHAPE[shape]||shape;   // 形の名前でも、そのままのパスでも受ける
  return `<path stroke="none" fill="${c.col}" d="${d}"/>`
   +`<path stroke="none" fill="url(#gbnc)" d="${d}"/>`          // 下からの照り返し
-  +`<path stroke="none" fill="none" stroke="rgba(255,255,255,.34)" stroke-width="2" d="${d}"/>`
+  +`<path fill="none" stroke="rgba(255,255,255,.30)" stroke-width="2" d="${d}"/>`
   +gloss(-13,-44,11,7)+gloss(3,-52,4.4,3,-18)
   +(face||'');}
 
@@ -1050,26 +1056,42 @@ const MON={
    +body(c,'blob',eyes(11,-36,4.6,5.6)+mouth(-24,5)+blush(22,-27))
    +`<path stroke="none" fill="#F2EFE6" d="M-9,-14 L9,-14 L11,-2 L-11,-2 Z" opacity=".95"/>`,
 
- // 営業＝ハチマキのスライム
- sales:c=>body(c,'slime',eyes(11,-33,4.8,5.8)+smile(-20,8)+blush(23,-24))
-   +`<path stroke="none" fill="#F0F0F0" d="M-33,-42 C-20,-50 20,-50 33,-42 L33,-34 C20,-42 -20,-42 -33,-34 Z"/>`
-   +`<circle stroke="none" cx="0" cy="-42" r="5.4" fill="${c.raw}"/>`,
+ // 営業＝ドラキー。羽で飛び回る
+ sales:c=>[-1,1].map(k=>`<g transform="scale(${k},1)">`
+    +`<path stroke="none" fill="${c.raw}" opacity=".92"`
+    +` d="M-30,-46 C-50,-60 -66,-52 -62,-32 C-56,-38 -50,-38 -46,-34 C-48,-26 -42,-22 -36,-26 C-34,-32 -32,-38 -30,-42 Z"/>`
+    +`<path fill="none" stroke="rgba(0,0,0,.18)" stroke-width="1.6"`
+    +` d="M-46,-34 C-42,-38 -36,-42 -31,-44 M-36,-26 C-34,-32 -32,-38 -30,-42"/></g>`).join('')
+   +body(c,'bat',eyes(12,-40,6,7)
+     +`<path stroke="none" fill="#3A1418" d="M-15,-24 C-8,-14 8,-14 15,-24 C10,-30 -10,-30 -15,-24 Z"/>`
+     +`<path stroke="none" fill="#F7EFE4" d="M-9,-26 L-5,-20 L-1,-26 Z M1,-26 L5,-20 L9,-26 Z"/>`
+     +`<ellipse stroke="none" cx="0" cy="-17" rx="5" ry="3" fill="rgba(255,120,130,.55)"/>`)
+   +`<path stroke="none" fill="${c.raw}" d="M0,-6 C6,-2 8,6 4,10 C4,4 0,0 -2,-4 Z"/>`,
 
  // マーケ＝いちばん基本のスライム
  marketing:c=>body(c,'slime',eyes(11,-33,5,6)+mouth(-21,5.4)+blush(24,-24))
    +`<ellipse stroke="none" cx="0" cy="-2" rx="27" ry="5" fill="rgba(255,255,255,.14)"/>`,
 
- // 経営企画＝片めがね
- planning:c=>body(c,'blob',eyes(12,-36,4.6,5.4)+mouth(-24,5))
-   +`<g stroke="none"><circle cx="12" cy="-36" r="11" fill="none" stroke="#F0DFA8" stroke-width="2.6"/>`
-   +`<circle cx="12" cy="-36" r="10" fill="rgba(255,255,255,.18)"/>`
-   +`<path d="M21,-30 L27,-18" stroke="#F0DFA8" stroke-width="2"/></g>`,
+ // 経営企画＝まほうつかい。とんがり帽子と杖
+ planning:c=>`<path stroke="#7A6248" stroke-width="3.4" stroke-linecap="round" d="M30,2 L36,-52"/>`
+   +`<circle stroke="none" cx="37" cy="-58" r="7.5" fill="#8FD8F0"/>`
+   +`<circle stroke="none" cx="35" cy="-60" r="3" fill="rgba(255,255,255,.85)"/>`
+   +body(c,'robe','')
+   +`<ellipse stroke="none" cx="0" cy="-56" rx="15" ry="14" fill="#F6E7D2"/>`
+   +`<ellipse stroke="none" cx="4" cy="-54" rx="9" ry="12" fill="rgba(120,92,58,.13)"/>`
+   +eyes(6,-55,3.4,4.2)+blush(11,-48)
+   +`<path stroke="none" fill="${c.raw}" d="M-27,-62 C-18,-92 8,-104 18,-96 C10,-86 4,-72 2,-62 Z"/>`
+   +`<path stroke="none" fill="rgba(255,255,255,.22)" d="M-27,-62 C-20,-86 -2,-98 6,-98 C-4,-88 -12,-74 -15,-62 Z"/>`
+   +`<path stroke="none" fill="#F0DFA8" d="M-28,-64 C-18,-70 4,-70 4,-62 C-4,-58 -22,-58 -28,-64 Z"/>`
+   +`<path stroke="none" fill="#F0DFA8" d="M15,-88 L17,-83 L22,-82 L17,-79 L18,-74 L14,-77 L9,-75 L11,-80 L8,-84 L13,-84 Z"/>`,
 
- // プロダクト＝しずく型にキャップ
- product:c=>body(c,'drop',eyes(11,-30,4.6,5.4)+smile(-17,7))
-   +`<path stroke="none" fill="#2E6B4A" d="M-26,-50 C-26,-64 26,-64 26,-50 Z"/>`
-   +`<path stroke="none" fill="#3E8A60" d="M-26,-50 L30,-50 C34,-50 34,-45 30,-45 L-26,-45 Z"/>`
-   +`<path stroke="none" fill="rgba(255,255,255,.22)" d="M-26,-50 C-26,-62 -6,-64 -4,-64 L-8,-50 Z"/>`,
+ // プロダクト＝おばけキノコ。傘と柄で、丸い塊に見せない
+ product:c=>`<path stroke="none" fill="#F4EAD6" d="${SHAPE.stem}"/>`
+   +`<path stroke="none" fill="rgba(140,110,70,.16)" d="M4,-38 C10,-38 15,-36 15,-34 L17,-4 C18,1 14,2 10,2 L2,2 Z"/>`
+   +eyes(8,-22,4,4.8)+smile(-11,6)+blush(17,-16)
+   +body(c,'M0,-72 C24,-72 42,-54 42,-38 C42,-32 36,-30 28,-31 C14,-33 -14,-33 -28,-31 C-36,-30 -42,-32 -42,-38 C-42,-54 -24,-72 0,-72 Z','')
+   +`<g stroke="none" fill="rgba(255,255,255,.72)"><ellipse cx="-20" cy="-52" rx="7" ry="5.4"/>`
+   +`<ellipse cx="6" cy="-60" rx="5.6" ry="4.4"/><ellipse cx="22" cy="-46" rx="5" ry="3.8"/></g>`,
 
  // 人事＝おばけ型。手を広げている
  hr:c=>`<ellipse stroke="none" cx="-34" cy="-30" rx="8" ry="10" fill="${c.raw}" transform="rotate(-22 -34 -30)"/>`
@@ -1077,8 +1099,10 @@ const MON={
    +body(c,'ghost',eyes(11,-36,4.8,5.8)+mouth(-23,5.2)+blush(23,-27)),
 
  // 監査＝角が2本
- kansayaku:c=>`<path stroke="none" fill="#F2E3C0" d="M-24,-52 C-30,-70 -18,-74 -14,-62 Z"/>`
-   +`<path stroke="none" fill="#F2E3C0" d="M24,-52 C30,-70 18,-74 14,-62 Z"/>`
+ kansayaku:c=>`<path stroke="none" fill="#F4E6C6" d="M-22,-54 C-34,-78 -20,-86 -11,-66 Z"/>`
+   +`<path stroke="none" fill="rgba(140,110,70,.22)" d="M-16,-60 C-24,-76 -18,-82 -13,-70 Z"/>`
+   +`<path stroke="none" fill="#F4E6C6" d="M22,-54 C34,-78 20,-86 11,-66 Z"/>`
+   +`<path stroke="none" fill="rgba(140,110,70,.22)" d="M16,-60 C24,-76 18,-82 13,-70 Z"/>`
    +body(c,'blob',eyes(12,-37,4.4,6.4)
      +`<path stroke="none" fill="#2B3142" opacity=".9" d="M-13,-22 L13,-22 L10,-13 Q0,-8 -10,-13 Z"/>`
      +`<path stroke="none" fill="#fff" d="M-9,-22 L-5,-17 L-1,-22 Z M1,-22 L5,-17 L9,-22 Z"/>`),
