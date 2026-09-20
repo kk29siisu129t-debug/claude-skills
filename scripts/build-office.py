@@ -550,8 +550,8 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  border:1px solid rgba(90,70,50,.35)}
 .cup{position:absolute;width:11px;height:11px;border-radius:50% 50% 40% 40%;
  background:linear-gradient(180deg,#F6F3EC,#D8D2C6);border:1px solid rgba(90,70,50,.4)}
-.bk{position:absolute;border-radius:3px 3px 0 0;
- background:linear-gradient(180deg,#54607A,#2E3746);border:1px solid rgba(0,0,0,.35)}
+.bk{position:absolute;border-radius:5px 5px 0 0;
+ background:linear-gradient(180deg,#D8CAAE,#B49B72);border:1px solid rgba(90,66,32,.4)}
 .shelf{position:absolute;left:2px;right:2px;height:3px;background:rgba(60,38,18,.55);transform:translateZ(1px)}
 .bk2{position:absolute;top:20px;width:8px;height:16px;border-radius:1px;background:var(--bc,#C0392B);
  box-shadow:0 1px 0 rgba(0,0,0,.3);transform:translateZ(2px)}
@@ -566,7 +566,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .bill{position:absolute;width:236px;left:-72px;top:-96px;text-align:center;
  display:flex;flex-direction:column;align-items:center;gap:3px;
  transform:translateZ(96px) rotateZ(calc(-1 * var(--rz,0deg))) rotateX(calc(-1 * var(--rx,58deg)))}
-.av{width:88px;height:74px;display:block;margin:0 auto;shape-rendering:optimizeSpeed}
+.av{width:112px;height:94px;display:block;margin:0 auto;shape-rendering:optimizeSpeed}
 .plate{display:inline-block;padding:3px 10px;border-radius:9px;border:2px solid #fff;
  background:linear-gradient(165deg,#1B2E66,#0A1231);box-shadow:0 3px 9px rgba(0,0,0,.45);order:3}
 .bill .av{order:2}
@@ -596,7 +596,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 
 /* 代表（勇者）。残タスクの数を頭の上に出す */
 .hero .bill{top:-3px}
-.hero .av{width:112px;height:94px;animation:hero 2.4s ease-in-out infinite;transform-origin:50% 100%}
+.hero .av{width:138px;height:116px;animation:hero 2.4s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes hero{0%,100%{transform:scale(1,1)}50%{transform:scale(1.04,.95)}}
 .hero .plate{border-color:var(--gold);background:linear-gradient(165deg,#4A2E10,#1A0E04)}
 .cnt{display:inline-block;margin-bottom:4px;padding:2px 9px;border-radius:8px;
@@ -614,7 +614,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .walk{position:absolute;transform-style:preserve-3d;offset-rotate:0deg;pointer-events:none}
 .walk .bill2{position:absolute;width:130px;left:-65px;top:-47px;text-align:center;
  transform:translateZ(78px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
-.walk .av{width:64px;height:53px;display:block;margin:0 auto;transform-origin:50% 100%;
+.walk .av{width:82px;height:68px;display:block;margin:0 auto;transform-origin:50% 100%;
  animation:step .7s ease-in-out infinite}
 @keyframes step{0%{transform:scale(1.09,.9)}45%{transform:translateY(-8px) scale(.93,1.09)}
  100%{transform:scale(1.09,.9)}}
@@ -1111,12 +1111,35 @@ const MON={
    +`<path fill="#8A6A38" stroke="none" d="M-37,-48 L-46,-44 L-46,-18 L-37,-14 Z"/>`};
 
 let AVN=0;
+// 体の色を平らな1色ではなく、光の当たる側から影の側へ流す。
+// フィルタは使わない（毎フレームの焼き直しになる）。塗りを変えるだけで立体に見せる
+function shade(hex,k){
+ const m=/^#?([0-9a-f]{6})$/i.exec(String(hex||'')); if(!m) return hex;
+ const n=parseInt(m[1],16);
+ const mix=(v)=>Math.max(0,Math.min(255, k>0 ? v+(255-v)*k : v*(1+k)));
+ return '#'+[16,8,0].map(sh=>Math.round(mix((n>>sh)&255)).toString(16).padStart(2,'0')).join('');}
 function avatar(c,hero){
  const f=MON[hero?'hero':c.slug]||MON['chief-of-staff'];
+ const id='vol-'+(hero?'hero':(c.slug||'x'));
+ const cc=Object.assign({},c,{col:'url(#'+id+')'});
  return `<svg class="av" viewBox="0 0 116 96">
-  <ellipse cx="58" cy="88" rx="31" ry="6" fill="rgba(0,0,0,.26)"/>
+  <defs>
+   <radialGradient id="${id}" cx="32%" cy="24%" r="82%">
+    <stop offset="0" stop-color="${shade(c.col,.46)}"/>
+    <stop offset="46%" stop-color="${c.col}"/>
+    <stop offset="100%" stop-color="${shade(c.col,-.34)}"/>
+   </radialGradient>
+   <radialGradient id="gsh"><stop offset="0" stop-color="rgba(0,0,0,.34)"/>
+    <stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+   <linearGradient id="gglo" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgba(255,255,255,.62)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
+  </defs>
+  <ellipse cx="58" cy="89" rx="33" ry="7.5" fill="url(#gsh)"/>
   <g transform="translate(58,88)" stroke="${OUT}" stroke-width="2.6"
-     stroke-linejoin="round" stroke-linecap="round">${f(c)}</g></svg>`;}
+     stroke-linejoin="round" stroke-linecap="round">${f(cc)}</g>
+  <ellipse cx="45" cy="52" rx="8.5" ry="5" fill="url(#gglo)" stroke="none"
+     transform="rotate(-24 45 52)" opacity=".85"/></svg>`;}
 
 function box(x,y,w,d,h,top,side,extra){
  return `<div class="obj" style="left:${x}px;top:${y}px">
@@ -1456,7 +1479,7 @@ function render(){
     +`<div class="kb" style="left:30px;top:42px;width:50px;height:12px;transform:translateZ(27px)"></div>`
     +`<div class="cup" style="left:12px;top:14px;transform:translateZ(27px)"></div>`);
   // チェア
-  h+=box(x+10,y+82,40,26,14,'linear-gradient(150deg,#4A5568,#2E3746)','linear-gradient(180deg,#3A4354,#232B38)',
+  h+=box(x+10,y+82,40,26,14,'linear-gradient(150deg,#E4D9C4,#C9BB9F)','linear-gradient(180deg,#C2A97F,#9A825C)',
     `<div class="bk" style="left:0;top:-4px;width:40px;height:26px;transform-origin:bottom;`
     +`transform:translateZ(14px) rotateX(-84deg)"></div>`);
   const q=S.quotes.find(q=>q.dept===slug&&q.biz===R.biz), real=!!q;
