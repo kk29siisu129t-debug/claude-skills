@@ -999,116 +999,104 @@ function eyes(dx,dy,rx,ry){
 const GRIN='<path stroke="none" fill="#2A1A18" d="M-13,-19 Q0,-16.5 13,-19 Q10,-6 0,-6 Q-10,-6 -13,-19 Z"/>';
 const SMILE='<path fill="none" stroke="'+OUT+'" stroke-width="2.4" stroke-linecap="round" d="M-8,-17 Q0,-10 8,-17"/>';
 
-// 8体それぞれ別の姿にする。全部スライムにしない（2026-09-08 本人指示）
+// 参考画面のマスコットに寄せる。黒フチのセル画はやめ、
+// ①光の面から影の面へ流す塗り ②大きな艶 ③接地影 ④下からの照り返し の4点で立体に見せる。
+// 姿は8体それぞれ別。全部スライムにはしない（2026-09-08 代表指示）
+const SHAPE={
+ // ドーム型。幅広で低く。とがらせて縦に伸ばすと巻きグソに見える（2026-09-08 差し戻し）
+ slime:'M0,-62 C21,-62 32,-39 36,-16 C38,-6 33,0 25,0 L-25,0 C-33,0 -38,-6 -36,-16 C-32,-39 -21,-62 0,-62 Z',
+ blob: 'M0,-64 C19,-64 33,-51 33,-32 C33,-13 19,0 0,0 C-19,0 -33,-13 -33,-32 C-33,-51 -19,-64 0,-64 Z',
+ ghost:'M0,-64 C18,-64 31,-50 31,-31 L31,-6 C31,-1 27,1 24,-2 L17,-9 L10,-2 C8,0 5,0 3,-2 L-3,-9 L-10,-2 C-12,0 -15,0 -17,-2 L-24,-9 L-28,-3 C-30,-1 -31,-2 -31,-6 L-31,-31 C-31,-50 -18,-64 0,-64 Z',
+ drop: 'M0,-68 C15,-51 34,-36 34,-20 C34,-7 20,1 0,1 C-20,1 -34,-7 -34,-20 C-34,-36 -15,-51 0,-68 Z',
+ cube: 'M-31,-56 L31,-56 C35,-56 37,-54 37,-50 L37,-6 C37,-2 35,0 31,0 L-31,0 C-35,0 -37,-2 -37,-6 L-37,-50 C-37,-54 -35,-56 -31,-56 Z'};
+
+// 目。黒目＋上のキャッチライト＋下の照り返しで、平面に見せない
+function eyes(dx,dy,r,ry){
+ const b=ry||r;
+ return `<g stroke="none">`
+  +[-dx,dx].map(x=>`<ellipse cx="${x}" cy="${dy}" rx="${r}" ry="${b}" fill="#2B3142"/>`
+    +`<circle cx="${x+r*.46}" cy="${dy-b*.44}" r="${r*.40}" fill="#fff"/>`
+    +`<ellipse cx="${x-r*.3}" cy="${dy+b*.46}" rx="${r*.26}" ry="${r*.2}" fill="rgba(255,255,255,.55)"/>`).join('')
+  +`</g>`;}
+// 口。小さく、下向きの弧
+function mouth(y,w){
+ return `<path stroke="none" fill="#2B3142" opacity=".9" d="M${-w},${y} Q0,${y+w*1.05} ${w},${y} Q0,${y+w*.5} ${-w},${y} Z"/>`;}
+function smile(y,w){
+ return `<path fill="none" stroke="#2B3142" stroke-width="2.2" stroke-linecap="round" opacity=".8" d="M${-w},${y} Q0,${y+w*.8} ${w},${y}"/>`;}
+// ほっぺ
+function blush(dx,y){
+ return `<g stroke="none" fill="rgba(255,138,120,.34)"><ellipse cx="${-dx}" cy="${y}" rx="6.5" ry="4"/>`
+  +`<ellipse cx="${dx}" cy="${y}" rx="6.5" ry="4"/></g>`;}
+// 艶。大小2つ置くと球に見える
+function gloss(x,y,rx,ry,rot){
+ return `<ellipse stroke="none" cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="url(#gglo)"`
+  +` transform="rotate(${rot||-24} ${x} ${y})"/>`;}
+// 体。輪郭線は引かず、塗りの縁の暗さで形を出す
+function body(c,shape,face){
+ const d=SHAPE[shape]||SHAPE.slime;
+ return `<path stroke="none" fill="${c.col}" d="${d}"/>`
+  +`<path stroke="none" fill="url(#gbnc)" d="${d}"/>`          // 下からの照り返し
+  +`<path stroke="none" fill="none" stroke="rgba(255,255,255,.34)" stroke-width="2" d="${d}"/>`
+  +gloss(-13,-44,11,7)+gloss(3,-52,4.4,3,-18)
+  +(face||'');}
+
 const MON={
- // 秘書＝けもの。しっぽと耳で、丸い体でもスライムに見えないようにする
- 'chief-of-staff':c=>`<path fill="${c.col}" d="M26,-6 C46,-10 52,-32 43,-46 C55,-32 50,-2 30,0 Z"/>`
-   +`<ellipse cx="0" cy="-24" rx="25" ry="23" fill="${c.col}"/>`
-   +`<ellipse cx="10" cy="-22" rx="15" ry="19" fill="rgba(0,0,0,.15)" stroke="none"/>`
-   +`<ellipse cx="-15" cy="-5" rx="9" ry="5.4" fill="${c.col}"/>`
-   +`<ellipse cx="15" cy="-5" rx="9" ry="5.4" fill="${c.col}"/>`
-   +`<path fill="${c.col}" d="M-20,-62 L-24,-80 L-7,-69 Z M20,-62 L24,-80 L7,-69 Z"/>`
-   +`<path fill="rgba(0,0,0,.22)" stroke="none" d="M-18,-64 L-20,-74 L-10,-67 Z M18,-64 L20,-74 L10,-67 Z"/>`
-   +`<circle cx="0" cy="-52" r="19" fill="${c.col}"/>`
-   +`<ellipse cx="8" cy="-50" rx="11" ry="16" fill="rgba(0,0,0,.14)" stroke="none"/>`
-   +`<ellipse cx="-8" cy="-60" rx="7" ry="4.6" fill="rgba(255,255,255,.42)" stroke="none" transform="rotate(-22 -8 -60)"/>`
-   +`<path fill="#F4EEE0" stroke="none" d="M-11,-46 Q0,-52 11,-46 Q7,-38 0,-38 Q-7,-38 -11,-46 Z"/>`
-   +`${eyes(8.5,-56,4,6)}`
-   +`<path fill="${OUT}" stroke="none" d="M-3.4,-47 L3.4,-47 L0,-43.5 Z"/>`
-   +`<path fill="none" stroke="${OUT}" stroke-width="1.9" stroke-linecap="round" d="M0,-43.5 L0,-41.5 M-6,-40 Q-3,-42.5 0,-41.5 M6,-40 Q3,-42.5 0,-41.5"/>`
-   +`<path fill="none" stroke="${OUT}" stroke-width="1.7" stroke-linecap="round" d="M-14,-49 L-24,-51 M-14,-45 L-25,-45 M14,-49 L24,-51 M14,-45 L25,-45"/>`
-   +`<path fill="#D9483F" d="M-19,-36 Q0,-29 19,-36 L21,-30 Q0,-23 -21,-30 Z"/>`,
- // 営業＝小鬼。旗を持って立っている
- sales:c=>`<path fill="${c.col}" d="M-19,-16 L-8,-16 L-8,0 L-21,0 Z M8,-16 L19,-16 L21,0 L6,0 Z"/>`
-   +`<ellipse cx="0" cy="-32" rx="21" ry="23" fill="${c.col}"/>`
-   +`<path fill="${c.col}" d="M-20,-38 L-40,-45 L-22,-25 Z M20,-38 L40,-45 L22,-25 Z"/>`
-   +`<path fill="${c.col}" d="M-13,-50 L-17,-63 L-6,-54 Z M13,-50 L17,-63 L6,-54 Z"/>`
-   +`<ellipse cx="8" cy="-30" rx="13" ry="20" fill="rgba(0,0,0,.16)" stroke="none"/>`
-   +`<ellipse cx="-8" cy="-40" rx="7" ry="5" fill="rgba(255,255,255,.42)" stroke="none" transform="rotate(-22 -8 -40)"/>`
-   +`${eyes(8.5,-34,4,6)}`
-   +`<path stroke="none" fill="#2A1A18" d="M-9,-24 Q0,-21 9,-24 Q6,-13 0,-13 Q-6,-13 -9,-24 Z"/>`
-   +`<path stroke="#8A6A38" stroke-width="2.6" d="M26,-4 L33,-58"/>`
-   +`<path fill="#F0C24A" stroke-width="2" d="M33,-58 L50,-51 L33,-43 Z"/>`,
- // マーケ＝コウモリ
- marketing:c=>`<path fill="${c.col}" d="M-22,-42 C-40,-58 -52,-52 -51,-30 C-43,-38 -32,-38 -24,-33 Z"/>`
-   +`<path fill="${c.col}" d="M22,-42 C40,-58 52,-52 51,-30 C43,-38 32,-38 24,-33 Z"/>`
-   +`<path fill="${c.col}" d="M-14,-52 L-18,-64 L-7,-56 Z M14,-52 L18,-64 L7,-56 Z"/>`
-   +`<ellipse cx="0" cy="-32" rx="27" ry="25" fill="${c.col}"/>`
-   +`<ellipse cx="11" cy="-29" rx="16" ry="21" fill="rgba(0,0,0,.16)" stroke="none"/>`
-   +`<ellipse cx="-11" cy="-41" rx="8" ry="5.6" fill="rgba(255,255,255,.46)" stroke="none" transform="rotate(-22 -11 -41)"/>`
-   +`<path fill="${c.col}" d="M-14,-9 L-5,-9 L-5,0 L-14,0 Z M5,-9 L14,-9 L14,0 L5,0 Z"/>`
-   +`${eyes(10,-34,4.6,7)}${SMILE}`,
- // 経営企画＝ゴーレム。四角い岩の体
- planning:c=>`<path fill="${c.col}" d="M-22,-15 L-7,-15 L-7,0 L-24,0 Z M7,-15 L22,-15 L24,0 L5,0 Z"/>`
-   +`<rect x="-42" y="-53" width="13" height="32" rx="5" fill="${c.col}"/>`
-   +`<rect x="29" y="-53" width="13" height="32" rx="5" fill="${c.col}"/>`
-   +`<rect x="-29" y="-58" width="58" height="46" rx="11" fill="${c.col}"/>`
-   +`<g stroke="none"><path fill="rgba(255,255,255,.30)" d="M-29,-47 C-29,-56 -22,-58 -14,-58 L-14,-12 L-24,-12 C-28,-16 -29,-30 -29,-47 Z"/>`
-   +`<path fill="rgba(0,0,0,.20)" d="M14,-58 L29,-58 L29,-12 L14,-12 Z"/></g>`
-   +`<path fill="none" stroke="rgba(0,0,0,.35)" stroke-width="2" d="M-6,-58 L-2,-46 L-9,-38 M9,-13 L13,-24 L6,-30"/>`
-   +`<g stroke="none"><ellipse cx="-11" cy="-40" rx="5" ry="5.6" fill="${OUT}"/>`
-   +`<ellipse cx="11" cy="-40" rx="5" ry="5.6" fill="${OUT}"/>`
-   +`<circle cx="-11" cy="-40" r="2.4" fill="#FFE9A8"/><circle cx="11" cy="-40" r="2.4" fill="#FFE9A8"/></g>`
-   +`<path fill="none" stroke="${OUT}" stroke-width="2.4" stroke-linecap="round" d="M-9,-25 L9,-25"/>`,
- // プロダクト＝きのこ
- product:c=>`<path fill="#F2E4C8" d="M-15,-2 C-17,-22 -15,-34 0,-34 C15,-34 17,-22 15,-2 Z"/>`
-   +`<path fill="${c.col}" d="M-38,-32 C-38,-59 -19,-70 0,-70 C19,-70 38,-59 38,-32 C25,-38 -25,-38 -38,-32 Z"/>`
-   +`<g stroke="none" fill="rgba(255,255,255,.55)"><ellipse cx="-19" cy="-51" rx="7.5" ry="5.4"/>`
-   +`<ellipse cx="8" cy="-58" rx="6" ry="4.4"/><ellipse cx="23" cy="-45" rx="5.4" ry="3.8"/></g>`
-   +`<path fill="rgba(0,0,0,.16)" stroke="none" d="M17,-60 C32,-53 38,-43 38,-32 C31,-35 25,-36 21,-36 C23,-47 21,-55 17,-60 Z"/>`
-   +`${eyes(8,-22,4,5.8)}${SMILE}`,
- // 人事＝天使の鳥。人を連れてくる係
- hr:c=>`<path fill="${c.col}" d="M-19,-38 C-40,-44 -48,-30 -40,-18 C-34,-26 -26,-29 -20,-28 Z"/>`
-   +`<path fill="${c.col}" d="M19,-38 C40,-44 48,-30 40,-18 C34,-26 26,-29 20,-28 Z"/>`
-   +`<ellipse cx="0" cy="-30" rx="22" ry="24" fill="${c.col}"/>`
-   +`<ellipse cx="9" cy="-27" rx="13" ry="20" fill="rgba(0,0,0,.16)" stroke="none"/>`
-   +`<ellipse cx="-9" cy="-39" rx="7.5" ry="5.2" fill="rgba(255,255,255,.48)" stroke="none" transform="rotate(-22 -9 -39)"/>`
-   +`<path fill="#F0C24A" d="M-6,-28 L-16,-23 L-6,-19 Z"/>`
-   +`<path fill="#F0C24A" d="M-14,-8 L-6,-8 L-6,0 L-16,0 Z M6,-8 L14,-8 L14,0 L4,0 Z"/>`
-   +`<ellipse cx="0" cy="-60" rx="12" ry="4.5" fill="none" stroke="#F0C24A" stroke-width="3"/>`
-   +`<path stroke="none" fill="#F4EEE0" d="M-3,-34 L3,-34 L3,-28 L9,-28 L9,-22 L3,-22 L3,-16 L-3,-16 L-3,-22 L-9,-22 L-9,-28 L-3,-28 Z"/>`
-   +`${eyes(9,-36,4,6)}`,
- // 監査＝がいこつ剣士
- kansayaku:c=>`<path fill="${c.col}" d="M-24,-34 L24,-34 L30,0 L-30,0 Z"/>`
-   +`<path fill="rgba(0,0,0,.22)" stroke="none" d="M8,-34 L24,-34 L30,0 L14,0 Z"/>`
-   +`<path fill="#F0EDE0" d="M-8,-42 L8,-42 L8,-30 L-8,-30 Z"/>`
-   +`<ellipse cx="0" cy="-56" rx="17" ry="16" fill="#F0EDE0"/>`
-   +`<path fill="#F0EDE0" d="M-11,-46 L11,-46 L9,-34 L-9,-34 Z"/>`
-   +`<ellipse cx="9" cy="-54" rx="9" ry="14" fill="rgba(90,80,70,.16)" stroke="none"/>`
-   +`<g stroke="none"><ellipse cx="-6.5" cy="-58" rx="4.6" ry="5.6" fill="${OUT}"/>`
-   +`<ellipse cx="6.5" cy="-58" rx="4.6" ry="5.6" fill="${OUT}"/>`
-   +`<circle cx="-6.5" cy="-58" r="2" fill="#FF7A5C"/><circle cx="6.5" cy="-58" r="2" fill="#FF7A5C"/></g>`
-   +`<path fill="none" stroke="${OUT}" stroke-width="2" d="M-7,-38 L-7,-34 M0,-38 L0,-34 M7,-38 L7,-34 M-9,-38 L9,-38"/>`
-   +`<path stroke="#B9C2D4" stroke-width="3.6" d="M28,-14 L44,-54"/>`
-   +`<path stroke="#8A6A38" stroke-width="4.4" d="M24,-8 L34,-13"/>`,
- // 検品＝目玉
- reviewer:c=>`<ellipse cx="0" cy="-33" rx="30" ry="29" fill="#F2F2EC"/>`
-   +`<ellipse cx="10" cy="-30" rx="19" ry="24" fill="rgba(60,70,90,.14)" stroke="none"/>`
-   +`<circle cx="0" cy="-33" r="14" fill="#3E7FB8" stroke="none"/>`
-   +`<circle cx="0" cy="-33" r="6.8" fill="${OUT}" stroke="none"/>`
-   +`<circle cx="-5" cy="-38" r="3.8" fill="#fff" stroke="none"/>`
-   +`<path fill="${c.col}" d="M-16,-8 L-6,-8 L-6,0 L-17,0 Z M6,-8 L16,-8 L16,0 L5,0 Z"/>`
-   +`<path stroke="#8A6A38" stroke-width="2.6" d="M29,-11 L40,-32"/>`
-   +`<circle cx="42" cy="-36" r="8" fill="rgba(190,225,255,.5)" stroke="#C9CFDC" stroke-width="2.6"/>`,
- // 代表＝よろいのきし。人の顔は出さない
- hero:c=>`<path fill="#B23A2E" d="M-23,-60 L23,-60 L34,-4 L-34,-4 Z"/>`
-   +`<path fill="rgba(0,0,0,.22)" stroke="none" d="M6,-60 L23,-60 L34,-4 L14,-4 Z"/>`
-   +`<path fill="#4A4F5E" d="M-18,-20 L-5,-20 L-5,0 L-20,0 Z M5,-20 L18,-20 L20,0 L5,0 Z"/>`
-   +`<path fill="${c.col}" d="M-23,-56 C-25,-34 -21,-16 -18,-14 L18,-14 C21,-16 25,-34 23,-56 Z"/>`
-   +`<path fill="rgba(255,255,255,.26)" stroke="none" d="M-23,-56 C-25,-36 -21,-18 -18,-15 L-8,-15 L-10,-56 Z"/>`
-   +`<path fill="rgba(0,0,0,.20)" stroke="none" d="M11,-56 L13,-15 L18,-15 C21,-18 25,-36 23,-56 Z"/>`
-   +`<path fill="#E0C05A" stroke="none" d="M-22,-46 L22,-46 L22,-40 L-22,-40 Z"/>`
-   +`<ellipse cx="-27" cy="-52" rx="12" ry="9" fill="${c.col}"/>`
-   +`<ellipse cx="27" cy="-52" rx="12" ry="9" fill="${c.col}"/>`
-   +`<path fill="#E0C05A" d="M-2,-76 C-8,-92 10,-98 14,-86 C9,-89 2,-84 2,-76 Z"/>`
-   +`<path fill="${c.col}" d="M-18,-60 C-18,-84 18,-84 18,-60 Z"/>`
-   +`<path fill="rgba(255,255,255,.22)" stroke="none" d="M-18,-60 C-18,-80 -8,-83 -4,-83 L-6,-60 Z"/>`
-   +`<path fill="#1A2233" stroke="none" d="M-14,-71 L14,-71 L14,-65 L2,-65 L2,-60 L-2,-60 L-2,-65 L-14,-65 Z"/>`
-   +`<circle cx="-7" cy="-68" r="2.6" fill="#7DE39B"/><circle cx="7" cy="-68" r="2.6" fill="#7DE39B"/>
-   <path stroke="#B9C2D4" stroke-width="4" d="M32,-24 L50,-64"/>`
-   +`<path stroke="#E0C05A" stroke-width="5" d="M27,-18 L39,-24"/>`
-   +`<path fill="#C9A03A" d="M-32,-54 L-52,-47 L-52,-12 L-32,-5 Z"/>`
-   +`<path fill="#8A6A38" stroke="none" d="M-37,-48 L-46,-44 L-46,-18 L-37,-14 Z"/>`};
+ // 秘書＝けもの。丸い体に耳としっぽ
+ 'chief-of-staff':c=>`<path stroke="none" fill="${c.raw}" opacity=".9" d="M30,-8 C48,-14 52,-34 43,-46 C56,-32 50,-2 32,2 Z"/>`
+   +`<ellipse stroke="none" cx="-20" cy="-58" rx="10" ry="12" fill="${c.raw}" transform="rotate(-18 -20 -58)"/>`
+   +`<ellipse stroke="none" cx="20" cy="-58" rx="10" ry="12" fill="${c.raw}" transform="rotate(18 20 -58)"/>`
+   +`<ellipse stroke="none" cx="-20" cy="-57" rx="5" ry="6.5" fill="rgba(255,190,160,.75)" transform="rotate(-18 -20 -57)"/>`
+   +`<ellipse stroke="none" cx="20" cy="-57" rx="5" ry="6.5" fill="rgba(255,190,160,.75)" transform="rotate(18 20 -57)"/>`
+   +body(c,'blob',eyes(11,-36,4.6,5.6)+mouth(-24,5)+blush(22,-27))
+   +`<path stroke="none" fill="#F2EFE6" d="M-9,-14 L9,-14 L11,-2 L-11,-2 Z" opacity=".95"/>`,
+
+ // 営業＝ハチマキのスライム
+ sales:c=>body(c,'slime',eyes(11,-33,4.8,5.8)+smile(-20,8)+blush(23,-24))
+   +`<path stroke="none" fill="#F0F0F0" d="M-33,-42 C-20,-50 20,-50 33,-42 L33,-34 C20,-42 -20,-42 -33,-34 Z"/>`
+   +`<circle stroke="none" cx="0" cy="-42" r="5.4" fill="${c.raw}"/>`,
+
+ // マーケ＝いちばん基本のスライム
+ marketing:c=>body(c,'slime',eyes(11,-33,5,6)+mouth(-21,5.4)+blush(24,-24))
+   +`<ellipse stroke="none" cx="0" cy="-2" rx="27" ry="5" fill="rgba(255,255,255,.14)"/>`,
+
+ // 経営企画＝片めがね
+ planning:c=>body(c,'blob',eyes(12,-36,4.6,5.4)+mouth(-24,5))
+   +`<g stroke="none"><circle cx="12" cy="-36" r="11" fill="none" stroke="#F0DFA8" stroke-width="2.6"/>`
+   +`<circle cx="12" cy="-36" r="10" fill="rgba(255,255,255,.18)"/>`
+   +`<path d="M21,-30 L27,-18" stroke="#F0DFA8" stroke-width="2"/></g>`,
+
+ // プロダクト＝しずく型にキャップ
+ product:c=>body(c,'drop',eyes(11,-30,4.6,5.4)+smile(-17,7))
+   +`<path stroke="none" fill="#2E6B4A" d="M-26,-50 C-26,-64 26,-64 26,-50 Z"/>`
+   +`<path stroke="none" fill="#3E8A60" d="M-26,-50 L30,-50 C34,-50 34,-45 30,-45 L-26,-45 Z"/>`
+   +`<path stroke="none" fill="rgba(255,255,255,.22)" d="M-26,-50 C-26,-62 -6,-64 -4,-64 L-8,-50 Z"/>`,
+
+ // 人事＝おばけ型。手を広げている
+ hr:c=>`<ellipse stroke="none" cx="-34" cy="-30" rx="8" ry="10" fill="${c.raw}" transform="rotate(-22 -34 -30)"/>`
+   +`<ellipse stroke="none" cx="34" cy="-30" rx="8" ry="10" fill="${c.raw}" transform="rotate(22 34 -30)"/>`
+   +body(c,'ghost',eyes(11,-36,4.8,5.8)+mouth(-23,5.2)+blush(23,-27)),
+
+ // 監査＝角が2本
+ kansayaku:c=>`<path stroke="none" fill="#F2E3C0" d="M-24,-52 C-30,-70 -18,-74 -14,-62 Z"/>`
+   +`<path stroke="none" fill="#F2E3C0" d="M24,-52 C30,-70 18,-74 14,-62 Z"/>`
+   +body(c,'blob',eyes(12,-37,4.4,6.4)
+     +`<path stroke="none" fill="#2B3142" opacity=".9" d="M-13,-22 L13,-22 L10,-13 Q0,-8 -10,-13 Z"/>`
+     +`<path stroke="none" fill="#fff" d="M-9,-22 L-5,-17 L-1,-22 Z M1,-22 L5,-17 L9,-22 Z"/>`),
+
+ // 品質審査＝木箱のロボット
+ reviewer:c=>`<path stroke="none" stroke-width="0" fill="#C9C2B4" d="M0,-70 L0,-58"/>`
+   +`<path stroke="#C9C2B4" stroke-width="3" d="M0,-70 L0,-56"/>`
+   +`<circle stroke="none" cx="0" cy="-73" r="4.4" fill="#7DE39B"/>`
+   +body(c,'cube',eyes(12,-34,4.4,5.2)+smile(-20,7))
+   +`<path stroke="none" fill="rgba(255,255,255,.20)" d="M-31,-56 L31,-56 C35,-56 37,-54 37,-50 L-37,-50 C-37,-54 -35,-56 -31,-56 Z"/>`
+   +`<rect stroke="none" x="-16" y="-16" width="32" height="9" rx="3" fill="rgba(0,0,0,.20)"/>`,
+
+ // 代表＝王冠つき。ひとまわり大きい
+ hero:c=>`<path stroke="none" fill="#E8C24A" d="M-22,-64 L-15,-78 L-7,-68 L0,-84 L7,-68 L15,-78 L22,-64 Z"/>`
+   +`<path stroke="none" fill="rgba(255,255,255,.35)" d="M-22,-64 L-15,-78 L-7,-68 L-4,-74 L-6,-64 Z"/>`
+   +`<circle stroke="none" cx="0" cy="-70" r="3.2" fill="#E0503C"/>`
+   +body(c,'slime',eyes(12,-34,5.4,6.4)+smile(-19,8)+blush(25,-25))
+   +`<path stroke="none" fill="rgba(255,255,255,.18)" d="M-36,-12 C-30,-32 30,-32 36,-12 C38,-6 33,0 25,0 L-25,0 C-33,0 -38,-6 -36,-12 Z"/>`};
 
 let AVN=0;
 // 体の色を平らな1色ではなく、光の当たる側から影の側へ流す。
@@ -1121,22 +1109,27 @@ function shade(hex,k){
 function avatar(c,hero){
  const f=MON[hero?'hero':c.slug]||MON['chief-of-staff'];
  const id='vol-'+(hero?'hero':(c.slug||'x'));
- const cc=Object.assign({},c,{col:'url(#'+id+')'});
+ const cc=Object.assign({},c,{col:'url(#'+id+')',raw:c.col});
  return `<svg class="av" viewBox="0 0 116 96">
   <defs>
-   <radialGradient id="${id}" cx="32%" cy="24%" r="82%">
-    <stop offset="0" stop-color="${shade(c.col,.46)}"/>
-    <stop offset="46%" stop-color="${c.col}"/>
-    <stop offset="100%" stop-color="${shade(c.col,-.34)}"/>
+   <radialGradient id="${id}" cx="33%" cy="21%" r="86%">
+    <stop offset="0" stop-color="${shade(c.col,.60)}"/>
+    <stop offset="34%" stop-color="${shade(c.col,.18)}"/>
+    <stop offset="72%" stop-color="${c.col}"/>
+    <stop offset="100%" stop-color="${shade(c.col,-.42)}"/>
    </radialGradient>
    <radialGradient id="gsh"><stop offset="0" stop-color="rgba(0,0,0,.34)"/>
     <stop offset="100%" stop-color="rgba(0,0,0,0)"/></radialGradient>
+   <linearGradient id="gbnc" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="rgba(255,255,255,0)"/>
+    <stop offset="62%" stop-color="rgba(255,255,255,0)"/>
+    <stop offset="100%" stop-color="rgba(255,255,255,.30)"/></linearGradient>
    <linearGradient id="gglo" x1="0" y1="0" x2="0" y2="1">
     <stop offset="0" stop-color="rgba(255,255,255,.62)"/>
     <stop offset="100%" stop-color="rgba(255,255,255,0)"/></linearGradient>
   </defs>
   <ellipse cx="58" cy="89" rx="33" ry="7.5" fill="url(#gsh)"/>
-  <g transform="translate(58,88)" stroke="${OUT}" stroke-width="2.6"
+  <g transform="translate(58,88)" stroke="none"
      stroke-linejoin="round" stroke-linecap="round">${f(cc)}</g>
   <ellipse cx="45" cy="52" rx="8.5" ry="5" fill="url(#gglo)" stroke="none"
      transform="rotate(-24 45 52)" opacity=".85"/></svg>`;}
@@ -1637,11 +1630,13 @@ function tabsHTML(){
 document.getElementById('tabs').innerHTML=tabsHTML();
 document.getElementById('tabs').addEventListener('click',e=>{
  const b=e.target.closest('button'); if(!b)return; cur=+b.dataset.i; render();});
-function gotoTab(i){
- const n=S.rooms.length; if(!n)return;
- // -2（メンバー）・-1（全体）から n-1 までを一周させる
- const m=n+2;
- cur=(((i+2)%m)+m)%m-2; render();
+// 並んでいる順に送る。数字の順（-2,-1,0…）で回すと、画面では
+// 全体→メンバー の並びなのに メンバー→全体 に飛んでいた（2026-09-20 代表指摘）
+function tabOrder(){ return [-1,-2].concat(S.rooms.map((r,i)=>i)); }
+function gotoTab(step){
+ const o=tabOrder(); if(!o.length)return;
+ let at=o.indexOf(cur); if(at<0) at=0;
+ cur=o[((at+step)%o.length+o.length)%o.length]; render();
  const b=document.querySelector('#tabs button[data-i="'+cur+'"]');
  if(b) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
 }
@@ -1651,7 +1646,7 @@ document.addEventListener('keydown',e=>{
  const t=e.target;
  if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return;
  e.preventDefault();
- gotoTab(cur+(e.key==='ArrowDown'?1:-1));
+ gotoTab(e.key==='ArrowDown'?1:-1);
 });
 const NM={}; Object.values(S.crew).forEach(c=>NM[c.slug]=c.nick); NM.system='システム';
 const SL={done:'完了',running:'着手',blocked:'詰まり',skipped:'見送り'};
