@@ -936,7 +936,9 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 @media(max-width:1080px){
  .wrap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-rows:auto;
   height:auto;min-height:calc(100vh - 92px);overflow-x:hidden;overflow-y:visible;padding:8px}
- .sbox{order:-1;height:42vh;min-height:260px}
+ @supports (height:100svh){.wrap{min-height:calc(100svh - 92px)}}
+ /* 高さは vh ではなく縦横比で決める。部屋の形そのままの枠を作れば、切れも余りも出ない */
+ .sbox{order:-1;height:auto;min-height:0;aspect-ratio:4/3.1}
  .ordbar{max-height:none}
  #iss{max-height:none}#chat{max-height:34vh}}
 /* 携帯。部屋は小さくしか置けないので、札を減らして形が見えるようにする */
@@ -944,8 +946,9 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  .bar1{gap:8px;padding:7px 10px}
  .brand{font-size:16px}
  .pipe,.tabhint,.who{display:none}
- .sbox{height:44vh;min-height:250px}
- .bill .bub,.walk .tag,.quest,.foe .fd,.foe .fk{display:none}
+ .sbox{aspect-ratio:4/3.5}
+ /* 敵は競合レーダーのタブで見る。横に置くと部屋の外側が切れる原因になる */
+ .bill .bub,.walk .tag,.quest,.foe{display:none}
  .plate{padding:2px 7px}
  .nm{font-size:11px}.rl{font-size:9px}
  .pn h3{padding:7px 10px}
