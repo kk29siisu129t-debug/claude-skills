@@ -46,6 +46,14 @@ MTDONE = json.load(io.open(_MDP, encoding='utf-8')) if os.path.exists(_MDP) else
 _MNP = os.path.join(HUB, 'data', 'mytasks-notmine.json')
 MTNOT = json.load(io.open(_MNP, encoding='utf-8')) if os.path.exists(_MNP) else {}
 
+# 会議後タスク処理（meeting-task-sweep）が積む実行候補。代表が画面で選ぶまで実行しない
+_PRP = os.path.join(HUB, 'data', 'proposals.json')
+PROP = json.load(io.open(_PRP, encoding='utf-8')) if os.path.exists(_PRP) else {'items': []}
+PROPS = PROP.get('items', [])
+# 画面でついた「実行する／やらない」。queue と同じで、空で作り直すと選択が飛ぶ
+_PDP = os.path.join(HUB, 'data', 'proposals-decided.json')
+PRDEC = json.load(io.open(_PDP, encoding='utf-8')) if os.path.exists(_PDP) else {}
+
 _MP = os.path.join(HUB, 'data', 'mytasks.json')
 MYT = json.load(io.open(_MP, encoding='utf-8')) if os.path.exists(_MP) else {'tasks': []}
 MYTASKS = MYT.get('tasks', [])
@@ -290,7 +298,7 @@ for _b in ['全社', '誤アサイン']:
 STATE = dict(now=NOW, crew=crew, rooms=rooms, arts=ARTS, quotes=QUOTES, people=PEOPLE,
              myt=dict(asOf=MYT.get('asOf',''), window=MYT.get('window',''),
                       older=MYT.get('olderPending',''), total=len(MYTASKS)),
-             mtDone=MTDONE, mtNot=MTNOT,
+             mtDone=MTDONE, mtNot=MTNOT, props=PROPS, prDec=PRDEC,
              log=[dict(r, ago=ago(r.get('ts', ''))) for r in runs[:26]], queue=QUEUE, qDone=QDONE)
 
 BODY = r"""<title>バーチャルオフィス</title>
@@ -364,7 +372,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .tabs button.on u{background:rgba(255,255,255,.22);color:#F0F5FF;font-weight:400}
 
 /* ── 空とステージ ───────────────────────────────────── */
-.wrap{position:relative;height:calc(100vh - 92px);min-height:600px;overflow:hidden;
+.wrap{position:relative;height:calc(100vh - 92px);min-height:600px;
  display:grid;grid-template-columns:286px minmax(0,1fr) 310px;grid-template-rows:minmax(0,1fr);
  gap:10px;padding:10px;
  background:linear-gradient(180deg,var(--sky1) 0%,var(--sky2) 34%,var(--sky3) 66%,var(--sky4) 100%);
@@ -423,12 +431,12 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .stage{position:absolute;inset:0;perspective:2600px;perspective-origin:50% 46%;z-index:2;pointer-events:none;
  transform:translate(var(--ox,0px),var(--oy,0px)) scale(var(--s,1));transform-origin:50% 50%}
 .stage .room{pointer-events:auto}
-.world{position:absolute;inset:0;transform-style:preserve-3d;
+.world{position:absolute;inset:0;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;
  transform:rotateX(var(--rx,58deg)) rotateZ(var(--rz,0deg))}
-.room{position:absolute;left:50%;top:50%;width:900px;height:660px;margin:-330px 0 0 -450px;transform-style:preserve-3d}
+.room{position:absolute;left:50%;top:50%;width:900px;height:660px;margin:-330px 0 0 -450px;-webkit-transform-style:preserve-3d;transform-style:preserve-3d}
 
 /* 石の土台。部屋を空に浮かべるので、床の下に厚みを作る */
-.base{position:absolute;left:-18px;top:-18px;width:936px;height:696px;transform-style:preserve-3d}
+.base{position:absolute;left:-18px;top:-18px;width:936px;height:696px;-webkit-transform-style:preserve-3d;transform-style:preserve-3d}
 .base .bt{position:absolute;inset:0;background:linear-gradient(150deg,#D9CBAA,#B7A582);
  transform:translateZ(-2px);border-radius:4px}
 .base .bs{position:absolute;background:linear-gradient(180deg,#9C8B6C,#5E5240 70%,#42392C)}
@@ -495,7 +503,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  background:rgba(255,255,255,.88);transform:rotate(45deg)}
 
 /* 依頼の立て札。代表に残っているものを部屋の中に貼る */
-.quest{position:absolute;transform-style:preserve-3d;pointer-events:none}
+.quest{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;pointer-events:none}
 .quest .pole{position:absolute;left:-4px;top:0;width:8px;height:60px;opacity:.7;
  background:linear-gradient(90deg,#6B4726,#A8763F 45%,#5E3E20);
  transform-origin:top;transform:rotateX(-90deg)}
@@ -515,7 +523,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  box-shadow:0 3px 9px rgba(0,0,0,.28)}
 .board .ln{position:absolute;height:3px;background:#BAB5C9;border-radius:2px}
 .board .ln.a{background:#E8703F;opacity:.8}
-.foe{position:absolute;transform-style:preserve-3d;cursor:pointer}
+.foe{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;cursor:pointer}
 .foe .fav{display:block;margin:0 auto;
  animation:foeb 2.6s ease-in-out infinite;transform-origin:50% 100%}
 @keyframes foeb{0%,100%{transform:translateY(0) scale(1,1)}50%{transform:translateY(-4px) scale(.97,1.04)}}
@@ -534,7 +542,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .foe .kd.規制{color:#E8C46A;border-color:#E8C46A}
 .foe .fd{font-size:10.5px;color:#F2E4E0;margin-top:3px;line-height:1.45;
  text-shadow:0 1px 5px rgba(0,0,0,.95)}
-.sign{position:absolute;transform-style:preserve-3d;pointer-events:none}
+.sign{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;pointer-events:none}
 
 .sign b{position:absolute;width:430px;left:-215px;top:-26px;text-align:center;font-weight:400;
  padding:9px 0 11px;border:4px solid #C7A468;border-radius:10px;
@@ -544,7 +552,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .sign b span{font-family:"Reggae One",sans-serif;font-size:29px;letter-spacing:.11em;color:#5A3A12}
 .sign b em{display:block;font-style:normal;font-family:"DotGothic16",monospace;font-size:11px;
  letter-spacing:.24em;color:#9A7A44;margin-top:3px}
-.obj{position:absolute;transform-style:preserve-3d}
+.obj{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d}
 .tp,.sd{position:absolute;border:1px solid rgba(48,40,66,.5)}
 .tp{box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}
 .sd{border-top:none}
@@ -560,14 +568,14 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .shelf{position:absolute;left:2px;right:2px;height:3px;background:rgba(60,38,18,.55);transform:translateZ(1px)}
 .bk2{position:absolute;top:20px;width:8px;height:16px;border-radius:1px;background:var(--bc,#C0392B);
  box-shadow:0 1px 0 rgba(0,0,0,.3);transform:translateZ(2px)}
-.plant{position:absolute;transform-style:preserve-3d}
+.plant{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d}
 .plant .pot{position:absolute;width:24px;height:24px;border-radius:4px;transform:translateZ(9px);
  background:linear-gradient(160deg,#C98A5C,#8A5330);border:1px solid #5E3A22}
 .plant .lf{position:absolute;width:36px;height:36px;left:-6px;top:-6px;border-radius:50% 50% 45% 55%;
  background:radial-gradient(circle at 34% 28%,#A5DFA8,#8ACC7E 40%,#357A46);transform:translateZ(32px)}
 
 /* ── 人物 ────────────────────────────────────────── */
-.unit{position:absolute;transform-style:preserve-3d;cursor:pointer}
+.unit{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;cursor:pointer}
 .bill{position:absolute;width:236px;left:-72px;top:-96px;text-align:center;
  display:flex;flex-direction:column;align-items:center;gap:3px;
  transform:translateZ(96px) rotateZ(calc(-1 * var(--rz,0deg))) rotateX(calc(-1 * var(--rx,58deg)))}
@@ -616,7 +624,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
  40%{opacity:1}70%{opacity:0;transform:translateZ(30px) translateY(-30px)}}
 
 /* 巡回する人 */
-.walk{position:absolute;transform-style:preserve-3d;offset-rotate:0deg;pointer-events:none}
+.walk{position:absolute;-webkit-transform-style:preserve-3d;transform-style:preserve-3d;offset-rotate:0deg;pointer-events:none}
 .walk .bill2{position:absolute;width:130px;left:-65px;top:-47px;text-align:center;
  transform:translateZ(78px) rotateZ(calc(-1 * var(--rz,36deg))) rotateX(calc(-1 * var(--rx,57deg)))}
 .walk .av{width:82px;height:68px;display:block;margin:0 auto;transform-origin:50% 100%;
@@ -888,9 +896,42 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .lvnote b{color:#FFB9A6}
 .sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
  background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
+/* 会議後に出た実行候補。選ぶまで動かさないので、未選択が目に入る作りにする */
+.sech .pw{color:var(--stop);font-style:normal}
+.pnote{padding:7px 16px 2px;font-size:11.5px;color:var(--dim);line-height:1.6}
+/* 1列で積む。横に滑らせない */
+.pgrid{display:flex;flex-direction:column;gap:7px;padding:8px 12px}
+.pp{border:1px solid rgba(255,255,255,.16);border-radius:7px;padding:9px 11px;
+ background:rgba(9,18,40,.42);min-width:0}
+.pp.do{border-color:rgba(125,227,155,.62);background:rgba(20,52,34,.42)}
+.pp.skip{opacity:.5}
+.p1{display:flex;gap:7px;align-items:flex-start;min-width:0}
+.pcl{flex:0 0 auto;font-family:"DotGothic16",monospace;font-size:10px;line-height:1.5;
+ padding:1px 6px;border-radius:4px;background:rgba(255,255,255,.15);color:var(--ink)}
+.pcl.cA{background:rgba(125,227,155,.28)}
+.pcl.cB{background:rgba(255,217,128,.26)}
+.pcl.cC{background:rgba(255,122,92,.26)}
+.px{font-size:13px;line-height:1.5;word-break:break-word;min-width:0}
+.p2{font-size:11px;color:var(--dim);margin-top:4px;word-break:break-word}
+.p3{font-size:11.5px;color:#D8E2F6;margin-top:5px;line-height:1.55;word-break:break-word;
+ padding-left:9px;border-left:2px solid rgba(255,255,255,.18)}
+.p4{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-top:8px}
+.pb{font-family:"Zen Maru Gothic",sans-serif;font-size:11.5px;padding:4px 11px;border-radius:5px;
+ border:1px solid rgba(255,255,255,.26);background:rgba(255,255,255,.07);color:var(--ink);cursor:pointer}
+.pb.do.on{background:rgba(125,227,155,.34);border-color:rgba(125,227,155,.7)}
+.pb.sk.on{background:rgba(255,122,92,.28);border-color:rgba(255,122,92,.66)}
+.pst{font-size:11px;color:var(--dim)}
+.psv{display:flex;gap:9px;align-items:center;padding:2px 16px 10px}
+.psv button{font-family:"Zen Maru Gothic",sans-serif;font-size:12px;padding:5px 15px;border-radius:5px;
+ border:1px solid rgba(255,217,128,.5);background:rgba(255,217,128,.17);color:var(--gold);cursor:pointer}
+.psv button:disabled{opacity:.55;cursor:default}
+.psv span{font-size:11px;color:var(--dim)}
 /* 左＝優先順位・凡例・稼働ログ／中＝オフィス／右＝課題・代表の席。重ねない */
 .leftcol,.rightcol{display:flex;flex-direction:column;gap:9px;min-width:0;min-height:0;z-index:6}
-.sbox{position:relative;min-width:0;min-height:0;overflow:hidden;z-index:2}
+.sbox{position:relative;min-width:0;min-height:0;z-index:2}
+/* 空・雲・雨は、この入れ物の中だけで切る。部屋（3D）の親を切り抜くと
+   iOSが場面を平らに焼いてしまい、壁が床に寝てしまう（2026-09-21 指摘） */
+.sky{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:0;border-radius:inherit}
 .ordbar{flex:0 0 auto;max-height:54%;overflow:auto}
 .ordbar::-webkit-scrollbar,.leftcol::-webkit-scrollbar{width:0}
 .ordbar{padding:7px 12px;font-size:12.5px;border-radius:10px;border:2px solid rgba(255,255,255,.8);
@@ -935,7 +976,7 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 /* 横に3本入らない幅では縦に積む。重ねない */
 @media(max-width:1080px){
  .wrap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-rows:auto;
-  height:auto;min-height:calc(100vh - 92px);overflow-x:hidden;overflow-y:visible;padding:8px}
+  height:auto;min-height:calc(100vh - 92px);padding:8px}
  @supports (height:100svh){.wrap{min-height:calc(100svh - 92px)}}
  /* 高さは vh ではなく縦横比で決める。部屋の形そのままの枠を作れば、切れも余りも出ない */
  .sbox{order:-1;height:auto;min-height:0;aspect-ratio:4/3.1}
@@ -971,11 +1012,13 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 </div>
 
 <div class="wrap">
-  <div class="sun"></div>
-  <div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>
-  <div class="hill" id="hill"></div>
-  <div class="grd"></div>
-  <div class="rn"></div><div class="fg"></div><div class="fl"></div>
+  <div class="sky">
+    <div class="sun"></div>
+    <div class="cl c1"></div><div class="cl c2"></div><div class="cl c3"></div>
+    <div class="hill" id="hill"></div>
+    <div class="grd"></div>
+    <div class="rn"></div><div class="fg"></div><div class="fl"></div>
+  </div>
   <div class="sum dqw" id="sum" hidden><div class="sumh">全体</div><div class="sumb" id="sumb"></div></div>
   <div class="leftcol">
   <div class="ordbar" id="ord"></div>
@@ -1023,6 +1066,11 @@ const MNK='office.mtnot.v1';
 function mnGet(){try{return JSON.parse(localStorage.getItem(MNK)||'{}')}catch(e){return{}}}
 function mnSet(o){try{localStorage.setItem(MNK,JSON.stringify(o))}catch(e){}}
 let MNOT=Object.assign({}, S.mtNot||{}, mnGet());
+// 会議後に出た実行候補への回答。id→'do'(実行する)/'skip'(やらない)
+const PRK='office.prdec.v1';
+function prGet(){try{return JSON.parse(localStorage.getItem(PRK)||'{}')}catch(e){return{}}}
+function prSet(o){try{localStorage.setItem(PRK,JSON.stringify(o))}catch(e){}}
+let PRDEC=Object.assign({}, S.prDec||{}, prGet());
 let mdDirty=false;
 const mtLive=t=>!MDONE.has(mtKey(t)) && MNOT[mtKey(t)]===undefined;
 
@@ -1389,6 +1437,32 @@ function renderPeople(){
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));
 }
 
+// 会議後に出た実行候補。代表が「実行する」を選んだものだけを次の回で動かす。
+// 選択は他のチェックと同じで、保存するまで端末にしか残らない
+function propHTML(){
+ const P=(S.props||[]).filter(p=>p.st!=='done');
+ if(!P.length) return '';
+ const wait=P.filter(p=>!PRDEC[p.id]).length;
+ const rows=P.map(p=>{
+  const d=PRDEC[p.id]||'';
+  return `<div class="pp ${d}">
+   <div class="p1"><span class="pcl c${esc(p.cls||'A')}">${esc(p.cls||'A')}</span>
+    <span class="px">${esc(p.t)}</span></div>
+   <div class="p2">${esc(p.b||'')}｜${esc(p.m||'')}｜${esc((p.d||'').replace('-','/'))}</div>`
+   +(p.plan?`<div class="p3">${esc(p.plan)}</div>`:'')
+   +`<div class="p4">
+    <button class="pb do${d==='do'?' on':''}" data-p="${esc(p.id)}" data-v="do">実行する</button>
+    <button class="pb sk${d==='skip'?' on':''}" data-p="${esc(p.id)}" data-v="skip">やらない</button>`
+   +(d?`<span class="pst">${d==='do'?'次の回で実行します':'見送ります'}</span>`:'')
+   +`</div></div>`;}).join('');
+ return `<div class="sech">会議後に出た実行候補 ${P.length}件`
+  +(wait?`　<em class="pw">未選択 ${wait}件</em>`:'　<em>すべて選択済み</em>')+`</div>`
+  +`<div class="pnote">選んだものだけを次の回で動かします。何も選ばなければ何も実行しません。`
+  +`<br>選び直すときは同じボタンをもう一度押すと未選択に戻ります。</div>`
+  +`<div class="pgrid">${rows}</div>`
+  +`<div class="psv"><button id="prsv">選択を保存</button><span id="prmsg"></span></div>`;
+}
+
 function renderSum(){
  const st=document.getElementById('stage'), lc=document.querySelector('.leftcol'),
        is=document.getElementById('iss'), sm=document.getElementById('sum');
@@ -1444,7 +1518,7 @@ function renderSum(){
    <div class="l3">${parts.length?parts.join('　'):'<span class="mi">まだ何も溜まっていない</span>'}　${minus}</div>
    <div class="l4">${k['外部の型']?`外部から取り込んだ型 <b>${k['外部の型']}</b>`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
- document.getElementById('sumb').innerHTML=`<div class="stbl">${head}${rows}</div>`
+ document.getElementById('sumb').innerHTML=propHTML()+`<div class="stbl">${head}${rows}</div>`
   +(()=>{const all=[];S.rooms.forEach(r=>(r.enemies||[]).forEach(e=>all.push([r.biz,e])));
     if(!all.length)return'';
     all.sort((a,b)=>b[1].power-a[1].power);
@@ -1475,6 +1549,19 @@ function renderSum(){
   const k=b.dataset.n;
   if(MNOT[k]!==undefined) delete MNOT[k]; else MNOT[k]='画面で「自分のじゃない」を指定';
   mnSet(MNOT); mdDirty=true; render();});
+ // 実行候補の選択。同じボタンをもう一度押すと未選択に戻る
+ document.getElementById('sumb').querySelectorAll('.pb').forEach(b=>b.onclick=()=>{
+  const id=b.dataset.p, v=b.dataset.v;
+  if(PRDEC[id]===v) delete PRDEC[id]; else PRDEC[id]=v;
+  prSet(PRDEC); mdDirty=true; renderSum();});
+ const psv=document.getElementById('prsv');
+ if(psv) psv.onclick=async()=>{psv.disabled=true;psv.textContent='保存中…';
+  S.prDec=PRDEC; S.mtDone=[...MDONE]; S.mtNot=MNOT;
+  const ok=await saveDoc();
+  const pm=document.getElementById('prmsg');
+  if(pm) pm.textContent=ok?'保存しました。次の回で実行します':'保存できませんでした';
+  if(ok) mdDirty=false;
+  psv.disabled=false; psv.textContent='選択を保存';};
  document.getElementById('tabs').innerHTML=tabsHTML();
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));
 }

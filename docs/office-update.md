@@ -64,6 +64,8 @@ Artifact ツールの `action:"read"` で上記URLを読む。保存されたHTM
   対応したら `data/crew/queue-done.json` に `"<at>|<text>"` を追記
 - `mtDone` … 済にした残タスク → `data/mytasks-done.json` に上書き（配列）
 - `mtNot` … 「自分のじゃない」指定 → `data/mytasks-notmine.json` に統合（キー→理由の辞書。既存の理由は消さない）
+- `prDec` … 会議後の実行候補への回答（id→`do`/`skip`）→ `data/proposals-decided.json` に統合（**既存の回答を消さない**）。
+  実行するのは `meeting-task-sweep` 側なので、この更新では**回答を回収するだけ**で、実行はしない
 
 ## 3. 経営課題を更新（`data/issues.json`）
 
