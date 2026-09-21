@@ -310,6 +310,10 @@ BODY = r"""<title>バーチャルオフィス</title>
  --go:#7DE39B;--idle:#FFD35C;--never:#8EA0C0;
  --hi:#FF8A6B;--mid:#FFD35C;--lo:#7DE39B;}
 *{box-sizing:border-box}
+/* 横には動かさない。横に滑ると縦スクロールが取られる（2026-09-21 代表指摘）。
+   タブの横スクロールだけは内側で閉じ、ページ側へ伝えない */
+html{overflow-x:hidden}
+body{overflow-x:hidden;overscroll-behavior-x:none;max-width:100vw}
 /* .sum / .pn / .leftcol は display:flex を持つので、これが無いと hidden が効かない */
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -344,7 +348,8 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .tabhint{font-family:"IBM Plex Mono",monospace;font-size:10px;color:#8A7A60;
  border:1px solid #DED3BC;border-radius:4px;padding:2px 7px;white-space:nowrap;flex:none}
 @media(max-width:760px){.tabhint{display:none}}
-.tabs{display:flex;overflow-x:auto;padding:0 10px 4px;flex:1;min-width:0;scroll-behavior:smooth;gap:4px}
+.tabs{display:flex;overflow-x:auto;padding:0 10px 4px;flex:1;min-width:0;scroll-behavior:smooth;gap:4px;
+ overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
 .tabs button{font-family:"Zen Maru Gothic",sans-serif;font-size:14px;background:#FFFCF4;
  border:2px solid #E3D9C4;border-radius:9px;
  color:#6B5A42;padding:7px 13px;cursor:pointer;white-space:nowrap;transition:.12s}
@@ -724,6 +729,41 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .sumb::-webkit-scrollbar{width:9px}
 .sumb::-webkit-scrollbar-thumb{background:rgba(255,255,255,.28);border-radius:5px}
 .sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px;padding:14px 16px}
+/* 1行1事業。横に並べて比べられるように、数字の位置を揃える */
+.stbl{padding:10px 16px 4px}
+.strow{display:grid;grid-template-columns:168px 92px 62px 62px 74px minmax(0,1fr);
+ gap:10px;align-items:center;padding:8px 10px;border-radius:9px;
+ border-bottom:1px solid rgba(255,255,255,.10);cursor:pointer}
+.strow:hover{background:rgba(255,255,255,.08)}
+.sthd{cursor:default;border-bottom:2px solid rgba(255,255,255,.28);
+ font-family:"DotGothic16",monospace;font-size:11px;color:var(--dim);letter-spacing:.06em}
+.sthd:hover{background:none}
+.strow .bn{font-size:16px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.strow .wx2{font-size:12.5px;font-weight:700;white-space:nowrap}
+.strow .wx2 b{font-family:"IBM Plex Mono",monospace;font-size:15px;margin-right:4px;font-weight:400}
+.strow .wx2.fine{color:#FFD35C} .strow .wx2.partly{color:#FFE9A8}
+.strow .wx2.cloud{color:#C6D0DE} .strow .wx2.rain{color:#8ACDF0}
+.strow .wx2.storm{color:#FF9C4A} .strow .wx2.fog{color:#93A0B4}
+.strow .num{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--dim);text-align:right}
+.strow .num b{font-size:16px;color:#fff;font-weight:500}
+.strow .num.z b{color:#6F819E}
+.strow .num.hot b{color:#FF9C8A}
+.strow .tt{font-size:13.5px;line-height:1.5;color:#E8EEFB;
+ display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.strow .tt em{font-style:normal;color:#93A0B4}
+.strow .tt i{font-style:normal;display:block;color:#FFD9A6;font-size:11.5px;margin-top:2px}
+@media(max-width:820px){
+ /* 携帯は3行。①事業と天気 ②数字3つ ③いちばんの課題 */
+ .stbl{padding:6px 8px 4px}
+ .strow{grid-template-columns:repeat(3,minmax(0,1fr));row-gap:3px;gap:6px;padding:9px 8px}
+ .strow>:nth-child(1){grid-column:1/3;grid-row:1}
+ .strow>:nth-child(2){grid-column:3;grid-row:1;justify-self:end}
+ .strow>:nth-child(3){grid-column:1;grid-row:2;text-align:left}
+ .strow>:nth-child(4){grid-column:2;grid-row:2;text-align:left}
+ .strow>:nth-child(5){grid-column:3;grid-row:2;text-align:left}
+ .strow>:nth-child(6){grid-column:1/4;grid-row:3}
+ .strow .num b{font-size:14px}
+ .sthd{display:none}}
 .scard{border:2px solid rgba(255,255,255,.38);border-radius:12px;padding:14px 16px 12px;
  background:rgba(255,255,255,.07);cursor:pointer;display:flex;flex-direction:column;gap:10px}
 .scard:hover{border-color:var(--acc);background:rgba(255,255,255,.13)}
@@ -895,10 +935,21 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 /* 横に3本入らない幅では縦に積む。重ねない */
 @media(max-width:1080px){
  .wrap{grid-template-columns:minmax(0,1fr);grid-template-rows:none;grid-auto-rows:auto;
-  height:auto;min-height:calc(100vh - 92px);overflow:auto}
- .sbox{order:-1;height:46vh;min-height:300px}
+  height:auto;min-height:calc(100vh - 92px);overflow-x:hidden;overflow-y:visible;padding:8px}
+ .sbox{order:-1;height:42vh;min-height:260px}
  .ordbar{max-height:none}
- #iss{max-height:52vh}#chat{max-height:26vh}}
+ #iss{max-height:none}#chat{max-height:34vh}}
+/* 携帯。部屋は小さくしか置けないので、札を減らして形が見えるようにする */
+@media(max-width:720px){
+ .bar1{gap:8px;padding:7px 10px}
+ .brand{font-size:16px}
+ .pipe,.tabhint,.who{display:none}
+ .sbox{height:44vh;min-height:250px}
+ .bill .bub,.walk .tag,.quest,.foe .fd,.foe .fk{display:none}
+ .plate{padding:2px 7px}
+ .nm{font-size:11px}.rl{font-size:9px}
+ .pn h3{padding:7px 10px}
+ .lg{display:none}}
 </style>
 
 <div class="bar">
@@ -1352,16 +1403,17 @@ function renderSum(){
    watch=String(T.watch).split('／')[0].split('。')[0].trim();
    if(watch.length>46) watch=watch.slice(0,45)+'…';
   }
-  return `<div class="scard" data-i="${i}">
-   <div class="r1"><span class="wxb wxi ${r.wx}">${w.i}</span><span class="bn">${esc(r.biz)}</span>
-    <span class="wxn ${r.wx}">${w.n}</span></div>
-   ${top?`<div class="tp2"><span class="lb">いちばんの課題</span>
-     <span class="tt">${esc(top.title)}</span></div>`
-        :`<div class="tp2 none"><span class="tt">${esc(T.dormant||'課題は挙がっていない')}</span></div>`}
-   ${watch?`<div class="wt">${esc(watch)}</div>`:''}
-   <div class="r2"><span class="kv">課題 <b>${(r.issues||[]).length}</b></span>
-    ${mine.length?`<span class="kv${late?' hot':''}">あなたの残 <b>${mine.length}</b>${late?`／期限切れ ${late}`:''}</span>`:''}
-    ${T.by?`<span class="kv by2">${esc(T.by)}</span>`:''}</div></div>`;}).join('');
+  return `<div class="strow" data-i="${i}">
+   <span class="bn">${esc(r.biz)}</span>
+   <span class="wx2 ${r.wx}"><b class="wxi ${r.wx}">${w.i}</b>${esc(w.n)}</span>
+   <span class="num${(r.issues||[]).length?'':' z'}">課題 <b>${(r.issues||[]).length}</b></span>
+   <span class="num${r.heavy?' hot':' z'}">重い <b>${r.heavy||0}</b></span>
+   <span class="num${mine.length?(late?' hot':''):' z'}">残 <b>${mine.length}</b>${late?'<br>期限切れ '+late:''}</span>
+   <span class="tt">${top?esc(top.title):`<em>${esc(T.dormant||'課題は挙がっていない')}</em>`}`
+   +`${watch?`<i>${esc(watch)}</i>`:''}</span></div>`;}).join('');
+ const head=`<div class="strow sthd"><span>事業</span><span>伸びているか</span>`
+  +`<span style="text-align:right">課題</span><span style="text-align:right">重い</span>`
+  +`<span style="text-align:right">あなたの残</span><span>いちばんの課題／注意</span></div>`;
  // 自分のタスクは全事業を1本にまとめて期限順。事業ごとに探しにいかなくて済むように
  const all=[]; S.rooms.forEach(r=>(r.mine||[]).filter(mtLive).forEach(t=>all.push(t)));
  all.sort((a,b)=>((a.due?0:1)-(b.due?0:1))||String(a.due||'').localeCompare(String(b.due||''))
@@ -1389,7 +1441,7 @@ function renderSum(){
    <div class="l3">${parts.length?parts.join('　'):'<span class="mi">まだ何も溜まっていない</span>'}　${minus}</div>
    <div class="l4">${k['外部の型']?`外部から取り込んだ型 <b>${k['外部の型']}</b>`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
- document.getElementById('sumb').innerHTML=`<div class="sgrid">${rows}</div>`
+ document.getElementById('sumb').innerHTML=`<div class="stbl">${head}${rows}</div>`
   +(()=>{const all=[];S.rooms.forEach(r=>(r.enemies||[]).forEach(e=>all.push([r.biz,e])));
     if(!all.length)return'';
     all.sort((a,b)=>b[1].power-a[1].power);
@@ -1409,7 +1461,7 @@ function renderSum(){
    +`<br>上限は <b>Lv.100</b>。Lv.20 に 505、Lv.50 に 3,874、Lv.100 に 17,573 が要る。`
    +`<br>いまの最上位は監査役の Lv.19。<b>全員まだ入口にいる。</b></div>`
   +`<div class="sech">あなたの残タスク ${all.length}件（全事業まとめ・期限順）</div>`+tl;
- document.getElementById('sumb').querySelectorAll('.scard').forEach(c=>c.onclick=()=>{
+ document.getElementById('sumb').querySelectorAll('.strow[data-i]').forEach(c=>c.onclick=()=>{
   cur=+c.dataset.i; render();
   const b=document.querySelector('#tabs button[data-i="'+cur+'"]');
   if(b) b.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});});
@@ -1729,7 +1781,9 @@ function fit(){
   if(q.top<t)t=q.top; if(q.bottom>b)b=q.bottom;});
  if(!isFinite(l)) return;
  const W=r-l, H=b-t, cx=(l+r)/2, cy=(t+b)/2;
- const s=Math.max(.3,Math.min(1.7,Math.min((w-12)/W,(h-12)/H)));
+ // 携帯は横幅が足りない。左右の壁の外側が少し切れてもいいので、人が見える大きさまで寄せる
+ const k=innerWidth>720?1:1.35;
+ const s=Math.max(.3,Math.min(1.7,Math.min((w-12)/W*k,(h-12)/H)));
  stage.style.setProperty('--s',s);
  stage.style.setProperty('--ox',(s*(sb.left+sb.width/2-cx))+'px');
  stage.style.setProperty('--oy',(s*(sb.top+sb.height/2-cy))+'px');
@@ -1792,7 +1846,9 @@ send.onclick=async()=>{const text=ta.value.trim(); if(!text||!ns)return;
  renderQueue(); send.disabled=false;};
 </script>"""
 
-HEAD = ('<meta charset="utf-8"><title>バーチャルオフィス</title>'
+HEAD = ('<meta charset="utf-8">'
+        '<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">'
+        '<title>バーチャルオフィス</title>'
         '<link rel="preconnect" href="https://fonts.googleapis.com">'
         '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
         '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?'
