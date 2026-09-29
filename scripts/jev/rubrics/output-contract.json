@@ -1,0 +1,256 @@
+{
+  "name": "output-contract",
+  "title": "提出物の型（本人からの差し戻し予測）",
+  "context": "The document is written in Japanese. It is an internal report, brief, or recommendation prepared for a CEO who runs eight businesses in parallel and reads on a phone. He expects: conclusion in the first line, one recommendation, next action with a date, every figure with source / period / denominator, and no filler.",
+  "questions": {
+    "has_numbers": {
+      "label": "数字を含む（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document state any quantitative figure such as an amount of money, a rate or percentage, or a count?"
+    },
+    "discusses_revenue": {
+      "label": "売上の話を含む（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document discuss revenue, sales, bookings, or achievement against a sales target?"
+    },
+    "has_target": {
+      "label": "売上目標・見込みを扱う（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document set, discuss, or forecast a numeric sales target — as opposed to merely mentioning prices, costs, or past revenue?"
+    },
+    "needs_ceo_action": {
+      "label": "本人の行動が要る（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document ask the CEO (the reader) to personally decide, approve, contact someone, or take any action?"
+    },
+    "assigns_work": {
+      "label": "誰かに仕事を振っている（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document assign tasks or responsibilities to people other than the reader?"
+    },
+    "conclusion_first": {
+      "label": "1行目が結論",
+      "type": "noul",
+      "instructions": "Does the very first line of the document state the conclusion or recommendation itself, rather than a preamble such as 'I looked into it', 'Here is the result', or 'Regarding your request'?",
+      "criteria": {
+        "true": "The first line already tells the reader what was decided or found.",
+        "false": "The first line is an introduction, a greeting, a description of the process, or a restatement of the question."
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "1行目を結論に差し替える。「調べました」「以下の通りです」で始めない"
+    },
+    "single_recommendation": {
+      "label": "推奨が1つ",
+      "type": "noul",
+      "instructions": "Does the document commit to exactly one recommended course of action, with the reason it was chosen and why the alternatives were rejected — rather than presenting a menu of options for the reader to choose from?",
+      "criteria": {
+        "true": "One recommendation is stated as the one to take; alternatives, if mentioned, are explicitly rejected with a reason.",
+        "false": "Options A/B/C are listed side by side, or the document ends with 'please decide' / 'let me know which'."
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "推奨を1つに絞り、選んだ理由と他を切った理由を書く"
+    },
+    "next_step_dated": {
+      "label": "次の一手に日時",
+      "type": "noul",
+      "instructions": "Does the document specify a concrete next action together with a date, time, or deadline for it?",
+      "criteria": {
+        "true": "A specific action is named and a date or deadline is attached to it.",
+        "false": "Next steps are vague ('we will consider', 'shall I proceed?') or have no date."
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "「〜します。止めるなら言ってください」の形で、日時まで書く"
+    },
+    "owner_named": {
+      "label": "担当が実名",
+      "type": "noul",
+      "instructions": "For the actions in the document, is a specific named person assigned as the owner, rather than a generic role such as 'the person in charge' or 'the team'?",
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "任せ先を実名で書く。「担当者に」は不可",
+      "applies_if": {
+        "q": "assigns_work",
+        "min": 0.5
+      }
+    },
+    "single_kpi": {
+      "label": "担当1人にKPI1本",
+      "type": "noul",
+      "instructions": "For each person assigned responsibility, is exactly one KPI named as what they are accountable for, rather than several metrics or none?",
+      "applies_if": {
+        "q": "assigns_work",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "責任範囲は1つに絞り、KPIを1本明示して任せ切る"
+    },
+    "numbers_sourced": {
+      "label": "数字に出典と期間",
+      "type": "noul",
+      "instructions": "For the figures stated in the document, is the source given (a meeting name and date, a sheet or tab name, a retrieval date) together with the period the figure covers?",
+      "criteria": {
+        "true": "Each figure, or the block of figures, names where it came from and which period it covers.",
+        "false": "Figures appear without any source or period."
+      },
+      "applies_if": {
+        "q": "has_numbers",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "〈実測値・期間・母数・定義〉をセットにする。出典は会議名と日付、またはシート名"
+    },
+    "denominator_stated": {
+      "label": "分母と定義",
+      "type": "noul",
+      "instructions": "For any rate, ratio, or percentage in the document, is the denominator and its definition stated (for example, whether an achievement rate is against the monthly target or a prorated-to-date target)?",
+      "applies_if": {
+        "q": "has_numbers",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "達成率の分母が月次目標か経過日按分かを明示する"
+    },
+    "rounded_numbers": {
+      "label": "数字を丸めていない",
+      "type": "noul",
+      "instructions": "Are figures softened or rounded — 'about half', 'roughly 50%', 'around 20 million' — where an exact measured value (such as 49.3%) could have been stated?",
+      "applies_if": {
+        "q": "has_numbers",
+        "min": 0.5
+      },
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "丸めない。達成率49.3%ならそう書く"
+    },
+    "mixed_basis": {
+      "label": "基準の混在なし",
+      "type": "noul",
+      "instructions": "Does the document mix figures on different bases — monthly versus cumulative, before versus after deductions, target versus actual — without labeling which is which?",
+      "applies_if": {
+        "q": "has_numbers",
+        "min": 0.5
+      },
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "単月と累積、控除前と控除後を分けて、それぞれにラベルを付ける"
+    },
+    "hedging": {
+      "label": "逃げの表現なし",
+      "type": "noul",
+      "instructions": "Does the document hedge on matters it could have verified, using expressions equivalent to 'it seems', 'probably', 'it is thought that', where a definite statement was possible?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "確認できたことは言い切る。確認できていないなら「未確認」と書いて最後にまとめる"
+    },
+    "unverified_marked": {
+      "label": "未確定を最後に明示",
+      "type": "noul",
+      "instructions": "Are the unverified items, assumptions, and open questions collected explicitly, typically in a closing section, rather than left implicit or scattered?",
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "未確定・未検証・前提を最後に1箇所にまとめる"
+    },
+    "customer_satisfaction": {
+      "label": "売上の話に顧客満足",
+      "type": "noul",
+      "instructions": "Given that the document discusses revenue or sales, does it also address customer satisfaction, retention or continuation rate, cancellations, or word of mouth?",
+      "applies_if": {
+        "q": "discusses_revenue",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "売上の話でも継続率・口コミに触れる（本人の優先順位1位）"
+    },
+    "buildup_and_topdown": {
+      "label": "上段と積み上げの両方",
+      "type": "noul",
+      "instructions": "Given that the document discusses a sales target, does it show both the target set from the top and a bottom-up build-up (initiatives × counts × rates) that is reconciled against it?",
+      "applies_if": {
+        "q": "has_target",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "上段から下ろした目標と、施策×件数×率の積み上げを両方出して突き合わせる"
+    },
+    "seasonality_bottleneck": {
+      "label": "季節変動とボトルネック",
+      "type": "noul",
+      "instructions": "Given that the document discusses a sales target or forecast, does it account for seasonality and name the bottleneck?",
+      "applies_if": {
+        "q": "has_target",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "季節変動とボトルネックを織り込む"
+    },
+    "user_actions_section": {
+      "label": "本人の行動を末尾に独立見出し",
+      "type": "noul",
+      "instructions": "Given that the document asks the reader to act, are those items gathered under a separate heading near the end, with the number of items and a deadline for each?",
+      "applies_if": {
+        "q": "needs_ceo_action",
+        "min": 0.5
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "「あなたにやってほしいこと」を末尾に独立見出しで。件数を先に、1件ずつ誰に・何を・いつまでに"
+    },
+    "fluff": {
+      "label": "前置き・自慢なし",
+      "type": "noul",
+      "instructions": "Does the document contain filler — preambles, a summary of the summary, courtesy sentences, or descriptions of how much work was done?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "前置き、要約の要約、気遣いの一文、やったことの自慢を削る"
+    },
+    "one_line_claim": {
+      "label": "主張が1行で言える",
+      "type": "score",
+      "instructions": "How clearly can the document's main claim be stated in a single sentence?",
+      "criteria": [
+        "No identifiable main claim; the reader cannot tell what is being said",
+        "A claim exists but is buried or split across several competing points",
+        "The main claim is identifiable and stated in one place",
+        "The main claim is stated up front in one sentence and everything else supports it"
+      ],
+      "gate": {
+        "min": 2
+      },
+      "fix": "主張を1行で言えるまで分解し直す"
+    },
+    "regulated_domain": {
+      "label": "規制業種に触れる",
+      "type": "noul",
+      "instructions": "Does the document touch a regulated domain: medical advertising, pharmaceutical or health-efficacy claims, unemployment-insurance procedures, government subsidies, or securities and equity?",
+      "flag_if": {
+        "min": 0.5
+      },
+      "fix": "expert-domain-stance を通す。有資格者に当てる線を明示する"
+    }
+  }
+}

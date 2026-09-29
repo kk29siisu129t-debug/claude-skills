@@ -1,0 +1,89 @@
+{
+  "name": "kansayaku",
+  "title": "監査役の検品観点（捏造・断定・分母・基準・出典・規制）",
+  "context": "The document is written in Japanese. It is a report or deliverable containing figures, prepared for a CEO who runs eight businesses. An independent auditor checks it before it reaches the CEO. The auditor's known failure pattern: the number is right but its label is wrong (e.g. a year-to-date total labelled as one month's sales; an achievement rate whose denominator is the prorated-to-date target, not the monthly target).",
+  "questions": {
+    "has_numbers": {
+      "label": "数字を含む（前提判定）",
+      "type": "noul",
+      "instructions": "Does the document state any quantitative figure such as an amount of money, a rate or percentage, or a count?"
+    },
+    "fabrication_risk": {
+      "label": "出典なき実績・声・価格",
+      "type": "noul",
+      "instructions": "Does the document present specific achievements, customer testimonials, prices, or campaigns that are not attributed to any source?",
+      "criteria": {
+        "true": "There is at least one concrete achievement, quote from a customer, price, or campaign with no source stated.",
+        "false": "Every such item names where it comes from, or no such items appear."
+      },
+      "gate": { "max": 0.4 },
+      "fix": "実在の確認が取れない実績・お客様の声・価格・キャンペーンは削る。捏造は即差し戻し"
+    },
+    "unsupported_assertion": {
+      "label": "根拠なき断定",
+      "type": "noul",
+      "instructions": "Does the document assert figures or facts as certain without giving any source or basis for them?",
+      "applies_if": { "q": "has_numbers", "min": 0.5 },
+      "gate": { "max": 0.4 },
+      "fix": "出典を付けるか、「未確認」と書き分ける"
+    },
+    "denominator_stated": {
+      "label": "分母の明示",
+      "type": "noul",
+      "instructions": "For each rate or percentage, is the denominator stated explicitly — for example whether an achievement rate is against the full monthly target or against a target prorated to the days elapsed?",
+      "applies_if": { "q": "has_numbers", "min": 0.5 },
+      "gate": { "min": 0.6 },
+      "fix": "分母を書く。経過日按分（月次目標×経過日÷日数）か月次目標かを明示"
+    },
+    "mixed_basis": {
+      "label": "基準の混在",
+      "type": "noul",
+      "instructions": "Does the document mix figures on different bases — monthly versus cumulative, before versus after deductions, confirmed versus projected — without labeling which is which?",
+      "applies_if": { "q": "has_numbers", "min": 0.5 },
+      "gate": { "max": 0.4 },
+      "fix": "月次と累計、控除前と控除後、確定と見込みを分けてラベルする"
+    },
+    "label_period_mismatch": {
+      "label": "ラベルと期間のずれの疑い",
+      "type": "noul",
+      "instructions": "Is there any figure whose label may not match what it measures — for example a figure labelled as one month's sales that, from its magnitude or surrounding text, looks like a cumulative or annual total?",
+      "applies_if": { "q": "has_numbers", "min": 0.5 },
+      "gate": { "max": 0.5 },
+      "fix": "発言記録まで降りて、その数字が単月か累計かを確定する（最頻の型）"
+    },
+    "internal_contradiction": {
+      "label": "文書内の矛盾",
+      "type": "noul",
+      "instructions": "Do any two figures or statements within the document contradict each other?",
+      "gate": { "max": 0.4 },
+      "fix": "どちらが正しいか一次資料で確定し、片方に揃える"
+    },
+    "source_cited": {
+      "label": "出典（会議名・日付・シート）",
+      "type": "noul",
+      "instructions": "Are the figures attributed to a source such as a meeting name with date, or a spreadsheet and tab name with retrieval date?",
+      "applies_if": { "q": "has_numbers", "min": 0.5 },
+      "gate": { "min": 0.6 },
+      "fix": "会議名と日付、またはシート名・タブ名・取得日を添える"
+    },
+    "hedging": {
+      "label": "「〜と思われる」で逃げていない",
+      "type": "noul",
+      "instructions": "Does the document use hedging expressions equivalent to 'it seems' or 'it is thought that' on points that could have been verified?",
+      "gate": { "max": 0.4 },
+      "fix": "確認したなら言い切る。確認していないなら「未確認」と明示"
+    },
+    "regulated_domain": {
+      "label": "規制（薬機・医療広告・景表法・失業保険・補助金・株式）",
+      "type": "noul",
+      "instructions": "Does the document touch a regulated domain: pharmaceutical or health-efficacy claims, medical advertising, consumer-labelling rules, unemployment-insurance procedures, government subsidies, or securities and equity?",
+      "flag_if": { "min": 0.5 },
+      "fix": "該当する規制の線を確認し、有資格者に当てる箇所を明示する"
+    },
+    "external_facing": {
+      "label": "対外に出る文書（参考）",
+      "type": "noul",
+      "instructions": "Is this document intended to be sent to or read by someone outside the company (a partner, customer, or prospect)?"
+    }
+  }
+}

@@ -1,0 +1,157 @@
+{
+  "name": "reviewer",
+  "title": "品質審査の5基準（実行・根拠・決定形・代表に上げる量・制約）",
+  "context": "The document is written in Japanese. It was produced by one department of a company whose CEO runs eight businesses (an online school EXTAGE, a training business POTEX, a clinic T-Clinic, an exosome product, an exam-prep service passlabo, an unemployment-insurance support service, and a subsidy consulting service). A separate quality reviewer scores it. The CEO has final authority on everything, so deliverables must decide, not propose, and must not pile decisions onto him.",
+  "questions": {
+    "executable": {
+      "label": "1. 実行できるか",
+      "type": "score",
+      "instructions": "Can the reader act on this document today or tomorrow?",
+      "criteria": [
+        "Ends with 'consider' or 'organize', or is only a measurement design with no deliverable to act on",
+        "Actions exist but who, what, or by-when is missing for some of them",
+        "Who, what, and by when are all specified for every action"
+      ],
+      "gate": {
+        "min": 1.6
+      },
+      "fix": "誰が・何を・いつまでに、を全部の打ち手に付ける。設計だけで実行物が無いのは不可"
+    },
+    "grounded": {
+      "label": "2. 根拠があるか",
+      "type": "score",
+      "instructions": "Are the figures and claims in the document supported by sources?",
+      "criteria": [
+        "Contains figures, achievements, testimonials, or prices with no source at all, or that appear invented",
+        "Some figures have sources, others are asserted without one",
+        "Every figure has a source (meeting name and date, or sheet name) and unverified items are explicitly marked"
+      ],
+      "gate": {
+        "min": 1.6
+      },
+      "fix": "数字に出典（会議名・日付・シート名）を付ける。未確認は未確認と書く"
+    },
+    "fabrication": {
+      "label": "実在しない実績・声・価格",
+      "type": "noul",
+      "instructions": "Does the document contain achievements, customer testimonials, or prices that appear to be invented rather than taken from a record?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "即不可。削って作り直す"
+    },
+    "decisive": {
+      "label": "3. 決定形か",
+      "type": "score",
+      "instructions": "Does the document decide, rather than propose?",
+      "criteria": [
+        "Lists options A/B/C side by side, or ends with 'we propose' / 'please decide'",
+        "One recommendation is made, but there is no statement of when it is decided (today / this week / not now)",
+        "One recommendation, with reasoning, and an explicit decision timing (today / this week / not now)"
+      ],
+      "gate": {
+        "min": 1.6
+      },
+      "fix": "推奨を1つに絞り、「今日決める／今週決める／今は決めない」を書く"
+    },
+    "ceo_decisions_count": {
+      "label": "4. 代表に上げる件数",
+      "type": "choice",
+      "instructions": "How many separate items does the document ask the CEO to personally decide?",
+      "criteria": {
+        "zero": "Nothing is left for the CEO to decide",
+        "one_or_two": "One or two items",
+        "three_or_more": "Three or more items"
+      },
+      "gate": {
+        "in": [
+          "zero",
+          "one_or_two"
+        ]
+      },
+      "fix": "代表が決めるものは3件未満に。金額・契約・株式・人事・事業の存続以外は任せ先を名指しして下ろす"
+    },
+    "delegation_named": {
+      "label": "4. 任せ先が実名",
+      "type": "noul",
+      "instructions": "For the items that are delegated rather than decided by the CEO, is a specific named person given as the assignee, rather than 'the person in charge' or a team name?",
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "「担当者に」ではなく実名で書く"
+    },
+    "unemployment_insurance_proxy": {
+      "label": "5. 失業保険：申請代行に触れる",
+      "type": "noul",
+      "instructions": "Does the document describe or imply preparing or filing unemployment-insurance application documents on behalf of a client?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "申請書類の代行に読める表現を消す。情報提供と本人申請のサポートの線に戻す"
+    },
+    "exosome_claims": {
+      "label": "5. エクソソーム：吸収の断定・ミネラル結合型の強調",
+      "type": "noul",
+      "instructions": "Does the document assert that the exosome product is absorbed by the body, or emphasize a 'mineral-bound' form as a selling point?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "「吸収される」の断定と、ミネラル結合型の強調を削る"
+    },
+    "clinic_ad_rules": {
+      "label": "5. Tクリニック：医療広告規制・口コミ見返り",
+      "type": "noul",
+      "instructions": "Does the document contain medical advertising that would breach advertising rules (efficacy guarantees, before/after claims without required disclosures), or offer an incentive in exchange for reviews?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "効果の保証・ビフォーアフター・口コミへの見返りを削る。医療広告ガイドラインに当てる"
+    },
+    "heading_standalone": {
+      "label": "6. 見出しだけで意味が通る",
+      "type": "score",
+      "instructions": "Look only at the headings/titles (h1, h2, section titles). Can a reader understand each slide's or section's single message from the heading alone, without the body?",
+      "criteria": [
+        "Headings are abstract labels or noun phrases (e.g. 'Things to fix', 'About X', '...のこと') that cannot be understood without reading the body",
+        "Most headings are full sentences, but some are labels or contain two claims",
+        "Every heading is one complete sentence with a subject and predicate that states that unit's single message"
+      ],
+      "gate": {
+        "min": 1.6
+      },
+      "fix": "見出しを主語と述語のある1文にする。名詞句・抽象語だけの見出しは書き直す"
+    },
+    "one_message": {
+      "label": "6. 1スライド1メッセージ",
+      "type": "noul",
+      "instructions": "Does any slide or section carry more than one main message — for example a heading with two claims, two or more sub-headings of equal weight, or a body that argues something different from the heading?",
+      "gate": {
+        "max": 0.35
+      },
+      "fix": "1枚1主張に割る。小見出しが2本以上あるスライドは分けるか、片方を削る"
+    },
+    "natural_japanese": {
+      "label": "6. 日本語が自然か",
+      "type": "score",
+      "instructions": "Judge the Japanese prose. Is it natural for a Japanese business reader, or does it read as translated, over-compressed, or ambiguous (missing subjects, unclear demonstratives like それ/ここ, chained 〜のは〜からです)?",
+      "criteria": [
+        "Many sentences read as translated or compressed; subjects are missing or demonstratives are unclear",
+        "Mostly natural, with a few awkward or ambiguous sentences",
+        "Reads as natural Japanese throughout; every sentence has a clear subject and referent"
+      ],
+      "gate": {
+        "min": 1.6
+      },
+      "fix": "不自然な文を、主語を補って普通の日本語に書き直す。文案を必ず添える"
+    },
+    "style_consistent": {
+      "label": "6. 文体と用語の統一",
+      "type": "noul",
+      "instructions": "Within the document, are polite (です・ます) and plain/noun-ending styles mixed inside the same unit, or is the same concept called by two different terms (e.g. an action list called both 'やること' and 'ネクストアクション')?",
+      "gate": {
+        "max": 0.35
+      },
+      "fix": "文体を1つに揃える。同じものは同じ言葉で呼ぶ"
+    }
+  }
+}

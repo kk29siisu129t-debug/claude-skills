@@ -46,6 +46,12 @@ MTDONE = json.load(io.open(_MDP, encoding='utf-8')) if os.path.exists(_MDP) else
 _MNP = os.path.join(HUB, 'data', 'mytasks-notmine.json')
 MTNOT = json.load(io.open(_MNP, encoding='utf-8')) if os.path.exists(_MNP) else {}
 
+# 代表の会議時間を事業ごとに集計したもの（scripts/build-workload.py が作る）。
+# 「重い」の列を置き換えて、どこに時間を使っているかを出す（代表指示 2026-09-22）
+_WLP = os.path.join(HUB, 'data', 'workload.json')
+WORK = json.load(io.open(_WLP, encoding='utf-8')) if os.path.exists(_WLP) else {'biz': {}}
+WLOAD = WORK.get('biz', {})
+
 # 会議後タスク処理（meeting-task-sweep）が積む実行候補。代表が画面で選ぶまで実行しない
 _PRP = os.path.join(HUB, 'data', 'proposals.json')
 PROP = json.load(io.open(_PRP, encoding='utf-8')) if os.path.exists(_PRP) else {'items': []}
@@ -284,7 +290,8 @@ for biz in BIZ_ORDER:
                       enemies=sorted(ENEMIES.get(biz, []), key=lambda e: -e.get('power', 0)),
                       order=WB.get(biz, {}).get('order', ''),
                       issues=items, staff=staff[:6], mine=mine,
-                      wx=wx, heavy=heavy, tr=TREND.get('biz', {}).get(biz)))
+                      wx=wx, heavy=heavy, load=WLOAD.get(biz, {}).get('pct', None),
+                      tr=TREND.get('biz', {}).get(biz)))
 
 _placed = set(BIZ_ORDER)
 for _b in ['全社', '誤アサイン']:
@@ -293,12 +300,12 @@ for _b in ['全社', '誤アサイン']:
         rooms.append(dict(biz=_b, pal=PALETTE.get('MUSE', DEFAULT_PAL),
                           order='' if _b == '全社' else 'Circleback の割り当てミス',
                           issues=[], staff=['chief-of-staff', 'kansayaku'], mine=_m,
-                          wx='fine', heavy=0, tr=None))
+                          wx='fine', heavy=0, load=None, tr=None))
 
 STATE = dict(now=NOW, crew=crew, rooms=rooms, arts=ARTS, quotes=QUOTES, people=PEOPLE,
              myt=dict(asOf=MYT.get('asOf',''), window=MYT.get('window',''),
                       older=MYT.get('olderPending',''), total=len(MYTASKS)),
-             mtDone=MTDONE, mtNot=MTNOT, props=PROPS, prDec=PRDEC,
+             mtDone=MTDONE, mtNot=MTNOT, props=PROPS, prDec=PRDEC, work=WORK,
              log=[dict(r, ago=ago(r.get('ts', ''))) for r in runs[:26]], queue=QUEUE, qDone=QDONE)
 
 BODY = r"""<title>バーチャルオフィス</title>
@@ -896,6 +903,10 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .lvnote b{color:#FFB9A6}
 .sech{padding:9px 16px;font-family:"DotGothic16",monospace;font-size:13px;color:var(--gold);
  background:rgba(255,255,255,.09);letter-spacing:.06em;margin-top:10px}
+/* 稼働の但し書き。会議だけしか測れていないことを隠さない */
+.wlnote{padding:8px 16px 4px;font-size:11.5px;line-height:1.7;color:var(--dim)}
+.wlnote b{color:#E8EEFB}
+.wlnote em{font-style:normal;display:block;margin-top:4px;color:#FFD9A6}
 /* 会議後に出た実行候補。選ぶまで動かさないので、未選択が目に入る作りにする */
 .sech .pw{color:var(--stop);font-style:normal}
 .pnote{padding:7px 16px 2px;font-size:11.5px;color:var(--dim);line-height:1.6}
@@ -921,6 +932,11 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
 .pb.do.on{background:rgba(125,227,155,.34);border-color:rgba(125,227,155,.7)}
 .pb.sk.on{background:rgba(255,122,92,.28);border-color:rgba(255,122,92,.66)}
 .pst{font-size:11px;color:var(--dim)}
+.pmore{padding:2px 12px 0}
+.pmore button{width:100%;font-family:"Zen Maru Gothic",sans-serif;font-size:12px;padding:7px;
+ border-radius:6px;border:1px dashed rgba(255,255,255,.3);background:rgba(255,255,255,.05);
+ color:var(--dim);cursor:pointer}
+.pmore button:hover{color:#fff;border-color:rgba(255,255,255,.55)}
 .psv{display:flex;gap:9px;align-items:center;padding:2px 16px 10px}
 .psv button{font-family:"Zen Maru Gothic",sans-serif;font-size:12px;padding:5px 15px;border-radius:5px;
  border:1px solid rgba(255,217,128,.5);background:rgba(255,217,128,.17);color:var(--gold);cursor:pointer}
@@ -1071,6 +1087,7 @@ const PRK='office.prdec.v1';
 function prGet(){try{return JSON.parse(localStorage.getItem(PRK)||'{}')}catch(e){return{}}}
 function prSet(o){try{localStorage.setItem(PRK,JSON.stringify(o))}catch(e){}}
 let PRDEC=Object.assign({}, S.prDec||{}, prGet());
+let prOpen=false;   // 実行候補をすべて出しているか
 let mdDirty=false;
 const mtLive=t=>!MDONE.has(mtKey(t)) && MNOT[mtKey(t)]===undefined;
 
@@ -1437,13 +1454,31 @@ function renderPeople(){
  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on',+b.dataset.i===cur));
 }
 
+// 稼働の出どころ。会議だけが対象であることを画面に書いておく（黙って割合だけ出さない）
+function wlNote(){
+ const W=S.work||{}; if(!W.totalH) return '';
+ const u=W.unknown||[], uh=Math.round(u.reduce((a,x)=>a+x.h,0)*10)/10;
+ return `<div class="wlnote">あなたの稼働＝カレンダーの会議時間の配分`
+  +`（${esc(W.window||'')}・合計 ${W.totalH}時間）。全事業を足すと100%になります。`
+  +`<br><b>会議だけが対象です。</b>資料を作った時間・考えていた時間・移動は入っていません。`
+  +(W.excludedMin?`私用と移動の ${Math.round(W.excludedMin/6)/10}時間は分母から外しています。`:'')
+  +(uh?`<br><em>事業が特定できていない予定が ${u.length}種類・${uh}時間（全体の`
+      +`${Math.round(uh*1000/W.totalH)/10}%）あります。`
+      +`内訳：${esc(u.slice(0,5).map(x=>x.t+' '+x.h+'h').join('／'))}${u.length>5?' ほか':''}。`
+      +`これらはどの事業にも入っていません。</em>`:'')
+  +`</div>`;
+}
+
 // 会議後に出た実行候補。代表が「実行する」を選んだものだけを次の回で動かす。
 // 選択は他のチェックと同じで、保存するまで端末にしか残らない
 function propHTML(){
  const P=(S.props||[]).filter(p=>p.st!=='done');
  if(!P.length) return '';
  const wait=P.filter(p=>!PRDEC[p.id]).length;
- const rows=P.map(p=>{
+ // 件数が増えると下の事業テーブルが押し出されるので、既定は未選択の先頭6件だけ出す
+ const SHOW=6, more=P.length>SHOW && !prOpen;
+ const view=more?P.slice().sort((a,b)=>(PRDEC[a.id]?1:0)-(PRDEC[b.id]?1:0)).slice(0,SHOW):P;
+ const rows=view.map(p=>{
   const d=PRDEC[p.id]||'';
   return `<div class="pp ${d}">
    <div class="p1"><span class="pcl c${esc(p.cls||'A')}">${esc(p.cls||'A')}</span>
@@ -1460,6 +1495,8 @@ function propHTML(){
   +`<div class="pnote">選んだものだけを次の回で動かします。何も選ばなければ何も実行しません。`
   +`<br>選び直すときは同じボタンをもう一度押すと未選択に戻ります。</div>`
   +`<div class="pgrid">${rows}</div>`
+  +(P.length>SHOW?`<div class="pmore"><button id="prmore">`
+     +(more?`残り ${P.length-SHOW} 件を表示`:'先頭6件だけにする')+`</button></div>`:'')
   +`<div class="psv"><button id="prsv">選択を保存</button><span id="prmsg"></span></div>`;
 }
 
@@ -1484,12 +1521,12 @@ function renderSum(){
    <span class="bn">${esc(r.biz)}</span>
    <span class="wx2 ${r.wx}"><b class="wxi ${r.wx}">${w.i}</b>${esc(w.n)}</span>
    <span class="num${(r.issues||[]).length?'':' z'}">課題 <b>${(r.issues||[]).length}</b></span>
-   <span class="num${r.heavy?' hot':' z'}">重い <b>${r.heavy||0}</b></span>
+   <span class="num${(r.load==null)?' z':''}">稼働 <b>${r.load==null?'—':r.load+'%'}</b></span>
    <span class="num${mine.length?(late?' hot':''):' z'}">残 <b>${mine.length}</b>${late?'<br>期限切れ '+late:''}</span>
    <span class="tt">${top?esc(top.title):`<em>${esc(T.dormant||'課題は挙がっていない')}</em>`}`
    +`${watch?`<i>${esc(watch)}</i>`:''}</span></div>`;}).join('');
  const head=`<div class="strow sthd"><span>事業</span><span>伸びているか</span>`
-  +`<span style="text-align:right">課題</span><span style="text-align:right">重い</span>`
+  +`<span style="text-align:right">課題</span><span style="text-align:right">あなたの稼働</span>`
   +`<span style="text-align:right">あなたの残</span><span>いちばんの課題／注意</span></div>`;
  // 自分のタスクは全事業を1本にまとめて期限順。事業ごとに探しにいかなくて済むように
  const all=[]; S.rooms.forEach(r=>(r.mine||[]).filter(mtLive).forEach(t=>all.push(t)));
@@ -1518,7 +1555,7 @@ function renderSum(){
    <div class="l3">${parts.length?parts.join('　'):'<span class="mi">まだ何も溜まっていない</span>'}　${minus}</div>
    <div class="l4">${k['外部の型']?`外部から取り込んだ型 <b>${k['外部の型']}</b>`:'外部から取り込んだ型 <b>0</b>'}</div>
   </div>`;}).join('');
- document.getElementById('sumb').innerHTML=propHTML()+`<div class="stbl">${head}${rows}</div>`
+ document.getElementById('sumb').innerHTML=propHTML()+`<div class="stbl">${head}${rows}</div>`+wlNote()
   +(()=>{const all=[];S.rooms.forEach(r=>(r.enemies||[]).forEach(e=>all.push([r.biz,e])));
     if(!all.length)return'';
     all.sort((a,b)=>b[1].power-a[1].power);
@@ -1554,6 +1591,9 @@ function renderSum(){
   const id=b.dataset.p, v=b.dataset.v;
   if(PRDEC[id]===v) delete PRDEC[id]; else PRDEC[id]=v;
   prSet(PRDEC); mdDirty=true; renderSum();});
+ const pmr=document.getElementById('prmore');
+ if(pmr) pmr.onclick=()=>{prOpen=!prOpen; renderSum();
+   document.querySelector('#sumb .sech').scrollIntoView({block:'start',behavior:'smooth'});};
  const psv=document.getElementById('prsv');
  if(psv) psv.onclick=async()=>{psv.disabled=true;psv.textContent='保存中…';
   S.prDec=PRDEC; S.mtDone=[...MDONE]; S.mtNot=MNOT;

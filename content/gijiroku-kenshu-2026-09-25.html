@@ -1,0 +1,658 @@
+<title>議事録の型</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+<style>
+:root{
+  --paper:#F6F7F4; --surface:#FFFFFF; --surface-2:#EEF0EA;
+  --ink:#141A17; --ink-2:#3C463F; --muted:#6B7269;
+  --rule:#D9DCD4; --rule-2:#C3C8BC;
+  --accent:#1B5E4B; --accent-soft:#E3EFE9;
+  --flag:#AF3A24; --flag-soft:#F6E5E0;
+  --ok:#2C6B4F;
+  --disp:"Shippori Mincho",'Hiragino Mincho ProN','Yu Mincho',serif;
+  --body:"Noto Sans JP",'Hiragino Kaku Gothic ProN','Yu Gothic',system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#101311; --surface:#181C19; --surface-2:#1F2420;
+    --ink:#E8EBE5; --ink-2:#C3CABE; --muted:#98A194;
+    --rule:#2E352E; --rule-2:#3D453C;
+    --accent:#66C4A6; --accent-soft:#172A24;
+    --flag:#E8785E; --flag-soft:#2C1D18;
+    --ok:#66C4A6;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101311; --surface:#181C19; --surface-2:#1F2420;
+  --ink:#E8EBE5; --ink-2:#C3CABE; --muted:#98A194;
+  --rule:#2E352E; --rule-2:#3D453C;
+  --accent:#66C4A6; --accent-soft:#172A24;
+  --flag:#E8785E; --flag-soft:#2C1D18;
+  --ok:#66C4A6;
+}
+html,body{overflow-x:hidden;overscroll-behavior-x:none;max-width:100vw}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:var(--body); font-size:15px; line-height:1.85;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:760px;margin:0 auto;padding-inline:18px;padding-block:0 72px}
+h1,h2,h3,h4{font-family:var(--disp);font-weight:700;text-wrap:balance;line-height:1.4;margin:0}
+p{margin:0}
+a{color:var(--accent);text-underline-offset:3px}
+strong{font-weight:700}
+code,.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* ---- masthead ---- */
+.mast{padding-block:44px 22px;border-bottom:2px solid var(--ink)}
+.eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+.mast h1{font-size:clamp(34px,8vw,52px);letter-spacing:.02em}
+.mast .sub{margin-top:14px;font-size:15px;color:var(--ink-2);max-width:56ch}
+.facts{display:flex;flex-wrap:wrap;gap:6px 22px;margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.facts b{color:var(--ink);font-weight:600}
+
+/* ---- lede ---- */
+.lede{margin-top:30px;padding:20px 22px;background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--accent)}
+.lede p+p{margin-top:11px}
+
+/* ---- toc ---- */
+.toc{margin-top:34px;border-top:1px solid var(--rule);padding-top:8px}
+.toc a{display:grid;grid-template-columns:2.4em 1fr;gap:12px;padding:11px 2px;border-bottom:1px solid var(--rule);text-decoration:none;color:var(--ink)}
+.toc a:hover{background:var(--surface)}
+.toc .n{font-family:var(--mono);font-size:12px;color:var(--accent);padding-top:3px}
+.toc .t{font-family:var(--disp);font-weight:700;font-size:16px}
+.toc .d{display:block;font-family:var(--body);font-weight:400;font-size:12.5px;color:var(--muted);line-height:1.6;margin-top:1px}
+
+/* ---- sections ---- */
+section{margin-top:52px;scroll-margin-top:64px}
+.shead{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--paper);
+  border-bottom:1.5px solid var(--ink);padding-block:10px 8px;
+  display:flex;align-items:baseline;gap:11px}
+.shead .n{font-family:var(--mono);font-size:11.5px;color:var(--accent);letter-spacing:.06em}
+.shead h2{font-size:clamp(20px,4.6vw,25px)}
+section > p, section > .note{margin-top:16px}
+h3{font-size:17px;margin-top:30px;padding-bottom:5px;border-bottom:1px solid var(--rule)}
+h3 + p, h3 + ul, h3 + ol, h3 + .box, h3 + table, h3 + .tw{margin-top:13px}
+h4{font-size:14.5px;margin-top:20px;color:var(--accent)}
+
+ul,ol{margin:13px 0 0;padding-left:1.35em}
+li{margin-top:6px}
+li::marker{color:var(--muted)}
+
+/* ---- rules list (numbered) ---- */
+.rules{list-style:none;padding:0;margin-top:16px;counter-reset:r}
+.rules li{counter-increment:r;margin:0;padding:15px 0 15px 46px;border-bottom:1px solid var(--rule);position:relative}
+.rules li:first-child{border-top:1px solid var(--rule)}
+.rules li::before{content:counter(r);position:absolute;left:0;top:15px;
+  font-family:var(--mono);font-size:11px;color:var(--accent);
+  width:26px;height:26px;display:grid;place-items:center;border:1px solid var(--rule-2);border-radius:50%}
+.rules b{display:block;font-size:15px}
+.rules span{display:block;color:var(--ink-2);font-size:13.5px;margin-top:3px}
+
+/* ---- boxes ---- */
+.box{background:var(--surface);border:1px solid var(--rule);padding:17px 19px;margin-top:16px}
+.box.flag{border-left:3px solid var(--flag);background:var(--flag-soft)}
+.box.good{border-left:3px solid var(--accent);background:var(--accent-soft)}
+.box .lbl{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px}
+.box.flag .lbl{color:var(--flag)}
+.box.good .lbl{color:var(--accent)}
+
+/* ---- quote ---- */
+blockquote{margin:16px 0 0;padding:0 0 0 18px;border-left:2px solid var(--rule-2)}
+blockquote p{font-family:var(--disp);font-size:16.5px;line-height:1.8}
+blockquote cite{display:block;font-family:var(--mono);font-style:normal;font-size:11.5px;color:var(--muted);margin-top:8px}
+
+/* ---- hierarchy demo ---- */
+.tree{font-family:var(--mono);font-size:12.5px;line-height:1.95;background:var(--surface);border:1px solid var(--rule);padding:16px 18px;margin-top:14px;white-space:pre-wrap;word-break:break-word;color:var(--ink-2)}
+.tree b{color:var(--ink);font-weight:600}
+.tree .x{color:var(--flag)}
+.tree .o{color:var(--ok)}
+
+/* ---- tables that stack on phones ---- */
+.tw{margin-top:16px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+caption{text-align:left;font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding-bottom:7px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{font-family:var(--mono);font-size:11px;letter-spacing:.05em;color:var(--muted);font-weight:600;border-bottom:1px solid var(--rule-2);text-transform:none}
+tbody th{font-weight:700;font-size:13.5px}
+td.num,th.num{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+@media (max-width:620px){
+  table,thead,tbody,tr,th,td{display:block;width:auto}
+  thead{display:none}
+  tbody tr{border:1px solid var(--rule);background:var(--surface);padding:12px 13px;margin-bottom:10px}
+  th,td{border:0;padding:3px 0}
+  tbody th{font-size:14.5px;padding-bottom:6px}
+  td::before{content:attr(data-l);display:block;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--muted);margin-bottom:1px}
+  td[data-l=""]::before{display:none}
+}
+
+/* ---- schedule ---- */
+.sched{list-style:none;padding:0;margin-top:16px}
+.sched li{display:grid;grid-template-columns:5.6em 1fr;gap:14px;padding:13px 0;border-bottom:1px solid var(--rule)}
+.sched li:first-child{border-top:1px solid var(--rule)}
+.sched .t{font-family:var(--mono);font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums;padding-top:2px}
+.sched b{display:block;font-size:14.5px}
+.sched span{display:block;font-size:13px;color:var(--ink-2);margin-top:2px}
+@media (max-width:440px){.sched li{grid-template-columns:1fr;gap:3px}}
+
+/* ---- score ---- */
+.score{list-style:none;padding:0;margin-top:14px}
+.score li{display:grid;grid-template-columns:1fr 3.2em;gap:10px;padding:10px 0;border-bottom:1px solid var(--rule);align-items:baseline}
+.score li:first-child{border-top:1px solid var(--rule)}
+.score .p{font-family:var(--mono);font-size:12px;color:var(--muted);text-align:right}
+.score .g{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);border-bottom:0;padding-top:18px}
+
+.note{font-size:12.5px;color:var(--muted);line-height:1.75}
+hr{border:0;border-top:1px solid var(--rule);margin:34px 0}
+.foot{margin-top:60px;padding-top:20px;border-top:2px solid var(--ink);font-size:12.5px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <div class="eyebrow">社内研修 ／ 2026年9月</div>
+  <h1>議事録の型</h1>
+  <p class="sub">書けない人は、喋れない。議事録を、漏らさず・階層化して・15分以内に出せる状態まで持っていくための実施キット。</p>
+  <div class="facts">
+    <span>対象 <b>リーダー陣</b></span>
+    <span>所要 <b>20分×4回</b>（一括90分も可）</span>
+    <span>事前課題 <b>9/24(木)に配る</b></span>
+    <span>合格 <b>10点中8点</b></span>
+  </div>
+</header>
+
+<div class="lede">
+  <p><strong>この研修のゴールは、受講者が翌朝の会議で書いた議事録が、その日のうちに8点以上を取ること。</strong>理解ではなく、翌日の成果物で測る。</p>
+  <p><strong>実施は 9/28(月)〜10/1(木) の朝会に20分×4回で刻むのを推奨</strong>（9/25に90分の空きが無いため。<a href="#s8">08章</a>に理由と一括90分版の両方）。</p>
+  <p>直す対象は3つに絞ってある。<strong>重要事項を漏らす（処理能力）</strong>・<strong>階層化できない（ロジカル）</strong>・<strong>アクションが直後に来ない（期日と責任）</strong>。この3つ以外は当日扱わない。</p>
+</div>
+
+<nav class="toc">
+  <a href="#s1"><span class="n">01</span><span class="t">直すもの、直さないもの<span class="d">3つの欠陥を、3つの採点基準に置き換える</span></span></a>
+  <a href="#s2"><span class="n">02</span><span class="t">型 — 7つのブロック<span class="d">大目的から下ろして、扱わないものを送り返すまで</span></span></a>
+  <a href="#s3"><span class="n">03</span><span class="t">階層化の4ルール<span class="d">ロジカルを、その場で判定できる手順にする</span></span></a>
+  <a href="#s4"><span class="n">04</span><span class="t">落ちやすい12項目<span class="d">「漏らす」は才能の問題ではなく、見る場所の問題</span></span></a>
+  <a href="#s5"><span class="n">05</span><span class="t">0点の議事録を10点に直す<span class="d">ワーク用の添削教材。Before と After を並べる</span></span></a>
+  <a href="#s6"><span class="n">06</span><span class="t">会議中と会議後の運用ルール<span class="d">ローテーション、画面共有、15分、時刻で切る</span></span></a>
+  <a href="#s7"><span class="n">07</span><span class="t">採点表<span class="d">10点満点。8点未満は当日中に直して再提出</span></span></a>
+  <a href="#s8"><span class="n">08</span><span class="t">当日の進行<span class="d">90分の時間割と、講師の持ち場</span></span></a>
+  <a href="#s9"><span class="n">09</span><span class="t">翌日からの定着<span class="d">研修を「やった」で終わらせないための3週間</span></span></a>
+  <a href="#sa"><span class="n">付A</span><span class="t">社内にある良い議事録<span class="d">Obsidianの実物3本。型はすでに社内にある</span></span></a>
+  <a href="#sb"><span class="n">付B</span><span class="t">発言の原文<span class="d">この型の根拠。会議記録から、出典つきで</span></span></a>
+</nav>
+
+<!-- ============ 01 ============ -->
+<section id="s1">
+  <div class="shead"><span class="n">01</span><h2>直すもの、直さないもの</h2></div>
+
+  <p>マネージャーレベルでも議事録が書けていない。議事録でこれなら、日々のコミュニケーション全体で実行力が落ちている可能性が高い。だからこれは文書作法の研修ではなく、<strong>処理能力とロジカルの研修</strong>として設計する。</p>
+
+  <div class="tw">
+  <table>
+    <caption>欠陥 → 基準</caption>
+    <thead><tr><th>いま起きていること</th><th>欠けている力</th><th>当日つける基準</th></tr></thead>
+    <tbody>
+      <tr>
+        <th>重要事項を漏らす</th>
+        <td data-l="欠けている力">処理能力</td>
+        <td data-l="基準"><b>網羅</b>／決定・数字・懸念・引き受けが1つも落ちていない</td>
+      </tr>
+      <tr>
+        <th>階層化できない</th>
+        <td data-l="欠けている力">ロジカル</td>
+        <td data-l="基準"><b>構造</b>／すべての行が、会議の大目的から下ろした木の枝になっている</td>
+      </tr>
+      <tr>
+        <th>アクションが直後に送られてこない</th>
+        <td data-l="欠けている力">期日と責任</td>
+        <td data-l="基準"><b>速度</b>／終了15分以内に、誰が・何を・いつまでに（時刻）が出ている</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>なぜ議事録からやるのか</h3>
+  <blockquote>
+    <p>そもそも書けない人たちが喋れるわけがない。それを一発で喋ろうとするので、曖昧な部分が出る。</p>
+    <cite>田原／【定例】リーダーMTG 2026-09-17</cite>
+  </blockquote>
+  <p>報告が曖昧なのは、話し方の問題ではなく、書けていないことの症状として扱う。<strong>書けるようになる順序でしか、喋れるようにはならない。</strong>だから報告研修・提案書研修より先に、ここをやる（2026-09-20 広告自動化MTGでの合意）。</p>
+
+  <div class="box">
+    <span class="lbl">これは2026-07-14に決まっていたこと</span>
+    <p>同日の経営朝礼で、<strong>「議事録を書かせることで処理能力・ロジカル思考の向上も狙う」</strong>と方針が決まっている。あわせて、ファシリと議事録担当を別の人間に分けること、持ち回りにすること、会議後すぐに全員へ送ることも同じ場で決まった。<strong>今回はそれを運用に落とす回であって、新しい方針を出す回ではない。</strong>冒頭でそう言うと、受講者側の「また新しいことが増えた」が消える。</p>
+  </div>
+
+  <h3>当日扱わないもの</h3>
+  <ul>
+    <li>議事録ツールの選定（Notion / スプレッドシート / マインドマップ）。<strong>ツールの話に逃げさせない。</strong>いま使っているもので書く</li>
+    <li>ファシリテーション技術そのもの（別研修）</li>
+    <li>会議体の要・不要の議論（会議体の棚卸は別の場）</li>
+  </ul>
+  <div class="box flag">
+    <span class="lbl">マインドマップについて、先に線を引いておく</span>
+    <p>「マインドマップでいいですか」は必ず出る。答えは決まっている。<strong>思考の整理には優秀だが、議事録には使わない。</strong>理由は2つ。論理分解が苦手な人が使うと階層がずれる。そして一覧性が乏しく、後から入った人が読めない。（田原／有田1on1）</p>
+  </div>
+</section>
+
+<!-- ============ 02 ============ -->
+<section id="s2">
+  <div class="shead"><span class="n">02</span><h2>型 — 7つのブロック</h2></div>
+
+  <p>この順番で書く。順番を入れ替えない。空でも見出しは残す（空であること自体が情報になる）。</p>
+
+  <ol class="rules">
+    <li><b>ミッション・ビジョン</b><span>会議の頭で読み合わせる。議事録の1行目にも置く。目的から下ろすための起点で、飾りではない。</span></li>
+    <li><b>この会議の大目的</b><span>「売上利益の最大化」「顧客満足度の最大化」「優秀な人材の採用数の最大化」のどれか1つ。組織エンゲージメントを扱う会議ならそれを足す。<b>言葉も統一する。</b>「売上アップ」と書かない。</span></li>
+    <li><b>前回ネクストアクションの確認</b><span>1件ずつ ✅／❌。❌ は理由と、いつまでに出し直すかをその場で書く。ここを飛ばすと、決めたことが毎週消える。</span></li>
+    <li><b>KGI</b><span>数字。〈値・時点・分母・出典〉をセットで書く。目標との差と達成率まで。丸めない。49.3%なら49.3%と書く。</span></li>
+    <li><b>KPI</b><span>KGIを分解した枝。各枝に〈現状 → 課題 → 打ち手〉の3点を必ず付ける。打ち手には担当1人と期限（時刻）を付ける。</span></li>
+    <li><b>ネクストアクション</b><span>会議全体から拾い直して、1か所にまとめる。誰が・何を・いつまでに。KPIの中に書いたものも、ここに再掲する。<b>読む人はここしか見ない前提で書く。</b></span></li>
+    <li><b>この会議で扱わないもの</b><span>出たが本会議の大目的に属さない論点を、送り先と日時つきで書く。「→ 1M会議にて実施」「→ 金子さん」。これを書かないと、会議が毎回伸びる。</span></li>
+  </ol>
+
+  <h3>雛形（そのままコピーして使う）</h3>
+  <div class="tree"><b>【会議名】YYYY-MM-DD HH:MM-HH:MM ／ 書き手：◯◯ ／ 投稿：HH:MM</b>
+
+<b>0. ミッション・ビジョン／この会議の大目的</b>
+   0.1 （読み合わせた文言）
+   0.2 大目的：売上利益の最大化（顧客満足度・採用は別会議）
+
+<b>1. 前回NAの確認</b>
+   1.1 <span class="o">✅</span> ◯◯：（内容） → MM/DD 完了
+   1.2 <span class="x">❌</span> ◯◯：（内容） → 未（理由：〜／MM/DD HH:MM までに再提出）
+
+<b>2. KGI</b>
+   2.1 目標 ◯◯ ／ 実績 ◯◯ ／ 達成率 ◯◯%（出典：◯◯シート MM/DD HH:MM時点）
+   2.2 残り ◯◯ ／ 残り営業日 ◯日
+
+<b>3. KPI</b>
+   3.1 （指標名）：目標 ◯ ／ 実績 ◯（◯%）
+       3.1.1 現状：（数字で）
+       3.1.2 課題：（誰の実測か、推測かを明記）
+       3.1.3 打ち手：（内容）／ 担当 ◯◯ ／ MM/DD(曜) HH:MM
+
+<b>4. ネクストアクション</b>
+   4.1 ◯◯：（内容） ／ MM/DD(曜) HH:MM
+   4.2 ◯◯：（内容） ／ MM/DD(曜) HH:MM
+
+<b>5. この会議で扱わないもの</b>
+   5.1 （論点） → （送り先の会議名 MM/DD HH:MM）</div>
+
+  <p class="note">この型は新しく作ったものではない。すでに <a href="#sa">Tクリニック経営会議・EXTAGE経営朝会・T組織定例</a> で運用されている構造をそのまま抜き出したもの。研修は「新しいやり方を覚える」のではなく「社内にある型に揃える」場として運ぶ。</p>
+</section>
+
+<!-- ============ 03 ============ -->
+<section id="s3">
+  <div class="shead"><span class="n">03</span><h2>階層化の4ルール</h2></div>
+
+  <p>「ロジカルに」では直らない。判定できる手順に落とす。</p>
+
+  <ol class="rules">
+    <li><b>1つ下は、必ず1つ上を達成するための部品にする</b><span>「売上」の下に置けるのは「予約数」「単価」「成約率」。「採用」は入らない — それは別の木。</span></li>
+    <li><b>同じ階層に、違う種類のものを混ぜない</b><span>数字と感想、結果と打ち手を横に並べない。「実績200万」と「頑張ります」が同じ深さにあるのが典型的な不合格。</span></li>
+    <li><b>3階層で止める</b><span>4階層目が必要になったら、それは別会議の議題。その場で第5ブロック（扱わないもの）へ送る。</span></li>
+    <li><b>語尾を揃える</b><span>体言止めなら全部体言止め。「〜した」「〜が必要」「〜だと思う」が混ざると、<b>決定と感想の区別がつかなくなる</b>。読む人は決定だけを探している。</span></li>
+  </ol>
+
+  <h3>その場でできる判定：下から上に読む</h3>
+  <p>書き終えたら、末端から上に向かって「<strong>これをやれば、1つ上が達成される</strong>」と声に出して読む。言えなければ階層がずれている。</p>
+
+  <div class="box flag">
+    <span class="lbl">ずれている例</span>
+    <div class="tree" style="border:0;padding:0;background:transparent;margin-top:0">1. 売上利益の最大化
+   1.1 リード数が足りない
+   1.2 <span class="x">LPを直す</span>            ← 課題と打ち手が同じ階層
+   1.3 <span class="x">採用も進めたい</span>        ← 別の木が混ざっている
+   1.4 <span class="x">全員で頑張る</span>          ← 数字でも打ち手でもない</div>
+  </div>
+
+  <div class="box good">
+    <span class="lbl">直したもの</span>
+    <div class="tree" style="border:0;padding:0;background:transparent;margin-top:0">1. 売上利益の最大化
+   1.1 リード数：目標50件 ／ 実績17件（34.0%）
+       1.1.1 課題：X以外の流入がほぼ止まっている（X 14件／SEO 3件）
+       1.1.2 打ち手：資料DL後の即時架電を自動化 ／ ◯◯ ／ 9/19(金)18:00
+   1.2 商談化率：目標30% ／ 実績 未計測
+       1.2.1 課題：数えていない。議論の前にまず数える
+       1.2.2 打ち手：シートに列を追加 ／ ◯◯ ／ 9/18(木)10:00
+
+5. この会議で扱わないもの
+   5.1 採用 → 採用定例（9/19 11:00）</div>
+  </div>
+  <p class="note">※ この例に出てくる数値・人名は<strong>すべて研修用の作例</strong>で、実在の報告値ではない。第5章の After も同じ。実在の数値を見たい場合は<a href="#sa">付録A</a>の実物にあたること。</p>
+
+  <div class="box">
+    <span class="lbl">書き手の上級技</span>
+    <p>発言をそのまま写すだけなら誰でもできる。<strong>「なぜこの人はいま、この場面でこれを言ったのか」を横に一言足す。</strong>それをやると、メモを取っている人がその会議で誰よりも考えていることになる。（田原／リーダーMTG）</p>
+  </div>
+</section>
+
+<!-- ============ 04 ============ -->
+<section id="s4">
+  <div class="shead"><span class="n">04</span><h2>落ちやすい12項目</h2></div>
+
+  <p>「重要事項を漏らす」は記憶力の問題ではなく、<strong>見に行く場所を知らない</strong>問題。会議の終了2分前に、このリストを上から当てる。</p>
+
+  <ol class="rules">
+    <li><b>数字の分母と時点</b><span>「31.4%」だけでは再現できない。何分の何を、いつ時点で見たか。</span></li>
+    <li><b>目標との差</b><span>実績だけ書いて、ギャップを書かない議事録が多い。差額と残り営業日まで。</span></li>
+    <li><b>未達の理由が、特定か推測か</b><span>「たぶんLPが悪い」と「計測の結果LPのCVRが0.26%」は別物。どちらかを明記する。</span></li>
+    <li><b>決めなかったこと／保留にしたこと</b><span>決まったことより忘れられる。保留なら、いつ決めるかまで。</span></li>
+    <li><b>反対意見と、出した人</b><span>合意に丸めない。反対があったこと自体が、次に効く情報。</span></li>
+    <li><b>誰かが口頭で引き受けたこと</b><span>「じゃあ僕やっときます」は本人がいちばん忘れる。その場で第4ブロックへ。</span></li>
+    <li><b>期日を時刻まで</b><span>「本日中」ではなく「16:50まで」。「来週」ではなく「9/29(月)12:00」。</span></li>
+    <li><b>社外に投げるものは、誰が連絡するか</b><span>担当が社内で止まると、期日だけが過ぎる。</span></li>
+    <li><b>数字の出典</b><span>どのシートの、どの列か。次の人が同じ数字を出せる状態にする。</span></li>
+    <li><b>次回までに変わる前提</b><span>キャンペーン終了、人員の増減、季節変動。書いておかないと来週の議論が壊れる。</span></li>
+    <li><b>その場で決められなかった理由</b><span>情報がないのか、決裁者がいないのか。前者なら誰が取りに行くか、後者なら誰をいつ押さえるか。</span></li>
+    <li><b>扱わないと決めたものと、送り先</b><span>送り先が空欄なら、それは「扱わない」ではなく「落とした」。</span></li>
+  </ol>
+
+  <h3>「問題ないです」が出たら、この4つで返す</h3>
+  <p>曖昧報告をその場で止めるための定型。書き手にも同じ4つを持たせる — 書けない行は、聞いて埋める。</p>
+  <ol>
+    <li>どの数字が、いつ時点で、いくらですか（上流から順に）</li>
+    <li>目標に対して何%ですか</li>
+    <li>足りない分は、何を、いつまでにやると埋まりますか</li>
+    <li>それは誰の担当ですか</li>
+  </ol>
+  <p class="note">「問題ないです」自体は禁止しない。<strong>なぜ問題ないのかを基準で言えれば合格</strong>。基準（この進み方なら／この達成率なら／この行動をしていれば）を先にリーダーが持つ。</p>
+</section>
+
+<!-- ============ 05 ============ -->
+<section id="s5">
+  <div class="shead"><span class="n">05</span><h2>0点の議事録を10点に直す</h2></div>
+
+  <p>ワーク1で配る教材。受講者には Before だけを渡し、3分で「何が落ちているか」を書き出させる。</p>
+
+  <div class="box flag">
+    <span class="lbl">Before ／ 0点</span>
+    <div class="tree" style="border:0;padding:0;background:transparent;margin-top:0">2026/9/17 朝会
+・売上について話した
+・SEOが伸び悩んでいる
+・SNSはまだ厳しい
+・リードはXから少し増えてきた
+・LPの改修が必要という話になった
+・広告は引き続き回していく
+・次回までに資料を作る
+・採用の話も少し出た</div>
+  </div>
+
+  <h4>何が落ちているか（全体で答え合わせ）</h4>
+  <div class="tw">
+  <table>
+    <caption>0点の内訳</caption>
+    <thead><tr><th>基準</th><th>欠陥</th></tr></thead>
+    <tbody>
+      <tr><th>網羅</th><td data-l="欠陥">数字が1つもない。目標も実績も達成率も分母も出典もない。反対意見も保留も残っていない</td></tr>
+      <tr><th>構造</th><td data-l="欠陥">8行すべてが同じ階層。売上・リード・LP・採用が横一列で、どれがどれの部品か分からない。大目的が書かれていない</td></tr>
+      <tr><th>速度</th><td data-l="欠陥">「次回までに」「引き続き」。担当も期限もない。読んでも誰も動けない</td></tr>
+      <tr><th>語尾</th><td data-l="欠陥">「話した」「必要という話になった」。決定なのか感想なのか判別できない</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box good">
+    <span class="lbl">After ／ 10点</span>
+    <div class="tree" style="border:0;padding:0;background:transparent;margin-top:0"><b>【◯◯事業部 朝会】2026-09-17 09:00-09:20 ／ 書き手：A ／ 投稿 09:32</b>
+
+<b>0. 大目的</b>
+   0.1 売上利益の最大化（顧客満足度・採用は別会議）
+
+<b>1. 前回NAの確認</b>
+   1.1 <span class="o">✅</span> B：X広告の予算追加 → 9/16 実施済
+   1.2 <span class="x">❌</span> C：記事LPのCVR集計 → 未
+       理由：計測タグが9/15まで未設置（推測ではなく確認済）
+       再提出：9/18(木)12:00
+
+<b>2. KGI</b>
+   2.1 年間売上 目標1億2,000万 ／ 実績3,840万 ／ 達成率32.0%
+       （出典：売上管理シート 9/17 09:00時点。分母は年間目標）
+   2.2 残り8,160万 ／ 年内営業日 残72日
+
+<b>3. KPI</b>
+   3.1 リード数：月間目標50件 ／ 実績17件（34.0%）
+       3.1.1 現状：X経由14件、SEO経由3件。X以外がほぼ止まっている
+       3.1.2 課題：<b>かけた数20件／通電5件（25.0%）</b>。繋がっていないのか、
+             話の中身が悪いのかを分けるため、通電後の商談化率を別に取る
+       3.1.3 打ち手：資料DL後の即時架電を自動化 ／ C ／ 9/19(金)18:00
+   3.2 商談化率：目標30% ／ 実績 未計測
+       3.2.1 課題：数えていない。<b>計測がない状態で打ち手を議論しない</b>
+       3.2.2 打ち手：シートに商談化率の列を追加 ／ B ／ 9/18(木)10:00
+
+<b>4. ネクストアクション</b>
+   4.1 C：資料DL→即時架電の自動化 ／ 9/19(金)18:00
+   4.2 B：商談化率の計測列を追加 ／ 9/18(木)10:00
+   4.3 A：本議事録をリーダーMTGスレッドへ投稿 ／ 本日09:35
+
+<b>5. この会議で扱わないもの</b>
+   5.1 SEO記事の中身 → SEO定例（9/18 15:00）
+   5.2 ◯◯さんの育成 → 1on1（9/19）</div>
+  </div>
+
+  <p class="note">※ この After の数値・事業部名・人名は<strong>すべて研修用の作例</strong>で、実在の報告値ではない。研修の場でも口頭でそう言う — 数字の出典を曖昧にしないことが、この研修で教えていること自体なので。実在の数値の書き方を見せたいときは<a href="#sa">付録A</a>のTクリニック経営会議を映す。</p>
+
+  <div class="box">
+    <span class="lbl">この After に1つ仕込んである</span>
+    <p>3.1.2 の「<strong>かけた数20件／通電5件</strong>」。実績を「架電20件」とだけ書くと、繋がっていないのか話の中身が悪いのかが分からず、打ち手が変わってしまう。<strong>分母を分けて書けるかどうかが、処理能力の差がいちばん出る場所。</strong>（田原／【定例】リーダーMTG 2026-08-27 の実際の指摘を型に落としたもの）</p>
+  </div>
+</section>
+
+<!-- ============ 06 ============ -->
+<section id="s6">
+  <div class="shead"><span class="n">06</span><h2>会議中と会議後の運用ルール</h2></div>
+
+  <h3>会議中</h3>
+  <ol class="rules">
+    <li><b>議事録は1人担当にしない</b><span>喋っている人以外が書く。発言者が交代したら書き手も交代する。全員が、いやでも内容を理解しなければいけない状態を作る。</span></li>
+    <li><b>画面共有するのは議事録そのもの</b><span>資料ではなく議事録を映す。議論になったら、資料の該当箇所に飛ぶのではなく<b>議事録のカーソルをそこへ移す</b>。書いている内容と全員の認識が合っているかが、その場で見える。</span></li>
+    <li><b>その場で階層に入れる</b><span>後で整えるのは禁止。後で整えると、整える時間そのものが発生し、漏れも増える。第2ブロックの雛形を開いた状態で会議を始める。</span></li>
+    <li><b>終了2分前に第4・第5ブロックを読み上げる</b><span>ネクストアクションと、扱わないものを声に出す。<b>誰が何をいつまでにが決まるまで会議を終わらせない。</b></span></li>
+  </ol>
+
+  <h3>会議後</h3>
+  <ol class="rules">
+    <li><b>社内は終了15分以内にスレッド投稿</b><span>3人で書いた場合は、終了後に突き合わせてから15分以内。完成度より速度を優先する。</span></li>
+    <li><b>クライアントは30分以内、できれば直後</b><span>対面なら終わってすぐ送る。言った言わないの余地を残さない。</span></li>
+    <li><b>期限は時刻で切る</b><span>「本日中」「来週」は差し戻し。「16:50まで」「9/29(月)12:00」。</span></li>
+    <li><b>次の回は、前回の議事録を複製して数字を空欄にして始める</b><span>ゼロから書かない。構造は固定、数字だけ入れ替える。1回書けば、以降は更新するだけになる。</span></li>
+  </ol>
+
+  <div class="box flag">
+    <span class="lbl">社内に締切が2つあるので、この研修で1本に揃える</span>
+    <p>2026-07-14 の経営朝礼では「会議後<strong>30分以内</strong>にSlackで全員にメンションして送る」と決まり、同日のグロース朝礼では澄川さんが「終了<strong>15分以内</strong>にスレッドへ」と指示している。会議体ごとに別の数字が生きている状態。</p>
+    <p style="margin-top:9px"><strong>9/25以降は、社内は15分・クライアントは30分（できれば直後）に統一する。</strong>厳しい方に揃える理由は、速度が落ちて困ることはあっても、速すぎて困ることがないため。</p>
+  </div>
+
+  <div class="box">
+    <span class="lbl">Tクリニック経営会議で実際にやっていること</span>
+    <p>前週の議事録をそのまま複製し、数値を <code>【※】</code> に置き換えて会議に持ち込んでいる。構造・KPIツリー・対策の見出しは前週のまま。会議は <code>【※】</code> を埋める作業になる。<strong>これが「毎回ゼロから書く」を無くす唯一の方法。</strong></p>
+  </div>
+</section>
+
+<!-- ============ 07 ============ -->
+<section id="s7">
+  <div class="shead"><span class="n">07</span><h2>採点表</h2></div>
+
+  <p>10点満点。<strong>8点以上で合格。7点以下は当日中に直して再提出。</strong>採点するのは書いた本人ではなく、同じ会議に出ていた別の1人。</p>
+
+  <ul class="score">
+    <li class="g" style="border-top:1px solid var(--rule)">網羅 ／ 4点</li>
+    <li><span>決まったことが全部書いてある</span><span class="p">1</span></li>
+    <li><span>出た数字が〈値・時点・分母・出典〉つきで書いてある</span><span class="p">1</span></li>
+    <li><span>反対意見・懸念・保留が、丸めずに残っている</span><span class="p">1</span></li>
+    <li><span>口頭で引き受けられた依頼が全部拾われている</span><span class="p">1</span></li>
+    <li class="g">構造 ／ 3点</li>
+    <li><span>冒頭に会議の大目的が1行で書いてある</span><span class="p">1</span></li>
+    <li><span>末端から上へ「これをやれば上が達成される」と読める</span><span class="p">1</span></li>
+    <li><span>同じ階層に違う種類のもの（数字と感想、課題と打ち手）が混ざっていない</span><span class="p">1</span></li>
+    <li class="g">速度 ／ 3点</li>
+    <li><span>終了15分以内に投稿されている</span><span class="p">1</span></li>
+    <li><span>NAが「誰が・何を・いつまでに（時刻）」で書かれている</span><span class="p">1</span></li>
+    <li><span>扱わなかった論点が、送り先つきで書かれている</span><span class="p">1</span></li>
+  </ul>
+
+  <div class="box flag">
+    <span class="lbl">0点をつけるときの伝え方</span>
+    <p>語尾を丸めない。「ここは良いけど、ここがダメ」と言うと良い方だけが受け取られる。<strong>「0点です。何が言いたいか分かりません」</strong>と点数で言い切る。ただし感情と論理は切り分け、トーンは明るく保つ。強いことを言っても反感を買わない出し方をする。</p>
+    <p style="margin-top:9px">この強度は<strong>リーダー・マネージャー以上に対してのみ</strong>。メンバーレベルには使わない。</p>
+  </div>
+</section>
+
+<!-- ============ 08 ============ -->
+<section id="s8">
+  <div class="shead"><span class="n">08</span><h2>当日の進行</h2></div>
+
+  <h3>事前課題（配る場所は 9/24(木) 15:00 のリーダーMTG）</h3>
+  <p><strong>各自、直近1週間に自分が書いた議事録を1本持ってくる。</strong>書いていない人は「書いていない」と申告して参加する（それ自体が診断になる）。当日その1本を型に組み直すので、持ってこないと手ぶらになる。</p>
+  <p class="note">9/24(木)15:00のリーダーMTGには加藤さん・山元さん・土屋さん・森田さん・澄川さん・福田さんが全員入っている。<strong>ここで口頭とスレッドの両方で出すのがいちばん取りこぼしが少ない。</strong></p>
+
+  <h3>90分の時間割</h3>
+  <ul class="sched">
+    <li><span class="t">00:00–05</span><span><b>なぜ議事録からやるのか</b><span>「書けない人は喋れない」。3つの欠陥を提示して、当日の的を絞る。／ 田原</span></span></li>
+    <li><span class="t">05–15</span><span><b>合格の定義</b><span>3つの欠陥を3つの採点基準に置き換える。採点表を配る。</span></span></li>
+    <li><span class="t">15–30</span><span><b>型と、社内の実物</b><span>7ブロックを説明し、Tクリニック経営会議・EXTAGE経営朝会・T組織定例を実物で見せる。「新しいやり方ではなく、すでにある型」だと伝える。</span></span></li>
+    <li><span class="t">30–45</span><span><b>ワーク1 ／ Before を採点する</b><span>個人3分（何が落ちているか書き出す）→ ペア5分 → 全体7分で答え合わせ。ここで「落ちやすい12項目」を渡す。</span></span></li>
+    <li><span class="t">45–70</span><span><b>ワーク2 ／ 自分の議事録を組み直す</b><span>個人12分（持参した1本を型へ）→ 相互採点8分（隣と交換、採点表で点をつける）→ 指名発表5分（最低点と最高点を1本ずつ読む）。</span></span></li>
+    <li><span class="t">70–80</span><span><b>運用ルール</b><span>ローテーション、画面共有は議事録そのもの、15分、時刻で切る、複製して空欄にする。</span></span></li>
+    <li><span class="t">80–90</span><span><b>宣言</b><span>明日の各会議で誰が書くかを、その場で全部決める。次回リーダーMTGで何を報告するかも決める。<b>決まるまで終わらない。</b></span></span></li>
+  </ul>
+
+  <div class="box">
+    <span class="lbl">60分に縮めるとき</span>
+    <p>ワーク1（15分）を削り、Before の答え合わせを講師が5分で流す。運用ルールを5分に圧縮。<strong>ワーク2と最後の宣言は削らない</strong> — ここを削ると研修が「聞いた」で終わる。</p>
+  </div>
+
+  <h3>90分が取れないときの分割版（朝会に4回差し込む）</h3>
+  <p>9/25(金)の予定は7:30から18:45までほぼ埋まっており、<strong>現時点で90分の空きは11:30–12:15の45分しかない。</strong>枠を新設しないなら、朝会に20分ずつ刻む形に切り替える。9/20の広告自動化MTGで福田さんが挙げていた「朝会に突っ込んでいく」案がこれにあたる。</p>
+  <ul class="sched">
+    <li><span class="t">9/28(月)</span><span><b>第1回・20分 ／ なぜと合格の定義</b><span>01章。採点表を配る。<b>宿題：明日の自分の会議の議事録を型で書いてくる</b></span></span></li>
+    <li><span class="t">9/29(火)</span><span><b>第2回・20分 ／ 型</b><span>02章と付録Aの実物。宿題の議事録を1本だけ画面に映して全体で採点</span></span></li>
+    <li><span class="t">9/30(水)</span><span><b>第3回・20分 ／ 階層化と12項目</b><span>03・04章。前日の議事録を各自で採点し直す</span></span></li>
+    <li><span class="t">10/1(木)</span><span><b>第4回・20分 ／ 運用ルールと宣言</b><span>リーダーMTG（15:00）の冒頭。06・07章＋宣言。以降は09章の定着スケジュールへ</span></span></li>
+  </ul>
+  <div class="box good">
+    <span class="lbl">推奨は分割版</span>
+    <p><strong>分割版（9/28〜10/1の朝会に20分×4回）で実施する。</strong>理由は2つ。①9/25に90分の枠が無く、新設すると既存の定例を1つ潰すことになる。②分割版は毎回その日の実物で採点するため、定着が強い — この研修は理解ではなく翌日の成果物で測ると決めているので、こちらが目的に合う。</p>
+    <p style="margin-top:9px">一括90分版を切った理由：全員が同じ場で一度に基準を揃えられる点は勝るが、その効果は9/24(木)のリーダーMTGで事前課題と採点表を配れば大部分が取れる。枠を1つ潰すコストに見合わない。</p>
+    <p style="margin-top:9px"><strong>ただし9/25に90分を確保できるなら一括版に戻す。</strong>その場合も09章の定着スケジュールはそのまま使える。</p>
+  </div>
+  <p class="note">分割版は合計80分。弱いのは、全員が同じ場で同時に基準を揃える効果。</p>
+
+  <h3>講師の持ち場</h3>
+  <p>1人で90分喋らない。テンポが落ちた時点で、この研修は自分の教えている内容に反することになる。<strong>1ブロック1人、ファシリは別に1人</strong>。ファシリは時間だけを見て、各ブロックを時間で切る。</p>
+</section>
+
+<!-- ============ 09 ============ -->
+<section id="s9">
+  <div class="shead"><span class="n">09</span><h2>翌日からの定着</h2></div>
+
+  <p>研修は入口で、測るのは翌日以降の成果物。3週間で運用に落とす。</p>
+
+  <div class="box good">
+    <span class="lbl">オーナー1人、KPI1本</span>
+    <p><strong>オーナー：澄川さん。</strong>9/20に会議体研修を提案書研修より先に置くと決めた本人で、グロース朝礼で議事録ローテーションと15分ルールをすでに運用している。他の候補（福田さん・土屋さん）を切ったのは、福田さんは総会と教育カリキュラム全体を持っていて分散するため、土屋さんは受講者側にいるため。</p>
+    <p style="margin-top:9px"><strong>KPI：週あたりの「8点未満の議事録」件数。</strong>ゼロが目標。議事録の本数でも、研修の満足度でもなく、この1本だけを追う。</p>
+  </div>
+
+  <div class="tw">
+  <table>
+    <caption>定着スケジュール</caption>
+    <thead><tr><th>いつ</th><th>やること</th><th>担当</th><th>判定</th></tr></thead>
+    <tbody>
+      <tr><th>9/28(月) の全会議<br><span class="note">※9/25は金曜。翌営業日は月曜</span></th><td data-l="やること">型で書く。同席者が採点し、点数もスレッドに貼る</td><td data-l="担当">各会議のファシリ</td><td data-l="判定">全会議で議事録が15分以内に出ているか</td></tr>
+      <tr><th>9/28(月)〜10/2(金)</th><td data-l="やること">毎朝の朝会で、前日の議事録に個別フィードバックを入れる</td><td data-l="担当">澄川さん</td><td data-l="判定">平均点が上がっているか</td></tr>
+      <tr><th>10/1(木) 15:00<br>リーダーMTG</th><td data-l="やること">各リーダーが自チームの平均点と、8点未満だった件数を報告</td><td data-l="担当">加藤さん・山元さん・土屋さん</td><td data-l="判定">8点未満がゼロに近づいているか</td></tr>
+      <tr><th>10/12(月)〜</th><td data-l="やること">採点を止め、抜き打ちのみに切り替える</td><td data-l="担当">澄川さん</td><td data-l="判定">採点が無くても型が崩れないか</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="box flag">
+    <span class="lbl">ここを外すと、研修が流れる</span>
+    <p><strong>研修の翌営業日に、採点された議事録がスレッドに並んでいない場合、この研修は失敗している。</strong>内容の良し悪しではなく、翌日に成果物が出たかだけを最初の判定にする。出ていなければ、その場でもう一度会議の頭を押さえる。</p>
+  </div>
+</section>
+
+<!-- ============ 付録A ============ -->
+<section id="sa">
+  <div class="shead"><span class="n">付A</span><h2>社内にある良い議事録</h2></div>
+
+  <p>当日、実物を画面に映す。3本とも社内のもので、この型はここから抜き出した。</p>
+
+  <h3>1 ／ Tクリニック 経営会議（週次）</h3>
+  <ul>
+    <li>Vision・Mission → 会議大目的（売上利益／顧客満足度／人材の3本）→ KGI → KPI → 対策、と<strong>4階層で一貫して下りている</strong></li>
+    <li>大目的のうち本会議で扱わないものに「→ 1M会議にて実施」「→ 金子さん」と<strong>送り先が明記されている</strong></li>
+    <li>拠点別の表に〈目標・修正目標・着地予想・実績・着地進捗・単価目標〉が並び、<strong>分母と定義が揃っている</strong></li>
+    <li>翌週分は数値を <code>【※】</code> にした複製。<strong>構造は固定、数字だけ入れ替える</strong>運用の実例</li>
+    <li>過去分（時系列の課題と、解決済みの印）を末尾に残している。経緯が消えない</li>
+  </ul>
+  <p class="note">当日の使い方：「これを1回作れば、以降は <code>【※】</code> を埋めるだけになる」と言って見せる。</p>
+
+  <h3>2 ／ EXTAGE 経営朝会</h3>
+  <ul>
+    <li>Mission・Vision の直下に「会議の大目的」が4つ並び、<strong>本会議で扱うのは1つ目だけ</strong>と分かるようになっている。2つ目（顧客満足度）と3つ目（採用）には「→ 別会議にて実施」、4つ目（組織エンゲージメント）には「→ 総会会議を組織課題定例とマージ」と、<strong>残り3つすべてに行き先が書いてある</strong></li>
+    <li>「前回NAの確認」が独立ブロックとして最初に置かれている</li>
+    <li>KPI が担当者名つきで分解されている（リード数 → 紹介／直営業／自社マーケ／DM営業、それぞれに担当）</li>
+    <li>体制変更の議題が〈目的 → 手段 → いつ〉で書かれ、日付が入っている</li>
+  </ul>
+
+  <h3>3 ／ Tクリニック 組織定例</h3>
+  <ul>
+    <li>定性の会議でも構造化できる実例。〈今週のGood → アラートと対策 → 組織を良くするために必要なこと → ネクストアクション〉</li>
+    <li><strong>「アラートの定義」が議事録内に書いてある</strong>（パフォーマンス低下／工数圧迫／退職可能性／雰囲気）。定義を先に置くと、拾うべきものが揃う</li>
+    <li>各項目に「例」と「実例」が分けて書かれ、書き手が何を書けばいいか迷わない</li>
+  </ul>
+
+  <h3>4 ／ passlabo 会議体の棚卸</h3>
+  <ul>
+    <li>LINE登録 → フォーム申込 → 審査合格 → 日程確定 → 着座 → 契約、と<strong>ファネルが1本の数列</strong>になっている。どこで何人落ちたかが一目で分かる</li>
+    <li>落ちた箇所に「施策：〜」がその場で付いている（13名離脱 → 施策：ツール使用）</li>
+    <li>契約理由と失注理由が両方書かれている。<strong>失注理由を書く議事録は少ない</strong></li>
+  </ul>
+</section>
+
+<!-- ============ 付録B ============ -->
+<section id="sb">
+  <div class="shead"><span class="n">付B</span><h2>発言の原文</h2></div>
+
+  <p>この型の根拠。当日スライドに1枚だけ混ぜるなら、最初の1本を使う。<span class="note">いずれも会議記録からの引用。読みやすさのため、語順の整理と、音声書き起こしの明らかな誤変換（例：「授業」→「事業」）の訂正のみ行った。趣旨と主張は変えていない。</span></p>
+
+  <blockquote><p>そもそも書けない人たちが喋れるわけがない。それを一発で喋ろうとするので、曖昧な部分が出る。だから議事録文化を作りたい。事前に準備してもらって、それを報告する形のほうがいい。</p><cite>田原／【定例】リーダーMTG 2026-09-17</cite></blockquote>
+
+  <blockquote><p>本当の本当は、この場で議事録を取っていきたい。リアルタイムで、話したことをバーッと階層化してもらって、漏れがないか。会議は後から入ってくる人もいるし、書いている人の認識が合っているかも見たい。</p><cite>田原／task会 2026-08-31</cite></blockquote>
+
+  <blockquote><p>議事録は1人担当じゃなくて、誰かが喋っているときは誰かが取る、というのを徹底してほしい。そうしたら、いやでも理解しなければいけなくなる。</p><cite>田原／【定例】リーダーMTG 2026-07-23</cite></blockquote>
+
+  <blockquote><p>議事録担当者が書いている画面を共有する。議論になったときは、資料の該当箇所に移すんじゃなくて、議事録を取っている場所を移していく。</p><cite>田原／【定例】リーダーMTG 2026-09-17</cite></blockquote>
+
+  <blockquote><p>クライアントワークでも基本は一緒。対面なら30分以内、なんなら直後に議事録を送る。</p><cite>田原／経営朝礼 2026-07-14</cite></blockquote>
+
+  <blockquote><p>メモを取ることで、誰よりも考えていることになる。僕がやるのは、ぱっと思ったことと、それに対して「なんでこのことを言ったんだろう」を、その場で考えて書くこと。</p><cite>田原／【定例】リーダーMTG 2026-08-27</cite></blockquote>
+
+  <blockquote><p>「通電数」と「かけた数」を分けて報告してほしい。電話の内容が悪いのか、そもそも繋がっていないのかが分からないと、改善策が変わる。</p><cite>田原／【定例】リーダーMTG 2026-08-27</cite></blockquote>
+
+  <blockquote><p>会社のビジョン・ミッションの読み合わせから入り、その会議の目的を話す。前回のネクストアクションの確認が入り、目的を達成するためのアジェンダに入っていく。</p><cite>田原／グロース朝礼 2026-07-14</cite></blockquote>
+
+  <blockquote><p>一番最初で言うと、目的から下ろしてほしい。「売上利益の最大化」という言葉すら統一してほしい。そこから全体の売上すら分解してほしい。</p><cite>田原／インサイドセールス定例MTG 2026-07-22</cite></blockquote>
+
+  <blockquote><p>ファシリテーター以外の3人は、これから会議で必ず議事録を取ってください。終わった後に3人で突き合わせて精査して、ミーティング終了15分以内にスレッドへ。</p><cite>澄川／グロース朝礼 2026-07-14</cite></blockquote>
+
+  <blockquote><p>期限は「本日中」ではなく「16:50まで」など、具体的な時刻で切ること。</p><cite>澄川／グロース朝礼 2026-07-14</cite></blockquote>
+
+  <blockquote><p>ネクストアクションが明確になるまで、なぜなぜを続ける。会議内で誰が何をいつまでにが決まるまで終わらない。</p><cite>土屋／総会スライド</cite></blockquote>
+
+  <blockquote><p>マインドマップは、論理分解が苦手な人が使うと階層がずれる。一覧性も乏しくなるので、議事録には使わないでもらった。思考の整理としてはめちゃくちゃ優秀ではある。</p><cite>田原／有田さん1on1 2026-09-15</cite></blockquote>
+
+  <blockquote><p>会議の質が上がれば、事業は伸びる。</p><cite>田原／1on1_土屋さん 2026-09-17</cite></blockquote>
+</section>
+
+<p class="foot">議事録の型 ／ 2026-09-25 社内研修用。出典は Obsidian の会議メモ（Tクリニック経営会議・EXTAGE経営朝会・T組織定例・passlabo会議体の棚卸）と、Circleback の会議記録。第5章 After の数値は見本用の合成値で、他所への引用不可。</p>
+
+</div>

@@ -1,0 +1,137 @@
+{
+  "name": "proposal",
+  "title": "対外提案資料の作法（見出し・比喩・角・重複・不利情報）",
+  "context": "The document is written in Japanese. It is an external proposal (for a joint venture, partnership, or sales) written to another company's founder. The author's house rules: no headings in question form, no metaphors, no wording that points at the counterpart's shortcomings, no disclosure of our own unit prices, and detail belongs in an appendix, not the main body.",
+  "questions": {
+    "conclusion_first": {
+      "label": "結論を先に短く",
+      "type": "noul",
+      "instructions": "Does each chapter state its conclusion briefly at the start and send detail to an appendix, rather than building up to the conclusion at the end?",
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "結論を先に短く書き、詳細は「詳細は付録◯」で送る"
+    },
+    "question_headings": {
+      "label": "疑問形の見出し",
+      "type": "noul",
+      "instructions": "Do any of the headings take the form of a question (for example 'Why 50:50?')?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "疑問形の見出しを断定に言い換える。相手が反論したくなる形式を避ける"
+    },
+    "metaphors": {
+      "label": "比喩",
+      "type": "noul",
+      "instructions": "Does the text use metaphors or figurative expressions — such as 'ceiling', 'vessel', 'walking a tightrope', 'second engine', 'the sky is the limit', 'break through', 'arena'?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "比喩をすべて言い換える（天井・器・綱の上・第二のエンジン・土俵・青天井・上抜ける・看板）"
+    },
+    "confrontational_framing": {
+      "label": "相手の欠落を指摘する形",
+      "type": "noul",
+      "instructions": "Does the text frame the counterpart's situation as their deficiency or problem (for example 'the three ceilings your company is hitting') rather than as something both sides solve together?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "「貴社がぶつかっている〜」を「本件で同時に解ける〜」の形に。経営者のプライドを刺激しない"
+    },
+    "informative_headings": {
+      "label": "見出しが情報を持つ",
+      "type": "noul",
+      "instructions": "Do the headings carry information — a specific claim, commitment, or number — rather than stating something obvious or generic?",
+      "criteria": {
+        "true": "Headings like 'We bear 70% of the workload' that tell the reader something.",
+        "false": "Headings like 'Our roles do not overlap' or 'Background' that carry no information."
+      },
+      "gate": {
+        "min": 0.6
+      },
+      "fix": "当たり前のことを見出しにしない。数字か約束を見出しに入れる"
+    },
+    "unnatural_japanese": {
+      "label": "不自然な日本語",
+      "type": "noul",
+      "instructions": "Does the Japanese text contain unnatural wording — coined words, wrong particles, or excessive noun-ending sentences?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "造語・格助詞の誤り・体言止めの多用を直す（Jevの日本語精度は低め。目視で確定）"
+    },
+    "mixed_importance": {
+      "label": "本編に細部が混在",
+      "type": "noul",
+      "instructions": "Does the main body contain fine detail — line items, assumptions, unmeasured metrics, condition minutiae — that belongs in an appendix?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "明細・前提・未計測指標は付録へ。本編は標準的な提携条件まで"
+    },
+    "duplication": {
+      "label": "同じ主張の重複",
+      "type": "noul",
+      "instructions": "Is the same claim or the same figure repeated in more than one place in the document?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "同じ数字・同じ主張の再掲を消す（冗長さの最大の原因）"
+    },
+    "price_disclosure": {
+      "label": "自社単価・価格の横並び",
+      "type": "noul",
+      "instructions": "Does the document disclose our own unit price, or place our price side by side with competitors' prices?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "単価は伏せて算定方法だけ書く。「他社と同価格」は上限を示すことになるので消す"
+    },
+    "counterpart_spend_listed": {
+      "label": "相手の投下額を金額で並記",
+      "type": "noul",
+      "instructions": "Does the document list the counterpart's monetary contribution side by side with ours as an amount?",
+      "gate": {
+        "max": 0.3
+      },
+      "fix": "非対称はこちらの気前の良さとしてだけ見せ、比較は口頭で"
+    },
+    "subject_ambiguity": {
+      "label": "主語の誤読",
+      "type": "noul",
+      "instructions": "Are there sentences where the reader could misread who pays, who receives, or who performs the action?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "主体を明示する（「30万円以上が支払われています」→「他社はすでに、30万円以上を払う受講者を集めています」）"
+    },
+    "brand_as_individual": {
+      "label": "会社の実績を個人の実績のように",
+      "type": "noul",
+      "instructions": "Are company or brand achievements written as though they were an individual person's achievements, or is the subject of an achievement left unclear?",
+      "gate": {
+        "max": 0.4
+      },
+      "fix": "実績の主体を必ず明示する"
+    },
+    "constant_conversion": {
+      "label": "転換率が期間中一定",
+      "type": "noul",
+      "instructions": "Does the plan hold a conversion rate constant over the whole period, with no improvement from operational learning built in?",
+      "gate": {
+        "max": 0.5
+      },
+      "fix": "運用改善を織り込む。一定だと「学習が起きない計画」に見える"
+    },
+    "has_toc": {
+      "label": "冒頭に目次",
+      "type": "noul",
+      "instructions": "Does the document begin with a table of contents that lists each chapter with a one-line description?",
+      "gate": {
+        "min": 0.5
+      },
+      "fix": "冒頭に目次（各章のリンク＋一行）を置く"
+    }
+  }
+}
