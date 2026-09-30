@@ -1488,11 +1488,11 @@ function propHTML(){
    +`<div class="p4">
     <button class="pb do${d==='do'?' on':''}" data-p="${esc(p.id)}" data-v="do">実行する</button>
     <button class="pb sk${d==='skip'?' on':''}" data-p="${esc(p.id)}" data-v="skip">やらない</button>`
-   +(d?`<span class="pst">${d==='do'?'次の回で★トークを立てて実行します':'次の回で削除します'}</span>`:'')
+   +(d?`<span class="pst">${d==='do'?'次の回で実行します':'見送ります'}</span>`:'')
    +`</div></div>`;}).join('');
  return `<div class="sech">会議後に出た実行候補 ${P.length}件`
   +(wait?`　<em class="pw">未選択 ${wait}件</em>`:'　<em>すべて選択済み</em>')+`</div>`
-  +`<div class="pnote">「実行する」は次の回で★付きのトークを立てて実行、「やらない」は次の回で削除します。押すと自動で保存します。`
+  +`<div class="pnote">選んだものだけを次の回で動かします。何も選ばなければ何も実行しません。`
   +`<br>選び直すときは同じボタンをもう一度押すと未選択に戻ります。</div>`
   +`<div class="pgrid">${rows}</div>`
   +(P.length>SHOW?`<div class="pmore"><button id="prmore">`
@@ -1590,15 +1590,7 @@ function renderSum(){
  document.getElementById('sumb').querySelectorAll('.pb').forEach(b=>b.onclick=()=>{
   const id=b.dataset.p, v=b.dataset.v;
   if(PRDEC[id]===v) delete PRDEC[id]; else PRDEC[id]=v;
-  prSet(PRDEC); mdDirty=true; renderSum();
-  // 押しただけで保存する。保存ボタンの押し忘れで選択が届かなかった（2026-09-30 代表指摘）
-  clearTimeout(window.__prT);
-  window.__prT=setTimeout(async()=>{
-   S.prDec=PRDEC; S.mtDone=[...MDONE]; S.mtNot=MNOT;
-   const ok=await saveDoc(); if(ok) mdDirty=false;
-   const pm=document.getElementById('prmsg');
-   if(pm) pm.textContent=ok?'保存しました。次の回で実行します':'保存できませんでした。「選択を保存」を押してください';
-  },1500);});
+  prSet(PRDEC); mdDirty=true; renderSum();});
  const pmr=document.getElementById('prmore');
  if(pmr) pmr.onclick=()=>{prOpen=!prOpen; renderSum();
    document.querySelector('#sumb .sech').scrollIntoView({block:'start',behavior:'smooth'});};
