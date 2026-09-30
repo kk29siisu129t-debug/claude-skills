@@ -1,283 +1,249 @@
-<title>経営ダッシュボード</title>
+<title>乗組員の状況</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reggae+One&family=Zen+Maru+Gothic:wght@400;500;700&family=DotGothic16&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{
-  --ground:#EFE2C6;--surface:#F7EEDA;--ink:#2A1C12;--ink-soft:#6B563F;--ink-faint:#9A876D;
-  --rule:#D3BE96;--rule-strong:#A98F63;--accent:#B8451F;--gold:#B5821F;
-  --sea:#8FB4B8;--sea2:#7AA3A8;--hi:#3F6B45;--mid:#B5821F;--lo:#A32117;
-  --band:#E5D3AE;--logbg:#241A12;--logink:#E8D5AC;
-}
+:root{--ground:#EFE2C6;--surface:#F7EEDA;--ink:#2A1C12;--ink-soft:#6B563F;--ink-faint:#9A876D;
+ --rule:#D3BE96;--rule-strong:#A98F63;--accent:#B8451F;--band:#E5D3AE;
+ --run:#3F6B45;--idle:#96660F;--never:#8C7A62;--stale:#A32117;--blocked:#A32117;
+ --logbg:#241A12;--logink:#E8D5AC;--gold:#B5821F;--deck1:#9DBEC0;--deck2:#7E93A6;}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;--ink-faint:#7E6C53;
-  --rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--gold:#E0B054;
-  --sea:#1E3A46;--sea2:#17303B;--hi:#7FB98A;--mid:#DFA945;--lo:#E8705C;
-  --band:#1F2E38;--logbg:#0A1016;--logink:#CDE3EE;}}
-:root[data-theme="dark"]{
-  --ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;--ink-faint:#7E6C53;
-  --rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--gold:#E0B054;
-  --sea:#1E3A46;--sea2:#17303B;--hi:#7FB98A;--mid:#DFA945;--lo:#E8705C;
-  --band:#1F2E38;--logbg:#0A1016;--logink:#CDE3EE;}
+ --ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;--ink-faint:#7E6C53;
+ --rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--band:#1F2E38;
+ --run:#7FB98A;--idle:#DFA945;--never:#6B7783;--stale:#E8705C;--blocked:#E8705C;
+ --logbg:#0A1016;--logink:#CDE3EE;--gold:#E0B054;--deck1:#1E3A46;--deck2:#152833;}}
+:root[data-theme="dark"]{--ground:#101820;--surface:#18222B;--ink:#EFE0C4;--ink-soft:#B29B78;
+ --ink-faint:#7E6C53;--rule:#2C3A46;--rule-strong:#485B69;--accent:#E8703F;--band:#1F2E38;
+ --run:#7FB98A;--idle:#DFA945;--never:#6B7783;--stale:#E8705C;--blocked:#E8705C;
+ --logbg:#0A1016;--logink:#CDE3EE;--gold:#E0B054;--deck1:#1E3A46;--deck2:#152833;}
 
 *{box-sizing:border-box}
 body{background:var(--ground);color:var(--ink);margin:0;padding:0 18px 64px;
-  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
-  font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased}
-.wrap{max-width:1180px;margin:0 auto}
+ font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN",system-ui,sans-serif;
+ font-size:15px;line-height:1.8;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;
+ padding:36px 0 15px;border-bottom:4px double var(--ink)}
+h1{font-family:"Reggae One",sans-serif;font-weight:400;font-size:clamp(25px,4.2vw,38px);margin:0;
+ letter-spacing:.04em;line-height:1.2;text-shadow:2px 2px 0 var(--band)}
+h1 .sm{display:block;font-size:.36em;letter-spacing:.3em;color:var(--accent);margin-bottom:5px;text-shadow:none}
+.hm{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--ink-soft);text-align:right;line-height:1.95}
+h2{font-family:"Reggae One",sans-serif;font-weight:400;font-size:19px;margin:34px 0 10px;
+ letter-spacing:.05em;display:flex;align-items:baseline;gap:12px}
+h2 .n{font-family:"DotGothic16",monospace;font-size:12px;color:var(--accent);border:2px solid var(--accent);padding:1px 7px}
+.lede{color:var(--ink-soft);font-size:13px;margin:0 0 16px;max-width:70ch}
 
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;
-  gap:16px;padding:38px 0 16px;border-bottom:4px double var(--ink)}
-h1{font-family:"Reggae One",sans-serif;font-weight:400;font-size:clamp(26px,4.4vw,40px);
-  margin:0;letter-spacing:.04em;line-height:1.2;text-shadow:2px 2px 0 var(--band)}
-h1 .sm{display:block;font-size:.36em;letter-spacing:.3em;color:var(--accent);
-  margin-bottom:5px;text-shadow:none}
-.stats{display:flex;gap:22px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;
-  color:var(--ink-soft);text-align:right;flex-wrap:wrap}
-.stats b{display:block;font-size:24px;color:var(--ink);line-height:1.2;
-  font-variant-numeric:tabular-nums}
-
-/* ── 3D ─────────────────────────── */
-.stagewrap{margin-top:22px;border:3px solid var(--ink);background:
-  radial-gradient(120% 90% at 50% 20%, var(--sea) 0%, var(--sea2) 100%);
-  box-shadow:6px 6px 0 var(--band);position:relative;overflow:hidden}
-.stage{height:min(64vh,520px);perspective:1500px;perspective-origin:50% 42%;
-  touch-action:none;cursor:grab;position:relative}
+/* 持ち場（3D） */
+.stagewrap{border:3px solid var(--ink);position:relative;overflow:hidden;
+ background:radial-gradient(120% 90% at 50% 16%,var(--deck1) 0%,var(--deck2) 100%);
+ box-shadow:6px 6px 0 var(--band)}
+.stage{height:min(58vh,470px);perspective:1500px;perspective-origin:50% 38%;
+ touch-action:none;cursor:grab;position:relative}
 .stage.drag{cursor:grabbing}
 .world{position:absolute;inset:0;transform-style:preserve-3d;
-  transform:translateZ(-120px) rotateX(var(--rx,58deg)) rotateZ(var(--rz,-32deg));
-  transition:transform .12s linear}
-.plate{position:absolute;left:50%;top:50%;width:760px;height:520px;margin:-260px 0 0 -380px;
-  transform-style:preserve-3d;background:
-    repeating-linear-gradient(0deg,rgba(255,255,255,.07) 0 1px,transparent 1px 52px),
-    repeating-linear-gradient(90deg,rgba(255,255,255,.07) 0 1px,transparent 1px 52px);
-  border:2px solid rgba(255,255,255,.22)}
-
-.tower{position:absolute;transform-style:preserve-3d;cursor:pointer}
-.f{position:absolute;transform-style:preserve-3d;backface-visibility:hidden}
-.top{background:var(--c);border:2px solid var(--ink)}
-.sd{background:var(--cd);border:2px solid var(--ink);border-top:none}
-.gh .top{background:rgba(163,33,23,.10);border:2px dashed var(--lo)}
-.gh .sd{background:rgba(163,33,23,.07);border:2px dashed var(--lo);border-top:none}
-.lbl{position:absolute;width:120px;left:-12px;text-align:center;pointer-events:none;
-  font-size:11.5px;font-weight:700;color:var(--ink);text-shadow:0 1px 0 rgba(255,255,255,.55)}
-.lbl small{display:block;font-family:"DotGothic16",monospace;font-size:10px;
-  color:var(--ink-soft);font-weight:400}
-.tower:hover .top{filter:brightness(1.12)}
-.tower.sel .top{box-shadow:0 0 0 3px var(--accent)}
-
-.crewpost{position:absolute;transform-style:preserve-3d}
-.crewpost .top{background:var(--band);border:2px solid var(--accent)}
-.crewpost .sd{background:var(--rule);border:2px solid var(--accent);border-top:none}
-
-.ctrl{position:absolute;left:12px;bottom:12px;display:flex;gap:8px;align-items:center;
-  background:rgba(0,0,0,.34);padding:7px 11px;border:2px solid var(--ink);flex-wrap:wrap}
+ transform:translateZ(-90px) rotateX(var(--rx,56deg)) rotateZ(var(--rz,-26deg));
+ transition:transform .1s linear}
+.floor{position:absolute;left:50%;top:50%;width:760px;height:420px;margin:-210px 0 0 -380px;
+ transform-style:preserve-3d;border:2px solid rgba(255,255,255,.22);
+ background:repeating-linear-gradient(0deg,rgba(255,255,255,.055) 0 1px,transparent 1px 42px),
+            repeating-linear-gradient(90deg,rgba(255,255,255,.055) 0 1px,transparent 1px 42px)}
+.divider{position:absolute;left:548px;top:10px;width:0;height:400px;
+ border-left:2px dashed rgba(255,255,255,.42);transform:translateZ(1px)}
+.post{position:absolute;transform-style:preserve-3d;cursor:pointer}
+.f{position:absolute;backface-visibility:hidden;border:2px solid var(--ink)}
+.dk-t{background:var(--band)} .dk-s{background:var(--rule-strong);border-top:none}
+.post.never .dk-t{background:transparent;border-style:dashed}
+.post.never .dk-s{background:rgba(140,122,98,.16);border-style:dashed;border-top:none}
+.post.sel .f{border-color:var(--accent);border-width:3px}
+.ring{position:absolute;width:118px;height:118px;left:-14px;top:-29px;border-radius:50%;
+ border:3px solid #8FD79A;opacity:0;transform:translateZ(1px)}
+.post.running .ring{animation:ping 1.9s ease-out infinite}
+@keyframes ping{0%{opacity:.85;transform:translateZ(1px) scale(.55)}
+ 70%{opacity:0;transform:translateZ(1px) scale(1)}100%{opacity:0;transform:translateZ(1px) scale(1)}}
+.bill{position:absolute;width:150px;left:-30px;top:-8px;text-align:center;pointer-events:none;
+ transform:translateZ(84px) rotateZ(calc(-1 * var(--rz,-26deg))) rotateX(calc(-1 * var(--rx,56deg)))}
+.fig{width:74px;height:80px;display:block;margin:0 auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.4))}
+.pn{font-weight:700;font-size:13.5px;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8)}
+.ps{font-family:"DotGothic16",monospace;font-size:10px;color:#DCCDAE;text-shadow:0 1px 3px rgba(0,0,0,.85)}
+.pb{font-family:"DotGothic16",monospace;font-size:11.5px;margin-top:4px;padding:1px 8px;
+ display:inline-block;border:2px solid currentColor;background:rgba(0,0,0,.45)}
+.post.running .pb{color:#8FD79A} .post.idle .pb{color:#F2C572}
+.post.never .pb{color:#BCB09D}
+.post.stale .pb,.post.blocked .pb{color:#FF9E88}
+.post.running .ch{animation:step 700ms ease-in-out infinite}
+.post.running .lgA{animation:swA 700ms ease-in-out infinite;transform-origin:50% 0}
+.post.running .lgB{animation:swB 700ms ease-in-out infinite;transform-origin:50% 0}
+@keyframes step{0%,100%{transform:translate(37px,72px) scale(.8)}50%{transform:translate(37px,69px) scale(.8)}}
+@keyframes swA{0%,100%{transform:rotate(19deg)}50%{transform:rotate(-19deg)}}
+@keyframes swB{0%,100%{transform:rotate(-19deg)}50%{transform:rotate(19deg)}}
+.post.never .ch{opacity:.42}
+.post.stale .fig,.post.blocked .fig{animation:alarm 1.5s ease-in-out infinite}
+@keyframes alarm{0%,100%{opacity:1}50%{opacity:.35}}
+.ctrl{position:absolute;left:12px;bottom:12px;display:flex;gap:7px;align-items:center;
+ background:rgba(0,0,0,.42);padding:7px 10px;border:2px solid var(--ink);flex-wrap:wrap}
 .ctrl button{font-family:"DotGothic16",monospace;font-size:12px;background:var(--surface);
-  color:var(--ink);border:2px solid var(--ink);padding:3px 10px;cursor:pointer}
+ color:var(--ink);border:2px solid var(--ink);padding:3px 9px;cursor:pointer}
 .ctrl button:hover{background:var(--band)}
 .ctrl button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .ctrl span{font-family:"DotGothic16",monospace;font-size:11px;color:#fff}
-.legend{position:absolute;right:12px;top:12px;background:rgba(0,0,0,.34);
-  border:2px solid var(--ink);padding:8px 11px;font-family:"DotGothic16",monospace;
-  font-size:11px;color:#fff;line-height:1.9}
-.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;
-  border:1.5px solid var(--ink);vertical-align:-1px}
+.legend{position:absolute;right:12px;top:12px;background:rgba(0,0,0,.42);border:2px solid var(--ink);
+ padding:8px 11px;font-family:"DotGothic16",monospace;font-size:11px;color:#fff;line-height:1.95}
+.legend i{display:inline-block;width:11px;height:11px;margin-right:6px;border:1.5px solid var(--ink);vertical-align:-1px}
+@media (prefers-reduced-motion:reduce){
+ .post .ch,.post .lgA,.post .lgB,.post .fig,.ring{animation:none}.world{transition:none}}
 
-/* ── panels ─────────────────────── */
-.cols{display:grid;grid-template-columns:1fr;gap:22px;margin-top:26px}
-@media(min-width:900px){.cols{grid-template-columns:1.15fr .85fr}}
-h2{font-family:"Reggae One",sans-serif;font-weight:400;font-size:19px;margin:0 0 12px;
-  letter-spacing:.05em;display:flex;align-items:baseline;gap:12px}
-h2 .n{font-family:"DotGothic16",monospace;font-size:12px;color:var(--accent);
-  border:2px solid var(--accent);padding:1px 7px}
-
-#detail{border:3px solid var(--ink);background:var(--surface);padding:18px 20px;
-  box-shadow:5px 5px 0 var(--band);min-height:250px}
-#detail h3{font-family:"Reggae One",sans-serif;font-weight:400;font-size:20px;margin:0 0 3px}
-#detail .rl{font-size:12px;color:var(--ink-soft);margin:0 0 14px}
-.kv{display:grid;grid-template-columns:1fr auto;gap:2px 14px;
-  font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-variant-numeric:tabular-nums}
+/* 詳細 */
+#det{border:3px solid var(--ink);background:var(--surface);padding:17px 19px;
+ box-shadow:5px 5px 0 var(--band);margin-top:14px}
+#det h3{font-family:"Reggae One",sans-serif;font-weight:400;font-size:19px;margin:0 0 3px}
+#det .sub{font-family:"DotGothic16",monospace;font-size:11px;color:var(--ink-faint);margin:0 0 13px}
+#det .now{border-left:4px solid var(--accent);padding:2px 0 2px 13px;margin:0 0 14px}
+#det .now b{display:block;font-size:15px}
+#det .now span{font-size:12.5px;color:var(--ink-soft)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:0 14px;font-family:"IBM Plex Mono",monospace;
+ font-size:12.5px;font-variant-numeric:tabular-nums}
 .kv div{padding:6px 0;border-bottom:1px dotted var(--rule-strong)}
 .kv .v{text-align:right;font-weight:600}
-.kv .v.gap{color:var(--lo)}
-.bar{height:9px;background:var(--band);border:1.5px solid var(--ink);margin-top:14px;
-  display:flex;overflow:hidden}
-.bar i{display:block;height:100%}
-.bar .k{background:var(--hi)}
-.bar .g{background:repeating-linear-gradient(45deg,var(--lo) 0 4px,transparent 4px 8px)}
-.hint{font-size:12px;color:var(--ink-soft);margin-top:12px}
+.kv .v.z{color:var(--ink-faint)}
 
-table.crew{width:100%;border-collapse:collapse;font-size:13px}
-table.crew th{font-family:"DotGothic16",monospace;font-size:11px;text-align:left;
-  color:var(--ink-soft);padding:9px 10px 9px 0;border-bottom:2px solid var(--ink);
-  font-weight:400;white-space:nowrap}
-table.crew td{padding:12px 10px 12px 0;border-bottom:1px solid var(--rule);vertical-align:top}
-table.crew .r{font-weight:700;white-space:nowrap}
-table.crew .r small{display:block;font-weight:400;font-size:11px;color:var(--ink-soft);
-  font-family:"DotGothic16",monospace}
-table.crew .num{font-family:"IBM Plex Mono",monospace;text-align:right;
-  font-variant-numeric:tabular-nums;white-space:nowrap}
-.zero{color:var(--ink-faint)}
+/* ログ */
+.logpanel{background:var(--logbg);border:3px solid var(--ink);padding:15px 17px;
+ box-shadow:5px 5px 0 var(--band)}
+.logpanel h3{font-family:"DotGothic16",monospace;font-size:12.5px;letter-spacing:.14em;
+ color:var(--gold);margin:0 0 11px;font-weight:400}
+.ll{font-family:"DotGothic16",monospace;font-size:12.5px;line-height:1.95;color:var(--logink);
+ display:grid;grid-template-columns:78px 104px 62px 1fr;gap:10px;padding:3px 0;
+ border-bottom:1px dotted rgba(232,213,172,.16)}
+.ll:last-child{border-bottom:none}
+.ll .t{color:var(--gold)} .ll .w{color:#8FB8CC}
+.ll .s{font-weight:600}
+.ll .s.done{color:#86C08A} .ll .s.running{color:#F0C868}
+.ll .s.blocked,.ll .s.stale{color:#F08A72} .ll .s.system{color:#9AA6B2}
+.empty{font-family:"DotGothic16",monospace;font-size:12.5px;color:#7E8B96;padding:8px 0}
+@media(max-width:680px){.ll{grid-template-columns:64px 1fr;gap:6px}.ll .w,.ll .s{display:none}}
 
-footer{margin-top:44px;padding-top:18px;border-top:4px double var(--ink);
-  font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);line-height:1.95}
-@media (prefers-reduced-motion:reduce){.world{transition:none}}
+/* 指標表 */
+.mtwrap{overflow-x:auto}
+table.mt{min-width:420px;width:100%;border-collapse:collapse;font-size:13px}
+table.mt th{font-family:"DotGothic16",monospace;font-size:10.5px;text-align:left;color:var(--ink-soft);
+ padding:8px 10px 8px 0;border-bottom:2px solid var(--ink);font-weight:400;white-space:nowrap}
+table.mt td{padding:11px 10px 11px 0;border-bottom:1px solid var(--rule);white-space:nowrap}
+table.mt .b{font-weight:700}
+.mk{font-family:"IBM Plex Mono",monospace;text-align:center;font-weight:600}
+.mk.no{color:var(--stale)} .mk.ok{color:var(--run)}
+.note{font-size:12.5px;color:var(--ink-soft);margin-top:13px;line-height:1.75}
+footer{margin-top:42px;padding-top:18px;border-top:4px double var(--ink);
+ font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--ink-faint);line-height:1.95}
 </style>
 
 <div class="wrap">
 <header>
-  <h1><span class="sm">FLEET STATUS</span>経営ダッシュボード</h1>
-  <div class="stats">
-    <div>蓄積<b id="sK">103</b>項目</div>
-    <div>未確認<b id="sG">24</b>項目</div>
-    <div>乗組員稼働<b id="sR">0</b>回</div>
-  </div>
+  <h1><span class="sm">CREW STATUS</span>乗組員の状況</h1>
+  <div class="hm" id="hm"></div>
 </header>
 
+<h2><span class="n">01</span>いま誰が動いているか</h2>
+<p class="lede">甲板を上から見ています。ドラッグで回せます。歩いている人格が稼働中、薄い人格はまだ一度も起動していません。点滅は、着手したまま24時間戻っていない印です。持ち場をクリックすると下に詳細が出ます。</p>
 <div class="stagewrap">
-  <div class="stage" id="stage">
-    <div class="world" id="world"><div class="plate" id="plate"></div></div>
-  </div>
+  <div class="stage" id="stage"><div class="world" id="world"><div class="floor" id="floor"><div class="divider"></div><div class="post running" data-i="0" style="left:30px;top:36px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#B8451F"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#B8451F"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#B8451F"/><path fill="#B8451F" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#B8451F"/><g class="lgA"><rect x="11" y="-27" width="14" height="11" rx="2" fill="#B8451F"/><path stroke="#B8451F" stroke-width="1.6" fill="none" d="M15,-27 Q18,-32 21,-27"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#3A2A1E" d="M-14,-41 Q-15,-58 0,-58 Q15,-58 14,-41 L14,-35 L10,-45 Q0,-51 -10,-45 L-14,-35 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">No.2（秘書）</div><div class="ps">全般 ／ 賄い方</div><div><span class="pb">稼働中</span></div></div></div><div class="post idle" data-i="1" style="left:190px;top:36px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#1F4A6B"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#1F4A6B"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#1F4A6B"/><path fill="#1F4A6B" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#1F4A6B"/><g class="lgA"><path stroke="#1F4A6B" stroke-width="2" d="M13,-20 L13,-48"/><path fill="#1F4A6B" d="M13,-48 L28,-43 L13,-38 Z"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#5A2A18" d="M-14,-44 Q-14,-57 0,-57 Q14,-57 14,-44 L10,-46 Q0,-51 -10,-46 Z"/><path fill="#5A2A18" d="M-15,-46 L15,-46 L15,-40 L-15,-40 Z"/><path fill="#5A2A18" d="M-15,-45 L-25,-40 L-22,-30 L-15,-39 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">営業</div><div class="ps">売上利益 ／ 突撃隊長</div><div><span class="pb">待機</span></div></div></div><div class="post stale" data-i="2" style="left:350px;top:36px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#2C6076"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#2C6076"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#2C6076"/><path fill="#2C6076" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#2C6076"/><g class="lgA"><rect x="10" y="-30" width="15" height="11" rx="1.6" fill="#F7EEDA" stroke="#2C6076" stroke-width="1.6"/><path stroke="#2C6076" stroke-width="1" d="M12,-26 h11 M12,-23 h7"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#7A4A22" d="M-14,-42 Q-15,-58 0,-58 Q15,-58 14,-42 L10,-45 Q0,-51 -10,-45 Z"/><path fill="#7A4A22" d="M12,-48 Q22,-44 20,-30 Q17,-36 11,-40 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">マーケ</div><div class="ps">売上利益 ／ 航海士</div><div><span class="pb">停滞</span></div></div></div><div class="post running" data-i="3" style="left:30px;top:226px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#7A5A2A"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#7A5A2A"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#7A5A2A"/><path fill="#7A5A2A" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#7A5A2A"/><g class="lgA"><rect x="10" y="-29" width="14" height="12" rx="1.4" fill="#7A5A2A"/><path stroke="#F7EEDA" stroke-width="1.2" d="M13,-25 h8 M13,-22 h8"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#4A2E1C" d="M-14,-42 Q-15,-57 0,-57 Q15,-57 14,-42 L14,-24 L9,-26 L10,-44 Q0,-50 -10,-44 L-9,-26 L-14,-24 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">経営企画（財務）</div><div class="ps">売上利益 ／ 会計長</div><div><span class="pb">稼働中</span></div></div></div><div class="post idle" data-i="4" style="left:190px;top:226px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#3F6B45"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#3F6B45"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#3F6B45"/><path fill="#3F6B45" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#3F6B45"/><g class="lgA"><rect x="11" y="-27" width="14" height="11" rx="2" fill="#3F6B45"/><path stroke="#F7EEDA" stroke-width="1.9" d="M18,-24 v5 M15.5,-21.5 h5"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#2F2A26" d="M-14,-45 Q-14,-58 0,-58 Q14,-58 14,-45 Z"/><path fill="#2F2A26" d="M-15,-45 L20,-45 L20,-41 L-15,-41 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">プロダクト</div><div class="ps">顧客満足度 ／ 船医</div><div><span class="pb">待機</span></div></div></div><div class="post running" data-i="5" style="left:350px;top:226px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#7A3D6B"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#7A3D6B"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#7A3D6B"/><path fill="#7A3D6B" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#7A3D6B"/><g class="lgA"><rect x="10" y="-29" width="16" height="11" rx="5.5" fill="#F7EEDA" stroke="#7A3D6B" stroke-width="1.6"/><path stroke="#7A3D6B" stroke-width="1.1" d="M14,-25 h9 M14,-22 h6"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#4A2E1C" d="M-14,-42 Q-16,-59 0,-58 Q16,-59 14,-42 Q9,-49 4,-45 Q0,-51 -4,-45 Q-9,-49 -14,-42 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">人事部</div><div class="ps">採用数 ／ 船員長</div><div><span class="pb">稼働中</span></div></div></div><div class="post stale" data-i="6" style="left:596px;top:36px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#A32117"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#A32117"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#A32117"/><path fill="#A32117" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#A32117"/><g class="lgA"><path stroke="#A32117" stroke-width="2.4" d="M13,-22 L27,-46"/><path stroke="#A32117" stroke-width="3" d="M10,-26 L18,-22"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#2F2A26" d="M-14,-44 L-11,-58 L-6,-49 L-1,-60 L4,-49 L9,-58 L13,-45 Q0,-56 -14,-44 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">監査役</div><div class="ps">独立 ／ 見張り番</div><div><span class="pb">停滞</span></div></div></div><div class="post stale" data-i="7" style="left:596px;top:226px"><div class="f dk-t" style="width:90px;height:60px;transform:translateZ(26px)"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:rotateX(-90deg);top:60px"></div><div class="f dk-s" style="width:90px;height:26px;transform-origin:top;transform:translateZ(26px) rotateX(-90deg)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="f dk-s" style="width:60px;height:26px;transform-origin:left top;transform:translateX(90px) rotateY(90deg) rotateX(-90deg) translateY(-26px)"></div><div class="ring"></div><div class="bill"><svg viewBox="0 0 74 80" class="fig"><g class="ch" transform="translate(37,72) scale(.8)"><g stroke="#2A1C12" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><rect class="lgA" x="-7.5" y="-15" width="6.5" height="15" rx="3" fill="#4A5560"/><rect class="lgB" x="1" y="-15" width="6.5" height="15" rx="3" fill="#4A5560"/><rect class="lgB" x="-14.5" y="-32" width="5.5" height="17" rx="2.7" fill="#4A5560"/><path fill="#4A5560" d="M-10.5,-33 Q-12,-16 -8.5,-14 L8.5,-14 Q12,-16 10.5,-33 Z"/><rect class="lgA" x="9" y="-32" width="5.5" height="17" rx="2.7" fill="#4A5560"/><g class="lgA"><path stroke="#4A5560" stroke-width="2.6" d="M12,-27 L27,-33"/><circle cx="28" cy="-34" r="3.4" fill="none" stroke="#4A5560" stroke-width="1.8"/></g><ellipse cx="0" cy="-42" rx="13" ry="12.2" fill="#F2C9A0"/><path fill="#3A2A1E" d="M-14,-43 Q-14,-58 0,-58 Q14,-58 14,-43 L11,-46 Q0,-52 -11,-46 Z"/></g><g stroke="none"><ellipse cx="-5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><ellipse cx="5" cy="-41.5" rx="2.1" ry="3" fill="#2A1C12"/><circle cx="-4.3" cy="-42.6" r=".9" fill="#fff"/><circle cx="5.7" cy="-42.6" r=".9" fill="#fff"/></g><path d="M-2.5,-35.5 Q0,-33 2.5,-35.5" fill="none" stroke="#2A1C12" stroke-width="1.5" stroke-linecap="round"/></g></svg><div class="pn">品質審査</div><div class="ps">別枠 ／ 検品</div><div><span class="pb">停滞</span></div></div></div></div></div></div>
   <div class="legend">
-    <div><i style="background:var(--hi)"></i>確度 高</div>
-    <div><i style="background:var(--mid)"></i>確度 中</div>
-    <div><i style="background:var(--lo)"></i>確度 低</div>
-    <div><i style="border-style:dashed;background:transparent"></i>未確認</div>
+    <div><i style="background:#8FD79A"></i>稼働中</div>
+    <div><i style="background:#F2C572"></i>待機</div>
+    <div><i style="border-style:dashed;background:transparent"></i>未起動</div>
+    <div><i style="background:#FF9E88"></i>停滞・詰まり</div>
+    <div style="margin-top:5px;border-top:1px dashed #999;padding-top:5px">点線の右＝独立・別枠</div>
   </div>
-  <div class="ctrl">
-    <button id="rl">← 回す</button><button id="rr">回す →</button>
-    <button id="tu">起こす</button><button id="td">寝かす</button>
-    <button id="rs">正面</button><span id="ang"></span>
-  </div>
+  <div class="ctrl"><button id="rl">&#8592;</button><button id="rr">&#8594;</button>
+   <button id="tu">起こす</button><button id="td">寝かす</button>
+   <button id="rs">正面</button><span id="ang"></span></div>
 </div>
+<div id="det"></div>
 
-<div class="cols">
-  <div>
-    <h2><span class="n">01</span>乗組員の蓄積</h2>
-    <table class="crew">
-      <thead><tr><th>役職</th><th class="num">稼働</th><th class="num">判定基準</th>
-      <th class="num">指摘</th><th class="num">外した</th></tr></thead>
-      <tbody id="crewBody"></tbody>
-    </table>
-    <p class="hint">空席だった5つの役職に Claude の人格が座っています。人の採用ではありません。
-    実行するたびに専門知識を溜め、<b>外した指摘</b>を記録して精度を上げます。</p>
-  </div>
-  <div>
-    <h2><span class="n">02</span>事業の詳細</h2>
-    <div id="detail"></div>
-  </div>
-</div>
+<h2><span class="n">02</span>稼働ログ</h2>
+<p class="lede">人格が着手・完了・停止したときの記録です。新しい順。</p>
+<div class="logpanel"><h3>&gt;&gt; CREW EVENT LOG</h3><div id="log"></div></div>
+
+<h2><span class="n">03</span>指標の測定状況</h2>
+<p class="lede">売上利益・顧客満足度・採用数。✕は成績ではなく<b>測る仕組みが無い</b>という意味です。</p>
+<div class="mtwrap"><table class="mt"><thead><tr><th>事業</th><th class="mk">売上利益</th><th class="mk">顧客満足</th><th class="mk">採用</th></tr></thead>
+<tbody id="mt"></tbody></table></div>
+<p class="note" id="mtn"></p>
 
 <footer id="ft"></footer>
 </div>
 
 <script>
-const D = {"biz": [{"slug": "extage", "name": "EXTAGE", "role": "経営に関与（朝礼・グロース朝礼を主催）", "conf": "高", "updated": "2026-08-26", "depts": 5, "kpi": 5, "how": 4, "lim": 3, "gap": 3, "log": 1, "known": 18}, {"slug": "potex", "name": "POTEX", "role": "経営に関与（朝会・task会・クリエイティブ定例に参加）", "conf": "高", "updated": "2026-08-26", "depts": 4, "kpi": 4, "how": 3, "lim": 2, "gap": 2, "log": 1, "known": 14}, {"slug": "t-clinic", "name": "Tクリニック", "role": "マーケティング・経営支援", "conf": "中", "updated": "2026-08-26", "depts": 4, "kpi": 5, "how": 3, "lim": 3, "gap": 3, "log": 1, "known": 16}, {"slug": "origin", "name": "origin", "role": "共同経営（法人：株式会社オリジン）", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 2, "lim": 2, "gap": 3, "log": 1, "known": 11}, {"slug": "exosome", "name": "エクソソーム", "role": "増資により51%取得予定", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 2, "how": 2, "lim": 3, "gap": 3, "log": 1, "known": 11}, {"slug": "passlabo", "name": "passlabo", "role": "経営支援（パスカル事業）", "conf": "中", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 3, "lim": 2, "gap": 3, "log": 1, "known": 12}, {"slug": "unemployment", "name": "失業保険サポート", "role": "共同出資（法人：黒水流／クロスイリュウ）", "conf": "低", "updated": "2026-08-26", "depts": 3, "kpi": 3, "how": 3, "lim": 2, "gap": 3, "log": 1, "known": 12}, {"slug": "subsidy", "name": "補助金コンサル", "role": "新規（2026-09-01 始動予定）", "conf": "低", "updated": "2026-08-26", "depts": 1, "kpi": 1, "how": 3, "lim": 3, "gap": 4, "log": 1, "known": 9}], "crew": [{"slug": "auditor", "role": "監査役", "ship": "見張り番", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "chief-of-staff", "role": "秘書・経営補佐", "ship": "舵取り補佐", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "legal", "role": "法務", "ship": "掟の番人", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "finance", "role": "財務・資金繰り", "ship": "会計長", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "data-steward", "role": "情報システム・数値基盤", "ship": "船大工", "runs": 0, "rules": 0, "notes": 1, "hits": 1, "miss": 1}]};
-const CC = {'高':'--hi','中':'--mid','低':'--lo'};
-const plate = document.getElementById('plate');
-const CW = 92, CH = 62;   // cell
-const cols = 4;
+const D = {"crew": [{"slug": "chief-of-staff", "role": "No.2（秘書）", "ship": "賄い方", "state": "running", "label": "稼働中", "task": "直近PENDING25件をType1/Type2で仕分け、蓄積の宿題4件を検証。reviewer審査待ち", "detail": "", "last": "2026-09-30T13:28:44+09:00", "lastAgo": "8分前", "total": 31, "found": 6, "axis": "全般", "rules": 6, "notes": 1, "hits": 3, "miss": 2}, {"slug": "sales", "role": "営業", "ship": "突撃隊長", "state": "idle", "label": "待機", "task": "外部の型を取り込み：接続率とアポ率を分けてから打つ", "detail": "通電率19%は業界平均15-25%の範囲内で異常ではない。落ちているのはアポ率側(20%→4.5%)。カリトルくん(通電を増やす道具)を待っても解決しない可能性が高い", "last": "2026-09-11T11:00:00+09:00", "lastAgo": "19日前", "total": 6, "found": 1, "axis": "売上利益", "rules": 1, "notes": 2, "hits": 1, "miss": 1}, {"slug": "marketing", "role": "マーケ", "ship": "航海士", "state": "stale", "label": "停滞", "task": "Tクリニック チャネル横断マーケ課題出し（代表指示）", "detail": "", "last": "2026-09-11T18:30:00+09:00", "lastAgo": "18日前", "total": 14, "found": 1, "axis": "売上利益", "rules": 4, "notes": 1, "hits": 1, "miss": 2}, {"slug": "planning", "role": "経営企画（財務）", "ship": "会計長", "state": "running", "label": "稼働中", "task": "metrics.jsonでpl score nullの事業（自走ルール3番）を追う。前回(2026-08-26)Tクリニックを選んだ流れで会議記録を再検索したところ新規報告なし。9/29 zoom レイの発言記録にエクソソームPL関連の新情報を発見し対象を切替", "detail": "", "last": "2026-09-30T09:40:00+09:00", "lastAgo": "3時間前", "total": 8, "found": 1, "axis": "売上利益", "rules": 8, "notes": 1, "hits": 2, "miss": 1}, {"slug": "product", "role": "プロダクト", "ship": "船医", "state": "idle", "label": "待機", "task": "外部の型を取り込み：母数を見てからスコアの変化を読む", "detail": "NPS 10.53→0 は回収率が53.8%→37.7%に落ちた状態での比較。回答者数が出るまで急落と断定できない。最上位に置いている課題の読みを保留すべき", "last": "2026-09-11T11:10:00+09:00", "lastAgo": "19日前", "total": 5, "found": 1, "axis": "顧客満足度", "rules": 0, "notes": 1, "hits": 1, "miss": 1}, {"slug": "hr", "role": "人事部", "ship": "船員長", "state": "running", "label": "稼働中", "task": "metrics.jsonのhiring score null(EXTAGE)を埋める。部署別必要人数・グレード制度の確定状況を確認", "detail": "", "last": "2026-09-30T09:40:00+09:00", "lastAgo": "3時間前", "total": 5, "found": 1, "axis": "採用数", "rules": 1, "notes": 4, "hits": 2, "miss": 1}, {"slug": "kansayaku", "role": "監査役", "ship": "見張り番", "state": "stale", "label": "停滞", "task": "代表(田原さん)本人の発言に対するフィードバック。2026年8月の会議発言記録から代表発言を拾い、reports/代表FB_2026-08-27.mdを作成", "detail": "SearchTranscripts/SearchMeetingsで田原さんの発言者名揺れ(K T / Kosei Tahara / 田原洸星 / 洸星田原)を全て同一人物として扱い検索開始", "last": "2026-09-22T16:44:07+09:00", "lastAgo": "7日前", "total": 9, "found": 3, "axis": "独立", "rules": 8, "notes": 2, "hits": 3, "miss": 2}, {"slug": "reviewer", "role": "品質審査", "ship": "検品", "state": "stale", "label": "停滞", "task": "議事録研修スライド版28枚、全文書き直し後の再審査（第6基準・読める文章か を最重要で判定）", "detail": "", "last": "2026-09-24T14:30:00+09:00", "lastAgo": "5日前", "total": 2, "found": 0, "axis": "別枠", "rules": 0, "notes": 4, "hits": 3, "miss": 1}], "log": [{"at": "2026-09-30T13:37:00+09:00", "crew": "system", "biz": "全社", "state": "done", "task": "定期更新（差分なし）", "note": "新しい会議なし（9/30の5件は13:35の回で反映済み）。読み込み・ビルド・公開はしていない", "ts": "2026-09-30T13:37:00+09:00", "status": "done", "detail": "新しい会議なし（9/30の5件は13:35の回で反映済み）。読み込み・ビルド・公開はしていない", "ago": "0分前"}, {"at": "2026-09-30T13:35:00+09:00", "crew": "system", "biz": "EXTAGE/POTEX", "state": "done", "task": "定期更新（日中の回・9/24 16時の定期実行が9/30 13時に再開）", "note": "9/30の会議5件を反映。EXTAGE：年間ギャップを10月まで合算▲2,620万円に更新、APO約40件ショート、グロース9月売上0円・Meta LP3本CVR0、ScoreX運用ミス。POTEX：9月売上3,274万円・着地目標3,400万円へ下方修正（9/29の「竹達成済み」と食い違い、未確認）。天気は据え置き（代表指定）", "ts": "2026-09-30T13:35:00+09:00", "status": "done", "detail": "9/30の会議5件を反映。EXTAGE：年間ギャップを10月まで合算▲2,620万円に更新、APO約40件ショート、グロース9月売上0円・Meta LP3本CVR0、ScoreX運用ミス。POTEX：9月売上3,274万円・着地目標3,400万円へ下方修正（9/29の「竹達成済み」と食い違い、未確認）。天気は据え置き（代表指定）", "ago": "2分前"}, {"at": "2026-09-30T13:28:44+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "会議後タスク処理", "note": "実行0件（9/21の候補40件は全て「やらない」が選ばれたため見送りで締めた）・新規候補10件。9/22以降の未完了は100件超あり、今回は10件のみ提案", "ts": "2026-09-30T13:28:44+09:00", "status": "done", "detail": "実行0件（9/21の候補40件は全て「やらない」が選ばれたため見送りで締めた）・新規候補10件。9/22以降の未完了は100件超あり、今回は10件のみ提案", "ago": "8分前"}, {"at": "2026-09-30T09:40:00+09:00", "crew": "hr", "biz": "EXTAGE", "state": "done", "task": "metrics.jsonのhiring score null(EXTAGE)を埋め、外部型(候補者応答KPI)を当てて試算。Uトラスト20名放置を指摘", "out": "reports/hr_EXTAGE採用_2026-09-30.md; data/metrics.json extage.hiring; data/crew/hr.md", "note": "score0(分母=エンジニア1-2名+SNS1名の2.5名、充足0)。田原さんがUトラスト承認済み20名を1週間以上放置。46%離脱ベンチマークを当てて9.2名離脱リスクを試算。reviewer起動済み(async)", "ts": "2026-09-30T09:40:00+09:00", "status": "done", "detail": "score0(分母=エンジニア1-2名+SNS1名の2.5名、充足0)。田原さんがUトラスト承認済み20名を1週間以上放置。46%離脱ベンチマークを当てて9.2名離脱リスクを試算。reviewer起動済み(async)", "ago": "3時間前"}, {"at": "2026-09-30T09:40:00+09:00", "crew": "planning", "biz": "エクソソーム", "state": "done", "task": "エクソソームPLの発言記録確認と外部の型の適用", "out": "reports/planning_exosome-pl-2026-09-29.md / content/drafts/planning_田原さん確認依頼_エクソソームPL_2026-09-29.md / data/businesses/exosome.md / data/metrics.json / data/enemies.json / data/crew/planning.md", "note": "zoom レイ(2026-09-29)の発言記録で「売上・原価が一度も出ていない」を一部修正—月次集計体制は税理士事務所に既存、無いのは共有のみ。個別受注1件(アルハナ約500万円)確認。瑞季さん社長就任のキャッシュショートリスクを記録。外部の型(Cash Runway, CFI)をOEMの半年タイムラグに適用し判断の妥当性を裏付け。score はnull据え置き(現金残高最新値・固定費増分が未取得)。田原さんへの確認依頼文を下書き(未送信)。reviewer・kansayaku起動済み", "ts": "2026-09-30T09:40:00+09:00", "status": "done", "detail": "zoom レイ(2026-09-29)の発言記録で「売上・原価が一度も出ていない」を一部修正—月次集計体制は税理士事務所に既存、無いのは共有のみ。個別受注1件(アルハナ約500万円)確認。瑞季さん社長就任のキャッシュショートリスクを記録。外部の型(Cash Runway, CFI)をOEMの半年タイムラグに適用し判断の妥当性を裏付け。score はnull据え置き(現金残高最新値・固定費増分が未取得)。田原さんへの確認依頼文を下書き(未送信)。reviewer・kansayaku起動済み", "ago": "3時間前"}, {"at": "2026-09-30T09:00:00+09:00", "crew": "hr", "biz": "EXTAGE", "state": "running", "task": "metrics.jsonのhiring score null(EXTAGE)を埋める。部署別必要人数・グレード制度の確定状況を確認", "ts": "2026-09-30T09:00:00+09:00", "status": "running", "detail": "", "ago": "4時間前"}, {"at": "2026-09-30T09:00:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "running", "task": "直近PENDING25件をType1/Type2で仕分け、蓄積の宿題4件を検証。reviewer審査待ち", "out": "reports/chief-of-staff_滞留仕分けとバックログ検証_2026-09-30.md", "ts": "2026-09-30T09:00:00+09:00", "status": "running", "detail": "", "ago": "4時間前"}, {"at": "2026-09-30T09:00:00+09:00", "crew": "planning", "biz": "エクソソーム", "state": "running", "task": "metrics.jsonでpl score nullの事業（自走ルール3番）を追う。前回(2026-08-26)Tクリニックを選んだ流れで会議記録を再検索したところ新規報告なし。9/29 zoom レイの発言記録にエクソソームPL関連の新情報を発見し対象を切替", "ts": "2026-09-30T09:00:00+09:00", "status": "running", "detail": "", "ago": "4時間前"}, {"at": "2026-09-24T14:30:00+09:00", "crew": "reviewer", "biz": "EXTAGE", "state": "running", "task": "議事録研修スライド版28枚、全文書き直し後の再審査（第6基準・読める文章か を最重要で判定）", "ts": "2026-09-24T14:30:00+09:00", "status": "running", "detail": "", "ago": "5日前"}, {"at": "2026-09-22T16:44:07+09:00", "crew": "kansayaku", "biz": "passlabo/POTEX", "state": "done", "task": "passlabo朝会資料(html)と別添xlsxの最終検品を実施", "out": "C:\\Users\\kk29s\\AppData\\Local\\Temp\\claude\\C--Users-kk29s\\4ae8a489-a289-4753-881f-8a0f47ae017f\\scratchpad\\audit.md", "note": "指摘10件（うち出す前に必ず直す3件: 結論ボックスの30点/29点の基準矛盾、受験万博223名内訳が197止まりで26差、xlsx前月8月成約5名が一次データ(コホート集計は0)と矛盾で出典不明）。条件付き承認。", "ts": "2026-09-22T16:44:07+09:00", "status": "done", "detail": "指摘10件（うち出す前に必ず直す3件: 結論ボックスの30点/29点の基準矛盾、受験万博223名内訳が197止まりで26差、xlsx前月8月成約5名が一次データ(コホート集計は0)と矛盾で出典不明）。条件付き承認。", "ago": "7日前"}, {"at": "2026-09-22T09:00:46+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "「重い」を「あなたの稼働」に置き換え", "note": "カレンダー直近7日(9/16-9/22,92.3h)の会議時間を事業別に集計。scripts/build-workload.py と data/workload-map.json を新設。未分類15.1%は推測で振らず画面に明記。実行候補は6件表示＋開閉に変更。Version 52", "ts": "2026-09-22T09:00:46+09:00", "status": "done", "detail": "カレンダー直近7日(9/16-9/22,92.3h)の会議時間を事業別に集計。scripts/build-workload.py と data/workload-map.json を新設。未分類15.1%は推測で振らず画面に明記。実行候補は6件表示＋開閉に変更。Version 52", "ago": "8日前"}, {"at": "2026-09-21T13:41:52+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "棚卸しの結果を実行候補に反映", "note": "9/1以降のPENDING125件を棚卸し。B29件と判断5件を data/proposals.json に追加（計40件・A4/B30/C6）。Aの36件は成果物を作成済みでファイル側。並行セッションのiOS 3D修正(.sky)を含めて再ビルドし、同じArtifactへVersion 49として公開", "ts": "2026-09-21T13:41:52+09:00", "status": "done", "detail": "9/1以降のPENDING125件を棚卸し。B29件と判断5件を data/proposals.json に追加（計40件・A4/B30/C6）。Aの36件は成果物を作成済みでファイル側。並行セッションのiOS 3D修正(.sky)を含めて再ビルドし、同じArtifactへVersion 49として公開", "ago": "8日前"}, {"at": "2026-09-21T12:30:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "iOSで3Dが平らに潰れる件の修正", "out": "scripts/build-office.py", "note": "原因はWebKitが overflow:hidden の親の中の3Dを1枚に焼くこと。部屋の親(.wrap/.sbox)から overflow を外し、空だけを .sky で切るように組み替え。preserve-3d に -webkit- を併記。横スクロール止めは html,body 側だけに残した", "ts": "2026-09-21T12:30:00+09:00", "status": "done", "detail": "原因はWebKitが overflow:hidden の親の中の3Dを1枚に焼くこと。部屋の親(.wrap/.sbox)から overflow を外し、空だけを .sky で切るように組み替え。preserve-3d に -webkit- を併記。横スクロール止めは html,body 側だけに残した", "ago": "9日前"}, {"at": "2026-09-21T12:11:26+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "会議後タスクの承認フローを追加", "note": "全体タブの先頭に「会議後に出た実行候補」を新設。data/proposals.json（候補）と data/proposals-decided.json（実行する/やらない）を追加し、build-office.py に props/prDec を通した。実行は定期タスク meeting-task-sweep が承認済みのものだけ行う", "ts": "2026-09-21T12:11:26+09:00", "status": "done", "detail": "全体タブの先頭に「会議後に出た実行候補」を新設。data/proposals.json（候補）と data/proposals-decided.json（実行する/やらない）を追加し、build-office.py に props/prDec を通した。実行は定期タスク meeting-task-sweep が承認済みのものだけ行う", "ago": "9日前"}, {"at": "2026-09-21T08:15:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "キャラの種類を増やした（ドラキー・まほうつかい・キノコ）", "out": "scripts/build-office.py", "note": "営業をハチマキのスライム→ドラキー（羽・牙・しっぽ）、経営企画を片めがね→まほうつかい（とんがり帽子・杖・星）、プロダクトをキャップ→おばけキノコ（傘と柄）。スライムはマーケと代表の2体だけに。body()は形の名前でも生のパスでも受けられるようにした", "ts": "2026-09-21T08:15:00+09:00", "status": "done", "detail": "営業をハチマキのスライム→ドラキー（羽・牙・しっぽ）、経営企画を片めがね→まほうつかい（とんがり帽子・杖・星）、プロダクトをキャップ→おばけキノコ（傘と柄）。スライムはマーケと代表の2体だけに。body()は形の名前でも生のパスでも受けられるようにした", "ago": "9日前"}, {"at": "2026-09-20T21:40:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "キャラクターを参考画面のマスコットに作り直し、タブ送りの順番を直した", "out": "scripts/build-office.py", "note": "黒フチのセル画をやめ、塗りの流れ・艶2つ・接地影・照り返しの4点で立体に。形はドーム/玉子/おばけ/しずく/箱の5種に統一し、耳・角・帽子・片めがね・王冠で描き分け。Alt＋上下は表示順（全体→メンバー→事業）で送るよう修正", "ts": "2026-09-20T21:40:00+09:00", "status": "done", "detail": "黒フチのセル画をやめ、塗りの流れ・艶2つ・接地影・照り返しの4点で立体に。形はドーム/玉子/おばけ/しずく/箱の5種に統一し、耳・角・帽子・片めがね・王冠で描き分け。Alt＋上下は表示順（全体→メンバー→事業）で送るよう修正", "ago": "9日前"}, {"at": "2026-09-20T21:30:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "代表の席の2件（3Dのキャラデザ／全体に反映）を処理", "out": "scripts/build-office.py", "note": "体の塗りを平らな1色から、光の側→影の側へ流す放射グラデーションに置き換え、接地影と艶を追加。フィルタは使わないので毎フレームの負荷は増えない。人物を112px・代表を138pxに拡大し、椅子を木＋生成りへ。構図の変更はビルダー側なので10事業すべての部屋に入っている", "ts": "2026-09-20T21:30:00+09:00", "status": "done", "detail": "体の塗りを平らな1色から、光の側→影の側へ流す放射グラデーションに置き換え、接地影と艶を追加。フィルタは使わないので毎フレームの負荷は増えない。人物を112px・代表を138pxに拡大し、椅子を木＋生成りへ。構図の変更はビルダー側なので10事業すべての部屋に入っている", "ago": "9日前"}, {"at": "2026-09-20T21:20:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "参考画面に寄せてオフィスの構図を作り直し（代表指示）", "out": "scripts/build-office.py", "note": "斜め45度→正面の一点透視(rx58/rz0)。部屋を900x660に深くし、東の壁を追加。床は大判タイル＋中央に青いカーペット。アーチ窓・ペナント・生成りの社名看板。壁は会社色をベージュに38%混ぜて暖かく。名札を人の下・吹き出しを上に、26文字で打ち切り。人を88pxに拡大。上のバーを白系に", "ts": "2026-09-20T21:20:00+09:00", "status": "done", "detail": "斜め45度→正面の一点透視(rx58/rz0)。部屋を900x660に深くし、東の壁を追加。床は大判タイル＋中央に青いカーペット。アーチ窓・ペナント・生成りの社名看板。壁は会社色をベージュに38%混ぜて暖かく。名札を人の下・吹き出しを上に、26文字で打ち切り。人を88pxに拡大。上のバーを白系に", "ago": "9日前"}, {"at": "2026-09-17T14:40:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "オフィスを3カラムに分けて重なりを解消。描画を軽くした（代表指示）", "out": "scripts/build-office.py", "note": "左=優先順位/凡例/稼働ログ、中=オフィス、右=課題/代表の席。中央の枠に対して毎回外接を測って倍率と寄せを決める。天候フィルタ・雲のleftアニメ・影フィルタを撤去、巡回4→2人、動きON/OFFのスイッチと裏に回ったときの自動停止を追加", "ts": "2026-09-17T14:40:00+09:00", "status": "done", "detail": "左=優先順位/凡例/稼働ログ、中=オフィス、右=課題/代表の席。中央の枠に対して毎回外接を測って倍率と寄せを決める。天候フィルタ・雲のleftアニメ・影フィルタを撤去、巡回4→2人、動きON/OFFのスイッチと裏に回ったときの自動停止を追加", "ago": "12日前"}, {"at": "2026-09-17T12:10:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "カメラを固定して、オフィスを画面いっぱいに（代表指示）", "out": "scripts/build-office.py", "note": "ドラッグ回転・自動カメラ・キーボード回転と操作ボタン4つを撤去。角度は rx57/rz36 に固定。倍率1のときの外寸を実測(1090x745)して、画面の残りに入る最大倍率で自動拡大。1600x950で約1.13倍、縦は上下16pxまで使い切る", "ts": "2026-09-17T12:10:00+09:00", "status": "done", "detail": "ドラッグ回転・自動カメラ・キーボード回転と操作ボタン4つを撤去。角度は rx57/rz36 に固定。倍率1のときの外寸を実測(1090x745)して、画面の残りに入る最大倍率で自動拡大。1600x950で約1.13倍、縦は上下16pxまで使い切る", "ago": "13日前"}, {"at": "2026-09-17T11:00:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "参考画面に寄せてオフィスのビジュを作り直し（代表指示）", "out": "scripts/build-office.py", "note": "床を市松のパステルから木目へ、壁に腰板、机を木の天板＋白脚にしてモニター/キーボード/カップ/チェアを追加。書棚・キャビネット・打ち合わせテーブル・植物6本。競合レーダーを課題パネルの3つ目のタブに新設（自社を中心に、強い敵ほど内側）。ドラクエ風の紺の窓とフォントは維持", "ts": "2026-09-17T11:00:00+09:00", "status": "done", "detail": "床を市松のパステルから木目へ、壁に腰板、机を木の天板＋白脚にしてモニター/キーボード/カップ/チェアを追加。書棚・キャビネット・打ち合わせテーブル・植物6本。競合レーダーを課題パネルの3つ目のタブに新設（自社を中心に、強い敵ほど内側）。ドラクエ風の紺の窓とフォントは維持", "ago": "13日前"}, {"ts": "2026-09-15T00:00:00+09:00", "crew": "kansayaku", "status": "done", "task": "ミュゼ経営管理シート(xlsx 12タブ)の検品。作成者本人からの直接依頼", "output": "content/reviews/監査_2026-09-15.md", "result": "条件付き承認。二重計上バグ1件・数式行数不足1件・FCモデル前提の断定過多1件を最重要指摘、他3件を中程度で指摘。捏造は無し", "detail": "", "ago": "15日前"}, {"at": "2026-09-11T18:30:00+09:00", "crew": "marketing", "biz": "全社", "state": "done", "task": "競合と外部リスクを「敵」として可視化（代表指示）", "out": "data/enemies.json / scripts/build-office.py", "note": "9体。最強はEXTAGEのAI検索(★5・AI Overviews表示クエリでCTR33-43%低下、1位でも最大60%低下)。passlaboは18歳人口が2026年ピークで来年から減少。強さは将来の可能性ではなく、いま自社の数字に当たっている度合いで決めた。根拠が無い競合は立てていない", "ts": "2026-09-11T18:30:00+09:00", "status": "done", "detail": "9体。最強はEXTAGEのAI検索(★5・AI Overviews表示クエリでCTR33-43%低下、1位でも最大60%低下)。passlaboは18歳人口が2026年ピークで来年から減少。強さは将来の可能性ではなく、いま自社の数字に当たっている度合いで決めた。根拠が無い競合は立てていない", "ago": "18日前"}, {"at": "2026-09-11T17:00:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "レベルが上がらない原因を特定し、蓄積への書き戻しを手順化（代表指摘）", "out": "data/crew/_shared.md 20 / skills/crew-run/SKILL.md 3.5・3.6", "note": "原因は仕組みの穴。15件以上の分析をcontent/と事業ファイルに書いていたが、持ち場の型・外した事例が空だった。レベルはそこしか見ない。この会話で確立した知識8件を遡って書き戻し、crew-runに毎回の必須手順として追加", "ts": "2026-09-11T17:00:00+09:00", "status": "done", "detail": "原因は仕組みの穴。15件以上の分析をcontent/と事業ファイルに書いていたが、持ち場の型・外した事例が空だった。レベルはそこしか見ない。この会話で確立した知識8件を遡って書き戻し、crew-runに毎回の必須手順として追加", "ago": "18日前"}, {"at": "2026-09-11T16:45:00+09:00", "crew": "reviewer", "biz": "全社", "state": "done", "task": "外部の型を取り込み：チェックリストは20項目上限、足すなら1つ削る", "note": "項目が無いうちに上限を決められる。あわせて監査役の型11個にも上限が要ることを指摘", "ts": "2026-09-11T16:45:00+09:00", "status": "done", "detail": "項目が無いうちに上限を決められる。あわせて監査役の型11個にも上限が要ることを指摘", "ago": "18日前"}, {"at": "2026-09-11T16:40:00+09:00", "crew": "kansayaku", "biz": "全社", "state": "done", "task": "外部の型を取り込み：文書内の数値整合は差分ゼロの監視に落とす", "note": "型11個が全部『議事録の読み違い』寄りで、文書内の数値整合の型が無かった。章をまたぐ数値は突合表で差分ゼロを確認する形に落とす", "ts": "2026-09-11T16:40:00+09:00", "status": "done", "detail": "型11個が全部『議事録の読み違い』寄りで、文書内の数値整合の型が無かった。章をまたぐ数値は突合表で差分ゼロを確認する形に落とす", "ago": "18日前"}, {"at": "2026-09-11T16:00:00+09:00", "crew": "marketing", "biz": "Tクリニック", "state": "done", "task": "アフィリ案件を終了（代表：既に考え済みの低いレベル）", "note": "診断（症状から手口を逆算して3→1に絞る）は使われたが、承認率の運用設計は代表が既に回している領域だった。外した事例として記録。線＝出してよいのは『まだ誰も分けていない切り分け』まで", "ts": "2026-09-11T16:00:00+09:00", "status": "done", "detail": "診断（症状から手口を逆算して3→1に絞る）は使われたが、承認率の運用設計は代表が既に回している領域だった。外した事例として記録。線＝出してよいのは『まだ誰も分けていない切り分け』まで", "ago": "18日前"}, {"at": "2026-09-11T15:30:00+09:00", "crew": "marketing", "biz": "Tクリニック", "state": "done", "task": "非承認基準の前提誤りを訂正（代表指摘：予約で来院日が決まる）", "note": "「予約日から何日」という閾値を提案したが、予約時点で来院日が決まるのでその概念自体が無かった。外した事例として記録。残る論点は日程変更の回数上限と適用範囲の2つ", "ts": "2026-09-11T15:30:00+09:00", "status": "done", "detail": "「予約日から何日」という閾値を提案したが、予約時点で来院日が決まるのでその概念自体が無かった。外した事例として記録。残る論点は日程変更の回数上限と適用範囲の2つ", "ago": "18日前"}, {"at": "2026-09-11T15:00:00+09:00", "crew": "marketing", "biz": "Tクリニック", "state": "done", "task": "アフィリ課題を「承認率の下げ方」に更新（代表：分けられるし見ている）", "note": "パートナー別の来院率は既に見えていた。打ち手1は不要。残るのは非承認基準の日数とASPへの事前通知と適用範囲。下げた後に見るのは成果数ではなく来院数と来院ベースCPA、を型4に追記", "ts": "2026-09-11T15:00:00+09:00", "status": "done", "detail": "パートナー別の来院率は既に見えていた。打ち手1は不要。残るのは非承認基準の日数とASPへの事前通知と適用範囲。下げた後に見るのは成果数ではなく来院数と来院ベースCPA、を型4に追記", "ago": "18日前"}, {"at": "2026-09-11T14:00:00+09:00", "crew": "marketing", "biz": "Tクリニック", "state": "done", "task": "アフィリ不正の切り分け（代表が商標検索を実施）", "note": "商標キーワードで広告が出ず、リスティング出稿違反を除外。クッキースタッフィングも来院率を落とさないので除外。残るのは架空・低品質の申込のみ。打ち手は承認率で絞る→効かなければ成果地点を来院へ。型4として記録", "ts": "2026-09-11T14:00:00+09:00", "status": "done", "detail": "商標キーワードで広告が出ず、リスティング出稿違反を除外。クッキースタッフィングも来院率を落とさないので除外。残るのは架空・低品質の申込のみ。打ち手は承認率で絞る→効かなければ成果地点を来院へ。型4として記録", "ago": "18日前"}, {"at": "2026-09-11T11:30:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "レベルの上限を100に設定（代表指定）", "out": "scripts/build-office.py", "note": "Lv20に505、Lv50に3,874、Lv100に17,573。最上位は監査役のLv19で、全員まだ入口", "ts": "2026-09-11T11:30:00+09:00", "status": "done", "detail": "Lv20に505、Lv50に3,874、Lv100に17,573。最上位は監査役のLv19で、全員まだ入口", "ago": "19日前"}, {"at": "2026-09-11T11:25:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "外部の型を取り込み：代表がボトルネックになっている箇所を消す", "note": "代表タスク114件のうち78件(68%)が人に振れるものだった。この持ち場を「指示を受けて動く」から「代表の手元から仕事を抜く」に定義し直す必要がある", "ts": "2026-09-11T11:25:00+09:00", "status": "done", "detail": "代表タスク114件のうち78件(68%)が人に振れるものだった。この持ち場を「指示を受けて動く」から「代表の手元から仕事を抜く」に定義し直す必要がある", "ago": "19日前"}, {"at": "2026-09-11T11:20:00+09:00", "crew": "hr", "biz": "POTEX", "state": "done", "task": "外部の型を取り込み：返信率ではなく返信数から逆算する", "note": "目標13名の内定に必要な配信は約1,730通(歩留まり仮定)。この規模が出せないなら目標13名は最初から届かない。受講開始をずらすかの決裁材料", "ts": "2026-09-11T11:20:00+09:00", "status": "done", "detail": "目標13名の内定に必要な配信は約1,730通(歩留まり仮定)。この規模が出せないなら目標13名は最初から届かない。受講開始をずらすかの決裁材料", "ago": "19日前"}, {"at": "2026-09-11T11:15:00+09:00", "crew": "planning", "biz": "EXTAGE", "state": "done", "task": "外部の型を取り込み：配賦を決める前に限界利益で始める", "note": "共通費の配賦で止まるくらいなら限界利益から。外注費7,000万を商品に紐づけるだけで商品別の限界利益率が今月出せる", "ts": "2026-09-11T11:15:00+09:00", "status": "done", "detail": "共通費の配賦で止まるくらいなら限界利益から。外注費7,000万を商品に紐づけるだけで商品別の限界利益率が今月出せる", "ago": "19日前"}, {"at": "2026-09-11T11:10:00+09:00", "crew": "product", "biz": "POTEX", "state": "done", "task": "外部の型を取り込み：母数を見てからスコアの変化を読む", "note": "NPS 10.53→0 は回収率が53.8%→37.7%に落ちた状態での比較。回答者数が出るまで急落と断定できない。最上位に置いている課題の読みを保留すべき", "ts": "2026-09-11T11:10:00+09:00", "status": "done", "detail": "NPS 10.53→0 は回収率が53.8%→37.7%に落ちた状態での比較。回答者数が出るまで急落と断定できない。最上位に置いている課題の読みを保留すべき", "ago": "19日前"}, {"at": "2026-09-11T11:05:00+09:00", "crew": "marketing", "biz": "Tクリニック", "state": "done", "task": "外部の型を取り込み：アフィリ不正は手口で切り分けてから止める", "note": "来院率が低い＝実在しない予約なのでクッキースタッフィング寄り。商標キーワードで検索してリスティング違反かを今日切り分けられる。止める決裁はその後", "ts": "2026-09-11T11:05:00+09:00", "status": "done", "detail": "来院率が低い＝実在しない予約なのでクッキースタッフィング寄り。商標キーワードで検索してリスティング違反かを今日切り分けられる。止める決裁はその後", "ago": "19日前"}, {"at": "2026-09-11T11:00:00+09:00", "crew": "sales", "biz": "EXTAGE", "state": "done", "task": "外部の型を取り込み：接続率とアポ率を分けてから打つ", "note": "通電率19%は業界平均15-25%の範囲内で異常ではない。落ちているのはアポ率側(20%→4.5%)。カリトルくん(通電を増やす道具)を待っても解決しない可能性が高い", "ts": "2026-09-11T11:00:00+09:00", "status": "done", "detail": "通電率19%は業界平均15-25%の範囲内で異常ではない。落ちているのはアポ率側(20%→4.5%)。カリトルくん(通電を増やす道具)を待っても解決しない可能性が高い", "ago": "19日前"}, {"at": "2026-09-10T13:00:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "レベルを稼働量から専門知識の質へ測り直し（代表指摘）", "out": "scripts/build-office.py / data/crew/_shared.md", "note": "稼働回数・成果物数・字数を全部落とし、型/外した事例/確定した指摘/事業知識/外部の型だけで算出。未確認のまま残した指摘は減点。秘書くんはLv4→Lv1、監査役はLv3→Lv5(目利き)に。外した事例を持つのは監査役だけ", "ts": "2026-09-10T13:00:00+09:00", "status": "done", "detail": "稼働回数・成果物数・字数を全部落とし、型/外した事例/確定した指摘/事業知識/外部の型だけで算出。未確認のまま残した指摘は減点。秘書くんはLv4→Lv1、監査役はLv3→Lv5(目利き)に。外した事例を持つのは監査役だけ", "ago": "20日前"}, {"at": "2026-09-10T12:00:00+09:00", "crew": "chief-of-staff", "biz": "全社", "state": "done", "task": "乗組員にレベルを付けて可視化（代表指示）", "out": "scripts/build-office.py / data/crew/_shared.md", "note": "稼働記録と蓄積ファイルの実データだけで算出。名札にLvバッジ、全体タブに8人分のEXPバー。外部から取り込んだ型は結果まで書けた行だけ数えるため全員0で、これが一番の伸びしろとして可視化された", "ts": "2026-09-10T12:00:00+09:00", "status": "done", "detail": "稼働記録と蓄積ファイルの実データだけで算出。名札にLvバッジ、全体タブに8人分のEXPバー。外部から取り込んだ型は結果まで書けた行だけ数えるため全員0で、これが一番の伸びしろとして可視化された", "ago": "20日前"}, {"at": "2026-09-09T18:45:00+09:00", "crew": "kansayaku", "biz": "全社", "state": "done", "task": "SPB向けJV提案書（大改訂版）の検品：構成・章番号・数値検算", "out": "spb-jv-proposal.html（scratchpad）への指摘を対話内で回答", "note": "松/竹/梅の全数値をpremiseから独立Pythonで再計算し、ユーザー提示の検算対象・HTML内の表/SVG座標/aria-label全件と突合。旧数値の残存ゼロ、章番号・相互参照はおおむね整合。指摘2件（第07章note「3つの転換率が5ヶ月目まで横ばい」が予約率には不成立／竹・梅の底の値が0.1万円の丸め境界差）。作業中にファイルが1275行→1317行へ他プロセスにより編集されており、安定後の版で検品した旨を明記して報告", "ts": "2026-09-09T18:45:00+09:00", "status": "done", "detail": "松/竹/梅の全数値をpremiseから独立Pythonで再計算し、ユーザー提示の検算対象・HTML内の表/SVG座標/aria-label全件と突合。旧数値の残存ゼロ、章番号・相互参照はおおむね整合。指摘2件（第07章note「3つの転換率が5ヶ月目まで横ばい」が予約率には不成立／竹・梅の底の値が0.1万円の丸め境界差）。作業中にファイルが1275行→1317行へ他プロセスにより編集されており、安定後の版で検品した旨を明記して報告", "ago": "20日前"}], "metrics": {"asOf": "2026-08-26", "note": "売上利益・顧客満足度・採用数の3軸。score は 0-100 に正規化した達成度。根拠が無い場合は null にし、raw と gap に理由を書く。推測でスコアを埋めない。 2026-08-26 監査役の検算により EXTAGE・POTEX を訂正。", "axes": [{"key": "pl", "name": "売上・利益", "color": "--ax1"}, {"key": "csat", "name": "顧客満足度", "color": "--ax2"}, {"key": "hiring", "name": "採用数", "color": "--ax3"}], "businesses": [{"slug": "extage", "name": "EXTAGE", "pl": {"score": 0, "raw": "8月単月 ¥0 ／ 月次目標 ¥36,500,000 ／ 年間累計 ¥176,250,000（目標 ¥600,000,000）", "basis": "経営朝礼 8/17・8/24・8/25（監査役が発言記録で確認）", "gap": "議事録は「8月の売上実績は確定分1億7,625万円」と記載しているが、これは年間累計。8月単月は受注ゼロ（8/17「0円」・8/24「実績ゼロ」・8/25「昨日終わった時点ではゼロ」）。年間目標6億に対し残り4億2,000万で、週760万ペースが必要。議事録の表記訂正を森田さんに依頼すること"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "顧客満足を測る指標が存在しない。唯一の手がかりはエコバックス案件のインシデント（上位代理店が紹介停止の可能性）。解約率・継続率・NPSのいずれも取っていない。**測定方法（2026-08-27 追記）**: EXTAGEは契約クライアント向けマーケ支援なので、対象は契約企業。①森田佑介さんに、EXTAGE数値シート（または契約管理台帳）に契約開始日・解約日の列を追加させ、月次解約率＝当月解約件数÷月初契約件数を出す。②エコバックス案件のような代理店経由紹介については、上位代理店からの紹介継続/停止の状況を月次で記録する。8月単月受注ゼロ（pl参照）の局面で解約が同時進行すると経営に見えないまま基盤が崩れるため、新規停止と解約は別々に見る必要がある。未確認・要実データ照合（本稿ではGoogleドライブのEXTAGE数値シート原本に未アクセス。ToolSearchでdrive系ツールを読み込んだ上での確認が必要）"}, "hiring": {"score": 0, "raw": "定量化できた需要はエンジニア(G1クラス)1〜2名＋SNS人材・ディレクター1名の計2.5名（中央値）。充足0名＝達成率0%。Uトラスト経由の承認済み候補20名は配属先・人数未定のためプール扱いで分母に含めない", "basis": "経営朝礼 2026-09-04・New meeting 2026-09-11（発言記録で確認）", "gap": "分母はエンジニア・SNS人材の2枠のみで、部署別総合必要人数（営業3・グロース2・IS3・SEO1・オウンドメディア0=計9名体制の見直し）は依然未定義。最大の論点はUトラスト承認済み20名を田原さんが1週間以上未対応で放置していたこと（経営朝礼2026-09-04）。福田さん・田原さんの週1KPI確認MTGが実施されたかは2026-09-30時点で未確認。詳細は reports/hr_EXTAGE採用_2026-09-30.md"}}, {"slug": "potex", "name": "POTEX", "pl": {"score": 71, "raw": "8月 ¥18,300,000（控除後）／ 月次目標 ¥25,700,000（71.2%）／ 経過日按分の現時点目標 ¥21,550,000（84.9%）", "basis": "朝会 8/26（監査役が発言記録で確認）", "gap": "報告の84.9%は誤りではない。分母が経過日按分の現時点目標（2,570万×26/31）で、有田さんが会議で明言している。議事録が「目標2,570万円に対し」と誤記しただけ。ただし月次目標に対する残ギャップは740万で、議事録の250万（控除前×現時点目標ベース）とは基準が違う。月末の投下判断は740万side で見ること"}, "csat": {"score": 83, "raw": "クーリングオフ・返金 ¥3,780,200（売上比 約17.1%）", "basis": "朝会 8/25", "gap": "これは代理指標。返金率の裏返しを満足度としているだけで直接の測定ではない。なお8/24→8/25の報告売上247万減は実額減ではなく控除基準の切替によるもので、8/23以前と8/25以降は日次系列として接続できない（監査役が確認）"}, "hiring": {"score": null, "raw": "百々和輝さん 選考中／田中莉心さん 候補／コーチ採用は9/15から加藤Mへ", "basis": "meet 百々さん 8/26・task会 8/25", "gap": "必要人数が未定義。コーチはリード不足がボトルネックのため、増員の必要性自体が未確定"}}, {"slug": "t-clinic", "name": "Tクリニック", "pl": {"score": null, "raw": "リピート売上 ¥1,235,892 ／ CPA ¥45,000 ／ 目標単価 ¥250,000", "basis": "TCLINIC 金子さん 8/24", "gap": "月次の総売上と目標が未取得。CPAは目標水準だが、回収に何回の来院が要るかが未算出。測定式は 回収回数＝CPA÷（平均単価×粗利率）で、必要な3項目（月次総売上・客数から出す実績平均単価／原価率）がいずれも未取得のため score は据え置き（planning.md 2026-08-26 参照）。マーケ軸の追加論点（2026-08-27）：来院率53%(目標60-70%)の残り47%の内訳（LINEキャンセル／無断キャンセル／計測漏れ）が未計測。TCLINIC金子さんの予約管理データとorigin正木さんのLINEキャンセルログを予約IDで突合する方法をmarketing.mdに具体化した。未実施（marketing.md 2026-08-27 参照）"}, "csat": {"score": 15, "raw": "口コミ 銀座院 304件（4.5）／ 競合 L'or Clinic 2,052件", "basis": "TCLINIC 金子さん 8/24", "gap": "評点4.5は良いが件数が競合の約1/7。来院率53%台（目標60〜70%）とLINEキャンセルも不満のシグナル。スタッフ士気低下も継続課題"}, "hiring": {"score": null, "raw": "指標なし", "basis": "—", "gap": "カウンセラー・スタッフの採用計画が記録に出てこない"}}, {"slug": "origin", "name": "origin", "pl": {"score": null, "raw": "POTEXからの報酬 月 ¥400,000〜450,000", "basis": "【Origin.】定例 7/2", "gap": "案件別の採算（工数 vs 報酬）が未算出。Tクリニックの入金漏れが発生しており、売上計上と入金が一致していない"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "受託先（POTEX・Tクリニック・PASSLABO・エコスマート）からの評価を測る仕組みがない"}, "hiring": {"score": null, "raw": "宮田さん→正木さんへ引き継ぎ中／上田さん試用（時給¥2,000）", "basis": "【Origin.】定例 8/3・7/4", "gap": "純増ではなく置き換え。宮田さんが受験で半年 稼働減のため、実質は減員"}}, {"slug": "exosome", "name": "エクソソーム", "pl": {"score": null, "raw": "個別受注1件：アルハナ案件 250g×3,000本 約¥5,000,000（原価・粗利不明）／増資 ¥3,100,000で51%取得、増資後キャッシュ 約¥10,000,000（8/25時点）", "basis": "zoom 松尾さん株式 8/25／zoom レイ 9/29（発言記録で確認）", "gap": "月次総売上・原価率は依然として一度も出ていない。**ただし2026-09-29の発言記録で修正が1点：月次集計の体制自体は税理士事務所に既に存在する（高橋さん談）。社内の意思決定の場に共有されたことが無いだけ。** 直近の受注実績はアルハナ案件1件（約500万円、単発）のみ確認、原価・粗利は言及なし。来年目標売上2億円（Rie発言・狙い値、実績ではない）。**新論点：瑞季さんの社長就任にキャッシュショートのリスクがある**（Rieさん「今の売り上げであるならばショートするのが早すぎるんじゃないか」に田原さんが「確かにショートしそう」と同意）。固定給ではなくプロフィットシェア型で調整する方向で合意済み。田原さんが税理士PLを入手し試算する予定（未実施）。**外部の型を当てた結果：** 大手OEM案件は受注確定後も現金化まで約6ヶ月のタイムラグがあり（Rie発言）、これは月次PLには出てこないが現金には効く支出／入金ズレ（Cash Runway framework, corporatefinanceinstitute.com）。固定給を避けプロフィットシェア型に寄せた判断はこのズレを避ける方向として妥当。**測定方法（2026-08-27 営業案・未実施）:** 月次売上をチャネル別（EC直販／代理店／展示会）に分け、`EXO`定例で伊藤洋さんが報告する形に変える。原価は原料費と製造委託費に分けて奥野さん（アディフィールド）から取る。在庫は月末時点の数量と回転日数をVAMBIが集計する。ドライブに『エクソソーム』名称の数値管理シートが存在するか未確認。次回、ドライブ検索で確認すること"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "販売チャネルと顧客が未把握"}, "hiring": {"score": null, "raw": "指標なし", "basis": "—", "gap": "—"}, "stance": "grow"}, {"slug": "passlabo", "name": "passlabo", "pl": {"score": null, "raw": "単価 ¥49,800（ダウンセル ¥29,800）／ 契約率 60%", "basis": "宇佐見さん-経営 8/24", "gap": "契約件数と月次売上が未取得。契約率60%は宇佐見さん個人の数字で、事業全体ではない"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "合格実績・継続率のいずれも集計されていない。受験事業なので合格率が最良の満足度指標になるはず"}, "hiring": {"score": null, "raw": "指標なし", "basis": "—", "gap": "宇佐見さんの属人性が上限。他担当への展開が未着手"}}, {"slug": "unemployment", "name": "失業保険", "pl": {"score": 0, "raw": "受入実績の記録なし（6/30の開始目標以降 2ヶ月）", "basis": "【Origin.】定例 8/3 が最終言及", "gap": "計画は7・8・9月で3→5→8件。実績が一度も報告されていない。ゼロと仮定して扱う。**方針: 伸ばす対象（2026-08-26 決定）。** 畳む判断はしない。まず宮田さんに受入件数を確認して実数を入れ、そのうえで 7・8・9月 3→5→8件 の計画に対する遅れを取り戻す打ち手を出すこと"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "顧客がいるかどうか自体が未確認"}, "hiring": {"score": null, "raw": "指標なし", "basis": "—", "gap": "—"}, "stance": "grow"}, {"slug": "subsidy", "name": "補助金コンサル", "pl": {"score": 0, "raw": "9/15 始動に変更（担当者が9/15まで動けないため）。売上ゼロ", "basis": "New meeting 8/19", "gap": "開始日は 9/15 で決定済み（代表判断 2026-08-31）。担当者が未確定。議事録の「アイザさん」は家事代行の方で無関係と判明"}, "csat": {"score": null, "raw": "指標なし", "basis": "—", "gap": "—"}, "hiring": {"score": null, "raw": "指標なし", "basis": "—", "gap": "担当者が誰か未確定。まず人を決める"}}], "authority": "田原さんが8事業すべてで決裁権を持つ（2026-08-26 確認）。打ち手は提案ではなく決定の形で書く。ただし本人に上げるのは本人しか決められないものだけにし、他は任せ先を名指しする。"}, "now": "2026-09-30T13:37:10+09:00"};
+const floor = document.getElementById('floor'), det = document.getElementById('det');
 
-function box(w, d, h, cls, style){
-  const g = document.createElement('div');
-  g.className = cls; g.style.cssText = style || '';
-  const mk = (c, s) => { const e = document.createElement('div'); e.className = 'f ' + c; e.style.cssText = s; g.appendChild(e); };
-  mk('top', `width:${w}px;height:${d}px;transform:translateZ(${h}px)`);
-  mk('sd', `width:${w}px;height:${h}px;transform-origin:top;transform:rotateX(-90deg);top:${d}px`);
-  mk('sd', `width:${w}px;height:${h}px;transform-origin:top;transform:translateZ(${h}px) rotateX(-90deg)`);
-  mk('sd', `width:${d}px;height:${h}px;transform-origin:left top;transform:rotateY(90deg) rotateX(-90deg) translateY(-${h}px);left:0`);
-  mk('sd', `width:${d}px;height:${h}px;transform-origin:left top;transform:translateX(${w}px) rotateY(90deg) rotateX(-90deg) translateY(-${h}px)`);
-  return g;
-}
-
-D.biz.forEach((b, i) => {
-  const cx = 60 + (i % cols) * 165, cy = 70 + Math.floor(i / cols) * 190;
-  const kh = Math.max(16, b.known * 5.2);
-  const gh = Math.max(8, b.gap * 5.2);
-  const c = CC[b.conf] || '--lo';
-  const t = box(96, 74, kh, 'tower',
-    `left:${cx}px;top:${cy}px;--c:var(${c});--cd:color-mix(in srgb, var(${c}) 72%, #000)`);
-  t.dataset.i = i;
-  const g = box(96, 74, gh, 'gh', `left:0;top:0;transform:translateZ(${kh}px)`);
-  t.appendChild(g);
-  const l = document.createElement('div');
-  l.className = 'lbl';
-  l.style.cssText = `top:${-26}px;left:-12px;transform:translateZ(${kh + gh + 6}px)`;
-  l.innerHTML = b.name + '<small>' + b.known + ' / ?' + b.gap + '</small>';
-  t.appendChild(l);
-  plate.appendChild(t);
-});
-
-D.crew.forEach((c, i) => {
-  const p = box(60, 46, 14 + c.runs * 4, 'crewpost',
-    `left:${86 + i * 122}px;top:${430}px`);
-  const l = document.createElement('div');
-  l.className = 'lbl';
-  l.style.cssText = `top:-24px;left:-30px;transform:translateZ(${20 + c.runs * 4}px)`;
-  l.innerHTML = c.role + '<small>Claude</small>';
-  p.appendChild(l);
-  plate.appendChild(p);
-});
-
-// ── detail panel
-const det = document.getElementById('detail');
 function show(i){
-  const b = D.biz[i];
-  document.querySelectorAll('.tower').forEach(t => t.classList.toggle('sel', +t.dataset.i === i));
-  const tot = b.known + b.gap || 1;
+  const c = D.crew[i];
+  document.querySelectorAll('.post').forEach(p => p.classList.toggle('sel', +p.dataset.i === i));
+  const nothing = c.state === 'never';
   det.innerHTML =
-   `<h3>${b.name}</h3><p class="rl">${b.role}　／　確度 ${b.conf}　／　更新 ${b.updated}</p>
-    <div class="kv">
-      <div>部署・持ち場</div><div class="v">${b.depts}</div>
-      <div>KPIの定義</div><div class="v">${b.kpi}</div>
-      <div>意思決定の型</div><div class="v">${b.how}</div>
-      <div>制約・越えない線</div><div class="v">${b.lim}</div>
-      <div>判断ログ</div><div class="v">${b.log}</div>
-      <div>未確認</div><div class="v gap">${b.gap}</div>
-    </div>
-    <div class="bar"><i class="k" style="width:${b.known / tot * 100}%"></i>
-    <i class="g" style="width:${b.gap / tot * 100}%"></i></div>
-    <p class="hint">実線の高さが分かっていること、上の点線が未確認です。
-    点線が低くなるほど、この事業の判断を任せられます。</p>`;
+    `<h3>${c.role}</h3><p class="sub">${c.axis} ／ ${c.ship}　/　agents/${c.slug}.md</p>
+     <div class="now"><b>${nothing ? 'まだ一度も起動していません' : c.task}</b>
+     <span>${nothing ? 'このダッシュボードに何か出すには、まず1回起こす必要があります。'
+                      : (c.detail || '') + (c.lastAgo !== '—' ? '　（' + c.lastAgo + '）' : '')}</span></div>
+     <div class="kv">
+       <div>稼働回数</div><div class="v ${c.total ? '' : 'z'}">${c.total}</div>
+       <div>出した指摘・成果物</div><div class="v ${c.found ? '' : 'z'}">${c.found}</div>
+       <div>判定基準</div><div class="v ${c.rules ? '' : 'z'}">${c.rules}</div>
+       <div>事業ごとの注意点</div><div class="v ${c.notes ? '' : 'z'}">${c.notes}</div>
+       <div>指摘の履歴</div><div class="v ${c.hits ? '' : 'z'}">${c.hits}</div>
+       <div>外した事例</div><div class="v ${c.miss ? '' : 'z'}">${c.miss}</div>
+     </div>`;
 }
-plate.addEventListener('click', e => {
-  const t = e.target.closest('.tower');
-  if (t) show(+t.dataset.i);
-});
-show(0);
+floor.addEventListener('click', e => { const p = e.target.closest('.post'); if (p) show(+p.dataset.i); });
 
-// ── crew table
-document.getElementById('crewBody').innerHTML = D.crew.map(c =>
-  `<tr><td class="r">${c.role}<small>${c.ship}</small></td>
-   <td class="num ${c.runs ? '' : 'zero'}">${c.runs}</td>
-   <td class="num ${c.rules ? '' : 'zero'}">${c.rules}</td>
-   <td class="num ${c.hits ? '' : 'zero'}">${c.hits}</td>
-   <td class="num ${c.miss ? '' : 'zero'}">${c.miss}</td></tr>`).join('');
-
-// ── rotate
 const world = document.getElementById('world'), stage = document.getElementById('stage');
-let rx = 58, rz = -32, down = false, px = 0, py = 0;
+let rx = 56, rz = -26, down = false, mx = 0, my = 0;
 function apply(){
-  rx = Math.min(84, Math.max(18, rx));
+  rx = Math.min(80, Math.max(22, rx));
   world.style.setProperty('--rx', rx + 'deg');
   world.style.setProperty('--rz', rz + 'deg');
-  document.getElementById('ang').textContent = `X${Math.round(rx)}° Z${Math.round(rz)}°`;
+  document.getElementById('ang').textContent = 'X' + Math.round(rx) + '\u00b0 Z' + Math.round(rz) + '\u00b0';
 }
-stage.addEventListener('pointerdown', e => { down = true; px = e.clientX; py = e.clientY;
+stage.addEventListener('pointerdown', e => { down = true; mx = e.clientX; my = e.clientY;
   stage.classList.add('drag'); stage.setPointerCapture(e.pointerId); });
 stage.addEventListener('pointermove', e => { if (!down) return;
-  rz += (e.clientX - px) * .38; rx -= (e.clientY - py) * .30; px = e.clientX; py = e.clientY; apply(); });
-stage.addEventListener('pointerup', e => { down = false; stage.classList.remove('drag'); });
+  rz += (e.clientX - mx) * 0.38; rx -= (e.clientY - my) * 0.30;
+  mx = e.clientX; my = e.clientY; apply(); });
+stage.addEventListener('pointerup', () => { down = false; stage.classList.remove('drag'); });
 stage.addEventListener('pointercancel', () => { down = false; stage.classList.remove('drag'); });
-const B = (id, fn) => document.getElementById(id).addEventListener('click', () => { fn(); apply(); });
-B('rl', () => rz -= 15); B('rr', () => rz += 15);
-B('tu', () => rx -= 8);  B('td', () => rx += 8);
-B('rs', () => { rx = 58; rz = -32; });
+const BT = (id, fn) => document.getElementById(id).addEventListener('click', () => { fn(); apply(); });
+BT('rl', () => rz -= 15); BT('rr', () => rz += 15);
+BT('tu', () => rx -= 8);  BT('td', () => rx += 8);
+BT('rs', () => { rx = 56; rz = -26; });
 apply();
+show(0);
+
+const SL = {done:'完了', running:'着手', blocked:'詰まり', skipped:'見送り'};
+const NM = {}; D.crew.forEach(c => NM[c.slug] = c.role); NM.system = 'システム';
+document.getElementById('log').innerHTML = D.log.length ? D.log.map(r =>
+  `<div class="ll"><span class="t">${r.ago}</span><span class="w">${NM[r.crew] || r.crew}</span>
+   <span class="s ${r.crew === 'system' ? 'system' : r.status}">${r.crew === 'system' ? '設置' : (SL[r.status] || r.status)}</span>
+   <span class="e">${r.task}${r.found ? ' <b>' + r.found + '件</b>' : ''}</span></div>`).join('')
+  : '<div class="empty">記録なし</div>';
+
+const run = D.crew.filter(c => c.state === 'running').length;
+const never = D.crew.filter(c => c.state === 'never').length;
+document.getElementById('hm').innerHTML =
+  `基準 ${D.now.slice(0,16).replace('T',' ')}<br>稼働中 ${run} / 未起動 ${never} / 全 ${D.crew.length}人格`;
+
+const mk = v => v === null ? '<span class="mk no">✕</span>' : '<span class="mk ok">' + v + '</span>';
+const MB = D.metrics.businesses || [];
+document.getElementById('mt').innerHTML = MB.map(b =>
+  `<tr><td class="b">${b.name}</td><td class="mk">${mk(b.pl.score)}</td>
+   <td class="mk">${mk(b.csat.score)}</td><td class="mk">${mk(b.hiring.score)}</td></tr>`).join('');
+const f = k => MB.filter(b => b[k].score !== null).length;
+document.getElementById('mtn').innerHTML =
+  `24マス中 <b>${f('pl')+f('csat')+f('hiring')}</b> マスのみ測定できています。
+   売上利益 ${f('pl')}/8・顧客満足度 ${f('csat')}/8・<b>採用数 ${f('hiring')}/8</b>。
+   採用は進んでいますが必要人数が定義されていないため、達成度が出せません。`;
 
 document.getElementById('ft').innerHTML =
-  '出典 — claude-hub/data/businesses/*.md ・ data/crew/*.md を集計。'
-  + '数字は蓄積された項目数で、事業規模ではありません。<br>'
-  + '再生成 — <code>python scripts/build-dashboard.py</code>。蓄積が増えたら実行し直してください。<br>'
-  + '乗組員は Claude の人格です。実在の担当者ではありません。';
+  '稼働記録 — claude-hub/data/crew/runs.jsonl。人格は呼ばれたときだけ動きます（常駐していません）。<br>'
+  + '着手時に running、完了時に done を書く規約です。書き方は data/crew/RUNLOG.md。<br>'
+  + '更新 — <code>python scripts/build-dashboard.py</code>。乗組員は Claude の人格で、実在の担当者ではありません。';
 </script>
