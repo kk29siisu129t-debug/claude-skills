@@ -173,10 +173,10 @@
       </div>
 
       <div class="panel" role="tabpanel" id="panel-data" aria-labelledby="tab-data" hidden>
-        <p class="hint">内容はこのタブのメモリ上だけにあり、再読み込みや「消去」で失われます。書き出しはボタンを押したときだけ、この端末にファイルを保存します。</p>
+        <p class="hint" id="data-hint">内容はこのタブのメモリ上だけにあり、再読み込みや「消去」で失われます。書き出しはボタンを押したときだけ、この端末にファイルを保存します。</p>
         <div class="btns">
-          <button type="button" class="btn" data-action="export-json">JSONを書き出す</button>
-          <button type="button" class="btn" data-action="export-md">Markdownを書き出す</button>
+          <button type="button" class="btn" data-action="export-json" id="btn-export-json">JSONを書き出す</button>
+          <button type="button" class="btn" data-action="export-md" id="btn-export-md">Markdownを書き出す</button>
           <button type="button" class="btn btn-danger" data-action="clear-ask" id="btn-clear">すべて消去</button>
         </div>
         <div class="confirm" id="clear-confirm" hidden>
@@ -189,7 +189,7 @@
     </section>
   </main>
 
-  <footer class="footer">
+  <footer class="footer" id="footer-note">
     Meeting Compass プロトタイプ ・ 架空のデモデータのみ ・ ネットワーク送信なし（CSP で外部接続を禁止）
   </footer>
   <div class="sr-only" aria-live="polite" id="live"></div>

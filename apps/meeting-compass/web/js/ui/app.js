@@ -8,8 +8,11 @@ import { createDemoProvider } from '../providers/demo-provider.js';
 import { createManualProvider } from '../providers/manual-provider.js';
 import { createAudioProvider } from '../providers/audio-provider.js';
 import { h, reconcile, flash } from './dom.js';
+import { download } from './download.js';
 
 const $ = (id) => /** @type {HTMLElement} */ (document.getElementById(id));
+/** Claude Artifact 用の単一HTML版か（scripts/bundle-artifact.mjs が目印の要素を入れる） */
+const ARTIFACT_BUILD = document.getElementById('mc-build')?.dataset.build === 'artifact';
 const TABS = ['manual', 'review', 'topics', 'log', 'audio', 'data'];
 
 const session = createSession();
@@ -357,17 +360,6 @@ function setFeedback(id, text, ok = true) {
   el.classList.toggle('is-error', !ok);
 }
 
-function download(filename, text, type) {
-  const url = URL.createObjectURL(new Blob([text], { type }));
-  const a = /** @type {HTMLAnchorElement} */ (h('a', { 'data-download': filename }));
-  a.href = url;
-  a.download = filename;
-  document.body.append(a);
-  a.click();
-  a.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-
 function resetAll(cleared) {
   demo.player.reset();
   session.clear();
@@ -411,16 +403,21 @@ document.addEventListener('click', (ev) => {
       ui.editingKey = `${btn.dataset.list}:${id}`;
       break;
     case 'edit-cancel': ui.editingKey = null; break;
-    case 'export-json': {
+    case 'export-json':
+    case 'export-md':
+      // Artifact の閲覧画面はページからのダウンロードを止めるため、この版では書き出さない
+      if (ARTIFACT_BUILD) {
+        setFeedback('data-feedback', 'Artifact 版では書き出しは使えません。', false);
+        break;
+      }
+      if (action === 'export-md') {
+        download('meeting-compass-export.md', toMarkdown(session.getState(), new Date().toISOString()), 'text/markdown');
+        setFeedback('data-feedback', 'Markdownを書き出しました（この端末への保存のみ）。');
+        break;
+      }
       download('meeting-compass-export.json', toJSON(session.getState(), new Date().toISOString()), 'application/json');
       setFeedback('data-feedback', 'JSONを書き出しました（この端末への保存のみ）。');
       break;
-    }
-    case 'export-md': {
-      download('meeting-compass-export.md', toMarkdown(session.getState(), new Date().toISOString()), 'text/markdown');
-      setFeedback('data-feedback', 'Markdownを書き出しました（この端末への保存のみ）。');
-      break;
-    }
     case 'jump': {
       const dest = document.getElementById(btn.dataset.target ?? '');
       if (dest instanceof HTMLDetailsElement) dest.open = true;
@@ -523,6 +520,19 @@ session.subscribe(() => {
   });
 });
 
+/** Artifact 版：使えない書き出しは無効と明示し、送信・保存の説明をこの版に合わせる */
+function applyArtifactBuild() {
+  if (!ARTIFACT_BUILD) return;
+  for (const id of ['btn-export-json', 'btn-export-md']) {
+    const b = /** @type {HTMLButtonElement} */ ($(id));
+    b.disabled = true;
+    b.textContent = `${b.textContent}（Artifact版では無効）`;
+  }
+  $('data-hint').textContent = '内容はこのタブのメモリ上だけにあり、再読み込みや「消去」で失われます。Claude Artifact の閲覧画面はページからのファイル保存を止めるため、この版では書き出しを無効にしています。';
+  $('footer-note').textContent = 'Meeting Compass プロトタイプ（Claude Artifact 版）・ 架空のデモデータのみ ・ 外部へ送信するコードを含みません ・ AIによる理解・音声入力は未接続';
+}
+
+applyArtifactBuild();
 renderRoutes();
 render();
 // テスト・デバッグ用の読み取り専用フック（state の複製を返すだけ）

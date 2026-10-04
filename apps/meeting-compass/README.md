@@ -60,6 +60,7 @@ web/js/providers/             入力プロバイダ（contract / demo / manual /
 web/js/ui/                    差分描画と操作
 server/live/                  ライブ経路の共通基盤（ベンダー非依存・無通信・未配線）
 web/js/live/capture-session.js 音声取得インターフェース（取得関数は注入、未配線）
+scripts/bundle-artifact.mjs   Claude Artifact 用の単一HTMLバンドル（artifact/ に出力）
 tests/unit/                   node:test（78件。外部通信を遮断する no-network.mjs 下で実行）
 tests/e2e/                    Playwright（desktop 1440x900 / mobile Pixel 7、各13件）
 screenshots/                  E2E が保存したスクリーンショット
@@ -78,6 +79,17 @@ npm run test:e2e     # Playwright。ブラウザを別途入れる場合は `npx
 
 Playwright は 1.56.1 に固定。手元の Chromium を使う場合は `PW_CHROMIUM_PATH=/path/to/chromium npm run test:e2e`。
 E2E を実行すると `screenshots/` が上書きされます。
+
+## Claude Artifact 版（架空デモのみ）
+
+`npm run bundle:artifact` で `artifact/meeting-compass.html`（単一 HTML の断片）を生成します。掲載先は本人のみ閲覧可能な非公開 Artifact で、共有設定は変更していません（URL はリポジトリに書きません）。
+
+- 中身は `web/js/ui/app.js` から辿れるデモ画面だけ（esbuild で IIFE 1本にまとめ、CSS と一緒にインライン化）。`server/`、ライブ経路、秘密値、実業務データは含めない。
+- 外部 CDN・フォント・画像は使わない。出力に通信 API・メディア取得・ブラウザ保存・ダウンロード処理・外部 URL が含まれていたらバンドルを失敗させる。
+- Artifact の閲覧画面はページからのダウンロードを止めるため、書き出しボタンは「Artifact版では無効」と表示して押せないようにし、保存処理のコードそのものもバンドルから外す（`scripts/artifact-stubs/download.js` に差し替え）。
+- 「AIによる理解・音声認識はしていない」「音声未接続」の表示は通常版と同じ。
+- `tests/e2e/artifact.spec.js` は、Artifact の外枠に近い HTML と、Artifact より厳しい CSP の下で、全リクエストを記録・中止して試験する。`MC_ARTIFACT_SERVED=<読み戻した掲載HTML>` を渡すと、実際に配信される HTML（外枠込み）で同じ試験を行う。
+- 実際の claude.ai の閲覧画面上での操作確認は、この開発環境からはログインできないため未実施（本人の端末で確認が必要）。
 
 ## ライブ経路（未接続）— 実装済みの境界
 

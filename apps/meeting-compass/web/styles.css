@@ -53,6 +53,32 @@
   }
 }
 
+/* 表示側で明示的にダークを選んだ場合（Artifact の閲覧画面など）も同じ値にする */
+:root[data-theme="dark"] {
+    --bg: #0f1218;
+    --surface: #171b23;
+    --surface-2: #1d222c;
+    --border: #2b313d;
+    --text: #e7eaf0;
+    --muted: #9aa3b2;
+    --accent: #7b9cff;
+    --accent-ink: #0f1218;
+    --ok: #5fcf95;
+    --warn: #f0b45a;
+    --danger: #ff7b83;
+    --k-proposal: #7b9cff;
+    --k-reason: #4fd1c5;
+    --k-concern: #f0b45a;
+    --k-tradeoff: #b49cff;
+    --k-decision: #5fcf95;
+    --k-unclassified: #9aa3b2;
+    --k-open: #f58bbd;
+    --k-next: #8fbaf0;
+    --k-action: #b3bdcc;
+    --shadow: none;
+    color-scheme: dark;
+}
+
 * { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; }
 body {
@@ -113,7 +139,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .details { grid-area: details; }
 .summary {
   grid-area: summary;
-  position: sticky; top: 10px;
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 10px);
   max-height: calc(100vh - 20px); overflow: auto; overscroll-behavior: contain;
 }
 .card {
@@ -362,11 +388,11 @@ button, select, input, textarea { font: inherit; color: inherit; }
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: "controls" "current" "summary" "lanes" "details";
     grid-template-rows: none;
-    padding: 8px 12px 24px; gap: 8px;
+    padding: 8px 16px 24px; gap: 8px;
   }
   .summary { position: static; max-height: none; overflow: visible; }
-  .topbar { padding: 6px 12px; }
-  .honesty { padding: 4px 12px; font-size: 11.5px; }
+  .topbar { padding: 6px 16px; }
+  .honesty { padding: 4px 16px; font-size: 11.5px; }
   .chip { font-size: 10.5px; padding: 0 7px; }
   .controls-title { display: none; }
   .controls-row { gap: 6px; }

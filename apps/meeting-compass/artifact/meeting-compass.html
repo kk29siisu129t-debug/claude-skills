@@ -1,0 +1,2098 @@
+<title>Meeting Compass デモ</title>
+<style>
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #f7f8fa;
+  --border: #e2e5ea;
+  --text: #1c2230;
+  --muted: #5f6878;
+  --accent: #2f5bd3;
+  --accent-ink: #ffffff;
+  --ok: #1f7a4d;
+  --warn: #9a5b00;
+  --danger: #b4232c;
+  --k-proposal: #2f5bd3;
+  --k-reason: #0f7c7a;
+  --k-concern: #b26a00;
+  --k-tradeoff: #7046c4;
+  --k-decision: #1f7a4d;
+  --k-unclassified: #6b7280;
+  --k-open: #a33a6b;
+  --k-next: #3b6d9e;
+  --k-action: #535e6e;
+  --tint: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  --radius: 12px;
+  --shadow: 0 1px 2px rgb(16 24 40 / 6%), 0 1px 3px rgb(16 24 40 / 8%);
+  --font: system-ui, -apple-system, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic UI", Meiryo, sans-serif;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1218;
+    --surface: #171b23;
+    --surface-2: #1d222c;
+    --border: #2b313d;
+    --text: #e7eaf0;
+    --muted: #9aa3b2;
+    --accent: #7b9cff;
+    --accent-ink: #0f1218;
+    --ok: #5fcf95;
+    --warn: #f0b45a;
+    --danger: #ff7b83;
+    --k-proposal: #7b9cff;
+    --k-reason: #4fd1c5;
+    --k-concern: #f0b45a;
+    --k-tradeoff: #b49cff;
+    --k-decision: #5fcf95;
+    --k-unclassified: #9aa3b2;
+    --k-open: #f58bbd;
+    --k-next: #8fbaf0;
+    --k-action: #b3bdcc;
+    --shadow: none;
+    color-scheme: dark;
+  }
+}
+
+/* 表示側で明示的にダークを選んだ場合（Artifact の閲覧画面など）も同じ値にする */
+:root[data-theme="dark"] {
+    --bg: #0f1218;
+    --surface: #171b23;
+    --surface-2: #1d222c;
+    --border: #2b313d;
+    --text: #e7eaf0;
+    --muted: #9aa3b2;
+    --accent: #7b9cff;
+    --accent-ink: #0f1218;
+    --ok: #5fcf95;
+    --warn: #f0b45a;
+    --danger: #ff7b83;
+    --k-proposal: #7b9cff;
+    --k-reason: #4fd1c5;
+    --k-concern: #f0b45a;
+    --k-tradeoff: #b49cff;
+    --k-decision: #5fcf95;
+    --k-unclassified: #9aa3b2;
+    --k-open: #f58bbd;
+    --k-next: #8fbaf0;
+    --k-action: #b3bdcc;
+    --shadow: none;
+    color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.55 var(--font);
+  overflow-x: hidden;
+}
+h1, h2, h3 { margin: 0; line-height: 1.3; }
+button, select, input, textarea { font: inherit; color: inherit; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--muted); font-weight: 400; }
+[hidden] { display: none !important; }
+
+/* ---------- header ---------- */
+.topbar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 12px;
+  padding: 8px 20px; background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.brand { display: flex; align-items: center; gap: 8px; }
+.logo { font-size: 20px; color: var(--accent); line-height: 1; }
+.brand h1 { font-size: 16px; }
+.brand .sub { font-size: 11px; font-weight: 500; color: var(--muted); margin-left: 4px; }
+.chips { display: flex; flex-wrap: wrap; gap: 5px; list-style: none; margin: 0; padding: 0; }
+.chip {
+  font-size: 11.5px; padding: 1px 9px; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--surface-2); color: var(--muted); white-space: nowrap;
+}
+.chip-state { font-weight: 600; color: var(--text); }
+.chip-state::before { content: "■ "; color: var(--muted); }
+.chip-state[data-state="playing"] { border-color: var(--ok); color: var(--ok); }
+.chip-state[data-state="playing"]::before { content: "● "; color: var(--ok); }
+.chip-state[data-state="paused"]::before { content: "❚❚ "; color: var(--warn); }
+
+.honesty {
+  margin: 0; padding: 5px 20px; font-size: 12px; line-height: 1.5;
+  background: color-mix(in srgb, var(--warn) 10%, var(--surface)); border-bottom: 1px solid var(--border);
+}
+
+/* ---------- layout ---------- */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  grid-template-areas:
+    "controls summary"
+    "current  summary"
+    "lanes    summary"
+    "details  summary";
+  grid-template-rows: auto auto auto 1fr;
+  gap: 12px 16px;
+  max-width: 1520px; margin: 0 auto; padding: 12px 20px 28px;
+  align-items: start;
+}
+.controls { grid-area: controls; }
+.current { grid-area: current; }
+.lanes-card { grid-area: lanes; }
+.details { grid-area: details; }
+.summary {
+  grid-area: summary;
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 10px);
+  max-height: calc(100vh - 20px); overflow: auto; overscroll-behavior: contain;
+}
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 12px 14px; box-shadow: var(--shadow); min-width: 0;
+}
+.sub-h { font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 8px 0 4px; }
+.hint { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
+.hint-inline { font-size: 11px; font-weight: 400; color: var(--muted); }
+
+/* ---------- controls ---------- */
+.controls { padding: 8px 12px; }
+.controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+.controls-title { font-size: 13.5px; margin-right: auto; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 8px;
+  padding: 4px 11px; cursor: pointer; min-height: 32px;
+}
+.btn:hover:not(:disabled) { background: var(--surface-2); }
+.btn:focus-visible, .tab:focus-visible, .topic-chip button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.btn-primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn-primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 88%, black); }
+.btn-ghost { background: transparent; }
+.btn-danger { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 40%, var(--border)); }
+.btn-ok { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 40%, var(--border)); }
+.btn-warn { color: var(--warn); }
+.btn-small { padding: 2px 8px; min-height: 26px; font-size: 12px; }
+.speed { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 4px; }
+.speed select, .manual-row select { border: 1px solid var(--border); border-radius: 8px; padding: 3px 6px; background: var(--surface); }
+.progress-text { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
+.progress { height: 3px; background: var(--surface-2); border-radius: 3px; margin: 6px 0 4px; overflow: hidden; }
+.progress-bar { height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
+.utterance { margin: 0; font-size: 12px; color: var(--muted); display: flex; gap: 8px; min-width: 0; }
+.utterance-label { font-weight: 600; color: var(--text); white-space: nowrap; }
+#utterance { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.control-note {
+  margin: 6px 0 0; font-size: 12px; padding: 4px 8px; border-radius: 6px;
+  color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--surface));
+}
+
+/* ---------- current topic ---------- */
+.current { padding: 12px 16px; border-top: 4px solid var(--accent); }
+.current.is-digression { border-top-color: var(--warn); }
+.current.is-past { border-top-color: var(--muted); background: var(--surface-2); }
+.lanes-card.is-past { background: var(--surface-2); }
+.eyebrow { margin: 0 0 2px; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; color: var(--accent); }
+.current.is-past .eyebrow { color: var(--muted); }
+.current.is-digression .eyebrow { color: var(--warn); }
+.current > .current-title { margin: 0; font-size: clamp(22px, 2.3vw, 30px); font-weight: 700; overflow-wrap: anywhere; }
+.current-meta { margin: 2px 0 0; color: var(--muted); font-size: 12.5px; }
+.past-banner {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 6px 10px; margin-bottom: 8px; border-radius: 8px;
+  background: color-mix(in srgb, var(--warn) 12%, var(--surface)); font-size: 12.5px;
+}
+.topic-chips { list-style: none; display: flex; flex-wrap: wrap; gap: 5px; margin: 8px 0 0; padding: 0; }
+.topic-chips:empty { display: none; }
+.topic-chip button {
+  border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
+  font-size: 12px; padding: 1px 10px; cursor: pointer; max-width: 260px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topic-chip.is-current button { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.topic-chip.is-viewing:not(.is-current) button { border-style: dashed; border-color: var(--muted); }
+.topic-chip.is-digression button { color: var(--warn); }
+
+/* スマホ用のサマリー早見（デスクトップでは右カラムが常に見えるので非表示） */
+.quick { display: none; }
+.quick-btn {
+  border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
+  font-size: 12px; padding: 3px 8px; cursor: pointer; color: var(--text); white-space: nowrap;
+}
+.quick-btn.q-confirmed { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--border)); }
+.quick-btn.q-tentative { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--border)); }
+.quick-btn.q-withdrawn { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--border)); }
+
+/* ---------- lanes ---------- */
+.lanes-card { padding: 10px; }
+.lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.lanes-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8px; }
+.lane { background: var(--surface-2); border-radius: 8px; padding: 8px; border-top: 3px solid var(--border); min-width: 0; }
+.lane h3 { font-size: 12px; margin-bottom: 6px; }
+.lane-proposal { border-top-color: var(--k-proposal); } .lane-proposal h3 { color: var(--k-proposal); }
+.lane-reason { border-top-color: var(--k-reason); } .lane-reason h3 { color: var(--k-reason); }
+.lane-concern { border-top-color: var(--k-concern); } .lane-concern h3 { color: var(--k-concern); }
+.lane-tradeoff { border-top-color: var(--k-tradeoff); } .lane-tradeoff h3 { color: var(--k-tradeoff); }
+.lane-decision { border-top-color: var(--k-decision); } .lane-decision h3 { color: var(--k-decision); }
+.lane-unclassified { border-top-color: var(--k-unclassified); } .lane-unclassified h3 { color: var(--k-unclassified); }
+
+/* ---------- items ---------- */
+.items { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.items:empty::before, .topics:empty::before, .log:empty::before {
+  content: attr(data-empty); color: var(--muted); font-size: 12px;
+}
+.item {
+  position: relative;
+  background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--k-unclassified);
+  border-radius: 8px; padding: 6px 8px; min-width: 0;
+}
+.item.kind-proposal { border-left-color: var(--k-proposal); }
+.item.kind-reason { border-left-color: var(--k-reason); }
+.item.kind-concern { border-left-color: var(--k-concern); }
+.item.kind-tradeoff { border-left-color: var(--k-tradeoff); }
+.item.kind-decision { border-left-color: var(--k-decision); }
+.item.kind-open_question { border-left-color: var(--k-open); }
+.item.kind-next { border-left-color: var(--k-next); }
+.item.kind-action { border-left-color: var(--k-action); }
+.item.kind-unclassified { border-left-style: dashed; }
+.item.status-confirmed { background: color-mix(in srgb, var(--ok) 6%, var(--surface)); }
+.item.status-withdrawn .item-text { text-decoration: line-through; color: var(--muted); }
+.item.status-resolved .item-text, .item.status-done .item-text { color: var(--muted); }
+.item.is-editing { border-color: var(--accent); }
+.item-head { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 2px; }
+.item-text { margin: 0; font-size: 13.5px; line-height: 1.5; overflow-wrap: anywhere; white-space: pre-wrap; }
+.item-sub { margin: 2px 0 0; font-size: 11.5px; color: var(--muted); overflow-wrap: anywhere; }
+.item-origin { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.item-basis {
+  margin: 3px 0 0; font-size: 12px; line-height: 1.45; padding-left: 6px; border-left: 2px solid var(--border);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere;
+}
+.status-confirmed .item-basis { border-left-color: var(--ok); }
+.status-tentative .item-basis, .status-revisit .item-basis { border-left-color: var(--warn); color: var(--warn); }
+.status-withdrawn .item-basis { border-left-color: var(--danger); }
+.item-meta { display: flex; gap: 12px; }
+.unknown { color: var(--warn); font-weight: 600; }
+.item-actions { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
+
+/* マウス操作の環境では操作ボタンをホバー／フォーカス時に重ねて表示し、行の高さを節約する */
+@media (hover: hover) and (pointer: fine) {
+  .item .item-actions {
+    position: absolute; right: 4px; bottom: 4px; margin: 0; padding: 3px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow);
+    opacity: 0;
+  }
+  .item:hover .item-actions, .item:focus-within .item-actions { opacity: 1; }
+}
+
+.badge {
+  display: inline-block; font-size: 10.5px; line-height: 1.55; padding: 0 6px; border-radius: 999px;
+  border: 1px solid var(--border); color: var(--muted); background: var(--surface-2); white-space: nowrap;
+  max-width: 100%; overflow: hidden; text-overflow: ellipsis;
+}
+.badge-status.st-confirmed { color: var(--ok); border-color: currentColor; font-weight: 700; }
+.badge-status.st-tentative { color: var(--warn); border-color: currentColor; }
+.badge-status.st-revisit { color: var(--k-tradeoff); border-color: currentColor; }
+.badge-status.st-withdrawn { color: var(--danger); border-color: currentColor; }
+.badge-warn { color: var(--warn); border-color: currentColor; background: color-mix(in srgb, var(--warn) 10%, var(--surface)); }
+.badge-current { color: var(--accent); border-color: currentColor; font-weight: 700; }
+.badge-kind { color: var(--text); }
+
+.history { margin-top: 3px; font-size: 11.5px; }
+.history summary { cursor: pointer; color: var(--muted); width: fit-content; }
+.history ol { margin: 4px 0 0; padding-left: 0; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.history li { overflow-wrap: anywhere; }
+.history-seq { color: var(--muted); font-variant-numeric: tabular-nums; margin-right: 6px; }
+
+.editor { display: flex; flex-direction: column; gap: 6px; }
+.editor-note { margin: 0; font-size: 11.5px; color: var(--warn); }
+.editor-label { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--muted); }
+.editor-actions { display: flex; gap: 6px; }
+.editor textarea, .editor input, .editor select, .manual-form textarea {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 6px 8px; background: var(--surface); color: var(--text);
+}
+
+/* ---------- summary ---------- */
+.summary { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
+.sum-block > h2 {
+  font-size: 13.5px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
+  padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+.counts { display: inline-flex; gap: 4px; margin-left: auto; }
+.count { font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; border: 1px solid currentColor; }
+.c-confirmed { color: var(--ok); }
+.c-tentative { color: var(--warn); }
+.c-withdrawn { color: var(--danger); }
+.summary .sub-h:first-of-type { margin-top: 2px; }
+.withdrawn { margin-top: 6px; font-size: 12px; }
+.withdrawn > summary { cursor: pointer; color: var(--muted); margin-bottom: 4px; }
+.review-link { margin: 0; }
+
+/* ---------- details tabs ---------- */
+.details { padding: 0; overflow: hidden; }
+.tabs {
+  display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin;
+  border-bottom: 1px solid var(--border); padding: 6px 8px 0; background: var(--surface-2);
+}
+.tab {
+  border: 1px solid transparent; border-bottom: none; background: transparent; border-radius: 8px 8px 0 0;
+  padding: 6px 12px; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap;
+}
+.tab[aria-selected="true"] { background: var(--surface); border-color: var(--border); color: var(--text); font-weight: 600; margin-bottom: -1px; }
+.tab-count { font-size: 11px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.panel { padding: 12px 14px; }
+
+.topics, .log { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.topic {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 8px;
+}
+.topic.is-current { border-color: var(--accent); background: var(--tint); }
+.topic.is-viewing:not(.is-current) { border-style: dashed; }
+.topic-main { display: flex; flex-direction: column; min-width: 0; }
+.topic-title { font-weight: 600; font-size: 13px; overflow-wrap: anywhere; }
+.topic-meta { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; font-size: 12px; }
+.topic-actions { display: flex; gap: 4px; }
+.log { max-height: 340px; overflow: auto; }
+.log-entry { display: grid; grid-template-columns: auto 1fr auto; gap: 6px; font-size: 12.5px; align-items: baseline; }
+.log-text { overflow-wrap: anywhere; }
+.log-entry.is-rejected .log-text { color: var(--warn); }
+
+.manual-form { display: flex; flex-direction: column; gap: 6px; }
+.manual-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); }
+.manual-row label { display: flex; align-items: center; gap: 6px; }
+.manual-form .hint { margin: 0; }
+.feedback { margin: 0; font-size: 12.5px; color: var(--ok); min-height: 1em; overflow-wrap: anywhere; }
+.feedback.is-error { color: var(--danger); }
+
+.routes { list-style: none; margin: 0 0 10px; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.route-head { display: flex; justify-content: space-between; gap: 6px; align-items: baseline; }
+.route-label { font-size: 13px; font-weight: 600; }
+.confirm { margin-top: 10px; padding: 10px; border: 1px solid var(--danger); border-radius: 8px; font-size: 13px; }
+.confirm p { margin: 0 0 8px; }
+
+.footer { text-align: center; color: var(--muted); font-size: 11.5px; padding: 0 16px 20px; }
+
+/* ---------- highlight ---------- */
+.flash-new { animation: flash-new 2.2s ease; }
+.flash { animation: flash-upd 2.2s ease; }
+@keyframes flash-new { from { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); } to { box-shadow: 0 0 0 0 transparent; } }
+@keyframes flash-upd { from { background: color-mix(in srgb, var(--warn) 22%, var(--surface)); } }
+@media (prefers-reduced-motion: reduce) {
+  .flash, .flash-new { animation: none; }
+  .progress-bar { transition: none; }
+}
+
+/* ---------- responsive ---------- */
+@media (max-width: 1180px) {
+  .layout { grid-template-columns: minmax(0, 1fr) 360px; }
+  .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 860px) {
+  /* スマホ・狭い画面：いまの論点 → サマリー（決定・次・アクション）→ 内訳 → 詳細 の順 */
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "controls" "current" "summary" "lanes" "details";
+    grid-template-rows: none;
+    padding: 8px 16px 24px; gap: 8px;
+  }
+  .summary { position: static; max-height: none; overflow: visible; }
+  .topbar { padding: 6px 16px; }
+  .honesty { padding: 4px 16px; font-size: 11.5px; }
+  .chip { font-size: 10.5px; padding: 0 7px; }
+  .controls-title { display: none; }
+  .controls-row { gap: 6px; }
+  .btns { flex: 1 1 100%; }
+  .btns .btn { flex: 1 1 0; padding: 3px 4px; font-size: 12px; }
+  .current { padding: 10px 12px; }
+  .current > .current-title { font-size: 22px; }
+  .quick { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
+  .controls { padding: 6px 8px; }
+  .btns .btn { white-space: nowrap; min-height: 30px; }
+  .progress { margin: 4px 0 2px; }
+  .summary { scroll-margin-top: 8px; }
+  .sum-block > h2 { scroll-margin-top: 8px; }
+  /* 空のレーンは1行に縮める */
+  .lane:has(> .items:empty) { display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; }
+  .lane:has(> .items:empty) h3 { margin: 0; }
+}
+@media (max-width: 560px) {
+  .lanes, .lanes-2 { grid-template-columns: minmax(0, 1fr); }
+  .speed { margin-left: auto; }
+}
+</style>
+<div id="mc-build" data-build="artifact" hidden></div>
+<header class="topbar">
+    <div class="brand">
+      <span class="logo" aria-hidden="true">◎</span>
+      <h1>Meeting Compass <span class="sub">プロトタイプ</span></h1>
+    </div>
+    <ul class="chips" aria-label="現在の状態">
+      <li class="chip chip-state" id="chip-state" data-state="idle">停止中（未開始）</li>
+      <li class="chip">保存: メモリのみ</li>
+      <li class="chip">外部送信: なし</li>
+      <li class="chip chip-off">音声: 未接続</li>
+    </ul>
+  </header>
+
+  <p class="honesty" role="note" id="honesty">
+    <strong>表示の由来：</strong>架空会議の<strong>台本デモ</strong>と、<strong>キーワード規則</strong>による手入力の簡易分類です。AIによる理解・音声認識・話者識別は<strong>していません</strong>。
+  </p>
+
+  <main class="layout">
+    <section class="card controls" aria-label="デモ再生">
+      <div class="controls-row">
+        <h2 class="controls-title">デモ <span class="muted">架空の台本</span></h2>
+        <div class="btns" role="group" aria-label="デモ操作">
+          <button type="button" class="btn btn-primary" data-action="play" id="btn-play">▶ 再生</button>
+          <button type="button" class="btn" data-action="pause" id="btn-pause">❚❚ 一時停止</button>
+          <button type="button" class="btn" data-action="step" id="btn-step">一歩進める</button>
+          <button type="button" class="btn btn-ghost" data-action="reset" id="btn-reset" title="デモと手入力の内容をすべて破棄して最初に戻します">リセット</button>
+        </div>
+        <label class="speed">速さ
+          <select id="speed">
+            <option value="3600">ゆっくり</option>
+            <option value="2200" selected>標準</option>
+            <option value="900">速い</option>
+          </select>
+        </label>
+        <span class="progress-text" id="progress-text">0 / 0</span>
+      </div>
+      <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+      <p class="utterance"><span class="utterance-label">台本の発言（参考）</span><span id="utterance">再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。</span></p>
+      <p class="control-note" id="control-note" role="status" hidden></p>
+    </section>
+
+    <section class="card current" aria-labelledby="current-title" id="current">
+      <div class="past-banner" id="past-banner" hidden>
+        <span>過去の論点を表示中（会議の現在の論点ではありません）</span>
+        <button type="button" class="btn btn-small" data-action="view-current">現在の論点に戻る</button>
+      </div>
+      <p class="eyebrow" id="current-eyebrow">いまの論点</p>
+      <h2 class="current-title" id="current-title">まだ論点はありません</h2>
+      <p class="current-meta" id="current-meta">デモを再生するか、下の「手入力」で「議題: ○○」と入力してください。</p>
+      <ol class="topic-chips" id="topic-chips" aria-label="これまでの論点（押すと参照）"></ol>
+      <nav class="quick" id="quick-summary" aria-label="サマリー早見（押すと移動）">
+        <button type="button" class="quick-btn q-confirmed" data-action="jump" data-target="sum-decisions-title" id="quick-confirmed">確定 0</button>
+        <button type="button" class="quick-btn q-tentative" data-action="jump" data-target="sum-decisions-title" id="quick-tentative">仮案 0</button>
+        <button type="button" class="quick-btn q-withdrawn" data-action="jump" data-target="withdrawn-details" id="quick-withdrawn">撤回 0</button>
+        <button type="button" class="quick-btn" data-action="jump" data-target="sum-next-title" id="quick-next">次に決める 0</button>
+        <button type="button" class="quick-btn" data-action="jump" data-target="sum-actions-title" id="quick-actions">アクション 0</button>
+        <button type="button" class="quick-btn" data-action="jump" data-target="sum-open-title" id="quick-open">未解決 0</button>
+      </nav>
+    </section>
+
+    <section class="card lanes-card" aria-label="現在の論点の内訳" id="lanes">
+      <div class="lanes">
+        <div class="lane lane-proposal"><h3>提案</h3><ul class="items" id="list-proposal" data-empty="まだありません"></ul></div>
+        <div class="lane lane-reason"><h3>理由</h3><ul class="items" id="list-reason" data-empty="まだありません"></ul></div>
+        <div class="lane lane-concern"><h3>懸念</h3><ul class="items" id="list-concern" data-empty="まだありません"></ul></div>
+        <div class="lane lane-tradeoff"><h3>トレードオフ</h3><ul class="items" id="list-tradeoff" data-empty="まだありません"></ul></div>
+      </div>
+      <div class="lanes lanes-2">
+        <div class="lane lane-decision"><h3>この論点の決定・仮案</h3><ul class="items" id="list-topic-decision" data-empty="まだありません"></ul></div>
+        <div class="lane lane-unclassified"><h3>この論点の未分類（要確認）</h3><ul class="items" id="list-topic-unclassified" data-empty="ありません"></ul></div>
+      </div>
+    </section>
+
+    <aside class="card summary" aria-label="会議のサマリー" id="summary">
+      <section class="sum-block" aria-labelledby="sum-decisions-title">
+        <h2 id="sum-decisions-title">決定と仮案
+          <span class="counts"><span class="count c-confirmed" id="count-confirmed">確定 0</span><span class="count c-tentative" id="count-tentative">仮案 0</span><span class="count c-withdrawn" id="count-withdrawn">撤回 0</span></span>
+        </h2>
+        <h3 class="sub-h">確定 <span class="hint-inline">明示的な合意確認かユーザー操作のみ</span></h3>
+        <ul class="items compact" id="list-confirmed" data-empty="まだありません"></ul>
+        <h3 class="sub-h">仮案・再検討中</h3>
+        <ul class="items compact" id="list-tentative" data-empty="ありません"></ul>
+        <details class="withdrawn" id="withdrawn-details">
+          <summary>撤回済み <span id="withdrawn-count">0</span>件（理由を保持）</summary>
+          <ul class="items compact" id="list-withdrawn" data-empty="ありません"></ul>
+        </details>
+      </section>
+      <section class="sum-block" aria-labelledby="sum-next-title" id="sum-next">
+        <h2 id="sum-next-title">次に決めること</h2>
+        <ul class="items compact" id="list-next" data-empty="ありません"></ul>
+      </section>
+      <section class="sum-block" aria-labelledby="sum-actions-title" id="sum-actions">
+        <h2 id="sum-actions-title">あなたのアクション <span class="hint-inline">担当・期限は明示時のみ。不明は不明のまま</span></h2>
+        <ul class="items compact" id="list-actions" data-empty="ありません"></ul>
+      </section>
+      <section class="sum-block" aria-labelledby="sum-open-title" id="sum-open">
+        <h2 id="sum-open-title">未解決</h2>
+        <ul class="items compact" id="list-open" data-empty="ありません"></ul>
+      </section>
+      <p class="review-link" id="review-link" hidden>
+        <button type="button" class="btn btn-small btn-warn" data-action="tab" data-tab="review" id="review-link-btn">要確認（未分類） 0件を見る</button>
+      </p>
+    </aside>
+
+    <section class="card details" aria-label="入力と詳細" id="details">
+      <div class="tabs" role="tablist" aria-label="入力と詳細">
+        <button type="button" role="tab" class="tab" id="tab-manual" data-action="tab" data-tab="manual" aria-controls="panel-manual" aria-selected="true">手入力</button>
+        <button type="button" role="tab" class="tab" id="tab-review" data-action="tab" data-tab="review" aria-controls="panel-review" aria-selected="false">要確認 <span class="tab-count" id="tabcount-review">0</span></button>
+        <button type="button" role="tab" class="tab" id="tab-topics" data-action="tab" data-tab="topics" aria-controls="panel-topics" aria-selected="false">論点の履歴 <span class="tab-count" id="tabcount-topics">0</span></button>
+        <button type="button" role="tab" class="tab" id="tab-log" data-action="tab" data-tab="log" aria-controls="panel-log" aria-selected="false">変更履歴 <span class="tab-count" id="tabcount-log">0</span></button>
+        <button type="button" role="tab" class="tab" id="tab-audio" data-action="tab" data-tab="audio" aria-controls="panel-audio" aria-selected="false">音声（未接続）</button>
+        <button type="button" role="tab" class="tab" id="tab-data" data-action="tab" data-tab="data" aria-controls="panel-data" aria-selected="false">データ</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-manual" aria-labelledby="tab-manual">
+        <form id="manual-form" class="manual-form" novalidate>
+          <label class="sr-only" for="manual-text">内容</label>
+          <textarea id="manual-text" name="text" rows="2" maxlength="500" placeholder="例）懸念: 移行コストが読めない ／ 議題: 来期の採用計画" autocomplete="off"></textarea>
+          <div class="manual-row">
+            <label>種類
+              <select id="manual-kind" name="kind">
+                <option value="auto" selected>自動（キーワード規則）</option>
+                <option value="topic">新しい論点</option>
+                <option value="proposal">提案</option>
+                <option value="reason">理由</option>
+                <option value="concern">懸念</option>
+                <option value="tradeoff">トレードオフ</option>
+                <option value="decision">決定・仮案（仮案で追加）</option>
+                <option value="open_question">未解決</option>
+                <option value="next">次に決めること</option>
+                <option value="action">アクション</option>
+                <option value="unclassified">未分類（要確認）</option>
+              </select>
+            </label>
+            <button type="submit" class="btn btn-primary" id="manual-submit">追加</button>
+          </div>
+          <p class="hint">「議題: ○○」で新しい論点。自動判定はキーワード規則だけで、決定らしい語があっても<strong>仮案</strong>。担当・期限は「担当: Bさん」「期限: 10/20」と明記された場合だけ拾います。</p>
+          <p class="feedback" id="manual-feedback" role="status"></p>
+        </form>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review" hidden>
+        <p class="hint">自動では分類できなかった項目です。内容を確認して種類を選んでください。</p>
+        <ul class="items" id="list-review" data-empty="ありません"></ul>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-topics" aria-labelledby="tab-topics" hidden>
+        <ol class="topics" id="list-topics" data-empty="まだありません"></ol>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-log" aria-labelledby="tab-log" hidden>
+        <p class="hint">訂正・撤回・再検討・確定の見送りも上書きせず残します（新しい順）。</p>
+        <ol class="log" id="list-log" data-empty="まだありません"></ol>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-audio" aria-labelledby="tab-audio" hidden>
+        <p class="hint">このプロトタイプはマイク・画面共有の許可を要求せず、外部の文字起こし・AIにも接続しません。サーバー側にはベンダー非依存の共通基盤（開始条件・上限・検証・停止処理）だけがあり、実接続のアダプタは未実装です。</p>
+        <ul class="routes" id="list-routes"></ul>
+        <button type="button" class="btn" disabled>音声を接続（未実装）</button>
+      </div>
+
+      <div class="panel" role="tabpanel" id="panel-data" aria-labelledby="tab-data" hidden>
+        <p class="hint" id="data-hint">内容はこのタブのメモリ上だけにあり、再読み込みや「消去」で失われます。書き出しはボタンを押したときだけ、この端末にファイルを保存します。</p>
+        <div class="btns">
+          <button type="button" class="btn" data-action="export-json" id="btn-export-json">JSONを書き出す</button>
+          <button type="button" class="btn" data-action="export-md" id="btn-export-md">Markdownを書き出す</button>
+          <button type="button" class="btn btn-danger" data-action="clear-ask" id="btn-clear">すべて消去</button>
+        </div>
+        <div class="confirm" id="clear-confirm" hidden>
+          <p>画面上の論点・項目・履歴をすべて破棄します。元に戻せません。</p>
+          <button type="button" class="btn btn-danger" data-action="clear-yes">消去する</button>
+          <button type="button" class="btn" data-action="clear-no">やめる</button>
+        </div>
+        <p class="feedback" id="data-feedback" role="status"></p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer" id="footer-note">
+    Meeting Compass プロトタイプ ・ 架空のデモデータのみ ・ ネットワーク送信なし（CSP で外部接続を禁止）
+  </footer>
+  <div class="sr-only" aria-live="polite" id="live"></div>
+<script>
+(() => {
+  // web/js/core/model.js
+  var KIND_LABELS = (
+    /** @type {const} */
+    {
+      proposal: "提案",
+      reason: "理由",
+      concern: "懸念",
+      tradeoff: "トレードオフ",
+      decision: "決定・仮案",
+      open_question: "未解決",
+      next: "次に決めること",
+      action: "アクション",
+      unclassified: "未分類（要確認）"
+    }
+  );
+  var STATUS_LABELS = (
+    /** @type {const} */
+    {
+      tentative: "仮案",
+      confirmed: "確定",
+      withdrawn: "撤回",
+      revisit: "再検討中",
+      open: "未解決",
+      resolved: "解決済み",
+      done: "完了",
+      active: "有効"
+    }
+  );
+  var ORIGIN_LABELS = (
+    /** @type {const} */
+    {
+      fixture: "デモ台本",
+      rule: "ルール判定",
+      user: "ユーザー入力",
+      model: "自動抽出（要確認）"
+    }
+  );
+  var MAX_TEXT_LENGTH = 500;
+  var ACCEPTED_EVIDENCE = Object.freeze(["explicit_agreement", "user"]);
+  var KINDS = Object.keys(KIND_LABELS);
+  function initialStatus(kind) {
+    switch (kind) {
+      case "decision":
+        return "tentative";
+      case "open_question":
+      case "next":
+      case "action":
+        return "open";
+      default:
+        return "active";
+    }
+  }
+  function createState() {
+    return {
+      seq: 0,
+      topics: [],
+      items: [],
+      currentTopicId: null,
+      seenEventIds: {},
+      log: []
+    };
+  }
+  function normalizeText(value) {
+    if (typeof value !== "string") return "";
+    return value.replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, "").trim();
+  }
+  function findTopic(state, id) {
+    return state.topics.find((t) => t.id === id) || null;
+  }
+  function findItem(state, id) {
+    return state.items.find((i) => i.id === id) || null;
+  }
+  var EventError = class extends Error {
+  };
+  function fail(msg) {
+    throw new EventError(msg);
+  }
+  function requireText(raw) {
+    const text = normalizeText(raw);
+    if (!text) fail("本文が空です");
+    if (text.length > MAX_TEXT_LENGTH) fail(`本文が長すぎます（${MAX_TEXT_LENGTH}文字まで）`);
+    return text;
+  }
+  function requireItem(state, id) {
+    const item = findItem(state, id);
+    if (!item) fail(`項目 ${id} が見つかりません`);
+    return item;
+  }
+  function requireDecision(state, id) {
+    const item = requireItem(state, id);
+    if (item.kind !== "decision") fail(`項目 ${id} は決定・仮案ではありません`);
+    return item;
+  }
+  function pushHistory(item, seq, entry) {
+    item.history.push({ seq, ...entry });
+    item.rev += 1;
+    item.updatedSeq = seq;
+  }
+  function setStatus(item, seq, status, change, by, reason) {
+    const from = item.status;
+    item.status = status;
+    pushHistory(item, seq, { change, from, to: status, by, reason: reason || null });
+  }
+  function applyEvent(prev, event) {
+    if (!event || typeof event.id !== "string" || !event.id) {
+      return { state: prev, ok: false, message: "イベントIDがありません", changedIds: [] };
+    }
+    if (prev.seenEventIds[event.id]) {
+      return { state: prev, ok: false, duplicate: true, message: `イベント ${event.id} は適用済みです`, changedIds: [] };
+    }
+    const state = structuredClone(prev);
+    const seq = state.seq + 1;
+    const by = event.by || "user";
+    const changedIds = [];
+    let summary = "";
+    let rejected = false;
+    try {
+      switch (event.type) {
+        case "topic.open": {
+          if (!event.topicId) fail("論点IDがありません");
+          if (findTopic(state, event.topicId)) fail(`論点 ${event.topicId} は既にあります`);
+          const title = requireText(event.title);
+          state.topics.push({
+            id: event.topicId,
+            title,
+            digression: !!event.digression,
+            origin: by,
+            openedSeq: seq,
+            lastActiveSeq: seq,
+            visits: 1
+          });
+          state.currentTopicId = event.topicId;
+          changedIds.push(event.topicId);
+          summary = `${event.digression ? "脱線" : "論点"}「${title}」に移りました`;
+          break;
+        }
+        case "topic.switch": {
+          const topic = findTopic(state, event.topicId);
+          if (!topic) fail(`論点 ${event.topicId} が見つかりません`);
+          if (state.currentTopicId === topic.id) fail("既に現在の論点です");
+          state.currentTopicId = topic.id;
+          topic.lastActiveSeq = seq;
+          topic.visits += 1;
+          changedIds.push(topic.id);
+          summary = `論点「${topic.title}」に戻りました`;
+          break;
+        }
+        case "topic.rename": {
+          const topic = findTopic(state, event.topicId);
+          if (!topic) fail(`論点 ${event.topicId} が見つかりません`);
+          const title = requireText(event.title);
+          summary = `論点名を「${topic.title}」→「${title}」に訂正`;
+          topic.title = title;
+          changedIds.push(topic.id);
+          break;
+        }
+        case "item.add": {
+          const src = event.item || {};
+          if (!src.id) fail("項目IDがありません");
+          if (findItem(state, src.id)) fail(`項目 ${src.id} は既にあります`);
+          if (!KINDS.includes(src.kind)) fail(`未知の種類です: ${String(src.kind)}`);
+          const topicId = src.topicId || state.currentTopicId;
+          if (!topicId || !findTopic(state, topicId)) fail("論点が未設定です");
+          const text = requireText(src.text);
+          let status = initialStatus(src.kind);
+          let consensus = null;
+          if (src.kind === "decision") {
+            if (src.status === "confirmed" && isAcceptedEvidence(src.evidence)) {
+              status = "confirmed";
+              consensus = { ...src.evidence };
+            } else if (src.status === "confirmed") {
+              consensus = { kind: "unverified", note: "合意の根拠が示されていないため仮案として記録" };
+            }
+          }
+          const item = {
+            id: src.id,
+            kind: src.kind,
+            topicId,
+            text,
+            status,
+            parentId: src.parentId || null,
+            owner: src.kind === "action" ? normalizeText(src.owner) || null : null,
+            due: src.kind === "action" ? normalizeText(src.due) || null : null,
+            origin: by,
+            ruleNote: src.ruleNote || null,
+            needsReview: src.kind === "unclassified" || !!src.needsReview,
+            consensus,
+            createdSeq: seq,
+            updatedSeq: seq,
+            rev: 1,
+            history: [{ seq, change: "追加", from: null, to: status, by, reason: src.note || null }]
+          };
+          state.items.push(item);
+          const topic = findTopic(state, topicId);
+          if (topic) topic.lastActiveSeq = seq;
+          changedIds.push(item.id);
+          summary = `${KIND_LABELS[item.kind]}を追加: ${clip(text)}`;
+          break;
+        }
+        case "item.correct": {
+          const item = requireItem(state, event.itemId);
+          const text = requireText(event.text);
+          if (text === item.text) fail("訂正前と同じ内容です");
+          const from = item.text;
+          item.text = text;
+          pushHistory(item, seq, { change: "訂正", from, to: text, by, reason: event.reason || null });
+          changedIds.push(item.id);
+          summary = `${KIND_LABELS[item.kind]}を訂正: ${clip(text)}`;
+          break;
+        }
+        case "item.reclassify": {
+          const item = requireItem(state, event.itemId);
+          if (!KINDS.includes(event.kind)) fail(`未知の種類です: ${String(event.kind)}`);
+          if (event.kind === item.kind) fail("種類が変わっていません");
+          const fromKind = item.kind;
+          item.kind = event.kind;
+          item.status = initialStatus(event.kind);
+          item.needsReview = event.kind === "unclassified";
+          if (event.kind !== "action") {
+            item.owner = null;
+            item.due = null;
+          }
+          if (event.kind !== "decision") item.consensus = null;
+          pushHistory(item, seq, {
+            change: "種類を変更",
+            from: KIND_LABELS[fromKind],
+            to: KIND_LABELS[event.kind],
+            by,
+            reason: event.reason || null
+          });
+          changedIds.push(item.id);
+          summary = `種類を変更: ${KIND_LABELS[fromKind]} → ${KIND_LABELS[event.kind]}`;
+          break;
+        }
+        case "decision.confirm": {
+          const item = requireDecision(state, event.itemId);
+          if (item.status === "confirmed") fail("既に確定しています");
+          if (!isAcceptedEvidence(event.evidence)) {
+            rejected = true;
+            const note = event.evidence && event.evidence.note ? `（示された根拠: ${normalizeText(event.evidence.note)}）` : "";
+            item.consensus = { kind: "unverified", note: `明示的な合意確認がないため確定にしていません${note}` };
+            pushHistory(item, seq, {
+              change: "確定を見送り",
+              from: item.status,
+              to: item.status,
+              by,
+              reason: item.consensus.note
+            });
+            changedIds.push(item.id);
+            summary = `確定を見送り（合意根拠なし）: ${clip(item.text)}`;
+            break;
+          }
+          item.consensus = { kind: event.evidence.kind, note: normalizeText(event.evidence.note) || null };
+          setStatus(item, seq, "confirmed", "確定", by, item.consensus.note);
+          changedIds.push(item.id);
+          summary = `決定を確定: ${clip(item.text)}`;
+          break;
+        }
+        case "decision.tentative": {
+          const item = requireDecision(state, event.itemId);
+          if (item.status === "tentative") fail("既に仮案です");
+          setStatus(item, seq, "tentative", "仮案に戻す", by, event.reason);
+          item.consensus = null;
+          changedIds.push(item.id);
+          summary = `仮案に戻しました: ${clip(item.text)}`;
+          break;
+        }
+        case "decision.withdraw": {
+          const item = requireDecision(state, event.itemId);
+          if (item.status === "withdrawn") fail("既に撤回済みです");
+          setStatus(item, seq, "withdrawn", "撤回", by, event.reason);
+          changedIds.push(item.id);
+          summary = `決定・仮案を撤回: ${clip(item.text)}`;
+          break;
+        }
+        case "decision.revisit": {
+          const item = requireDecision(state, event.itemId);
+          if (item.status === "revisit") fail("既に再検討中です");
+          setStatus(item, seq, "revisit", "再検討", by, event.reason);
+          changedIds.push(item.id);
+          summary = `再検討に戻しました: ${clip(item.text)}`;
+          break;
+        }
+        case "item.resolve": {
+          const item = requireItem(state, event.itemId);
+          if (!["open_question", "next", "action"].includes(item.kind)) fail("この種類は解決・完了にできません");
+          const to = item.kind === "action" ? "done" : "resolved";
+          if (item.status === to) fail("既に解決・完了しています");
+          setStatus(item, seq, to, item.kind === "action" ? "完了" : "解決", by, event.reason);
+          changedIds.push(item.id);
+          summary = `${STATUS_LABELS[to]}にしました: ${clip(item.text)}`;
+          break;
+        }
+        case "item.reopen": {
+          const item = requireItem(state, event.itemId);
+          if (!["resolved", "done"].includes(item.status)) fail("解決・完了していません");
+          setStatus(item, seq, "open", "再オープン", by, event.reason);
+          changedIds.push(item.id);
+          summary = `再オープン: ${clip(item.text)}`;
+          break;
+        }
+        case "action.update": {
+          const item = requireItem(state, event.itemId);
+          if (item.kind !== "action") fail("アクションではありません");
+          const owner = normalizeText(event.owner) || null;
+          const due = normalizeText(event.due) || null;
+          if (owner === item.owner && due === item.due) fail("担当・期限が変わっていません");
+          const from = `担当: ${item.owner || "不明"} / 期限: ${item.due || "不明"}`;
+          item.owner = owner;
+          item.due = due;
+          const to = `担当: ${owner || "不明"} / 期限: ${due || "不明"}`;
+          pushHistory(item, seq, { change: "担当・期限を変更", from, to, by, reason: null });
+          changedIds.push(item.id);
+          summary = `アクションの${to}`;
+          break;
+        }
+        default:
+          fail(`未知のイベント種別です: ${String(event.type)}`);
+      }
+    } catch (err) {
+      if (err instanceof EventError) {
+        return { state: prev, ok: false, message: err.message, changedIds: [] };
+      }
+      throw err;
+    }
+    state.seq = seq;
+    state.seenEventIds[event.id] = true;
+    state.log.push({
+      seq,
+      eventId: event.id,
+      type: event.type,
+      by,
+      topicId: state.currentTopicId,
+      summary,
+      rejected
+    });
+    return { state, ok: true, rejected, changedIds };
+  }
+  function isAcceptedEvidence(evidence) {
+    return !!evidence && ACCEPTED_EVIDENCE.includes(evidence.kind);
+  }
+  function clip(text, n = 40) {
+    return text.length > n ? `${text.slice(0, n)}…` : text;
+  }
+  function selectView(state, viewTopicId) {
+    const current = findTopic(state, state.currentTopicId);
+    const shown = viewTopicId && findTopic(state, viewTopicId) || current;
+    const inTopic = (id) => state.items.filter((i) => i.topicId === id);
+    const byKind = (items, kind) => items.filter((i) => i.kind === kind);
+    const shownItems = shown ? inTopic(shown.id) : [];
+    const decisions = byKind(state.items, "decision");
+    return {
+      current,
+      shown,
+      isViewingPast: !!shown && !!current && shown.id !== current.id,
+      topicItems: {
+        proposal: byKind(shownItems, "proposal"),
+        reason: byKind(shownItems, "reason"),
+        concern: byKind(shownItems, "concern"),
+        tradeoff: byKind(shownItems, "tradeoff"),
+        decision: byKind(shownItems, "decision"),
+        unclassified: byKind(shownItems, "unclassified")
+      },
+      decisions: {
+        confirmed: decisions.filter((d) => d.status === "confirmed"),
+        tentative: decisions.filter((d) => d.status === "tentative" || d.status === "revisit"),
+        withdrawn: decisions.filter((d) => d.status === "withdrawn")
+      },
+      openQuestions: state.items.filter((i) => i.kind === "open_question" && i.status === "open"),
+      nextItems: state.items.filter((i) => i.kind === "next" && i.status === "open"),
+      actions: byKind(state.items, "action"),
+      needsReview: state.items.filter((i) => i.needsReview),
+      topics: state.topics.map((t) => ({ ...t, itemCount: inTopic(t.id).length, isCurrent: t.id === state.currentTopicId })),
+      log: state.log
+    };
+  }
+
+  // web/js/core/session.js
+  function createSession() {
+    let state = createState();
+    let counter = 0;
+    const listeners = /* @__PURE__ */ new Set();
+    const notify = (result) => {
+      for (const fn of listeners) fn(state, result);
+    };
+    return {
+      getState: () => state,
+      /** 呼び出し側が付けたイベントIDのまま適用する（重複は無視される）。 */
+      dispatch(event) {
+        const result = applyEvent(state, event);
+        state = result.state;
+        notify(result);
+        return result;
+      },
+      /** 手入力・ユーザー操作用の、セッション内で決定的に増える ID。 */
+      nextId(prefix) {
+        counter += 1;
+        return `${prefix}-${String(counter).padStart(3, "0")}`;
+      },
+      /** 内容をすべて破棄して初期状態に戻す。 */
+      clear() {
+        state = createState();
+        counter = 0;
+        notify({ ok: true, cleared: true, changedIds: [] });
+      },
+      subscribe(fn) {
+        listeners.add(fn);
+        return () => listeners.delete(fn);
+      }
+    };
+  }
+
+  // web/js/core/player.js
+  var PLAYER_STATUS_LABELS = (
+    /** @type {const} */
+    {
+      idle: "停止中（未開始）",
+      playing: "再生中",
+      paused: "一時停止中",
+      ended: "再生終了（停止中）"
+    }
+  );
+  var defaultScheduler = {
+    set: (fn, ms) => setTimeout(fn, ms),
+    clear: (handle) => clearTimeout(handle)
+  };
+  function createPlayer({ steps, onStep, onStatus = () => {
+  }, intervalMs = 2200, scheduler = defaultScheduler }) {
+    let cursor = 0;
+    let status = "idle";
+    let handle = null;
+    let interval = intervalMs;
+    const is = (s) => status === s;
+    const setStatus2 = (s) => {
+      if (s !== status) {
+        status = s;
+        onStatus(status);
+      }
+    };
+    const cancel = () => {
+      if (handle !== null) scheduler.clear(handle);
+      handle = null;
+    };
+    const advance = () => {
+      if (cursor >= steps.length) {
+        cancel();
+        setStatus2("ended");
+        return false;
+      }
+      const index = cursor;
+      cursor += 1;
+      onStep(steps[index], index);
+      if (cursor >= steps.length) {
+        cancel();
+        setStatus2("ended");
+      }
+      return true;
+    };
+    const tick = () => {
+      handle = null;
+      if (status !== "playing") return;
+      advance();
+      if (is("playing")) handle = scheduler.set(tick, interval);
+    };
+    return {
+      play() {
+        if (status === "playing" || status === "ended") return;
+        setStatus2("playing");
+        advance();
+        if (is("playing")) handle = scheduler.set(tick, interval);
+      },
+      pause() {
+        if (status !== "playing") return;
+        cancel();
+        setStatus2("paused");
+      },
+      step() {
+        if (status === "ended") return false;
+        cancel();
+        const moved = advance();
+        if (!is("ended")) setStatus2("paused");
+        return moved;
+      },
+      reset() {
+        cancel();
+        cursor = 0;
+        setStatus2("idle");
+      },
+      setInterval(ms) {
+        interval = ms;
+      },
+      get status() {
+        return status;
+      },
+      get cursor() {
+        return cursor;
+      },
+      get total() {
+        return steps.length;
+      }
+    };
+  }
+
+  // web/js/core/export.js
+  var EXPORT_NOTICE = "Meeting Compass プロトタイプの書き出し。デモ台本・キーワード規則・ユーザー入力に由来し、AIによる会議理解の結果ではありません。";
+  function toJSON(state, exportedAt) {
+    return JSON.stringify({
+      app: "meeting-compass",
+      format: 1,
+      exportedAt,
+      notice: EXPORT_NOTICE,
+      currentTopicId: state.currentTopicId,
+      topics: state.topics,
+      items: state.items,
+      log: state.log
+    }, null, 2);
+  }
+  function escapeMarkdownText(text) {
+    return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/([\\`*_[\]#|])/g, "\\$1").replace(/\r?\n/g, " ");
+  }
+  function toMarkdown(state, exportedAt) {
+    const e = escapeMarkdownText;
+    const lines = [`# 会議の構造メモ`, "", `> ${EXPORT_NOTICE}`, `> 書き出し: ${exportedAt}`, ""];
+    for (const topic of state.topics) {
+      const cur = topic.id === state.currentTopicId ? "（最後の論点）" : "";
+      lines.push(`## ${e(topic.title)}${topic.digression ? "（脱線）" : ""}${cur}`, "");
+      const items = state.items.filter((i) => i.topicId === topic.id);
+      if (!items.length) lines.push("- （項目なし）");
+      for (const i of items) {
+        const meta = [STATUS_LABELS[i.status], ORIGIN_LABELS[i.origin]];
+        if (i.kind === "action") meta.push(`担当: ${e(i.owner || "不明")}`, `期限: ${e(i.due || "不明")}`);
+        if (i.consensus?.kind === "unverified") meta.push("合意未確認");
+        lines.push(`- **${KIND_LABELS[i.kind]}** ${e(i.text)}（${meta.join(" / ")}）`);
+        for (const h2 of i.history.slice(1)) {
+          lines.push(`  - 履歴#${h2.seq} ${h2.change}${h2.reason ? `: ${e(h2.reason)}` : ""}`);
+        }
+      }
+      lines.push("");
+    }
+    return lines.join("\n");
+  }
+
+  // web/js/core/demo-script.js
+  var F = "fixture";
+  var DEMO_STEPS = [
+    {
+      id: "s01",
+      utterance: "議長「今日はまず、週次定例のやり方から話しましょう」",
+      events: [{ id: "d-e01", type: "topic.open", topicId: "t-format", title: "週次定例の開催形式", by: F }]
+    },
+    {
+      id: "s02",
+      utterance: "Aさん「定例を全部オンラインにしてはどうでしょう」",
+      events: [{ id: "d-e02", type: "item.add", by: F, item: { id: "p-online", kind: "proposal", text: "週次定例を全面オンラインに切り替える" } }]
+    },
+    {
+      id: "s03",
+      utterance: "Aさん「移動だけで、チーム全体で週3時間くらい使っているので」",
+      events: [{ id: "d-e03", type: "item.add", by: F, item: { id: "r-travel", kind: "reason", parentId: "p-online", text: "会議室への移動にチーム全体で週あたり約3時間かかっている（参加者の自己申告）" } }]
+    },
+    {
+      id: "s04",
+      utterance: "Bさん「ただ、オンラインだと新しい人が雑談で相談しにくくなりそうで心配です」",
+      events: [{ id: "d-e04", type: "item.add", by: F, item: { id: "c-newcomer", kind: "concern", parentId: "p-online", text: "オンラインだと雑談が減り、新メンバーが相談しにくくなる" } }]
+    },
+    {
+      id: "s05",
+      utterance: "Cさん「じゃあ月1回だけ対面にして、残りはオンラインは？」",
+      events: [
+        { id: "d-e05", type: "item.add", by: F, item: { id: "p-hybrid", kind: "proposal", text: "月1回だけ対面、残りはオンラインのハイブリッドにする" } },
+        { id: "d-e06", type: "item.add", by: F, item: { id: "x-room", kind: "tradeoff", parentId: "p-hybrid", text: "対面回は会議室予約の手間が残るが、関係づくりの機会は確保できる" } }
+      ]
+    },
+    {
+      id: "s06",
+      utterance: "Aさん「いいですね、じゃあハイブリッドでいきましょうか」（他の参加者の明確な同意はまだ無い）",
+      events: [{ id: "d-e07", type: "item.add", by: F, item: { id: "d-hybrid", kind: "decision", text: "ハイブリッド（月1回対面）で来月から試行する", note: "1名の発言のみ。全員の合意確認はまだ" } }]
+    },
+    {
+      id: "s07",
+      utterance: "Bさん「対面の回を第何週にするかは決めないとですね」",
+      events: [{ id: "d-e08", type: "item.add", by: F, item: { id: "q-week", kind: "open_question", text: "対面の回を毎月第何週にするか" } }]
+    },
+    {
+      id: "s08",
+      utterance: "議長「次、共有ドライブの整理について」",
+      events: [{ id: "d-e09", type: "topic.open", topicId: "t-drive", title: "共有ドライブのフォルダ整理", by: F }]
+    },
+    {
+      id: "s09",
+      utterance: "Cさん「プロジェクトごとのフォルダ構成に揃えたいです」",
+      events: [{ id: "d-e10", type: "item.add", by: F, item: { id: "p-folders", kind: "proposal", text: "プロジェクト単位のフォルダ構成に統一する" } }]
+    },
+    {
+      id: "s10",
+      utterance: "Bさん「移すと過去資料のリンクが切れるリスクがありますね」",
+      events: [{ id: "d-e11", type: "item.add", by: F, item: { id: "c-links", kind: "concern", parentId: "p-folders", text: "移行で過去資料への共有リンクが切れる可能性がある" } }]
+    },
+    {
+      id: "s11",
+      utterance: "議長「まず今のフォルダ一覧を誰かが作る必要がありますね」（担当・期限は決まっていない）",
+      events: [{ id: "d-e12", type: "item.add", by: F, item: { id: "a-inventory", kind: "action", text: "現行フォルダの一覧を作る", owner: null, due: null } }]
+    },
+    {
+      id: "s12",
+      utterance: "Bさん「そういえば休憩室のコーヒー、豆を変えてから評判いいですよね」",
+      events: [{ id: "d-e13", type: "topic.open", topicId: "t-coffee", title: "休憩室のコーヒーの話（脱線）", digression: true, by: F }]
+    },
+    {
+      id: "s13",
+      utterance: "Cさん「あれ、どこで買ってるんでしたっけ」",
+      events: [{ id: "d-e14", type: "item.add", by: F, item: { id: "u-beans", kind: "unclassified", text: "コーヒー豆の購入先についての雑談（会議の論点か判別できないため要確認）" } }]
+    },
+    {
+      id: "s14",
+      utterance: "議長「話を戻して、定例の件でもう一点」",
+      events: [{ id: "d-e15", type: "topic.switch", topicId: "t-format", by: F }]
+    },
+    {
+      id: "s15",
+      utterance: "Bさん「月1対面だと、在宅の人の交通費精算が毎月発生しますよね」",
+      events: [
+        { id: "d-e16", type: "item.add", by: F, item: { id: "c-cost", kind: "concern", parentId: "p-hybrid", text: "月1回の対面だと在宅勤務者の交通費精算が毎月発生する" } },
+        { id: "d-e17", type: "decision.revisit", itemId: "d-hybrid", by: F, reason: "交通費の懸念が出たため" }
+      ]
+    },
+    {
+      id: "s16",
+      utterance: "Aさん「すみません、さっきの週3時間は2週分の数字でした。週1.5時間です」",
+      events: [{ id: "d-e18", type: "item.correct", itemId: "r-travel", by: F, text: "会議室への移動にチーム全体で週あたり約1.5時間かかっている（参加者の自己申告）", reason: "発言者が「3時間は2週分だった」と訂正" }]
+    },
+    {
+      id: "s17",
+      utterance: "議長「交通費の扱いが決まっていないので、ハイブリッド試行案はいったん取り下げましょう」",
+      events: [{ id: "d-e19", type: "decision.withdraw", itemId: "d-hybrid", by: F, reason: "交通費の扱いが未決のため議長が取り下げ" }]
+    },
+    {
+      id: "s18",
+      utterance: "Cさん「当面は全面オンラインにして、対面は四半期に1回を別に考えるのは？」",
+      events: [{ id: "d-e20", type: "item.add", by: F, item: { id: "d-online", kind: "decision", text: "当面は全面オンライン。対面は四半期に1回を別途検討する" } }]
+    },
+    {
+      id: "s19",
+      utterance: "議長「この案で決定してよいですか」— 全員「異議なしです」",
+      events: [{ id: "d-e21", type: "decision.confirm", itemId: "d-online", by: F, evidence: { kind: "explicit_agreement", note: "議長の確認に対し、出席者全員が「異議なし」と発言（台本上の設定）" } }]
+    },
+    {
+      id: "s20",
+      utterance: "議長「四半期の対面会の予算は次回決めましょう。交通費のルールは総務に確認が要りますね」",
+      events: [
+        { id: "d-e22", type: "item.add", by: F, item: { id: "n-budget", kind: "next", text: "四半期ごとの対面会の予算上限を決める" } },
+        { id: "d-e23", type: "item.add", by: F, item: { id: "q-expense", kind: "open_question", text: "在宅勤務者の交通費精算ルール（総務への確認が必要）" } },
+        { id: "d-e24", type: "item.resolve", itemId: "q-week", by: F, reason: "全面オンライン案の確定により不要になった" }
+      ]
+    },
+    {
+      id: "s21",
+      utterance: "議長「ドライブの件に戻ると、来月から新構成に移す方向で…」（誰も反対はしないが、確認もしていない）",
+      events: [
+        { id: "d-e25", type: "topic.switch", topicId: "t-drive", by: F },
+        { id: "d-e26", type: "item.add", by: F, item: { id: "d-folders", kind: "decision", text: "来月からプロジェクト単位のフォルダ構成に移行する" } }
+      ]
+    },
+    {
+      id: "s22",
+      utterance: "（沈黙。反対意見は出なかった）",
+      events: [{ id: "d-e27", type: "decision.confirm", itemId: "d-folders", by: F, evidence: { kind: "silence", note: "反対意見が出なかった" } }]
+    },
+    {
+      id: "s23",
+      utterance: "Bさん「リンク切れ対策は次回までに決めたいです。一覧は私がやります。期限は未定で」",
+      events: [
+        { id: "d-e28", type: "item.add", by: F, item: { id: "n-links", kind: "next", text: "リンク切れ対策（リダイレクト用の案内ファイル等）をどうするか決める" } },
+        { id: "d-e29", type: "action.update", itemId: "a-inventory", by: F, owner: "Bさん", due: null }
+      ]
+    }
+  ];
+
+  // web/js/providers/contract.js
+  var REQUIRED_KEYS = ["id", "label", "kind", "honestyNote", "status", "sendsNetwork"];
+  function assertProvider(p) {
+    for (const k of REQUIRED_KEYS) {
+      if (!(k in p)) throw new Error(`provider に ${k} がありません`);
+    }
+    return p;
+  }
+
+  // web/js/providers/demo-provider.js
+  function createDemoProvider({ session: session2, onStep = () => {
+  }, onStatus = () => {
+  }, scheduler, intervalMs, steps = DEMO_STEPS }) {
+    const player = createPlayer({
+      steps,
+      scheduler,
+      intervalMs,
+      onStatus,
+      onStep(step, index) {
+        const results = step.events.map((ev) => session2.dispatch(ev));
+        onStep(step, index, results);
+      }
+    });
+    return assertProvider({
+      id: "demo",
+      label: "デモ台本（架空の会議）",
+      kind: "fixture",
+      sendsNetwork: false,
+      honestyNote: "あらかじめ用意した架空会議の台本を順に表示しています。AIによる理解・音声認識ではありません。",
+      status: () => ({ state: player.status, detail: `${player.cursor} / ${player.total}` }),
+      player,
+      steps
+    });
+  }
+
+  // web/js/core/rules.js
+  var RULES = [
+    { kind: "action", re: /(担当[:：]|やります|対応します|お願いします|引き受け|期限[:：])/ },
+    { kind: "next", re: /(次回|次に決め|あとで決め|後で決め|持ち越し)/ },
+    { kind: "decision", re: /(決定|決めました|確定|にしましょう|でいきましょう|で行きましょう|合意)/ },
+    { kind: "concern", re: /(懸念|心配|リスク|不安|問題(?:は|が)|難しい|反対)/ },
+    { kind: "tradeoff", re: /(トレードオフ|一方で|その代わり|代わりに|引き換え)/ },
+    { kind: "reason", re: /(なぜなら|理由|ためです|ので|だから)/ },
+    { kind: "proposal", re: /(提案|案として|してはどう|しませんか|どうでしょう|はどうか|したい)/ },
+    { kind: "open_question", re: /(\?|？|未定|分からない|わからない|要確認|確認が必要)/ }
+  ];
+  var TOPIC_RE = /^(?:議題|話題|論点)\s*[:：]\s*(.*)$/s;
+  var OWNER_RE = /担当[:：]\s*([^\s、,，。]+)/;
+  var DUE_RE = /期限[:：]\s*([^\s、,，。]+)/;
+  function classify(raw) {
+    const text = normalizeText(raw);
+    if (!text) return { ok: false, message: "入力が空です" };
+    if (text.length > MAX_TEXT_LENGTH) return { ok: false, message: `${MAX_TEXT_LENGTH}文字以内で入力してください` };
+    const topic = text.match(TOPIC_RE);
+    if (topic) {
+      const title = normalizeText(topic[1]);
+      if (!title) return { ok: false, message: "論点名が空です" };
+      return { ok: true, type: "topic", title };
+    }
+    for (const rule of RULES) {
+      const m = text.match(rule.re);
+      if (m) {
+        const { owner, due } = rule.kind === "action" ? extractActionMeta(text) : { owner: null, due: null };
+        return { ok: true, type: "item", kind: rule.kind, text, matched: m[1], owner, due };
+      }
+    }
+    return { ok: true, type: "item", kind: "unclassified", text, matched: null, owner: null, due: null };
+  }
+  function extractActionMeta(text) {
+    return {
+      owner: text.match(OWNER_RE)?.[1] ?? null,
+      due: text.match(DUE_RE)?.[1] ?? null
+    };
+  }
+
+  // web/js/providers/manual-provider.js
+  function createManualProvider({ session: session2 }) {
+    const ensureTopic = (events) => {
+      if (session2.getState().currentTopicId) return;
+      events.push({
+        id: session2.nextId("u"),
+        type: "topic.open",
+        topicId: session2.nextId("mt"),
+        title: "論点未設定（手入力）",
+        by: "user"
+      });
+    };
+    function submit(raw, kind = "auto") {
+      const text = normalizeText(raw);
+      if (!text) return { ok: false, message: "入力が空です。内容を入力してください。", results: [] };
+      if (text.length > MAX_TEXT_LENGTH) return { ok: false, message: `${MAX_TEXT_LENGTH}文字以内で入力してください`, results: [] };
+      const events = [];
+      let message;
+      let itemId;
+      if (kind === "auto") {
+        const c = classify(text);
+        if (!c.ok) return { ok: false, message: (
+          /** @type {{ message: string }} */
+          c.message
+        ), results: [] };
+        if (c.type === "topic") {
+          events.push({ id: session2.nextId("u"), type: "topic.open", topicId: session2.nextId("mt"), title: c.title, by: "rule" });
+          message = `新しい論点「${c.title}」を開きました（「議題:」の書式による判定）`;
+        } else {
+          ensureTopic(events);
+          itemId = session2.nextId("m");
+          const ruleNote = c.matched ? `キーワード「${c.matched}」による機械的な判定（意味は理解していません）` : "どの規則にも当てはまらないため未分類。人による確認が必要です";
+          events.push({
+            id: session2.nextId("u"),
+            type: "item.add",
+            by: "rule",
+            item: { id: itemId, kind: c.kind, text: c.text, owner: c.owner, due: c.due, ruleNote }
+          });
+          message = c.kind === "unclassified" ? "自動では分類できませんでした。「未分類（要確認）」に入れました" : `「${KIND_LABELS[c.kind]}」として追加（${ruleNote}）`;
+          if (c.kind === "decision") message += "。決定らしい語があっても仮案として扱います";
+        }
+      } else if (kind === "topic") {
+        events.push({ id: session2.nextId("u"), type: "topic.open", topicId: session2.nextId("mt"), title: text, by: "user" });
+        message = `新しい論点「${text}」を開きました`;
+      } else {
+        if (!(kind in KIND_LABELS)) return { ok: false, message: "種類が不正です", results: [] };
+        ensureTopic(events);
+        itemId = session2.nextId("m");
+        const meta = kind === "action" ? extractActionMeta(text) : { owner: null, due: null };
+        events.push({
+          id: session2.nextId("u"),
+          type: "item.add",
+          by: "user",
+          item: { id: itemId, kind, text, owner: meta.owner, due: meta.due }
+        });
+        message = `「${KIND_LABELS[kind]}」として追加しました`;
+      }
+      const results = events.map((ev) => session2.dispatch(ev));
+      const failed = results.find((r) => !r.ok);
+      if (failed) return { ok: false, message: failed.message || "追加できませんでした", results };
+      return { ok: true, message, results, itemId };
+    }
+    return assertProvider({
+      id: "manual",
+      label: "手入力",
+      kind: "rule",
+      sendsNetwork: false,
+      honestyNote: "手入力はキーワード規則で機械的に仮分類します。意味の理解はしていません。分類できない場合は「未分類（要確認）」になります。",
+      status: () => ({ state: "ready", detail: "入力待ち" }),
+      submit
+    });
+  }
+
+  // web/js/providers/audio-provider.js
+  var AudioNotConfiguredError = class extends Error {
+    constructor() {
+      super("音声入力は未接続です（このプロトタイプでは実装していません）");
+      this.name = "AudioNotConfiguredError";
+    }
+  };
+  var AUDIO_ROUTES = Object.freeze([
+    {
+      id: "meet-tab-audio",
+      label: "Google Meet タブの音声（デスクトップ Chrome）",
+      priority: 1,
+      status: "not_configured",
+      detail: "getDisplayMedia でMeetタブの音声共有を受け取り、自分の声は別途 getUserMedia で取得する将来案。スマホ版Meetの音声取得は対象外。"
+    },
+    {
+      id: "meet-media-api",
+      label: "Google Meet Media API",
+      priority: 2,
+      status: "not_available",
+      detail: "公式情報では Developer Preview の制約があり、新規サインアップ停止と記載されているため現時点では採用しない。"
+    },
+    {
+      id: "room-mic",
+      label: "対面会議のマイク（任意）",
+      priority: 3,
+      status: "not_configured",
+      detail: "対面会議で端末マイクを使う任意の経路。"
+    }
+  ]);
+  function createAudioProvider() {
+    return assertProvider({
+      id: "audio",
+      label: "音声（未接続）",
+      kind: "audio",
+      sendsNetwork: false,
+      honestyNote: "音声入力は未接続です。マイク・画面共有の許可は要求しません。",
+      status: () => ({ state: "not_configured", detail: "接続未設定" }),
+      routes: AUDIO_ROUTES,
+      async start() {
+        throw new AudioNotConfiguredError();
+      },
+      stop() {
+        return { stoppedTracks: 0 };
+      }
+    });
+  }
+
+  // web/js/ui/dom.js
+  function h(tag, attrs = {}, children = []) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (v === null || v === void 0 || v === false) continue;
+      if (k === "class") el.className = v;
+      else if (k === "text") el.textContent = String(v);
+      else if (k.startsWith("data-") || k.startsWith("aria-") || ["type", "name", "value", "role", "title", "for", "id", "rows", "maxlength", "placeholder", "autocomplete"].includes(k)) {
+        el.setAttribute(k, v === true ? "" : String(v));
+      } else if (k === "hidden" || k === "disabled" || k === "open" || k === "selected") {
+        el[k] = !!v;
+      } else {
+        throw new Error(`h(): 許可していない属性 ${k}`);
+      }
+    }
+    for (const c of children) {
+      if (c === null || c === void 0 || c === false) continue;
+      el.append(typeof c === "string" ? document.createTextNode(c) : c);
+    }
+    return el;
+  }
+  function reconcile(list, items, key, render2, tag = "li") {
+    const existing = /* @__PURE__ */ new Map();
+    for (const child of Array.from(list.children)) {
+      if (child instanceof HTMLElement && child.dataset.key) existing.set(child.dataset.key, child);
+    }
+    let prev = null;
+    for (const item of items) {
+      const k = key(item);
+      let el = existing.get(k);
+      const isNew = !el;
+      if (!el) {
+        el = document.createElement(tag);
+        el.dataset.key = k;
+      }
+      existing.delete(k);
+      render2(el, item, isNew);
+      const ref = prev ? prev.nextSibling : list.firstChild;
+      if (ref !== el) list.insertBefore(el, ref);
+      prev = el;
+    }
+    for (const el of existing.values()) el.remove();
+  }
+  function flash(el, cls = "flash") {
+    el.classList.remove(cls);
+    void el.offsetWidth;
+    el.classList.add(cls);
+    window.setTimeout(() => el.classList.remove(cls), 2400);
+  }
+
+  // scripts/artifact-stubs/download.js
+  function download() {
+    throw new Error("Artifact 版では書き出しは使えません");
+  }
+
+  // web/js/ui/app.js
+  var $ = (id) => (
+    /** @type {HTMLElement} */
+    document.getElementById(id)
+  );
+  var ARTIFACT_BUILD = document.getElementById("mc-build")?.dataset.build === "artifact";
+  var TABS = ["manual", "review", "topics", "log", "audio", "data"];
+  var session = createSession();
+  var ui = {
+    /** 表示中の論点（null なら現在の論点） */
+    viewTopicId: (
+      /** @type {string|null} */
+      null
+    ),
+    /** 編集中の要素キー（リスト名:項目ID）。編集中はデモ再生を止め、フォームを作り直さない */
+    editingKey: (
+      /** @type {string|null} */
+      null
+    ),
+    tab: "manual",
+    cleared: false,
+    lastTopicId: (
+      /** @type {string|null} */
+      null
+    )
+  };
+  var demo = createDemoProvider({
+    session,
+    onStep(step, index) {
+      $("utterance").textContent = step.utterance;
+      $("progress-text").textContent = `${index + 1} / ${demo.player.total}`;
+    },
+    onStatus: () => renderStatus()
+  });
+  var manual = createManualProvider({ session });
+  var audio = createAudioProvider();
+  function topicTitle(state, id) {
+    return state.topics.find((t) => t.id === id)?.title ?? "";
+  }
+  function badge(text, cls) {
+    return h("span", { class: `badge ${cls}`, text });
+  }
+  function lastReason(item, change) {
+    for (let i = item.history.length - 1; i >= 0; i--) {
+      if (item.history[i].change === change) return item.history[i].reason;
+    }
+    return null;
+  }
+  function itemSignature(item, listName) {
+    return `${item.rev}|${item.status}|${item.kind}|${ui.editingKey === `${listName}:${item.id}` ? "edit" : ""}|${item.topicId}`;
+  }
+  function itemActions(item, listName) {
+    const b = (action, label, cls = "") => h("button", {
+      type: "button",
+      class: `btn btn-small ${cls}`,
+      "data-action": action,
+      "data-id": item.id,
+      "data-list": listName,
+      text: label
+    });
+    const out = [];
+    if (item.kind === "decision") {
+      if (item.status === "tentative" || item.status === "revisit") out.push(b("confirm", "確定にする", "btn-ok"));
+      if (item.status !== "tentative") out.push(b("tentative", "仮案に戻す"));
+      if (item.status !== "revisit") out.push(b("revisit", "再検討"));
+      if (item.status !== "withdrawn") out.push(b("withdraw", "撤回", "btn-warn"));
+    }
+    if (["open_question", "next", "action"].includes(item.kind)) {
+      if (item.status === "open") out.push(b("resolve", item.kind === "action" ? "完了" : "解決済みにする", "btn-ok"));
+      else out.push(b("reopen", "再オープン"));
+    }
+    out.push(b("edit", item.kind === "unclassified" ? "確認して分類" : "修正"));
+    return h("div", { class: "item-actions" }, out);
+  }
+  function itemEditor(item, listName) {
+    const options = Object.entries(KIND_LABELS).map(([k, label]) => h("option", { value: k, text: label, selected: k === item.kind }));
+    const isAction = item.kind === "action";
+    return h("form", { class: "editor", "data-id": item.id, "data-list": listName, "data-rev": item.rev }, [
+      h("p", { class: "editor-note", text: "デモ再生は一時停止中です。保存かキャンセルで編集を終えると再開できます。" }),
+      h("label", { class: "editor-label", text: "本文" }, [h("textarea", { name: "text", rows: 3, maxlength: 500 }, [item.text])]),
+      h("label", { class: "editor-label", text: "種類" }, [h("select", { name: "kind" }, options)]),
+      isAction && h("label", { class: "editor-label", text: "担当（空欄なら不明）" }, [h("input", { type: "text", name: "owner", value: item.owner ?? "", maxlength: 60, autocomplete: "off" })]),
+      isAction && h("label", { class: "editor-label", text: "期限（空欄なら不明）" }, [h("input", { type: "text", name: "due", value: item.due ?? "", maxlength: 60, autocomplete: "off" })]),
+      h("label", { class: "editor-label", text: "修正の理由（任意）" }, [h("input", { type: "text", name: "reason", maxlength: 200, autocomplete: "off" })]),
+      h("div", { class: "editor-actions" }, [
+        h("button", { type: "submit", class: "btn btn-small btn-primary", text: "保存" }),
+        h("button", { type: "button", class: "btn btn-small", "data-action": "edit-cancel", text: "キャンセル" })
+      ]),
+      h("p", { class: "feedback editor-feedback", role: "status" })
+    ]);
+  }
+  function renderItemInto(el, item, isNew, listName, state, opts = {}) {
+    const editing = ui.editingKey === `${listName}:${item.id}`;
+    if (editing) {
+      const form = el.querySelector("form.editor");
+      if (form) {
+        const fb = form.querySelector(".editor-feedback");
+        if (fb && Number(form.dataset.rev) !== item.rev) {
+          fb.textContent = "編集中にこの項目が更新されました。保存すると入力内容で訂正します。";
+          fb.classList.add("is-error");
+        }
+        return;
+      }
+    }
+    const sig = itemSignature(item, listName);
+    if (el.dataset.sig === sig) return;
+    const hadSig = !!el.dataset.sig;
+    const wasOpen = el.querySelector("details")?.open ?? false;
+    el.dataset.sig = sig;
+    el.dataset.id = item.id;
+    el.className = `item kind-${item.kind} status-${item.status}${editing ? " is-editing" : ""}`;
+    el.replaceChildren();
+    if (editing) {
+      el.append(itemEditor(item, listName));
+      return;
+    }
+    const head = [
+      opts.showKind !== false && badge(KIND_LABELS[item.kind], `badge-kind kind-${item.kind}`),
+      (item.kind === "decision" || item.status === "resolved" || item.status === "done") && badge(STATUS_LABELS[item.status], `badge-status st-${item.status}`),
+      item.consensus?.kind === "unverified" && item.status !== "confirmed" && badge("合意未確認", "badge-warn"),
+      item.needsReview && badge("人による確認待ち", "badge-warn")
+    ].filter(Boolean);
+    const parent = item.parentId ? findItem(state, item.parentId) : null;
+    const metaBits = [
+      item.ruleNote ? `${ORIGIN_LABELS[item.origin]}（${item.ruleNote}）` : ORIGIN_LABELS[item.origin],
+      opts.showTopic && `論点: ${topicTitle(state, item.topicId)}`,
+      parent && `↳ ${KIND_LABELS[parent.kind]}「${parent.text}」`
+    ].filter(Boolean).join(" ・ ");
+    let basis = null;
+    if (item.kind === "decision") {
+      if (item.status === "confirmed" && item.consensus?.note) basis = `根拠: ${item.consensus.note}`;
+      else if (item.status === "withdrawn") basis = `撤回理由: ${lastReason(item, "撤回") ?? "記録なし"}`;
+      else if (item.status === "revisit") basis = `再検討の理由: ${lastReason(item, "再検討") ?? "記録なし"}`;
+      else if (item.consensus?.kind === "unverified") basis = item.consensus.note;
+    }
+    const body = [
+      head.length ? h("div", { class: "item-head" }, head) : null,
+      h("p", { class: "item-text", text: item.text }),
+      item.kind === "action" && h("p", { class: "item-sub item-meta" }, [
+        h("span", { text: `担当: ${item.owner ?? "不明"}`, class: item.owner ? "" : "unknown" }),
+        h("span", { text: `期限: ${item.due ?? "不明"}`, class: item.due ? "" : "unknown" })
+      ]),
+      basis && h("p", { class: "item-basis", text: basis, title: basis }),
+      h("p", { class: "item-sub item-origin", text: metaBits, title: metaBits })
+    ];
+    if (item.history.length > 1 && !opts.compact) {
+      body.push(h("details", { class: "history", open: wasOpen }, [
+        h("summary", { text: `履歴 ${item.history.length}件` }),
+        h("ol", {}, item.history.map((x) => h("li", {}, [
+          h("span", { class: "history-seq", text: `#${x.seq}` }),
+          h("span", { text: `${x.change}${x.from && x.to && x.from !== x.to ? `：${x.from} → ${x.to}` : ""}` }),
+          x.reason && h("span", { class: "muted", text: `（${x.reason}）` }),
+          h("span", { class: "muted", text: ` ・${ORIGIN_LABELS[x.by] ?? x.by}` })
+        ])))
+      ]));
+    }
+    body.push(itemActions(item, listName));
+    el.append(...body.filter(Boolean));
+    if (!isNew || hadSig) flash(el, "flash");
+    else flash(el, "flash-new");
+  }
+  function renderList(id, items, state, opts = {}) {
+    reconcile($(id), items, (i) => i.id, (el, item, isNew) => renderItemInto(el, item, isNew, id, state, opts));
+  }
+  function renderTopicChips(view) {
+    reconcile($("topic-chips"), view.topics, (t) => t.id, (el, t) => {
+      const viewing = view.shown?.id === t.id;
+      const sig = `${t.title}|${t.isCurrent}|${viewing}|${t.digression}`;
+      if (el.dataset.sig === sig) return;
+      el.dataset.sig = sig;
+      el.dataset.id = t.id;
+      el.className = `topic-chip${t.isCurrent ? " is-current" : ""}${viewing ? " is-viewing" : ""}${t.digression ? " is-digression" : ""}`;
+      el.replaceChildren(h("button", {
+        type: "button",
+        "data-action": t.isCurrent ? "view-current" : "view-topic",
+        "data-id": t.id,
+        "aria-current": t.isCurrent ? "true" : null,
+        title: t.isCurrent ? "会議の現在の論点" : "押すと参照（会議の論点は変わりません）",
+        text: `${t.isCurrent ? "● " : ""}${t.title}`
+      }));
+    });
+  }
+  function renderTopics(view) {
+    reconcile($("list-topics"), view.topics, (t) => t.id, (el, t) => {
+      const viewing = view.shown?.id === t.id;
+      const sig = `${t.title}|${t.isCurrent}|${t.visits}|${t.itemCount}|${viewing}`;
+      if (el.dataset.sig === sig) return;
+      el.dataset.sig = sig;
+      el.dataset.id = t.id;
+      el.className = `topic${t.isCurrent ? " is-current" : ""}${viewing ? " is-viewing" : ""}`;
+      el.replaceChildren(
+        h("div", { class: "topic-main" }, [
+          h("span", { class: "topic-title", text: t.title }),
+          h("span", { class: "topic-meta" }, [
+            t.isCurrent && badge("現在", "badge-current"),
+            t.digression && badge("脱線", "badge-warn"),
+            t.visits > 1 && badge(`戻り ${t.visits - 1}回`, "badge-origin"),
+            h("span", { class: "muted", text: `${t.itemCount}項目` })
+          ])
+        ]),
+        h("div", { class: "topic-actions" }, [
+          !viewing && h("button", { type: "button", class: "btn btn-small", "data-action": "view-topic", "data-id": t.id, text: "表示" }),
+          !t.isCurrent && h("button", { type: "button", class: "btn btn-small", "data-action": "switch-topic", "data-id": t.id, text: "現在の論点にする" })
+        ])
+      );
+    });
+  }
+  function renderLog(view) {
+    const entries = view.log.slice(-80).reverse();
+    reconcile($("list-log"), entries, (e) => String(e.seq), (el, e) => {
+      if (el.dataset.sig) return;
+      el.dataset.sig = "1";
+      el.className = `log-entry${e.rejected ? " is-rejected" : ""}`;
+      el.append(
+        h("span", { class: "history-seq", text: `#${e.seq}` }),
+        h("span", { class: "log-text", text: e.summary }),
+        h("span", { class: "muted", text: ORIGIN_LABELS[e.by] ?? e.by })
+      );
+    });
+  }
+  function renderCurrent(view, state) {
+    const { shown, current } = view;
+    $("past-banner").hidden = !view.isViewingPast;
+    $("current").classList.toggle("is-past", view.isViewingPast);
+    $("lanes").classList.toggle("is-past", view.isViewingPast);
+    $("current-eyebrow").textContent = view.isViewingPast ? "過去の論点（参照中）" : "いまの論点";
+    if (!shown) {
+      $("current-title").textContent = ui.cleared ? "内容は消去されました" : "まだ論点はありません";
+      $("current-meta").textContent = "デモを再生するか、下の「手入力」で「議題: ○○」と入力してください。";
+    } else {
+      $("current-title").textContent = shown.title;
+      const bits = [];
+      if (shown.digression) bits.push("脱線した話題");
+      if (shown.visits > 1) bits.push(`この論点に${shown.visits - 1}回戻ってきています`);
+      if (view.isViewingPast && current) bits.push(`会議の現在の論点は「${current.title}」`);
+      bits.push(`由来: ${ORIGIN_LABELS[shown.origin]}`);
+      $("current-meta").textContent = bits.join(" ・ ");
+    }
+    $("current").classList.toggle("is-digression", !!shown?.digression);
+    renderTopicChips(view);
+    const ti = view.topicItems;
+    renderList("list-proposal", ti.proposal, state, { showKind: false });
+    renderList("list-reason", ti.reason, state, { showKind: false });
+    renderList("list-concern", ti.concern, state, { showKind: false });
+    renderList("list-tradeoff", ti.tradeoff, state, { showKind: false });
+    renderList("list-topic-decision", ti.decision, state, { showKind: false });
+    renderList("list-topic-unclassified", ti.unclassified, state, { showKind: false });
+  }
+  function renderTabs(view) {
+    for (const t of TABS) {
+      const on = ui.tab === t;
+      $(`tab-${t}`).setAttribute("aria-selected", String(on));
+      $(`tab-${t}`).tabIndex = on ? 0 : -1;
+      $(`panel-${t}`).hidden = !on;
+    }
+    $("tabcount-review").textContent = String(view.needsReview.length);
+    $("tabcount-topics").textContent = String(view.topics.length);
+    $("tabcount-log").textContent = String(view.log.length);
+    $("review-link").hidden = view.needsReview.length === 0;
+    $("review-link-btn").textContent = `要確認（未分類） ${view.needsReview.length}件を見る`;
+  }
+  function renderStatus() {
+    const chip = $("chip-state");
+    const st = demo.player.status;
+    const editing = !!ui.editingKey;
+    chip.dataset.state = st;
+    chip.textContent = ui.cleared && st === "idle" ? "停止中（消去済み）" : PLAYER_STATUS_LABELS[st];
+    $("btn-play").disabled = editing || st === "playing" || st === "ended";
+    $("btn-pause").disabled = st !== "playing";
+    $("btn-step").disabled = editing || st === "ended";
+    $("btn-play").textContent = st === "paused" ? "▶ 再開" : "▶ 再生";
+    const note = $("control-note");
+    note.hidden = !editing;
+    note.textContent = editing ? "項目を編集中のため、デモ再生を止めています。保存かキャンセルで再開できます。" : "";
+    const pct = demo.player.total ? demo.player.cursor / demo.player.total * 100 : 0;
+    $("progress-bar").style.width = `${pct}%`;
+    if (st === "idle") {
+      $("progress-text").textContent = `0 / ${demo.player.total}`;
+      $("utterance").textContent = "再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。";
+    }
+  }
+  function render() {
+    const state = session.getState();
+    if (ui.viewTopicId && !state.topics.some((t) => t.id === ui.viewTopicId)) ui.viewTopicId = null;
+    if (ui.editingKey && !findItem(state, ui.editingKey.split(":")[1])) ui.editingKey = null;
+    const view = selectView(state, ui.viewTopicId);
+    renderCurrent(view, state);
+    renderList("list-confirmed", view.decisions.confirmed, state, { showKind: false, showTopic: true, compact: true });
+    renderList("list-tentative", view.decisions.tentative, state, { showKind: false, showTopic: true, compact: true });
+    renderList("list-withdrawn", view.decisions.withdrawn, state, { showKind: false, showTopic: true, compact: true });
+    $("withdrawn-count").textContent = String(view.decisions.withdrawn.length);
+    $("count-confirmed").textContent = `確定 ${view.decisions.confirmed.length}`;
+    $("count-tentative").textContent = `仮案 ${view.decisions.tentative.length}`;
+    $("count-withdrawn").textContent = `撤回 ${view.decisions.withdrawn.length}`;
+    const unknownOwner = view.actions.filter((a) => a.status === "open" && !a.owner).length;
+    $("quick-confirmed").textContent = `確定 ${view.decisions.confirmed.length}`;
+    $("quick-tentative").textContent = `仮案 ${view.decisions.tentative.length}`;
+    $("quick-withdrawn").textContent = `撤回 ${view.decisions.withdrawn.length}`;
+    $("quick-next").textContent = `次に決める ${view.nextItems.length}`;
+    $("quick-actions").textContent = `アクション ${view.actions.filter((a) => a.status === "open").length}${unknownOwner ? `（担当不明 ${unknownOwner}）` : ""}`;
+    $("quick-open").textContent = `未解決 ${view.openQuestions.length}`;
+    renderList("list-next", view.nextItems, state, { showKind: false, showTopic: true, compact: true });
+    renderList("list-actions", view.actions, state, { showKind: false, showTopic: true, compact: true });
+    renderList("list-open", view.openQuestions, state, { showKind: false, showTopic: true, compact: true });
+    renderList("list-review", view.needsReview, state, { showKind: false, showTopic: true });
+    renderTopics(view);
+    renderLog(view);
+    renderTabs(view);
+    renderStatus();
+    if (state.currentTopicId !== ui.lastTopicId) {
+      ui.lastTopicId = state.currentTopicId;
+      if (view.current) $("live").textContent = `論点が「${view.current.title}」に切り替わりました`;
+    }
+  }
+  function renderRoutes() {
+    $("list-routes").replaceChildren(...audio.routes.map((r) => h("li", { class: "route" }, [
+      h("div", { class: "route-head" }, [
+        h("span", { class: "route-label", text: `${r.priority}. ${r.label}` }),
+        badge(r.status === "not_available" ? "現時点で採用しない" : "未接続", "badge-off")
+      ]),
+      h("p", { class: "item-sub", text: r.detail })
+    ])));
+  }
+  function userEvent(type, fields) {
+    return session.dispatch({ id: session.nextId("u"), type, by: "user", ...fields });
+  }
+  function setFeedback(id, text, ok = true) {
+    const el = $(id);
+    el.textContent = text;
+    el.classList.toggle("is-error", !ok);
+  }
+  function resetAll(cleared) {
+    demo.player.reset();
+    session.clear();
+    ui.viewTopicId = null;
+    ui.editingKey = null;
+    ui.lastTopicId = null;
+    ui.cleared = cleared;
+  }
+  function focusEditor(id) {
+    const form = document.querySelector(`form.editor[data-id="${CSS.escape(id ?? "")}"]`);
+    form?.querySelector("textarea")?.focus();
+  }
+  document.addEventListener("click", (ev) => {
+    const target = (
+      /** @type {HTMLElement} */
+      ev.target
+    );
+    const btn = target.closest("[data-action]");
+    if (!(btn instanceof HTMLElement) || btn.tagName === "FORM") return;
+    const { action, id } = btn.dataset;
+    switch (action) {
+      case "play":
+        if (!ui.editingKey) {
+          ui.cleared = false;
+          demo.player.play();
+        }
+        break;
+      case "pause":
+        demo.player.pause();
+        break;
+      case "step":
+        if (!ui.editingKey) {
+          ui.cleared = false;
+          demo.player.step();
+        }
+        break;
+      case "reset":
+        resetAll(false);
+        setFeedback("data-feedback", "リセットしました。デモは最初から、手入力の内容も破棄されています。");
+        break;
+      case "tab":
+        ui.tab = TABS.includes(btn.dataset.tab ?? "") ? (
+          /** @type {string} */
+          btn.dataset.tab
+        ) : "manual";
+        break;
+      case "view-topic":
+        ui.viewTopicId = id ?? null;
+        break;
+      case "view-current":
+        ui.viewTopicId = null;
+        break;
+      case "switch-topic":
+        userEvent("topic.switch", { topicId: id });
+        ui.viewTopicId = null;
+        break;
+      case "confirm":
+        userEvent("decision.confirm", { itemId: id, evidence: { kind: "user", note: "ユーザーが画面で確定操作" } });
+        break;
+      case "tentative":
+        userEvent("decision.tentative", { itemId: id, reason: "ユーザー操作" });
+        break;
+      case "revisit":
+        userEvent("decision.revisit", { itemId: id, reason: "ユーザー操作" });
+        break;
+      case "withdraw":
+        userEvent("decision.withdraw", { itemId: id, reason: "ユーザー操作" });
+        break;
+      case "resolve":
+        userEvent("item.resolve", { itemId: id, reason: "ユーザー操作" });
+        break;
+      case "reopen":
+        userEvent("item.reopen", { itemId: id, reason: "ユーザー操作" });
+        break;
+      case "edit":
+        demo.player.pause();
+        ui.editingKey = `${btn.dataset.list}:${id}`;
+        break;
+      case "edit-cancel":
+        ui.editingKey = null;
+        break;
+      case "export-json":
+      case "export-md":
+        if (ARTIFACT_BUILD) {
+          setFeedback("data-feedback", "Artifact 版では書き出しは使えません。", false);
+          break;
+        }
+        if (action === "export-md") {
+          download("meeting-compass-export.md", toMarkdown(session.getState(), (/* @__PURE__ */ new Date()).toISOString()), "text/markdown");
+          setFeedback("data-feedback", "Markdownを書き出しました（この端末への保存のみ）。");
+          break;
+        }
+        download("meeting-compass-export.json", toJSON(session.getState(), (/* @__PURE__ */ new Date()).toISOString()), "application/json");
+        setFeedback("data-feedback", "JSONを書き出しました（この端末への保存のみ）。");
+        break;
+      case "jump": {
+        const dest = document.getElementById(btn.dataset.target ?? "");
+        if (dest instanceof HTMLDetailsElement) dest.open = true;
+        dest?.scrollIntoView({ block: "start" });
+        return;
+      }
+      case "clear-ask":
+        $("clear-confirm").hidden = false;
+        break;
+      case "clear-no":
+        $("clear-confirm").hidden = true;
+        break;
+      case "clear-yes":
+        $("clear-confirm").hidden = true;
+        resetAll(true);
+        setFeedback("data-feedback", "すべて消去しました。メモリ上の内容は破棄され、デモは停止しています。");
+        break;
+      default:
+        return;
+    }
+    render();
+    if (action === "edit") focusEditor(id);
+    if (action === "tab" && btn.id === "review-link-btn") $("details").scrollIntoView({ block: "start" });
+  });
+  document.addEventListener("keydown", (ev) => {
+    const target = (
+      /** @type {HTMLElement} */
+      ev.target
+    );
+    if (ev.key === "Escape" && target.closest("form.editor")) {
+      ui.editingKey = null;
+      render();
+      return;
+    }
+    if ((ev.key === "ArrowRight" || ev.key === "ArrowLeft") && target.getAttribute("role") === "tab") {
+      const i = TABS.indexOf(ui.tab);
+      ui.tab = TABS[(i + (ev.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length];
+      render();
+      $(`tab-${ui.tab}`).focus();
+    }
+  });
+  document.addEventListener("submit", (ev) => {
+    const form = (
+      /** @type {HTMLFormElement} */
+      ev.target
+    );
+    ev.preventDefault();
+    if (form.id === "manual-form") {
+      const text = (
+        /** @type {HTMLTextAreaElement} */
+        $("manual-text").value
+      );
+      const kind = (
+        /** @type {HTMLSelectElement} */
+        $("manual-kind").value
+      );
+      const res = manual.submit(text, kind);
+      setFeedback("manual-feedback", res.message, res.ok);
+      if (res.ok) {
+        ui.cleared = false;
+        ui.viewTopicId = null;
+        $("manual-text").value = "";
+      }
+      render();
+      return;
+    }
+    if (form.classList.contains("editor")) {
+      const id = form.dataset.id ?? "";
+      const item = findItem(session.getState(), id);
+      if (!item) return;
+      const fd = new FormData(form);
+      const reason = String(fd.get("reason") ?? "") || "ユーザーが修正";
+      const text = String(fd.get("text") ?? "");
+      const kind = String(fd.get("kind") ?? item.kind);
+      const errors = [];
+      if (text.trim() !== item.text) {
+        const r = userEvent("item.correct", { itemId: id, text, reason });
+        if (!r.ok) errors.push(r.message);
+      }
+      if (!errors.length && kind !== item.kind) {
+        const r = userEvent("item.reclassify", { itemId: id, kind, reason });
+        if (!r.ok) errors.push(r.message);
+      }
+      if (!errors.length && item.kind === "action" && kind === "action") {
+        const owner = String(fd.get("owner") ?? "").trim() || null;
+        const due = String(fd.get("due") ?? "").trim() || null;
+        if (owner !== item.owner || due !== item.due) {
+          const r = userEvent("action.update", { itemId: id, owner, due });
+          if (!r.ok) errors.push(r.message);
+        }
+      }
+      if (errors.length) {
+        const fb = form.querySelector(".editor-feedback");
+        if (fb) {
+          fb.textContent = errors.join(" / ");
+          fb.classList.add("is-error");
+        }
+        return;
+      }
+      ui.editingKey = null;
+      render();
+    }
+  });
+  $("speed").addEventListener("change", (ev) => {
+    demo.player.setInterval(Number(
+      /** @type {HTMLSelectElement} */
+      ev.target.value
+    ));
+  });
+  var renderQueued = false;
+  session.subscribe(() => {
+    if (renderQueued) return;
+    renderQueued = true;
+    queueMicrotask(() => {
+      renderQueued = false;
+      render();
+    });
+  });
+  function applyArtifactBuild() {
+    if (!ARTIFACT_BUILD) return;
+    for (const id of ["btn-export-json", "btn-export-md"]) {
+      const b = (
+        /** @type {HTMLButtonElement} */
+        $(id)
+      );
+      b.disabled = true;
+      b.textContent = `${b.textContent}（Artifact版では無効）`;
+    }
+    $("data-hint").textContent = "内容はこのタブのメモリ上だけにあり、再読み込みや「消去」で失われます。Claude Artifact の閲覧画面はページからのファイル保存を止めるため、この版では書き出しを無効にしています。";
+    $("footer-note").textContent = "Meeting Compass プロトタイプ（Claude Artifact 版）・ 架空のデモデータのみ ・ 外部へ送信するコードを含みません ・ AIによる理解・音声入力は未接続";
+  }
+  applyArtifactBuild();
+  renderRoutes();
+  render();
+  Object.defineProperty(window, "__meetingCompass", {
+    value: Object.freeze({ snapshot: () => structuredClone(session.getState()), providers: [demo.id, manual.id, audio.id] })
+  });
+})();
+</script>
