@@ -29,15 +29,21 @@
   </p>
 
   <main class="layout">
+    <!-- 縦1カラム：デモ操作（細い帯）→ いまの論点 → 議論の構造 → 決定/仮案 → 未解決 → 次に決めること → アクション → 手入力 → 詳細（折り畳み） -->
     <section class="card controls" aria-label="デモ再生">
       <div class="controls-row">
-        <h2 class="controls-title">デモ <span class="muted">架空の台本</span></h2>
-        <div class="btns" role="group" aria-label="デモ操作">
+        <div class="btns" role="group" aria-label="デモ操作（架空の台本）">
           <button type="button" class="btn btn-primary" data-action="play" id="btn-play">▶ 再生</button>
           <button type="button" class="btn" data-action="pause" id="btn-pause">❚❚ 一時停止</button>
           <button type="button" class="btn" data-action="step" id="btn-step">一歩進める</button>
           <button type="button" class="btn btn-ghost" data-action="reset" id="btn-reset" title="デモと手入力の内容をすべて破棄して最初に戻します">リセット</button>
         </div>
+        <span class="progress-text" id="progress-text">0 / 0</span>
+      </div>
+      <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+      <details class="fold fold-inline" id="controls-more">
+        <summary>架空の台本デモ ・ 発言と速さ</summary>
+        <p class="utterance"><span class="utterance-label">台本の発言（参考）</span><span id="utterance">再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。</span></p>
         <label class="speed">速さ
           <select id="speed">
             <option value="3600">ゆっくり</option>
@@ -45,10 +51,7 @@
             <option value="900">速い</option>
           </select>
         </label>
-        <span class="progress-text" id="progress-text">0 / 0</span>
-      </div>
-      <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
-      <p class="utterance"><span class="utterance-label">台本の発言（参考）</span><span id="utterance">再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。</span></p>
+      </details>
       <p class="control-note" id="control-note" role="status" hidden></p>
     </section>
 
@@ -65,94 +68,94 @@
         <button type="button" class="quick-btn q-confirmed" data-action="jump" data-target="sum-decisions-title" id="quick-confirmed">確定 0</button>
         <button type="button" class="quick-btn q-tentative" data-action="jump" data-target="sum-decisions-title" id="quick-tentative">仮案 0</button>
         <button type="button" class="quick-btn q-withdrawn" data-action="jump" data-target="withdrawn-details" id="quick-withdrawn">撤回 0</button>
+        <button type="button" class="quick-btn" data-action="jump" data-target="sum-open-title" id="quick-open">未解決 0</button>
         <button type="button" class="quick-btn" data-action="jump" data-target="sum-next-title" id="quick-next">次に決める 0</button>
         <button type="button" class="quick-btn" data-action="jump" data-target="sum-actions-title" id="quick-actions">アクション 0</button>
-        <button type="button" class="quick-btn" data-action="jump" data-target="sum-open-title" id="quick-open">未解決 0</button>
       </nav>
     </section>
 
-    <section class="card lanes-card" aria-label="現在の論点の内訳" id="lanes">
+    <section class="card lanes-card" aria-labelledby="lanes-title" id="lanes">
+      <h2 class="section-title" id="lanes-title">議論の構造 <span class="hint-inline">いまの論点の中身</span></h2>
       <div class="lanes">
         <div class="lane lane-proposal"><h3>提案</h3><ul class="items" id="list-proposal" data-empty="まだありません"></ul></div>
         <div class="lane lane-reason"><h3>理由</h3><ul class="items" id="list-reason" data-empty="まだありません"></ul></div>
         <div class="lane lane-concern"><h3>懸念</h3><ul class="items" id="list-concern" data-empty="まだありません"></ul></div>
         <div class="lane lane-tradeoff"><h3>トレードオフ</h3><ul class="items" id="list-tradeoff" data-empty="まだありません"></ul></div>
-      </div>
-      <div class="lanes lanes-2">
         <div class="lane lane-decision"><h3>この論点の決定・仮案</h3><ul class="items" id="list-topic-decision" data-empty="まだありません"></ul></div>
         <div class="lane lane-unclassified"><h3>この論点の未分類（要確認）</h3><ul class="items" id="list-topic-unclassified" data-empty="ありません"></ul></div>
       </div>
     </section>
 
-    <aside class="card summary" aria-label="会議のサマリー" id="summary">
-      <section class="sum-block" aria-labelledby="sum-decisions-title">
-        <h2 id="sum-decisions-title">決定と仮案
-          <span class="counts"><span class="count c-confirmed" id="count-confirmed">確定 0</span><span class="count c-tentative" id="count-tentative">仮案 0</span><span class="count c-withdrawn" id="count-withdrawn">撤回 0</span></span>
-        </h2>
-        <h3 class="sub-h">確定 <span class="hint-inline">明示的な合意確認かユーザー操作のみ</span></h3>
-        <ul class="items compact" id="list-confirmed" data-empty="まだありません"></ul>
-        <h3 class="sub-h">仮案・再検討中</h3>
-        <ul class="items compact" id="list-tentative" data-empty="ありません"></ul>
-        <details class="withdrawn" id="withdrawn-details">
-          <summary>撤回済み <span id="withdrawn-count">0</span>件（理由を保持）</summary>
-          <ul class="items compact" id="list-withdrawn" data-empty="ありません"></ul>
-        </details>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-next-title" id="sum-next">
-        <h2 id="sum-next-title">次に決めること</h2>
-        <ul class="items compact" id="list-next" data-empty="ありません"></ul>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-actions-title" id="sum-actions">
-        <h2 id="sum-actions-title">あなたのアクション <span class="hint-inline">担当・期限は明示時のみ。不明は不明のまま</span></h2>
-        <ul class="items compact" id="list-actions" data-empty="ありません"></ul>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-open-title" id="sum-open">
-        <h2 id="sum-open-title">未解決</h2>
-        <ul class="items compact" id="list-open" data-empty="ありません"></ul>
-      </section>
+    <section class="card sum-block" aria-labelledby="sum-decisions-title" id="sum-decisions">
+      <h2 id="sum-decisions-title">決定と仮案
+        <span class="counts"><span class="count c-confirmed" id="count-confirmed">確定 0</span><span class="count c-tentative" id="count-tentative">仮案 0</span><span class="count c-withdrawn" id="count-withdrawn">撤回 0</span></span>
+      </h2>
+      <h3 class="sub-h">確定 <span class="hint-inline">明示的な合意確認かユーザー操作のみ</span></h3>
+      <ul class="items compact" id="list-confirmed" data-empty="まだありません"></ul>
+      <h3 class="sub-h">仮案・再検討中</h3>
+      <ul class="items compact" id="list-tentative" data-empty="ありません"></ul>
+      <details class="withdrawn fold-inline" id="withdrawn-details">
+        <summary>撤回済み <span id="withdrawn-count">0</span>件（理由を保持）</summary>
+        <ul class="items compact" id="list-withdrawn" data-empty="ありません"></ul>
+      </details>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-open-title" id="sum-open">
+      <h2 id="sum-open-title">未解決</h2>
+      <ul class="items compact" id="list-open" data-empty="ありません"></ul>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-next-title" id="sum-next">
+      <h2 id="sum-next-title">次に決めること</h2>
+      <ul class="items compact" id="list-next" data-empty="ありません"></ul>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-actions-title" id="sum-actions">
+      <h2 id="sum-actions-title">あなたのアクション <span class="hint-inline">担当・期限は明示時のみ。不明は不明のまま</span></h2>
+      <ul class="items compact" id="list-actions" data-empty="ありません"></ul>
       <p class="review-link" id="review-link" hidden>
         <button type="button" class="btn btn-small btn-warn" data-action="tab" data-tab="review" id="review-link-btn">要確認（未分類） 0件を見る</button>
       </p>
-    </aside>
+    </section>
 
-    <section class="card details" aria-label="入力と詳細" id="details">
-      <div class="tabs" role="tablist" aria-label="入力と詳細">
-        <button type="button" role="tab" class="tab" id="tab-manual" data-action="tab" data-tab="manual" aria-controls="panel-manual" aria-selected="true">手入力</button>
-        <button type="button" role="tab" class="tab" id="tab-review" data-action="tab" data-tab="review" aria-controls="panel-review" aria-selected="false">要確認 <span class="tab-count" id="tabcount-review">0</span></button>
+    <section class="card manual" aria-labelledby="manual-title" id="manual">
+      <h2 class="section-title" id="manual-title">手入力</h2>
+      <form id="manual-form" class="manual-form" novalidate>
+        <label class="sr-only" for="manual-text">内容</label>
+        <textarea id="manual-text" name="text" rows="2" maxlength="500" placeholder="例）懸念: 移行コストが読めない ／ 議題: 来期の採用計画" autocomplete="off"></textarea>
+        <div class="manual-row">
+          <label>種類
+            <select id="manual-kind" name="kind">
+              <option value="auto" selected>自動（キーワード規則）</option>
+              <option value="topic">新しい論点</option>
+              <option value="proposal">提案</option>
+              <option value="reason">理由</option>
+              <option value="concern">懸念</option>
+              <option value="tradeoff">トレードオフ</option>
+              <option value="decision">決定・仮案（仮案で追加）</option>
+              <option value="open_question">未解決</option>
+              <option value="next">次に決めること</option>
+              <option value="action">アクション</option>
+              <option value="unclassified">未分類（要確認）</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary" id="manual-submit">追加</button>
+        </div>
+        <p class="hint">「議題: ○○」で新しい論点。自動判定はキーワード規則だけで、決定らしい語があっても<strong>仮案</strong>。担当・期限は「担当: Bさん」「期限: 10/20」と明記された場合だけ拾います。</p>
+        <p class="feedback" id="manual-feedback" role="status"></p>
+      </form>
+    </section>
+
+    <details class="card details fold" id="details-fold">
+      <summary class="fold-summary">詳細（要確認・論点の履歴・変更履歴・音声・データ）</summary>
+      <div class="tabs" role="tablist" aria-label="詳細">
+        <button type="button" role="tab" class="tab" id="tab-review" data-action="tab" data-tab="review" aria-controls="panel-review" aria-selected="true">要確認 <span class="tab-count" id="tabcount-review">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-topics" data-action="tab" data-tab="topics" aria-controls="panel-topics" aria-selected="false">論点の履歴 <span class="tab-count" id="tabcount-topics">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-log" data-action="tab" data-tab="log" aria-controls="panel-log" aria-selected="false">変更履歴 <span class="tab-count" id="tabcount-log">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-audio" data-action="tab" data-tab="audio" aria-controls="panel-audio" aria-selected="false">音声（未接続）</button>
         <button type="button" role="tab" class="tab" id="tab-data" data-action="tab" data-tab="data" aria-controls="panel-data" aria-selected="false">データ</button>
       </div>
-
-      <div class="panel" role="tabpanel" id="panel-manual" aria-labelledby="tab-manual">
-        <form id="manual-form" class="manual-form" novalidate>
-          <label class="sr-only" for="manual-text">内容</label>
-          <textarea id="manual-text" name="text" rows="2" maxlength="500" placeholder="例）懸念: 移行コストが読めない ／ 議題: 来期の採用計画" autocomplete="off"></textarea>
-          <div class="manual-row">
-            <label>種類
-              <select id="manual-kind" name="kind">
-                <option value="auto" selected>自動（キーワード規則）</option>
-                <option value="topic">新しい論点</option>
-                <option value="proposal">提案</option>
-                <option value="reason">理由</option>
-                <option value="concern">懸念</option>
-                <option value="tradeoff">トレードオフ</option>
-                <option value="decision">決定・仮案（仮案で追加）</option>
-                <option value="open_question">未解決</option>
-                <option value="next">次に決めること</option>
-                <option value="action">アクション</option>
-                <option value="unclassified">未分類（要確認）</option>
-              </select>
-            </label>
-            <button type="submit" class="btn btn-primary" id="manual-submit">追加</button>
-          </div>
-          <p class="hint">「議題: ○○」で新しい論点。自動判定はキーワード規則だけで、決定らしい語があっても<strong>仮案</strong>。担当・期限は「担当: Bさん」「期限: 10/20」と明記された場合だけ拾います。</p>
-          <p class="feedback" id="manual-feedback" role="status"></p>
-        </form>
-      </div>
-
-      <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review" hidden>
+      <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review">
         <p class="hint">自動では分類できなかった項目です。内容を確認して種類を選んでください。</p>
         <ul class="items" id="list-review" data-empty="ありません"></ul>
       </div>
@@ -186,7 +189,7 @@
         </div>
         <p class="feedback" id="data-feedback" role="status"></p>
       </div>
-    </section>
+    </details>
   </main>
 
   <footer class="footer" id="footer-note">

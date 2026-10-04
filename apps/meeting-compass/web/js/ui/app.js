@@ -13,7 +13,7 @@ import { download } from './download.js';
 const $ = (id) => /** @type {HTMLElement} */ (document.getElementById(id));
 /** Claude Artifact 用の単一HTML版か（scripts/bundle-artifact.mjs が目印の要素を入れる） */
 const ARTIFACT_BUILD = document.getElementById('mc-build')?.dataset.build === 'artifact';
-const TABS = ['manual', 'review', 'topics', 'log', 'audio', 'data'];
+const TABS = ['review', 'topics', 'log', 'audio', 'data'];
 
 const session = createSession();
 const ui = {
@@ -21,7 +21,7 @@ const ui = {
   viewTopicId: /** @type {string|null} */ (null),
   /** 編集中の要素キー（リスト名:項目ID）。編集中はデモ再生を止め、フォームを作り直さない */
   editingKey: /** @type {string|null} */ (null),
-  tab: 'manual',
+  tab: 'review',
   cleared: false,
   lastTopicId: /** @type {string|null} */ (null),
 };
@@ -387,7 +387,11 @@ document.addEventListener('click', (ev) => {
       resetAll(false);
       setFeedback('data-feedback', 'リセットしました。デモは最初から、手入力の内容も破棄されています。');
       break;
-    case 'tab': ui.tab = TABS.includes(btn.dataset.tab ?? '') ? /** @type {string} */ (btn.dataset.tab) : 'manual'; break;
+    case 'tab':
+      ui.tab = TABS.includes(btn.dataset.tab ?? '') ? /** @type {string} */ (btn.dataset.tab) : 'review';
+      // 詳細は折り畳み。外（要確認への導線など）から開いたときは展開する
+      /** @type {HTMLDetailsElement} */ ($('details-fold')).open = true;
+      break;
     case 'view-topic': ui.viewTopicId = id ?? null; break;
     case 'view-current': ui.viewTopicId = null; break;
     case 'switch-topic': userEvent('topic.switch', { topicId: id }); ui.viewTopicId = null; break;
@@ -435,7 +439,7 @@ document.addEventListener('click', (ev) => {
   }
   render();
   if (action === 'edit') focusEditor(id);
-  if (action === 'tab' && btn.id === 'review-link-btn') $('details').scrollIntoView({ block: 'start' });
+  if (action === 'tab' && btn.id === 'review-link-btn') $('details-fold').scrollIntoView({ block: 'start' });
 });
 
 document.addEventListener('keydown', (ev) => {

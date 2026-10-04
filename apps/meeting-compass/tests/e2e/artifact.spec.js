@@ -48,6 +48,17 @@ async function openArtifact(page) {
 }
 
 const chip = (page) => page.locator('#chip-state');
+/** 速さは「発言と速さ」の折り畳みの中にある */
+async function setFastSpeed(page) {
+  const more = page.locator('#controls-more');
+  if (!(await more.evaluate((el) => el.open))) await more.locator('> summary').click();
+  await page.selectOption('#speed', '900');
+}
+
+async function openDetails(page) {
+  const fold = page.locator('#details-fold');
+  if (!(await fold.evaluate((el) => el.open))) await fold.locator('> summary').click();
+}
 async function steps(page, n) {
   for (let i = 0; i < n; i++) await page.locator('#btn-step').click();
 }
@@ -60,6 +71,7 @@ test('Artifact版：初期表示・由来の明記・書き出し無効・無通
   await expect(chip(page)).toHaveText('停止中（未開始）');
   await expect(page.locator('#footer-note')).toContainText('Claude Artifact 版');
   await expect(page.locator('#footer-note')).toContainText('AIによる理解・音声入力は未接続');
+  await openDetails(page);
   await page.locator('#tab-data').click();
   await expect(page.locator('#btn-export-json')).toBeDisabled();
   await expect(page.locator('#btn-export-md')).toBeDisabled();
@@ -69,7 +81,6 @@ test('Artifact版：初期表示・由来の明記・書き出し無効・無通
   await expect(page.locator('#panel-audio')).toContainText('実接続のアダプタは未実装');
   await expect(page.locator('#panel-audio button')).toBeDisabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.locator('#tab-manual').click();
   await page.screenshot({ path: shot(testInfo, '01-initial'), fullPage: false });
   expect(g.requests).toEqual([]);
   expect(g.errors).toEqual([]);
@@ -80,7 +91,7 @@ test('Artifact版：デモ再生・一時停止・論点切替・訂正・撤回
   const g = await openArtifact(page);
 
   // 再生と一時停止（自動再生でも構造が画面に反映される）
-  await page.selectOption('#speed', '900');
+  await setFastSpeed(page);
   await page.locator('#btn-play').click();
   await expect(chip(page)).toHaveText('再生中');
   await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式', { timeout: 5000 });
@@ -131,7 +142,6 @@ test('Artifact版：デモ再生・一時停止・論点切替・訂正・撤回
   await expect(prop.locator('.item-text')).toHaveText('プロジェクト単位のフォルダ構成に統一する（移行は来月以降）');
 
   // 手入力（キーワード規則・決定語でも仮案）
-  await page.locator('#tab-manual').click();
   await page.locator('#manual-text').fill('この方針で決定しました');
   await page.locator('#manual-submit').click();
   await expect(page.locator('#manual-feedback')).toContainText('仮案');
@@ -141,6 +151,7 @@ test('Artifact版：デモ再生・一時停止・論点切替・訂正・撤回
   await page.screenshot({ path: shot(testInfo, '04-manual'), fullPage: false });
 
   // 書き出しは押せない／ダウンロードは発生しない
+  await openDetails(page);
   await page.locator('#tab-data').click();
   await page.locator('#btn-export-json').click({ force: true });
   await expect(page.locator('#data-feedback')).not.toContainText('書き出しました');

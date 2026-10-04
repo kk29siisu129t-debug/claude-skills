@@ -122,27 +122,11 @@ button, select, input, textarea { font: inherit; color: inherit; }
 }
 
 /* ---------- layout ---------- */
+/* 縦1カラム：スマホ縦持ちを基準に、デスクトップでも同じ順序で中央に置く（固定幅なし） */
 .layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 420px;
-  grid-template-areas:
-    "controls summary"
-    "current  summary"
-    "lanes    summary"
-    "details  summary";
-  grid-template-rows: auto auto auto 1fr;
-  gap: 12px 16px;
-  max-width: 1520px; margin: 0 auto; padding: 12px 20px 28px;
-  align-items: start;
-}
-.controls { grid-area: controls; }
-.current { grid-area: current; }
-.lanes-card { grid-area: lanes; }
-.details { grid-area: details; }
-.summary {
-  grid-area: summary;
-  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 10px);
-  max-height: calc(100vh - 20px); overflow: auto; overscroll-behavior: contain;
+  display: flex; flex-direction: column; gap: 10px;
+  width: 100%; max-width: 46rem; margin: 0 auto;
+  padding-block: 12px 28px; padding-inline: 16px;
 }
 .card {
   background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
@@ -151,9 +135,15 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .sub-h { font-size: 11.5px; color: var(--muted); font-weight: 600; margin: 8px 0 4px; }
 .hint { font-size: 12px; color: var(--muted); margin: 0 0 8px; }
 .hint-inline { font-size: 11px; font-weight: 400; color: var(--muted); }
+.section-title, .sum-block > h2 {
+  font-size: 14px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
+  padding-bottom: 4px; margin-bottom: 6px; border-bottom: 1px solid var(--border);
+}
 
 /* ---------- controls ---------- */
 .controls { padding: 8px 12px; }
+.controls .btns { flex: 1 1 auto; }
+.controls .btns .btn { flex: 1 1 auto; white-space: nowrap; }
 .controls-row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
 .controls-title { font-size: 13.5px; margin-right: auto; }
 .btns { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -176,9 +166,9 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .progress-text { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
 .progress { height: 3px; background: var(--surface-2); border-radius: 3px; margin: 6px 0 4px; overflow: hidden; }
 .progress-bar { height: 100%; width: 0; background: var(--accent); transition: width .3s ease; }
-.utterance { margin: 0; font-size: 12px; color: var(--muted); display: flex; gap: 8px; min-width: 0; }
+.utterance { margin: 4px 0; font-size: 12px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 2px 8px; min-width: 0; }
 .utterance-label { font-weight: 600; color: var(--text); white-space: nowrap; }
-#utterance { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+#utterance { min-width: 0; overflow-wrap: anywhere; }
 .control-note {
   margin: 6px 0 0; font-size: 12px; padding: 4px 8px; border-radius: 6px;
   color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, var(--surface));
@@ -203,15 +193,17 @@ button, select, input, textarea { font: inherit; color: inherit; }
 .topic-chips:empty { display: none; }
 .topic-chip button {
   border: 1px solid var(--border); background: var(--surface); border-radius: 999px;
-  font-size: 12px; padding: 1px 10px; cursor: pointer; max-width: 260px;
+  font-size: 12px; padding: 1px 10px; cursor: pointer; max-width: 100%;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
+/* 長い論点名でも幅を押し広げない（min-width:auto だと max-width より内容幅が優先される） */
+.topic-chip { min-width: 0; max-width: 100%; }
 .topic-chip.is-current button { border-color: var(--accent); color: var(--accent); font-weight: 600; }
 .topic-chip.is-viewing:not(.is-current) button { border-style: dashed; border-color: var(--muted); }
 .topic-chip.is-digression button { color: var(--warn); }
 
-/* スマホ用のサマリー早見（デスクトップでは右カラムが常に見えるので非表示） */
-.quick { display: none; }
+/* サマリー早見：件数を押すと縦に並んだ該当セクションへ移動 */
+.quick { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
 .quick-btn {
   border: 1px solid var(--border); background: var(--surface-2); border-radius: 8px;
   font-size: 12px; padding: 3px 8px; cursor: pointer; color: var(--text); white-space: nowrap;
@@ -222,8 +214,10 @@ button, select, input, textarea { font: inherit; color: inherit; }
 
 /* ---------- lanes ---------- */
 .lanes-card { padding: 10px; }
-.lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-.lanes-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 8px; }
+.lanes { display: flex; flex-direction: column; gap: 8px; }
+/* 空のレーンは1行に縮める */
+.lane:has(> .items:empty) { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; padding: 6px 8px; }
+.lane:has(> .items:empty) h3 { margin: 0; }
 .lane { background: var(--surface-2); border-radius: 8px; padding: 8px; border-top: 3px solid var(--border); min-width: 0; }
 .lane h3 { font-size: 12px; margin-bottom: 6px; }
 .lane-proposal { border-top-color: var(--k-proposal); } .lane-proposal h3 { color: var(--k-proposal); }
@@ -286,6 +280,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
   border: 1px solid var(--border); color: var(--muted); background: var(--surface-2); white-space: nowrap;
   max-width: 100%; overflow: hidden; text-overflow: ellipsis;
 }
+.item-head > .badge, .topic-meta > .badge { min-width: 0; }
 .badge-status.st-confirmed { color: var(--ok); border-color: currentColor; font-weight: 700; }
 .badge-status.st-tentative { color: var(--warn); border-color: currentColor; }
 .badge-status.st-revisit { color: var(--k-tradeoff); border-color: currentColor; }
@@ -309,23 +304,24 @@ button, select, input, textarea { font: inherit; color: inherit; }
 }
 
 /* ---------- summary ---------- */
-.summary { padding: 10px 12px; display: flex; flex-direction: column; gap: 10px; }
-.sum-block > h2 {
-  font-size: 13.5px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
-  padding-bottom: 4px; margin-bottom: 4px; border-bottom: 1px solid var(--border);
-}
 .counts { display: inline-flex; gap: 4px; margin-left: auto; }
 .count { font-size: 11px; font-weight: 600; padding: 0 7px; border-radius: 999px; border: 1px solid currentColor; }
 .c-confirmed { color: var(--ok); }
 .c-tentative { color: var(--warn); }
 .c-withdrawn { color: var(--danger); }
-.summary .sub-h:first-of-type { margin-top: 2px; }
+.sum-block .sub-h:first-of-type { margin-top: 2px; }
 .withdrawn { margin-top: 6px; font-size: 12px; }
 .withdrawn > summary { cursor: pointer; color: var(--muted); margin-bottom: 4px; }
 .review-link { margin: 0; }
 
 /* ---------- details tabs ---------- */
 .details { padding: 0; overflow: hidden; }
+.fold > summary { cursor: pointer; list-style: revert; }
+.fold-summary { padding: 10px 14px; font-size: 13.5px; font-weight: 600; }
+.details[open] > .fold-summary { border-bottom: 1px solid var(--border); }
+.fold-inline > summary { cursor: pointer; font-size: 12px; color: var(--muted); margin-top: 4px; }
+.fold-inline[open] > summary { margin-bottom: 4px; }
+.manual { padding: 10px 14px; }
 .tabs {
   display: flex; gap: 2px; overflow-x: auto; scrollbar-width: thin;
   border-bottom: 1px solid var(--border); padding: 6px 8px 0; background: var(--surface-2);
@@ -380,41 +376,15 @@ button, select, input, textarea { font: inherit; color: inherit; }
 }
 
 /* ---------- responsive ---------- */
-@media (max-width: 1180px) {
-  .layout { grid-template-columns: minmax(0, 1fr) 360px; }
-  .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (max-width: 860px) {
-  /* スマホ・狭い画面：いまの論点 → サマリー（決定・次・アクション）→ 内訳 → 詳細 の順 */
-  .layout {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: "controls" "current" "summary" "lanes" "details";
-    grid-template-rows: none;
-    padding: 8px 16px 24px; gap: 8px;
-  }
-  .summary { position: static; max-height: none; overflow: visible; }
+@media (max-width: 560px) {
   .topbar { padding: 6px 16px; }
   .honesty { padding: 4px 16px; font-size: 11.5px; }
   .chip { font-size: 10.5px; padding: 0 7px; }
-  .controls-title { display: none; }
-  .controls-row { gap: 6px; }
-  .btns { flex: 1 1 100%; }
-  .btns .btn { flex: 1 1 0; padding: 3px 4px; font-size: 12px; }
+  .controls { padding: 6px 8px; }
+  .controls .btns .btn { flex: 1 1 0; padding: 3px 4px; font-size: 12px; min-height: 30px; }
   .current { padding: 10px 12px; }
   .current > .current-title { font-size: 22px; }
-  .quick { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-  .controls { padding: 6px 8px; }
-  .btns .btn { white-space: nowrap; min-height: 30px; }
-  .progress { margin: 4px 0 2px; }
-  .summary { scroll-margin-top: 8px; }
-  .sum-block > h2 { scroll-margin-top: 8px; }
-  /* 空のレーンは1行に縮める */
-  .lane:has(> .items:empty) { display: flex; align-items: baseline; gap: 8px; padding: 6px 8px; }
-  .lane:has(> .items:empty) h3 { margin: 0; }
-}
-@media (max-width: 560px) {
-  .lanes, .lanes-2 { grid-template-columns: minmax(0, 1fr); }
-  .speed { margin-left: auto; }
+  .sum-block > h2, .section-title { scroll-margin-top: 8px; }
 }
 </style>
 <div id="mc-build" data-build="artifact" hidden></div>
@@ -436,15 +406,21 @@ button, select, input, textarea { font: inherit; color: inherit; }
   </p>
 
   <main class="layout">
+    <!-- 縦1カラム：デモ操作（細い帯）→ いまの論点 → 議論の構造 → 決定/仮案 → 未解決 → 次に決めること → アクション → 手入力 → 詳細（折り畳み） -->
     <section class="card controls" aria-label="デモ再生">
       <div class="controls-row">
-        <h2 class="controls-title">デモ <span class="muted">架空の台本</span></h2>
-        <div class="btns" role="group" aria-label="デモ操作">
+        <div class="btns" role="group" aria-label="デモ操作（架空の台本）">
           <button type="button" class="btn btn-primary" data-action="play" id="btn-play">▶ 再生</button>
           <button type="button" class="btn" data-action="pause" id="btn-pause">❚❚ 一時停止</button>
           <button type="button" class="btn" data-action="step" id="btn-step">一歩進める</button>
           <button type="button" class="btn btn-ghost" data-action="reset" id="btn-reset" title="デモと手入力の内容をすべて破棄して最初に戻します">リセット</button>
         </div>
+        <span class="progress-text" id="progress-text">0 / 0</span>
+      </div>
+      <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
+      <details class="fold fold-inline" id="controls-more">
+        <summary>架空の台本デモ ・ 発言と速さ</summary>
+        <p class="utterance"><span class="utterance-label">台本の発言（参考）</span><span id="utterance">再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。</span></p>
         <label class="speed">速さ
           <select id="speed">
             <option value="3600">ゆっくり</option>
@@ -452,10 +428,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
             <option value="900">速い</option>
           </select>
         </label>
-        <span class="progress-text" id="progress-text">0 / 0</span>
-      </div>
-      <div class="progress" aria-hidden="true"><div class="progress-bar" id="progress-bar"></div></div>
-      <p class="utterance"><span class="utterance-label">台本の発言（参考）</span><span id="utterance">再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。</span></p>
+      </details>
       <p class="control-note" id="control-note" role="status" hidden></p>
     </section>
 
@@ -472,94 +445,94 @@ button, select, input, textarea { font: inherit; color: inherit; }
         <button type="button" class="quick-btn q-confirmed" data-action="jump" data-target="sum-decisions-title" id="quick-confirmed">確定 0</button>
         <button type="button" class="quick-btn q-tentative" data-action="jump" data-target="sum-decisions-title" id="quick-tentative">仮案 0</button>
         <button type="button" class="quick-btn q-withdrawn" data-action="jump" data-target="withdrawn-details" id="quick-withdrawn">撤回 0</button>
+        <button type="button" class="quick-btn" data-action="jump" data-target="sum-open-title" id="quick-open">未解決 0</button>
         <button type="button" class="quick-btn" data-action="jump" data-target="sum-next-title" id="quick-next">次に決める 0</button>
         <button type="button" class="quick-btn" data-action="jump" data-target="sum-actions-title" id="quick-actions">アクション 0</button>
-        <button type="button" class="quick-btn" data-action="jump" data-target="sum-open-title" id="quick-open">未解決 0</button>
       </nav>
     </section>
 
-    <section class="card lanes-card" aria-label="現在の論点の内訳" id="lanes">
+    <section class="card lanes-card" aria-labelledby="lanes-title" id="lanes">
+      <h2 class="section-title" id="lanes-title">議論の構造 <span class="hint-inline">いまの論点の中身</span></h2>
       <div class="lanes">
         <div class="lane lane-proposal"><h3>提案</h3><ul class="items" id="list-proposal" data-empty="まだありません"></ul></div>
         <div class="lane lane-reason"><h3>理由</h3><ul class="items" id="list-reason" data-empty="まだありません"></ul></div>
         <div class="lane lane-concern"><h3>懸念</h3><ul class="items" id="list-concern" data-empty="まだありません"></ul></div>
         <div class="lane lane-tradeoff"><h3>トレードオフ</h3><ul class="items" id="list-tradeoff" data-empty="まだありません"></ul></div>
-      </div>
-      <div class="lanes lanes-2">
         <div class="lane lane-decision"><h3>この論点の決定・仮案</h3><ul class="items" id="list-topic-decision" data-empty="まだありません"></ul></div>
         <div class="lane lane-unclassified"><h3>この論点の未分類（要確認）</h3><ul class="items" id="list-topic-unclassified" data-empty="ありません"></ul></div>
       </div>
     </section>
 
-    <aside class="card summary" aria-label="会議のサマリー" id="summary">
-      <section class="sum-block" aria-labelledby="sum-decisions-title">
-        <h2 id="sum-decisions-title">決定と仮案
-          <span class="counts"><span class="count c-confirmed" id="count-confirmed">確定 0</span><span class="count c-tentative" id="count-tentative">仮案 0</span><span class="count c-withdrawn" id="count-withdrawn">撤回 0</span></span>
-        </h2>
-        <h3 class="sub-h">確定 <span class="hint-inline">明示的な合意確認かユーザー操作のみ</span></h3>
-        <ul class="items compact" id="list-confirmed" data-empty="まだありません"></ul>
-        <h3 class="sub-h">仮案・再検討中</h3>
-        <ul class="items compact" id="list-tentative" data-empty="ありません"></ul>
-        <details class="withdrawn" id="withdrawn-details">
-          <summary>撤回済み <span id="withdrawn-count">0</span>件（理由を保持）</summary>
-          <ul class="items compact" id="list-withdrawn" data-empty="ありません"></ul>
-        </details>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-next-title" id="sum-next">
-        <h2 id="sum-next-title">次に決めること</h2>
-        <ul class="items compact" id="list-next" data-empty="ありません"></ul>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-actions-title" id="sum-actions">
-        <h2 id="sum-actions-title">あなたのアクション <span class="hint-inline">担当・期限は明示時のみ。不明は不明のまま</span></h2>
-        <ul class="items compact" id="list-actions" data-empty="ありません"></ul>
-      </section>
-      <section class="sum-block" aria-labelledby="sum-open-title" id="sum-open">
-        <h2 id="sum-open-title">未解決</h2>
-        <ul class="items compact" id="list-open" data-empty="ありません"></ul>
-      </section>
+    <section class="card sum-block" aria-labelledby="sum-decisions-title" id="sum-decisions">
+      <h2 id="sum-decisions-title">決定と仮案
+        <span class="counts"><span class="count c-confirmed" id="count-confirmed">確定 0</span><span class="count c-tentative" id="count-tentative">仮案 0</span><span class="count c-withdrawn" id="count-withdrawn">撤回 0</span></span>
+      </h2>
+      <h3 class="sub-h">確定 <span class="hint-inline">明示的な合意確認かユーザー操作のみ</span></h3>
+      <ul class="items compact" id="list-confirmed" data-empty="まだありません"></ul>
+      <h3 class="sub-h">仮案・再検討中</h3>
+      <ul class="items compact" id="list-tentative" data-empty="ありません"></ul>
+      <details class="withdrawn fold-inline" id="withdrawn-details">
+        <summary>撤回済み <span id="withdrawn-count">0</span>件（理由を保持）</summary>
+        <ul class="items compact" id="list-withdrawn" data-empty="ありません"></ul>
+      </details>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-open-title" id="sum-open">
+      <h2 id="sum-open-title">未解決</h2>
+      <ul class="items compact" id="list-open" data-empty="ありません"></ul>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-next-title" id="sum-next">
+      <h2 id="sum-next-title">次に決めること</h2>
+      <ul class="items compact" id="list-next" data-empty="ありません"></ul>
+    </section>
+
+    <section class="card sum-block" aria-labelledby="sum-actions-title" id="sum-actions">
+      <h2 id="sum-actions-title">あなたのアクション <span class="hint-inline">担当・期限は明示時のみ。不明は不明のまま</span></h2>
+      <ul class="items compact" id="list-actions" data-empty="ありません"></ul>
       <p class="review-link" id="review-link" hidden>
         <button type="button" class="btn btn-small btn-warn" data-action="tab" data-tab="review" id="review-link-btn">要確認（未分類） 0件を見る</button>
       </p>
-    </aside>
+    </section>
 
-    <section class="card details" aria-label="入力と詳細" id="details">
-      <div class="tabs" role="tablist" aria-label="入力と詳細">
-        <button type="button" role="tab" class="tab" id="tab-manual" data-action="tab" data-tab="manual" aria-controls="panel-manual" aria-selected="true">手入力</button>
-        <button type="button" role="tab" class="tab" id="tab-review" data-action="tab" data-tab="review" aria-controls="panel-review" aria-selected="false">要確認 <span class="tab-count" id="tabcount-review">0</span></button>
+    <section class="card manual" aria-labelledby="manual-title" id="manual">
+      <h2 class="section-title" id="manual-title">手入力</h2>
+      <form id="manual-form" class="manual-form" novalidate>
+        <label class="sr-only" for="manual-text">内容</label>
+        <textarea id="manual-text" name="text" rows="2" maxlength="500" placeholder="例）懸念: 移行コストが読めない ／ 議題: 来期の採用計画" autocomplete="off"></textarea>
+        <div class="manual-row">
+          <label>種類
+            <select id="manual-kind" name="kind">
+              <option value="auto" selected>自動（キーワード規則）</option>
+              <option value="topic">新しい論点</option>
+              <option value="proposal">提案</option>
+              <option value="reason">理由</option>
+              <option value="concern">懸念</option>
+              <option value="tradeoff">トレードオフ</option>
+              <option value="decision">決定・仮案（仮案で追加）</option>
+              <option value="open_question">未解決</option>
+              <option value="next">次に決めること</option>
+              <option value="action">アクション</option>
+              <option value="unclassified">未分類（要確認）</option>
+            </select>
+          </label>
+          <button type="submit" class="btn btn-primary" id="manual-submit">追加</button>
+        </div>
+        <p class="hint">「議題: ○○」で新しい論点。自動判定はキーワード規則だけで、決定らしい語があっても<strong>仮案</strong>。担当・期限は「担当: Bさん」「期限: 10/20」と明記された場合だけ拾います。</p>
+        <p class="feedback" id="manual-feedback" role="status"></p>
+      </form>
+    </section>
+
+    <details class="card details fold" id="details-fold">
+      <summary class="fold-summary">詳細（要確認・論点の履歴・変更履歴・音声・データ）</summary>
+      <div class="tabs" role="tablist" aria-label="詳細">
+        <button type="button" role="tab" class="tab" id="tab-review" data-action="tab" data-tab="review" aria-controls="panel-review" aria-selected="true">要確認 <span class="tab-count" id="tabcount-review">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-topics" data-action="tab" data-tab="topics" aria-controls="panel-topics" aria-selected="false">論点の履歴 <span class="tab-count" id="tabcount-topics">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-log" data-action="tab" data-tab="log" aria-controls="panel-log" aria-selected="false">変更履歴 <span class="tab-count" id="tabcount-log">0</span></button>
         <button type="button" role="tab" class="tab" id="tab-audio" data-action="tab" data-tab="audio" aria-controls="panel-audio" aria-selected="false">音声（未接続）</button>
         <button type="button" role="tab" class="tab" id="tab-data" data-action="tab" data-tab="data" aria-controls="panel-data" aria-selected="false">データ</button>
       </div>
-
-      <div class="panel" role="tabpanel" id="panel-manual" aria-labelledby="tab-manual">
-        <form id="manual-form" class="manual-form" novalidate>
-          <label class="sr-only" for="manual-text">内容</label>
-          <textarea id="manual-text" name="text" rows="2" maxlength="500" placeholder="例）懸念: 移行コストが読めない ／ 議題: 来期の採用計画" autocomplete="off"></textarea>
-          <div class="manual-row">
-            <label>種類
-              <select id="manual-kind" name="kind">
-                <option value="auto" selected>自動（キーワード規則）</option>
-                <option value="topic">新しい論点</option>
-                <option value="proposal">提案</option>
-                <option value="reason">理由</option>
-                <option value="concern">懸念</option>
-                <option value="tradeoff">トレードオフ</option>
-                <option value="decision">決定・仮案（仮案で追加）</option>
-                <option value="open_question">未解決</option>
-                <option value="next">次に決めること</option>
-                <option value="action">アクション</option>
-                <option value="unclassified">未分類（要確認）</option>
-              </select>
-            </label>
-            <button type="submit" class="btn btn-primary" id="manual-submit">追加</button>
-          </div>
-          <p class="hint">「議題: ○○」で新しい論点。自動判定はキーワード規則だけで、決定らしい語があっても<strong>仮案</strong>。担当・期限は「担当: Bさん」「期限: 10/20」と明記された場合だけ拾います。</p>
-          <p class="feedback" id="manual-feedback" role="status"></p>
-        </form>
-      </div>
-
-      <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review" hidden>
+      <div class="panel" role="tabpanel" id="panel-review" aria-labelledby="tab-review">
         <p class="hint">自動では分類できなかった項目です。内容を確認して種類を選んでください。</p>
         <ul class="items" id="list-review" data-empty="ありません"></ul>
       </div>
@@ -593,7 +566,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
         </div>
         <p class="feedback" id="data-feedback" role="status"></p>
       </div>
-    </section>
+    </details>
   </main>
 
   <footer class="footer" id="footer-note">
@@ -1537,7 +1510,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
     document.getElementById(id)
   );
   var ARTIFACT_BUILD = document.getElementById("mc-build")?.dataset.build === "artifact";
-  var TABS = ["manual", "review", "topics", "log", "audio", "data"];
+  var TABS = ["review", "topics", "log", "audio", "data"];
   var session = createSession();
   var ui = {
     /** 表示中の論点（null なら現在の論点） */
@@ -1550,7 +1523,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
       /** @type {string|null} */
       null
     ),
-    tab: "manual",
+    tab: "review",
     cleared: false,
     lastTopicId: (
       /** @type {string|null} */
@@ -1906,7 +1879,8 @@ button, select, input, textarea { font: inherit; color: inherit; }
         ui.tab = TABS.includes(btn.dataset.tab ?? "") ? (
           /** @type {string} */
           btn.dataset.tab
-        ) : "manual";
+        ) : "review";
+        $("details-fold").open = true;
         break;
       case "view-topic":
         ui.viewTopicId = id ?? null;
@@ -1979,7 +1953,7 @@ button, select, input, textarea { font: inherit; color: inherit; }
     }
     render();
     if (action === "edit") focusEditor(id);
-    if (action === "tab" && btn.id === "review-link-btn") $("details").scrollIntoView({ block: "start" });
+    if (action === "tab" && btn.id === "review-link-btn") $("details-fold").scrollIntoView({ block: "start" });
   });
   document.addEventListener("keydown", (ev) => {
     const target = (

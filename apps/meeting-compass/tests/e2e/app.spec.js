@@ -27,6 +27,19 @@ async function guard(page, baseURL) {
 const lane = (page, id) => page.locator(`#${id} > li`);
 const chip = (page) => page.locator('#chip-state');
 
+/** 速さは「発言と速さ」の折り畳みの中にある */
+async function setFastSpeed(page) {
+  const more = page.locator('#controls-more');
+  if (!(await more.evaluate((el) => el.open))) await more.locator('> summary').click();
+  await page.selectOption('#speed', '900');
+}
+
+/** 折り畳みの「詳細」（要確認・履歴・音声・データ）を開く */
+async function openDetails(page) {
+  const fold = page.locator('#details-fold');
+  if (!(await fold.evaluate((el) => el.open))) await fold.locator('> summary').click();
+}
+
 async function stepTimes(page, n) {
   for (let i = 0; i < n; i++) await page.locator('#btn-step').click();
 }
@@ -44,10 +57,13 @@ test('初期表示：由来の明記・停止状態・外部送信なし', async
   await expect(page.locator('.chips')).toContainText('外部送信: なし');
   await expect(page.locator('.chips')).toContainText('音声: 未接続');
   await expect(page.locator('#current-title')).toHaveText('まだ論点はありません');
-  await expect(page.locator('#list-routes li')).toHaveCount(3);
-  // 詳細は折り畳み（タブ）。初期は手入力タブだけ開いている
-  await expect(page.locator('#panel-manual')).toBeVisible();
+  // 手入力は常に表示。詳細（要確認・履歴・音声・データ）は折り畳みで閉じている
+  await expect(page.locator('#manual-form')).toBeVisible();
+  expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(false);
   for (const p of ['review', 'topics', 'log', 'audio', 'data']) await expect(page.locator(`#panel-${p}`)).toBeHidden();
+  await openDetails(page);
+  await page.locator('#tab-audio').click();
+  await expect(page.locator('#list-routes li')).toHaveCount(3);
   await page.screenshot({ path: shot(testInfo, '01-initial'), fullPage: false });
   expect(g.external).toEqual([]);
   expect(g.errors).toEqual([]);
@@ -105,7 +121,7 @@ test('デモ：話題切替・脱線・戻り・撤回・訂正・合意未確�
   await expect(action).toContainText('期限: 不明');
   await expect(page.locator('#list-log > li.is-rejected')).toHaveCount(1);
   await page.locator('#withdrawn-details > summary').click();
-  await page.screenshot({ path: shot(testInfo, '05-demo-end-full'), fullPage: true });
+  await page.screenshot({ path: shot(testInfo, '04b-demo-end-withdrawn-open'), fullPage: true });
 
   // ID の重複が無い
   const ids = await page.evaluate(() => window.__meetingCompass.snapshot().items.map((i) => i.id));
@@ -116,7 +132,7 @@ test('デモ：話題切替・脱線・戻り・撤回・訂正・合意未確�
 
 test('再生・一時停止・再開・リセット', async ({ page }) => {
   await page.goto('/');
-  await page.selectOption('#speed', '900');
+  await setFastSpeed(page);
   await page.locator('#btn-play').click();
   await expect(chip(page)).toHaveText('再生中');
   await expect(page.locator('#btn-pause')).toBeEnabled();
@@ -187,6 +203,7 @@ test('手入力：空入力の拒否・規則分類・未分類・手動確定�
   await expect(page.locator('#withdrawn-count')).toHaveText('1');
 
   // 未分類を確認して分類
+  await openDetails(page);
   await page.locator('#tab-review').click();
   const review = page.locator('#list-review > li').first();
   await review.getByRole('button', { name: '確認して分類' }).click();
@@ -221,6 +238,9 @@ test('危険な HTML 入力は文字として表示され、実行されない',
   await expect(page.locator('#current-title')).toHaveText(payload);
   await expect(page.locator('#list-concern > li .item-text')).toHaveText(payload);
   expect(await page.locator('main img, main script').count()).toBe(0);
+  // 空白のない長い入力でも横にはみ出さない
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize().width);
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   // 編集フォームでも同様
   await page.locator('#list-concern > li').getByRole('button', { name: '修正' }).click();
@@ -233,6 +253,7 @@ test('過去の論点の参照と「現在の論点にする」', async ({ page 
   await page.goto('/');
   await stepTimes(page, 9); // 2つ目の論点まで
   await expect(page.locator('#current-title')).toHaveText('共有ドライブのフォルダ整理');
+  await openDetails(page);
   await page.locator('#tab-topics').click();
   await page.locator('#list-topics > li[data-id="t-format"]').getByRole('button', { name: '表示' }).click();
   await expect(page.locator('#past-banner')).toBeVisible();
@@ -242,6 +263,7 @@ test('過去の論点の参照と「現在の論点にする」', async ({ page 
   await expect(page.locator('#past-banner')).toBeHidden();
   await page.locator('#list-topics > li[data-id="t-format"]').getByRole('button', { name: '現在の論点にする' }).click();
   await expect(page.locator('#list-topics > li[data-id="t-format"]')).toContainText('現在');
+  await openDetails(page);
   await page.locator('#tab-log').click();
   await expect(page.locator('#list-log > li').first()).toContainText('ユーザー入力');
 });
@@ -250,6 +272,7 @@ test('書き出しは明示操作でのみ行い、消去で全て破棄され�
   const g = await guard(page, baseURL);
   await page.goto('/');
   await stepTimes(page, 5);
+  await openDetails(page);
   await page.locator('#tab-data').click();
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -294,66 +317,72 @@ async function box(page, sel) {
   return b;
 }
 
-test('初期 viewport 内に現在論点・決定・次に決めること・アクションが収まる', async ({ page }, testInfo) => {
+test('縦1カラム：論点→構造→決定/仮案→未解決→次に決めること→アクションの順、横スクロールなし', async ({ page }, testInfo) => {
   await page.goto('/');
+  // 初期状態でも、いまの論点が最初の画面に見える
+  const vh = page.viewportSize().height;
+  const vw = page.viewportSize().width;
+  let cur = await box(page, '#current-title');
+  expect(cur.y + cur.height, 'いまの論点が最初の画面外').toBeLessThanOrEqual(vh * 0.5);
   for (let i = 0; i < DEMO_STEPS.length; i++) await page.locator('#btn-step').click();
   await expect(chip(page)).toHaveText('再生終了（停止中）');
   await page.evaluate(() => window.scrollTo(0, 0));
-  const vh = page.viewportSize().height;
-  if (testInfo.project.name === 'desktop') {
-    // 1440x900 でスクロールせずに主要サマリーが見える
-    for (const sel of ['#current-title', '#list-confirmed > li', '#list-tentative > li', '#sum-next-title', '#list-next > li:last-child', '#sum-actions-title', '#list-actions > li']) {
-      const b = await box(page, sel);
-      expect(b.y, sel).toBeGreaterThanOrEqual(0);
-      expect(b.y + b.height, `${sel} が画面外`).toBeLessThanOrEqual(vh);
-    }
-    // 確定・仮案・撤回の区別と根拠
-    await expect(page.locator('#count-confirmed')).toHaveText('確定 1');
-    await expect(page.locator('#count-tentative')).toHaveText('仮案 1');
-    await expect(page.locator('#count-withdrawn')).toHaveText('撤回 1');
-    await expect(page.locator('#list-confirmed .item-basis')).toContainText('根拠: 議長の確認に対し');
-    await expect(page.locator('#list-tentative .item-basis')).toContainText('明示的な合意確認がない');
-    await expect(page.locator('#list-withdrawn .item-basis')).toContainText('撤回理由: 交通費');
-    // 詳細（履歴・ログ・音声・データ）はタブに畳まれている
-    await expect(page.locator('#panel-log')).toBeHidden();
-    await expect(page.locator('#panel-audio')).toBeHidden();
-    await expect(page.locator('#panel-data')).toBeHidden();
-  } else {
-    // モバイル：論点 → サマリー → 内訳 の順で、論点は最初の画面内
-    const cur = await box(page, '#current-title');
-    expect(cur.y + cur.height).toBeLessThanOrEqual(vh);
-    const current = await box(page, '#current');
-    const summary = await box(page, '#summary');
-    const lanes = await box(page, '#lanes');
-    expect(summary.y).toBeGreaterThanOrEqual(current.y + current.height - 1);
-    expect(lanes.y).toBeGreaterThanOrEqual(summary.y + summary.height - 1);
-    // 最初の画面内に早見サマリー（件数）が見え、押すと各セクションへ移動する
-    const quick = await box(page, '#quick-summary');
-    expect(quick.y + quick.height, '早見サマリーが最初の画面外').toBeLessThanOrEqual(vh);
-    await expect(page.locator('#quick-confirmed')).toHaveText('確定 1');
-    await expect(page.locator('#quick-tentative')).toHaveText('仮案 1');
-    await expect(page.locator('#quick-withdrawn')).toHaveText('撤回 1');
-    await expect(page.locator('#quick-next')).toHaveText('次に決める 2');
-    await expect(page.locator('#quick-actions')).toHaveText('アクション 1');
-    await page.screenshot({ path: shot(testInfo, '05-demo-end'), fullPage: false });
-    await page.locator('#quick-next').click();
-    await expect(page.locator('#sum-next-title')).toBeInViewport();
-    await expect(page.locator('#list-next > li').first()).toBeInViewport();
-    await page.screenshot({ path: shot(testInfo, '11-jump-next'), fullPage: false });
-    await page.locator('#quick-withdrawn').click();
-    await expect(page.locator('#withdrawn-details')).toHaveAttribute('open', '');
-    await expect(page.locator('#list-withdrawn .item-basis')).toContainText('撤回理由: 交通費');
-    // 横スクロールが発生しない
-    expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-    return;
+  cur = await box(page, '#current-title');
+  expect(cur.y + cur.height).toBeLessThanOrEqual(vh * 0.5);
+
+  // 順序（上から下）と同じ左端・同じ幅＝縦1カラム
+  const order = ['#controls-more', '#current', '#lanes', '#sum-decisions', '#sum-open', '#sum-next', '#sum-actions', '#manual', '#details-fold'];
+  const boxes = [];
+  for (const sel of order) boxes.push({ sel, ...(await box(page, sel)) });
+  for (let i = 1; i < boxes.length; i++) {
+    expect(boxes[i].y, `${boxes[i].sel} は ${boxes[i - 1].sel} の下`).toBeGreaterThan(boxes[i - 1].y);
   }
-  await expect(page.locator('#quick-summary')).toBeHidden(); // デスクトップは右カラムで常時表示
+  const cards = boxes.slice(1);
+  for (const b of cards) {
+    expect(Math.abs(b.x - cards[0].x), `${b.sel} の左端`).toBeLessThanOrEqual(1);
+    expect(Math.abs(b.width - cards[0].width), `${b.sel} の幅`).toBeLessThanOrEqual(1);
+    expect(b.x).toBeGreaterThanOrEqual(15); // 左右16pxの余白
+    expect(b.x + b.width).toBeLessThanOrEqual(vw - 15);
+  }
+
+  // 提案/理由/懸念/トレードオフも縦に並ぶ
+  const lanes = [];
+  for (const k of ['proposal', 'reason', 'concern', 'tradeoff']) lanes.push(await box(page, `.lane-${k}`));
+  for (let i = 1; i < lanes.length; i++) {
+    expect(lanes[i].y).toBeGreaterThan(lanes[i - 1].y + lanes[i - 1].height - 1);
+    expect(Math.abs(lanes[i].x - lanes[0].x)).toBeLessThanOrEqual(1);
+  }
+
+  // 横スクロールなし・はみ出す要素なし（タブ列は自身の中でスクロール）
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  const overflow = await page.evaluate(() => [...document.querySelectorAll('main *')]
+    .filter((el) => !el.closest('.tabs') && el.getClientRects().length && el.getBoundingClientRect().right > window.innerWidth + 0.5)
+    .map((el) => el.id || el.className).slice(0, 5));
+  expect(overflow).toEqual([]);
+
+  // 確定・仮案・撤回の区別と根拠
+  await expect(page.locator('#count-confirmed')).toHaveText('確定 1');
+  await expect(page.locator('#count-tentative')).toHaveText('仮案 1');
+  await expect(page.locator('#count-withdrawn')).toHaveText('撤回 1');
+  await expect(page.locator('#list-confirmed .item-basis')).toContainText('根拠: 議長の確認に対し');
+  await expect(page.locator('#list-tentative .item-basis')).toContainText('明示的な合意確認がない');
+  // デモ操作の詳細・履歴などは折り畳み
+  expect(await page.locator('#controls-more').evaluate((el) => el.open)).toBe(false);
+  expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(false);
   await page.screenshot({ path: shot(testInfo, '05-demo-end'), fullPage: false });
+  await page.screenshot({ path: shot(testInfo, '05-demo-end-full'), fullPage: true });
+
+  // 早見サマリーから各セクションへ移動
+  await page.locator('#quick-next').click();
+  await expect(page.locator('#sum-next-title')).toBeInViewport();
+  await page.locator('#quick-withdrawn').click();
+  await expect(page.locator('#withdrawn-details')).toHaveAttribute('open', '');
+  await expect(page.locator('#list-withdrawn .item-basis')).toContainText('撤回理由: 交通費');
 });
 
 test('再生中に修正を開くと自動で一時停止し、入力は消えない', async ({ page }, testInfo) => {
   await page.goto('/');
-  await page.selectOption('#speed', '900');
+  await setFastSpeed(page);
   await page.locator('#btn-play').click();
   const item = page.locator('#list-proposal > li[data-id="p-online"]');
   await expect(item).toHaveCount(1, { timeout: 5000 });
@@ -398,7 +427,7 @@ test('編集は Esc でキャンセルでき、再生ボタンが戻る', async 
 
 test('再生中も手入力欄の入力は保持される', async ({ page }) => {
   await page.goto('/');
-  await page.selectOption('#speed', '900');
+  await setFastSpeed(page);
   await page.locator('#btn-play').click();
   await page.locator('#manual-text').fill('入力途中のメモ');
   await page.waitForTimeout(2200);
@@ -413,7 +442,7 @@ test('タブ切り替え（クリックと左右キー）と要確認への導�
   await page.locator('#review-link-btn').click();
   await expect(page.locator('#tab-review')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#panel-review')).toBeVisible();
-  await expect(page.locator('#panel-manual')).toBeHidden();
+  expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(true);
   await page.locator('#tab-review').focus();
   await page.keyboard.press('ArrowRight');
   await expect(page.locator('#tab-topics')).toHaveAttribute('aria-selected', 'true');
