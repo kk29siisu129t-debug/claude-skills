@@ -1,9 +1,13 @@
 // セッション：メモリ内だけで state を保持する。永続化（localStorage 等）は一切しない。
 
-import { applyEvent, createState } from './model.js';
+import { applyOutlineEvent, createOutline } from './outline.js';
 
-export function createSession() {
-  let state = createState();
+/**
+ * @param {{ apply?: (state: any, event: any) => any, init?: () => any }} [opts]
+ *   既定は会話アウトライン。apply/init を渡せば別のモデルでも使える。
+ */
+export function createSession({ apply = applyOutlineEvent, init = createOutline } = {}) {
+  let state = init();
   let counter = 0;
   /** @type {Set<(state: any, result: any) => void>} */
   const listeners = new Set();
@@ -16,7 +20,7 @@ export function createSession() {
     getState: () => state,
     /** 呼び出し側が付けたイベントIDのまま適用する（重複は無視される）。 */
     dispatch(event) {
-      const result = applyEvent(state, event);
+      const result = apply(state, event);
       state = result.state;
       notify(result);
       return result;
@@ -28,7 +32,7 @@ export function createSession() {
     },
     /** 内容をすべて破棄して初期状態に戻す。 */
     clear() {
-      state = createState();
+      state = init();
       counter = 0;
       notify({ ok: true, cleared: true, changedIds: [] });
     },

@@ -1,6 +1,8 @@
 # テスト結果（自動生成ログ）
 
-実行日時: 2026-10-04T02:35:53Z / Node v22.22.0 / Playwright 1.56.1 (Chromium) / 対象: 縦1カラム化（desktop 1440x900・390x844・360x740 縦）。実API・実音声は未検証
+実行日時: 2026-10-04T02:56:36Z / Node v22.22.0 / Playwright 1.56.1 (Chromium) / 対象: 会話から育つ階層アウトラインへの作り替え（desktop 1440x900・390x844・360x740 縦）。音声・AI・外部APIは未接続
+
+ユニットテストは tests/unit/no-network.mjs（外部通信を遮断）下で実行。E2E は外部リクエスト・マイク/画面API呼び出し 0 件を検証。
 
 ## npm run lint
 ```
@@ -77,20 +79,20 @@ ok 60 - 論点が無い状態での項目追加は拒否
 ok 61 - 危険な HTML は文字列のまま保持される（実行・除去しない）
 ok 62 - 制御文字は除去される
 ok 63 - 未知のイベント種別・未知の種類は拒否
-ok 64 - classify: キーワード規則による分類
-ok 65 - classify: どの規則にも当てはまらなければ未分類
-ok 66 - classify: 空入力・空白のみは失敗
-ok 67 - classify: アクションの担当・期限は明記されたときだけ取り出す
-ok 68 - 手入力：「決定しました」でも仮案。確定にはならない
-ok 69 - 手入力：論点が無ければ「論点未設定」を自動で開き、ID は決定的
-ok 70 - 手入力：空入力は拒否され、何も追加されない
-ok 71 - 手入力：種類を指定するとユーザー入力として追加
-ok 72 - player: 再生・一時停止・一歩進める・再開・リセット
-ok 73 - デモプロバイダ：最後まで再生してもエラー無し、リセット＋消去で空に戻り再生し直せる
-ok 74 - session.clear は内容と ID カウンタを破棄する
-ok 75 - 音声プロバイダは未接続：start は失敗し、mediaDevices に触れない
-ok 76 - どのプロバイダも外部送信しない宣言
-ok 77 - export: Markdown は HTML を無害化し、JSON は由来の注意書きを含む
+ok 64 - 初期状態は空のアウトラインで、固定の見出しを持たない
+ok 65 - イベントから任意の見出しと枝が生まれ、入れ子になる
+ok 66 - 同じイベントID・同じノードID・同じ親の下の同じ文は重複しない
+ok 67 - 話題へ戻る（node.focus）は新しく作らず、既存の枝への追記になる
+ok 68 - 訂正は同じノードを直し、変更履歴を残す。並び順は変わらない
+ok 69 - 不正な入力は拒否し、state を変えない
+ok 70 - 階層の深さに上限がある
+ok 71 - 危険な HTML・制御文字：HTMLは文字列のまま、制御文字は除去
+ok 72 - 台本デモ：全イベント成功・ID安定・誕生/枝分かれ/脱線/戻り/訂正を含み、固定見出しは無い
+ok 73 - player: 再生・一時停止・一歩進める・再開・リセット
+ok 74 - 台本デモ：最後まで流してもエラー無し、リセット＋消去で空に戻り、同じIDで再生し直せる
+ok 75 - session.clear は内容と ID カウンタを破棄する
+ok 76 - 音声プロバイダは未接続：start は失敗し、mediaDevices に触れない
+ok 77 - export: 入れ子の Markdown（HTML は無害化）と、由来の注意書き付き JSON
 ok 78 - 静的サーバー：index とセキュリティヘッダ、ディレクトリ外は 404
 # tests 78
 # pass 78
@@ -100,83 +102,83 @@ exit: 0
 
 ## npm run build
 ```
-build ok: 16 files -> dist/
+build ok: 15 files -> dist/
 exit: 0
 ```
 
 ## npm run bundle:artifact
 ```
-bundle-artifact ok: artifact/meeting-compass.html (99416 bytes, 13 modules)
+bundle-artifact ok: artifact/meeting-compass.html (60421 bytes, 11 modules)
 exit: 0
 ```
 
 ## npm run test:e2e（通常版＋Artifact版、desktop / mobile-390 / mobile-360）
 ```
-  ✓   1 [desktop] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓   2 [desktop] › tests/e2e/app.spec.js:51:1 › 初期表示：由来の明記・停止状態・外部送信なし
-  ✓   4 [desktop] › tests/e2e/app.spec.js:73:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認
-  ✓   3 [desktop] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓   6 [desktop] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
-  ✓   5 [desktop] › tests/e2e/app.spec.js:133:1 › 再生・一時停止・再開・リセット
-  ✓   7 [mobile-390] › tests/e2e/app.spec.js:51:1 › 初期表示：由来の明記・停止状態・外部送信なし
-  ✓   8 [desktop] › tests/e2e/app.spec.js:159:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正
-  ✓  10 [desktop] › tests/e2e/app.spec.js:229:1 › 危険な HTML 入力は文字として表示され、実行されない
-  ✓  11 [desktop] › tests/e2e/app.spec.js:252:1 › 過去の論点の参照と「現在の論点にする」
-  ✓   9 [mobile-390] › tests/e2e/app.spec.js:73:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認
-  ✓  12 [desktop] › tests/e2e/app.spec.js:271:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
-  ✓  14 [desktop] › tests/e2e/app.spec.js:305:1 › リロードすると内容は残らない（メモリのみ）
-  ✓  15 [desktop] › tests/e2e/app.spec.js:320:1 › 縦1カラム：論点→構造→決定/仮案→未解決→次に決めること→アクションの順、横スクロールなし
-  ✓  13 [mobile-390] › tests/e2e/app.spec.js:133:1 › 再生・一時停止・再開・リセット
-  ✓  17 [mobile-390] › tests/e2e/app.spec.js:159:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正
-  ✓  18 [mobile-390] › tests/e2e/app.spec.js:229:1 › 危険な HTML 入力は文字として表示され、実行されない
-  ✓  16 [desktop] › tests/e2e/app.spec.js:383:1 › 再生中に修正を開くと自動で一時停止し、入力は消えない
-  ✓  20 [desktop] › tests/e2e/app.spec.js:415:1 › 編集は Esc でキャンセルでき、再生ボタンが戻る
-  ✓  19 [mobile-390] › tests/e2e/app.spec.js:252:1 › 過去の論点の参照と「現在の論点にする」
-  ✓  22 [mobile-390] › tests/e2e/app.spec.js:271:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
-  ✓  23 [mobile-390] › tests/e2e/app.spec.js:305:1 › リロードすると内容は残らない（メモリのみ）
-  ✓  21 [desktop] › tests/e2e/app.spec.js:428:1 › 再生中も手入力欄の入力は保持される
-  ✓  25 [desktop] › tests/e2e/app.spec.js:438:1 › タブ切り替え（クリックと左右キー）と要確認への導線
-  ✓  24 [mobile-390] › tests/e2e/app.spec.js:320:1 › 縦1カラム：論点→構造→決定/仮案→未解決→次に決めること→アクションの順、横スクロールなし
-  ✓  27 [mobile-390] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓  26 [mobile-390] › tests/e2e/app.spec.js:383:1 › 再生中に修正を開くと自動で一時停止し、入力は消えない
-  ✓  29 [mobile-390] › tests/e2e/app.spec.js:415:1 › 編集は Esc でキャンセルでき、再生ボタンが戻る
-  ✓  28 [mobile-390] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓  31 [mobile-390] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
-  ✓  30 [mobile-390] › tests/e2e/app.spec.js:428:1 › 再生中も手入力欄の入力は保持される
-  ✓  32 [mobile-390] › tests/e2e/app.spec.js:438:1 › タブ切り替え（クリックと左右キー）と要確認への導線
-  ✓  33 [mobile-360] › tests/e2e/app.spec.js:51:1 › 初期表示：由来の明記・停止状態・外部送信なし
-  ✓  35 [mobile-360] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓  34 [mobile-360] › tests/e2e/app.spec.js:73:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認
-  ✓  36 [mobile-360] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓  38 [mobile-360] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
-  ✓  37 [mobile-360] › tests/e2e/app.spec.js:133:1 › 再生・一時停止・再開・リセット
-  ✓  39 [mobile-360] › tests/e2e/app.spec.js:159:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正
-  ✓  40 [mobile-360] › tests/e2e/app.spec.js:229:1 › 危険な HTML 入力は文字として表示され、実行されない
-  ✓  41 [mobile-360] › tests/e2e/app.spec.js:252:1 › 過去の論点の参照と「現在の論点にする」
-  ✓  42 [mobile-360] › tests/e2e/app.spec.js:271:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
-  ✓  43 [mobile-360] › tests/e2e/app.spec.js:305:1 › リロードすると内容は残らない（メモリのみ）
-  ✓  44 [mobile-360] › tests/e2e/app.spec.js:320:1 › 縦1カラム：論点→構造→決定/仮案→未解決→次に決めること→アクションの順、横スクロールなし
-  ✓  45 [mobile-360] › tests/e2e/app.spec.js:383:1 › 再生中に修正を開くと自動で一時停止し、入力は消えない
-  ✓  46 [mobile-360] › tests/e2e/app.spec.js:415:1 › 編集は Esc でキャンセルでき、再生ボタンが戻る
-  ✓  47 [mobile-360] › tests/e2e/app.spec.js:428:1 › 再生中も手入力欄の入力は保持される
-  ✓  48 [mobile-360] › tests/e2e/app.spec.js:438:1 › タブ切り替え（クリックと左右キー）と要確認への導線
+  ✓   1 [desktop] › tests/e2e/app.spec.js:54:1 › 初期表示：空のアウトラインと再生案内、固定の見出し枠なし、由来の明記、無通信
+  ✓   2 [desktop] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓   3 [desktop] › tests/e2e/app.spec.js:77:1 › 台本デモ：話題の誕生・枝分かれ・脱線・戻り（重複なし）・訂正（同じノード）
+  ✓   4 [desktop] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓   6 [desktop] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓   7 [mobile-390] › tests/e2e/app.spec.js:54:1 › 初期表示：空のアウトラインと再生案内、固定の見出し枠なし、由来の明記、無通信
+  ✓   5 [desktop] › tests/e2e/app.spec.js:130:1 › 再生・一時停止・再開・リセット
+  ✓   8 [mobile-390] › tests/e2e/app.spec.js:77:1 › 台本デモ：話題の誕生・枝分かれ・脱線・戻り（重複なし）・訂正（同じノード）
+  ✓   9 [desktop] › tests/e2e/app.spec.js:154:1 › 折り畳み：畳んだ枝は勝手に開かず「新しい追記あり」を出し、「最新の更新へ」で開いて移動
+  ✓  11 [desktop] › tests/e2e/app.spec.js:172:1 › 読んでいる間は勝手にスクロール・並べ替えしない（上で追記されても読んでいる位置を保つ）
+  ✓  12 [desktop] › tests/e2e/app.spec.js:196:1 › 手で書く：新しい見出し・選んだ枝に追記・重複は作らず既存へ・編集で訂正履歴
+  ✓  10 [mobile-390] › tests/e2e/app.spec.js:130:1 › 再生・一時停止・再開・リセット
+  ✓  13 [desktop] › tests/e2e/app.spec.js:254:1 › 再生中に編集を開くと自動で一時停止し、入力は消えない
+  ✓  14 [mobile-390] › tests/e2e/app.spec.js:154:1 › 折り畳み：畳んだ枝は勝手に開かず「新しい追記あり」を出し、「最新の更新へ」で開いて移動
+  ✓  15 [desktop] › tests/e2e/app.spec.js:279:1 › 編集は Esc でキャンセルできる
+  ✓  17 [desktop] › tests/e2e/app.spec.js:291:1 › 長文・危険な HTML は文字として表示され、横にはみ出さない
+  ✓  18 [desktop] › tests/e2e/app.spec.js:311:1 › 縦1列：操作の帯 → アウトライン → 手で書く → 詳細、同じ左端・余白16px以上・横スクロールなし
+  ✓  16 [mobile-390] › tests/e2e/app.spec.js:172:1 › 読んでいる間は勝手にスクロール・並べ替えしない（上で追記されても読んでいる位置を保つ）
+  ✓  19 [desktop] › tests/e2e/app.spec.js:335:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
+  ✓  20 [mobile-390] › tests/e2e/app.spec.js:196:1 › 手で書く：新しい見出し・選んだ枝に追記・重複は作らず既存へ・編集で訂正履歴
+  ✓  21 [desktop] › tests/e2e/app.spec.js:358:1 › リロードすると内容は残らない（メモリのみ）
+  ✓  23 [desktop] › tests/e2e/app.spec.js:366:1 › 詳細のタブ（クリックと左右キー）と音声未接続の表示
+  ✓  24 [mobile-390] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓  22 [mobile-390] › tests/e2e/app.spec.js:254:1 › 再生中に編集を開くと自動で一時停止し、入力は消えない
+  ✓  26 [mobile-390] › tests/e2e/app.spec.js:279:1 › 編集は Esc でキャンセルできる
+  ✓  27 [mobile-390] › tests/e2e/app.spec.js:291:1 › 長文・危険な HTML は文字として表示され、横にはみ出さない
+  ✓  28 [mobile-390] › tests/e2e/app.spec.js:311:1 › 縦1列：操作の帯 → アウトライン → 手で書く → 詳細、同じ左端・余白16px以上・横スクロールなし
+  ✓  25 [mobile-390] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓  29 [mobile-390] › tests/e2e/app.spec.js:335:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
+  ✓  30 [mobile-390] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓  31 [mobile-390] › tests/e2e/app.spec.js:358:1 › リロードすると内容は残らない（メモリのみ）
+  ✓  32 [mobile-390] › tests/e2e/app.spec.js:366:1 › 詳細のタブ（クリックと左右キー）と音声未接続の表示
+  ✓  33 [mobile-360] › tests/e2e/app.spec.js:54:1 › 初期表示：空のアウトラインと再生案内、固定の見出し枠なし、由来の明記、無通信
+  ✓  35 [mobile-360] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓  34 [mobile-360] › tests/e2e/app.spec.js:77:1 › 台本デモ：話題の誕生・枝分かれ・脱線・戻り（重複なし）・訂正（同じノード）
+  ✓  36 [mobile-360] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓  38 [mobile-360] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓  37 [mobile-360] › tests/e2e/app.spec.js:130:1 › 再生・一時停止・再開・リセット
+  ✓  39 [mobile-360] › tests/e2e/app.spec.js:154:1 › 折り畳み：畳んだ枝は勝手に開かず「新しい追記あり」を出し、「最新の更新へ」で開いて移動
+  ✓  40 [mobile-360] › tests/e2e/app.spec.js:172:1 › 読んでいる間は勝手にスクロール・並べ替えしない（上で追記されても読んでいる位置を保つ）
+  ✓  41 [mobile-360] › tests/e2e/app.spec.js:196:1 › 手で書く：新しい見出し・選んだ枝に追記・重複は作らず既存へ・編集で訂正履歴
+  ✓  42 [mobile-360] › tests/e2e/app.spec.js:254:1 › 再生中に編集を開くと自動で一時停止し、入力は消えない
+  ✓  43 [mobile-360] › tests/e2e/app.spec.js:279:1 › 編集は Esc でキャンセルできる
+  ✓  44 [mobile-360] › tests/e2e/app.spec.js:291:1 › 長文・危険な HTML は文字として表示され、横にはみ出さない
+  ✓  45 [mobile-360] › tests/e2e/app.spec.js:311:1 › 縦1列：操作の帯 → アウトライン → 手で書く → 詳細、同じ左端・余白16px以上・横スクロールなし
+  ✓  46 [mobile-360] › tests/e2e/app.spec.js:335:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
+  ✓  47 [mobile-360] › tests/e2e/app.spec.js:358:1 › リロードすると内容は残らない（メモリのみ）
+  ✓  48 [mobile-360] › tests/e2e/app.spec.js:366:1 › 詳細のタブ（クリックと左右キー）と音声未接続の表示
   48 passed
 exit: 0
 ```
 
-## Artifact から読み戻した掲載 HTML（Version 3, 1791081338-a9ef、外枠込み）での E2E
+## Artifact から読み戻した掲載 HTML（Version 4, 1791082580-0773、外枠込み）での E2E
 
 読み戻した本文がローカルの artifact/meeting-compass.html と一致することを確認したうえで MC_ARTIFACT_SERVED に渡して実行。
 ```
-  ✓  2 [desktop] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓  1 [mobile-390] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓  3 [desktop] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓  5 [desktop] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
-  ✓  4 [mobile-390] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓  6 [mobile-390] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
-  ✓  7 [mobile-360] › tests/e2e/artifact.spec.js:66:1 › Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア
-  ✓  8 [mobile-360] › tests/e2e/artifact.spec.js:90:1 › Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去
-  ✓  9 [mobile-360] › tests/e2e/artifact.spec.js:174:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓  2 [desktop] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓  1 [mobile-390] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓  3 [desktop] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓  5 [desktop] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓  4 [mobile-390] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓  6 [mobile-390] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
+  ✓  7 [mobile-360] › tests/e2e/artifact.spec.js:69:1 › Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア
+  ✓  8 [mobile-360] › tests/e2e/artifact.spec.js:96:1 › Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去
+  ✓  9 [mobile-360] › tests/e2e/artifact.spec.js:169:1 › Artifact版：ダークテーマ（OS設定・明示指定）でも背景と文字色がトークンから決まる
   9 passed
 exit: 0
 ```

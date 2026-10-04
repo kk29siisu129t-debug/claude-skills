@@ -63,14 +63,21 @@ async function steps(page, n) {
   for (let i = 0; i < n; i++) await page.locator('#btn-step').click();
 }
 
-test('Artifact版：初期表示・由来の明記・書き出し無効・無通信・無メディア', async ({ page }, testInfo) => {
+const node = (page, id) => page.locator(`#outline li[data-id="${id}"]`);
+const nodeText = (page, id) => node(page, id).locator(':scope > .node-row .node-text-inner');
+
+test('Artifact版：空のアウトラインと再生案内・由来の明記・書き出し無効・無通信・無メディア', async ({ page }, testInfo) => {
   const g = await openArtifact(page);
+  await expect(page.locator('#honesty')).toContainText('事前に用意した構造イベント');
   await expect(page.locator('#honesty')).toContainText('AIによる理解・音声認識・話者識別は');
-  await expect(page.locator('#honesty')).toContainText('していません');
   await expect(page.locator('.chips')).toContainText('音声: 未接続');
   await expect(chip(page)).toHaveText('停止中（未開始）');
+  await expect(page.locator('#outline-empty')).toBeVisible();
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  expect((await page.locator('main h2, main h3').allTextContents()).map((t) => t.trim())).toEqual(['会話のアウトライン', '手で書く']);
   await expect(page.locator('#footer-note')).toContainText('Claude Artifact 版');
   await expect(page.locator('#footer-note')).toContainText('AIによる理解・音声入力は未接続');
+  await page.screenshot({ path: shot(testInfo, '01-initial'), fullPage: false });
   await openDetails(page);
   await page.locator('#tab-data').click();
   await expect(page.locator('#btn-export-json')).toBeDisabled();
@@ -78,77 +85,66 @@ test('Artifact版：初期表示・由来の明記・書き出し無効・無通
   await expect(page.locator('#btn-export-json')).toHaveText('JSONを書き出す（Artifact版では無効）');
   await expect(page.locator('#data-hint')).toContainText('書き出しを無効にしています');
   await page.locator('#tab-audio').click();
-  await expect(page.locator('#panel-audio')).toContainText('実接続のアダプタは未実装');
+  await expect(page.locator('#panel-audio')).toContainText('実接続は未実装');
   await expect(page.locator('#panel-audio button')).toBeDisabled();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  await page.screenshot({ path: shot(testInfo, '01-initial'), fullPage: false });
   expect(g.requests).toEqual([]);
   expect(g.errors).toEqual([]);
   expect(await page.evaluate(() => window.__mediaCalls)).toBe(0);
 });
 
-test('Artifact版：デモ再生・一時停止・論点切替・訂正・撤回・手入力・修正・消去', async ({ page }, testInfo) => {
+test('Artifact版：再生で見出しと枝が育つ・一時停止・戻り・訂正・折り畳み・手で書く・消去', async ({ page }, testInfo) => {
   const g = await openArtifact(page);
 
-  // 再生と一時停止（自動再生でも構造が画面に反映される）
+  // 再生と一時停止（自動再生でも見出しが画面に出る）
   await setFastSpeed(page);
   await page.locator('#btn-play').click();
   await expect(chip(page)).toHaveText('再生中');
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式', { timeout: 5000 });
-  await expect(page.locator('#list-proposal > li').first()).toBeVisible({ timeout: 5000 });
+  await expect(nodeText(page, 'n-study')).toHaveText('社内勉強会を月1回はじめる', { timeout: 5000 });
   await page.locator('#btn-pause').click();
   await expect(chip(page)).toHaveText('一時停止中');
   const at = await page.locator('#progress-text').textContent();
   await page.waitForTimeout(1500);
   await expect(page.locator('#progress-text')).toHaveText(at ?? '');
 
-  // 一歩ずつ進めて脱線 → 戻り（論点切替）
+  // 脱線 → 戻り（重複しない）→ 訂正
   const cursor = Number((at ?? '0').split('/')[0].trim());
-  await steps(page, 12 - cursor);
-  await expect(page.locator('#current-title')).toHaveText('休憩室のコーヒーの話（脱線）');
+  await steps(page, 5 - cursor);
+  await expect(page.locator('#outline > li')).toHaveCount(2);
+  await steps(page, 1);
+  await expect(page.locator('#outline > li')).toHaveCount(2);
+  await expect(node(page, 'n-lunch').locator(':scope > ol.children > li')).toHaveCount(2);
+  await steps(page, 1);
+  await expect(nodeText(page, 'n-lunch')).toHaveText('昼休みの45分で試す');
+  await expect(node(page, 'n-lunch').locator(':scope > .node-row .badge-fix')).toHaveText('訂正 1');
   await steps(page, 2);
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式');
-  await expect(page.locator('#current-meta')).toContainText('1回戻ってきています');
-  await page.screenshot({ path: shot(testInfo, '02-topic-return'), fullPage: false });
-
-  // 訂正と撤回（台本）
-  await steps(page, 3);
-  await expect(page.locator('#list-reason > li[data-id="r-travel"]')).toContainText('1.5時間');
-  await expect(page.locator('#count-withdrawn')).toHaveText('撤回 1');
-  await steps(page, 6);
   await expect(chip(page)).toHaveText('再生終了（停止中）');
-  await expect(page.locator('#list-confirmed .item-basis')).toContainText('根拠:');
-  await expect(page.locator('#list-tentative > li[data-id="d-folders"]')).toContainText('合意未確認');
   await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: shot(testInfo, '03-demo-end'), fullPage: false });
+  await page.screenshot({ path: shot(testInfo, '02-demo-end'), fullPage: false });
+  await page.screenshot({ path: shot(testInfo, '02-demo-end-full'), fullPage: true });
 
-  // 論点チップで過去の論点を参照
-  await page.locator('#topic-chips > li[data-id="t-format"] button').click();
-  await expect(page.locator('#past-banner')).toBeVisible();
-  await page.getByRole('button', { name: '現在の論点に戻る' }).click();
+  // 折り畳みと「最新の更新へ」
+  await node(page, 'n-first').locator(':scope > .node-row .twisty').click();
+  await expect(node(page, 'n-first').locator(':scope > ol.children')).toHaveCount(0);
+  await page.locator('#btn-jump').click();
+  await expect(node(page, 'n-first-other')).toBeInViewport();
 
-  // ユーザーによる撤回（確定済みの決定）
-  const confirmed = page.locator('#list-confirmed > li[data-id="d-online"]');
-  await confirmed.hover();
-  await confirmed.getByRole('button', { name: '撤回' }).click();
-  await expect(page.locator('#count-withdrawn')).toHaveText('撤回 2');
-
-  // ユーザーによる訂正（修正フォーム）
-  const prop = page.locator('#list-proposal > li[data-id="p-folders"]');
-  await prop.hover();
-  await prop.getByRole('button', { name: '修正' }).click();
-  await prop.locator('textarea[name="text"]').fill('プロジェクト単位のフォルダ構成に統一する（移行は来月以降）');
-  await prop.getByRole('button', { name: '保存' }).click();
-  await expect(prop.locator('.item-text')).toHaveText('プロジェクト単位のフォルダ構成に統一する（移行は来月以降）');
-
-  // 手入力（キーワード規則・決定語でも仮案）
-  await page.locator('#manual-text').fill('この方針で決定しました');
+  // 手で書く（新しい見出し・枝への追記・編集）と XSS
+  await page.locator('#manual-text').fill('次回までに調べること');
   await page.locator('#manual-submit').click();
-  await expect(page.locator('#manual-feedback')).toContainText('仮案');
+  const head = page.locator('#outline > li').last();
+  await page.selectOption('#manual-target', (await head.getAttribute('data-id')) ?? '');
   await page.locator('#manual-text').fill('<img src=x onerror="window.__xss=1">');
   await page.locator('#manual-submit').click();
+  await expect(head.locator(':scope > ol.children > li .node-text-inner')).toHaveText('<img src=x onerror="window.__xss=1">');
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
-  await page.screenshot({ path: shot(testInfo, '04-manual'), fullPage: false });
+  const row = node(page, 'n-coffee').locator(':scope > .node-row');
+  await row.hover();
+  await row.getByRole('button', { name: '編集' }).click();
+  await row.locator('textarea[name="text"]').fill('休憩室のコーヒー豆が変わった（雑談）');
+  await row.getByRole('button', { name: '保存' }).click();
+  await expect(nodeText(page, 'n-coffee')).toHaveText('休憩室のコーヒー豆が変わった（雑談）');
+  await page.screenshot({ path: shot(testInfo, '03-manual'), fullPage: false });
 
   // 書き出しは押せない／ダウンロードは発生しない
   await openDetails(page);
@@ -160,10 +156,9 @@ test('Artifact版：デモ再生・一時停止・論点切替・訂正・撤回
   await page.getByRole('button', { name: 'すべて消去' }).click();
   await page.getByRole('button', { name: '消去する' }).click();
   await expect(chip(page)).toHaveText('停止中（消去済み）');
-  await expect(page.locator('#current-title')).toHaveText('内容は消去されました');
-  expect(await page.evaluate(() => window.__meetingCompass.snapshot().items.length)).toBe(0);
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.screenshot({ path: shot(testInfo, '05-cleared'), fullPage: false });
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  await expect(page.locator('#outline-empty')).toContainText('内容は消去されました');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
 
   expect(g.requests).toEqual([]);
   expect(g.downloads).toEqual([]);

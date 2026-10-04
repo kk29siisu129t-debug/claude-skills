@@ -1,7 +1,9 @@
 import { test, expect } from '@playwright/test';
-import { DEMO_STEPS } from '../../web/js/core/demo-script.js';
+import { OUTLINE_DEMO_STEPS } from '../../web/js/core/outline-demo.js';
 
 const shot = (testInfo, name) => `screenshots/${testInfo.project.name}-${name}.png`;
+/** 以前の固定スロット。会話から生まれていない見出しが先に並ばないこと */
+const FIXED_SLOTS = ['いまの論点', '提案', '理由', '懸念', 'トレードオフ', '決定と仮案', '決定・仮案', '未解決', '次に決めること', 'あなたのアクション'];
 
 /** 外部リクエストとマイク・画面取得 API の呼び出しを監視する */
 async function guard(page, baseURL) {
@@ -24,107 +26,102 @@ async function guard(page, baseURL) {
   return { external, errors };
 }
 
-const lane = (page, id) => page.locator(`#${id} > li`);
 const chip = (page) => page.locator('#chip-state');
+const node = (page, id) => page.locator(`#outline li[data-id="${id}"]`);
+const nodeText = (page, id) => node(page, id).locator(':scope > .node-row .node-text-inner');
 
-/** 速さは「発言と速さ」の折り畳みの中にある */
+async function stepTimes(page, n) {
+  for (let i = 0; i < n; i++) await page.locator('#btn-step').click();
+}
 async function setFastSpeed(page) {
   const more = page.locator('#controls-more');
   if (!(await more.evaluate((el) => el.open))) await more.locator('> summary').click();
   await page.selectOption('#speed', '900');
 }
-
-/** 折り畳みの「詳細」（要確認・履歴・音声・データ）を開く */
 async function openDetails(page) {
   const fold = page.locator('#details-fold');
   if (!(await fold.evaluate((el) => el.open))) await fold.locator('> summary').click();
 }
-
-async function stepTimes(page, n) {
-  for (let i = 0; i < n; i++) await page.locator('#btn-step').click();
+async function noHorizontalOverflow(page) {
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+  expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize().width);
 }
 
 test.beforeEach(async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
 });
 
-test('初期表示：由来の明記・停止状態・外部送信なし', async ({ page, baseURL }, testInfo) => {
+test('初期表示：空のアウトラインと再生案内、固定の見出し枠なし、由来の明記、無通信', async ({ page, baseURL }, testInfo) => {
   const g = await guard(page, baseURL);
   await page.goto('/');
+  await expect(page.locator('#honesty')).toContainText('事前に用意した構造イベント');
   await expect(page.locator('#honesty')).toContainText('AIによる理解・音声認識・話者識別は');
-  await expect(page.locator('#honesty')).toContainText('していません');
   await expect(chip(page)).toHaveText('停止中（未開始）');
-  await expect(page.locator('.chips')).toContainText('外部送信: なし');
   await expect(page.locator('.chips')).toContainText('音声: 未接続');
-  await expect(page.locator('#current-title')).toHaveText('まだ論点はありません');
-  // 手入力は常に表示。詳細（要確認・履歴・音声・データ）は折り畳みで閉じている
-  await expect(page.locator('#manual-form')).toBeVisible();
+  await expect(page.locator('#outline-empty')).toBeVisible();
+  await expect(page.locator('#outline-empty')).toContainText('再生');
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  const headings = await page.locator('main h2, main h3').allTextContents();
+  for (const slot of FIXED_SLOTS) expect(headings.map((t) => t.trim())).not.toContain(slot);
+  expect(headings.map((t) => t.trim())).toEqual(['会話のアウトライン', '手で書く']);
+  // 手入力にキーワード自動分類の選択肢は無い（追加先だけ）
+  await expect(page.locator('#manual-kind')).toHaveCount(0);
   expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(false);
-  for (const p of ['review', 'topics', 'log', 'audio', 'data']) await expect(page.locator(`#panel-${p}`)).toBeHidden();
-  await openDetails(page);
-  await page.locator('#tab-audio').click();
-  await expect(page.locator('#list-routes li')).toHaveCount(3);
+  await noHorizontalOverflow(page);
   await page.screenshot({ path: shot(testInfo, '01-initial'), fullPage: false });
   expect(g.external).toEqual([]);
   expect(g.errors).toEqual([]);
   expect(await page.evaluate(() => window.__mediaCalls)).toBe(0);
 });
 
-test('デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認', async ({ page, baseURL }, testInfo) => {
+test('台本デモ：話題の誕生・枝分かれ・脱線・戻り（重複なし）・訂正（同じノード）', async ({ page, baseURL }, testInfo) => {
   const g = await guard(page, baseURL);
   await page.goto('/');
 
-  await stepTimes(page, 2);
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式');
-  await expect(chip(page)).toHaveText('一時停止中');
-  // 差分更新：既存ノードが再利用されることを、DOM 要素に印を付けて確認
-  await page.locator('#list-proposal > li[data-id="p-online"]').evaluate((el) => { el.__mark = 'keep'; });
+  await stepTimes(page, 1);
+  await expect(page.locator('#outline > li')).toHaveCount(1);
+  await expect(nodeText(page, 'n-study')).toHaveText('社内勉強会を月1回はじめる');
+  await expect(page.locator('#step-caption')).toContainText('話題が生まれる');
+  await expect(page.locator('#step-caption')).toContainText('事前に用意した構造イベント');
 
-  await stepTimes(page, 4); // s03〜s06
-  await expect(lane(page, 'list-proposal')).toHaveCount(2);
-  await expect(page.locator('#list-tentative > li[data-id="d-hybrid"]')).toContainText('仮案');
-  await page.screenshot({ path: shot(testInfo, '02-first-topic'), fullPage: true });
-  expect(await page.locator('#list-proposal > li[data-id="p-online"]').evaluate((el) => el.__mark)).toBe('keep');
+  await stepTimes(page, 3); // 枝・補足・別案（枝分かれ）
+  await expect(node(page, 'n-study').locator(':scope > ol.children > li')).toHaveCount(2);
+  await expect(node(page, 'n-lunch').locator(':scope > ol.children > li[data-id="n-lunch-why"]')).toHaveCount(1);
+  await expect(node(page, 'n-evening').locator(':scope > .node-row .badge-label')).toHaveText('対比');
+  await node(page, 'n-lunch').evaluate((el) => { el.__mark = 'keep'; });
 
-  await stepTimes(page, 6); // s07〜s12（脱線）
-  await expect(page.locator('#current-title')).toHaveText('休憩室のコーヒーの話（脱線）');
-  await expect(page.locator('#current-meta')).toContainText('脱線した話題');
-  await stepTimes(page, 1); // s13 未分類
-  await expect(page.locator('#list-topic-unclassified > li')).toContainText('人による確認待ち');
-  await page.screenshot({ path: shot(testInfo, '03-digression'), fullPage: true });
+  await stepTimes(page, 1); // 脱線＝別の見出し
+  await expect(page.locator('#outline > li')).toHaveCount(2);
+  await expect(node(page, 'n-coffee')).toHaveClass(/is-latest/);
+  await page.screenshot({ path: shot(testInfo, '02-digression'), fullPage: true });
 
-  await stepTimes(page, 1); // s14 戻り
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式');
-  await expect(page.locator('#current-meta')).toContainText('1回戻ってきています');
-  // 訂正される理由の要素に印を付け、訂正後も同じ DOM ノードが差分更新されることを確認
-  const reason = page.locator('#list-reason > li[data-id="r-travel"]');
-  await reason.evaluate((el) => { el.__mark = 'keep'; });
+  await stepTimes(page, 1); // 同じ話題へ戻る
+  await expect(page.locator('#outline > li')).toHaveCount(2, { timeout: 2000 });
+  await expect(page.locator('#outline .node-text-inner', { hasText: '社内勉強会を月1回はじめる' })).toHaveCount(1);
+  await expect(node(page, 'n-lunch').locator(':scope > ol.children > li')).toHaveCount(2);
+  await expect(node(page, 'n-lunch-rec')).toHaveClass(/is-latest/);
 
-  await stepTimes(page, 3); // s15〜s17 再検討→訂正→撤回
-  await expect(reason).toContainText('1.5時間');
-  expect(await reason.evaluate((el) => el.__mark)).toBe('keep');
-  await reason.locator('details summary').click();
-  await expect(reason.locator('details')).toContainText('3時間');
-  await expect(page.locator('#list-withdrawn > li[data-id="d-hybrid"]')).toHaveCount(1);
-  await expect(page.locator('#withdrawn-count')).toHaveText('1');
-  await page.screenshot({ path: shot(testInfo, '04-withdraw-correct'), fullPage: true });
+  await stepTimes(page, 1); // 訂正
+  await expect(nodeText(page, 'n-lunch')).toHaveText('昼休みの45分で試す');
+  expect(await node(page, 'n-lunch').evaluate((el) => el.__mark)).toBe('keep'); // 同じ DOM ノードを更新
+  await expect(node(page, 'n-lunch').locator(':scope > .node-row .badge-fix')).toHaveText('訂正 1');
+  await node(page, 'n-lunch').locator(':scope > .node-row details.history > summary').click();
+  await expect(node(page, 'n-lunch').locator(':scope > .node-row details.history')).toContainText('昼休みの30分で試す');
+  await expect(node(page, 'n-lunch').locator(':scope > .node-row details.history')).toContainText('30分ではなく45分');
 
-  await stepTimes(page, DEMO_STEPS.length - 17);
+  await stepTimes(page, OUTLINE_DEMO_STEPS.length - 7);
   await expect(chip(page)).toHaveText('再生終了（停止中）');
-  await expect(page.locator('#btn-step')).toBeDisabled();
-  await expect(page.locator('#list-confirmed > li[data-id="d-online"]')).toContainText('確定');
-  const folders = page.locator('#list-tentative > li[data-id="d-folders"]');
-  await expect(folders).toContainText('合意未確認');
-  await expect(page.locator('#list-confirmed > li[data-id="d-folders"]')).toHaveCount(0);
-  const action = page.locator('#list-actions > li[data-id="a-inventory"]');
-  await expect(action).toContainText('担当: Bさん');
-  await expect(action).toContainText('期限: 不明');
-  await expect(page.locator('#list-log > li.is-rejected')).toHaveCount(1);
-  await page.locator('#withdrawn-details > summary').click();
-  await page.screenshot({ path: shot(testInfo, '04b-demo-end-withdrawn-open'), fullPage: true });
-
-  // ID の重複が無い
-  const ids = await page.evaluate(() => window.__meetingCompass.snapshot().items.map((i) => i.id));
+  await expect(page.locator('#outline > li')).toHaveCount(3);
+  // 並び順は会話に出た順のまま
+  expect(await page.locator('#outline > li').evaluateAll((els) => els.map((e) => e.dataset.id))).toEqual(['n-study', 'n-coffee', 'n-first']);
+  // 合意・担当・期限を作らない
+  const all = await page.locator('#outline').innerText();
+  expect(all).not.toMatch(/合意|担当|期限|決定しました/);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: shot(testInfo, '03-demo-end'), fullPage: false });
+  await page.screenshot({ path: shot(testInfo, '03-demo-end-full'), fullPage: true });
+  await noHorizontalOverflow(page);
+  const ids = await page.evaluate(() => Object.keys(window.__meetingCompass.snapshot().nodes));
   expect(new Set(ids).size).toBe(ids.length);
   expect(g.external).toEqual([]);
   expect(g.errors).toEqual([]);
@@ -135,28 +132,68 @@ test('再生・一時停止・再開・リセット', async ({ page }) => {
   await setFastSpeed(page);
   await page.locator('#btn-play').click();
   await expect(chip(page)).toHaveText('再生中');
-  await expect(page.locator('#btn-pause')).toBeEnabled();
+  await expect(page.locator('#outline > li').first()).toBeVisible({ timeout: 5000 });
   await expect(page.locator('#progress-text')).toHaveText(/^[2-9] \//, { timeout: 5000 });
-  // 自動再生中も論点・項目が画面に反映される
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式');
-  await expect(page.locator('#list-proposal > li').first()).toBeVisible();
   await page.locator('#btn-pause').click();
   await expect(chip(page)).toHaveText('一時停止中');
   const at = await page.locator('#progress-text').textContent();
+  const count = await page.locator('#outline li').count();
   await page.waitForTimeout(1500);
   await expect(page.locator('#progress-text')).toHaveText(at ?? '');
-  await expect(page.locator('#btn-play')).toHaveText('▶ 再開');
+  expect(await page.locator('#outline li').count()).toBe(count);
   await page.locator('#btn-play').click();
   await expect(chip(page)).toHaveText('再生中');
   await page.locator('#btn-reset').click();
   await expect(chip(page)).toHaveText('停止中（未開始）');
-  await expect(page.locator('#current-title')).toHaveText('まだ論点はありません');
-  await expect(page.locator('#list-log > li')).toHaveCount(0);
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  await expect(page.locator('#outline-empty')).toBeVisible();
   await page.waitForTimeout(1200);
-  await expect(page.locator('#list-log > li')).toHaveCount(0); // リセット後にタイマーが残っていない
+  await expect(page.locator('#outline > li')).toHaveCount(0);
 });
 
-test('手入力：空入力の拒否・規則分類・未分類・手動確定と修正', async ({ page, baseURL }, testInfo) => {
+test('折り畳み：畳んだ枝は勝手に開かず「新しい追記あり」を出し、「最新の更新へ」で開いて移動', async ({ page }, testInfo) => {
+  await page.goto('/');
+  await stepTimes(page, 5);
+  await node(page, 'n-study').locator(':scope > .node-row .twisty').click();
+  await expect(node(page, 'n-study').locator(':scope > ol.children')).toHaveCount(0);
+  await expect(node(page, 'n-study').locator(':scope > .node-row .twisty')).toHaveAttribute('aria-expanded', 'false');
+  await stepTimes(page, 1); // 畳んだ枝の下（昼の案）に追記
+  await expect(node(page, 'n-study').locator(':scope > ol.children')).toHaveCount(0);
+  await expect(node(page, 'n-study').locator(':scope > .node-row .badge-new')).toHaveText('新しい追記あり');
+  await expect(page.locator('#jump-count')).toBeVisible();
+  await page.screenshot({ path: shot(testInfo, '04-collapsed'), fullPage: false });
+  await page.locator('#btn-jump').click();
+  await expect(node(page, 'n-lunch-rec')).toBeVisible();
+  await expect(node(page, 'n-lunch-rec')).toBeInViewport();
+  await expect(node(page, 'n-study').locator(':scope > .node-row .badge-new')).toHaveCount(0);
+  await expect(page.locator('#jump-count')).toBeHidden();
+});
+
+test('読んでいる間は勝手にスクロール・並べ替えしない（上で追記されても読んでいる位置を保つ）', async ({ page }) => {
+  await page.goto('/');
+  await stepTimes(page, 5);
+  // 下の方を長くして、読む位置を作る
+  for (let i = 1; i <= 14; i++) {
+    await page.locator('#manual-text').fill(`読み返し用のメモ ${i}：過去の話をここで読んでいる`);
+    await page.locator('#manual-submit').click();
+  }
+  const anchor = page.locator('#outline > li').last();
+  await anchor.scrollIntoViewIfNeeded();
+  await page.evaluate(() => window.scrollBy(0, -40));
+  const before = await anchor.evaluate((el) => el.getBoundingClientRect().top);
+  const orderBefore = await page.locator('#outline > li').evaluateAll((els) => els.map((e) => e.dataset.id));
+  const scrollBefore = await page.evaluate(() => window.scrollY);
+  // 読んでいる間に台本が進む状況：ボタンまでスクロールせずに1歩進める（自動再生と同じ）
+  await page.evaluate(() => document.getElementById('btn-step').click());
+  await expect(node(page, 'n-lunch-rec')).toHaveCount(1); // 上の方（昼の案の下）に追記が入る
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThanOrEqual(scrollBefore); // 上へ引き戻さない
+  const after = await anchor.evaluate((el) => el.getBoundingClientRect().top);
+  expect(Math.abs(after - before)).toBeLessThanOrEqual(2);
+  await expect(page.locator('#outline > li')).toHaveCount(orderBefore.length);
+  expect(await page.locator('#outline > li').evaluateAll((els) => els.map((e) => e.dataset.id))).toEqual(orderBefore);
+});
+
+test('手で書く：新しい見出し・選んだ枝に追記・重複は作らず既存へ・編集で訂正履歴', async ({ page, baseURL }, testInfo) => {
   const g = await guard(page, baseURL);
   await page.goto('/');
   const text = page.locator('#manual-text');
@@ -166,139 +203,155 @@ test('手入力：空入力の拒否・規則分類・未分類・手動確定�
   await text.fill('   ');
   await submit.click();
   await expect(feedback).toHaveText(/入力が空です/);
-  await expect(feedback).toHaveClass(/is-error/);
+  await expect(page.locator('#outline > li')).toHaveCount(0);
 
-  await text.fill('議題: 新人研修の進め方');
+  await text.fill('倉庫レイアウトの見直し');
   await submit.click();
-  await expect(page.locator('#current-title')).toHaveText('新人研修の進め方');
+  await expect(feedback).toHaveText('見出しを追加しました。');
+  const head = page.locator('#outline > li').first();
+  const headId = await head.getAttribute('data-id');
 
-  await text.fill('講師の負担が大きいのが心配');
+  // 項目の「＋ ここに追記」で追加先がその枝になる
+  await head.locator(':scope > .node-row').hover();
+  await head.locator(':scope > .node-row').getByRole('button', { name: '＋ ここに追記' }).click();
+  await expect(page.locator('#manual-target')).toHaveValue(headId ?? '');
+  await text.fill('通路を広げたい');
   await submit.click();
-  await expect(page.locator('#list-concern > li')).toContainText('キーワード「心配」');
+  await expect(feedback).toHaveText('枝に追記しました。');
+  await expect(head.locator(':scope > ol.children > li')).toHaveCount(1);
+  const branch = head.locator(':scope > ol.children > li').first();
 
-  await text.fill('では研修はオンデマンド動画で決定しました');
+  // 選択肢から枝を選んで、さらに下へ
+  const branchId = await branch.getAttribute('data-id');
+  await page.selectOption('#manual-target', branchId ?? '');
+  await text.fill('フォークリフトがすれ違えない');
   await submit.click();
-  await expect(feedback).toContainText('仮案');
-  const dec = page.locator('#list-tentative > li').first();
-  await expect(dec).toContainText('仮案');
-  await expect(page.locator('#list-confirmed > li')).toHaveCount(0);
+  await expect(branch.locator(':scope > ol.children > li')).toHaveCount(1);
 
-  await text.fill('先週の続きの件');
+  // 同じ見出しを入れても増えない
+  await page.selectOption('#manual-target', '');
+  await text.fill('倉庫レイアウトの見直し');
   await submit.click();
-  await expect(feedback).toContainText('自動では分類できませんでした');
-  await expect(page.locator('#list-review > li')).toHaveCount(1);
+  await expect(feedback).toContainText('新しく作らずに既存の項目へ移動しました');
+  await expect(page.locator('#outline > li')).toHaveCount(1);
 
-  await text.fill('資料の棚卸しやります');
-  await submit.click();
-  const act = page.locator('#list-actions > li').first();
-  await expect(act).toContainText('担当: 不明');
-  await expect(act).toContainText('期限: 不明');
-  await page.screenshot({ path: shot(testInfo, '06-manual'), fullPage: true });
-
-  // ユーザーが確定
-  await dec.getByRole('button', { name: '確定にする' }).click();
-  await expect(page.locator('#list-confirmed > li')).toContainText('ユーザーが画面で確定操作');
-  // 撤回 → 履歴に残る
-  await page.locator('#list-confirmed > li').first().getByRole('button', { name: '撤回' }).click();
-  await expect(page.locator('#withdrawn-count')).toHaveText('1');
-
-  // 未分類を確認して分類
-  await openDetails(page);
-  await page.locator('#tab-review').click();
-  const review = page.locator('#list-review > li').first();
-  await review.getByRole('button', { name: '確認して分類' }).click();
-  const editor = page.locator('#list-review form.editor');
-  await editor.locator('select[name="kind"]').selectOption('open_question');
-  await editor.locator('textarea[name="text"]').fill('先週の続きの件（何を決めるかを確認する）');
+  // 編集＝訂正。同じノードで履歴が残る
+  await branch.locator(':scope > .node-row').hover();
+  await branch.locator(':scope > .node-row').getByRole('button', { name: '編集' }).click();
+  const editor = branch.locator(':scope > .node-row form.editor');
+  await editor.locator('textarea[name="text"]').fill('通路を1.5倍に広げたい');
+  await editor.locator('input[name="reason"]').fill('数字を補足');
   await editor.getByRole('button', { name: '保存' }).click();
-  await expect(page.locator('#list-review > li')).toHaveCount(0);
-  await expect(page.locator('#list-open > li')).toContainText('何を決めるかを確認する');
-
-  // アクションの担当を入力、期限は空欄＝不明のまま
-  await page.locator('#list-actions > li').first().getByRole('button', { name: '修正' }).click();
-  const aed = page.locator('#list-actions form.editor');
-  await aed.locator('input[name="owner"]').fill('自分');
-  await aed.getByRole('button', { name: '保存' }).click();
-  await expect(page.locator('#list-actions > li').first()).toContainText('担当: 自分');
-  await expect(page.locator('#list-actions > li').first()).toContainText('期限: 不明');
-  await page.screenshot({ path: shot(testInfo, '07-manual-edited'), fullPage: true });
+  await expect(branch.locator(':scope > .node-row .node-text-inner')).toHaveText('通路を1.5倍に広げたい');
+  await expect(branch.locator(':scope > .node-row .badge-fix')).toHaveText('訂正 1');
+  await openDetails(page);
+  await expect(page.locator('#list-log > li').first()).toContainText('訂正');
+  await page.screenshot({ path: shot(testInfo, '05-manual'), fullPage: false });
   expect(g.external).toEqual([]);
   expect(g.errors).toEqual([]);
 });
 
-test('危険な HTML 入力は文字として表示され、実行されない', async ({ page }, testInfo) => {
+test('再生中に編集を開くと自動で一時停止し、入力は消えない', async ({ page }, testInfo) => {
   await page.goto('/');
-  const payload = '<img src=x onerror="window.__xss=1"><script>window.__xss=2</script>';
-  await page.locator('#manual-kind').selectOption('topic');
-  await page.locator('#manual-text').fill(payload);
-  await page.locator('#manual-submit').click();
-  await page.locator('#manual-kind').selectOption('concern');
-  await page.locator('#manual-text').fill(payload);
-  await page.locator('#manual-submit').click();
-  await expect(page.locator('#current-title')).toHaveText(payload);
-  await expect(page.locator('#list-concern > li .item-text')).toHaveText(payload);
-  expect(await page.locator('main img, main script').count()).toBe(0);
-  // 空白のない長い入力でも横にはみ出さない
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  expect(await page.evaluate(() => window.innerWidth)).toBe(page.viewportSize().width);
-  expect(await page.evaluate(() => window.__xss)).toBeUndefined();
-  // 編集フォームでも同様
-  await page.locator('#list-concern > li').getByRole('button', { name: '修正' }).click();
-  await expect(page.locator('#list-concern textarea[name="text"]')).toHaveValue(payload);
-  expect(await page.evaluate(() => window.__xss)).toBeUndefined();
-  await page.screenshot({ path: shot(testInfo, '08-xss-as-text'), fullPage: false });
+  await setFastSpeed(page);
+  await page.locator('#btn-play').click();
+  const target = node(page, 'n-study');
+  await expect(target).toHaveCount(1, { timeout: 5000 });
+  await target.locator(':scope > .node-row').hover();
+  await target.locator(':scope > .node-row').getByRole('button', { name: '編集' }).click();
+  await expect(chip(page)).toHaveText('一時停止中');
+  await expect(page.locator('#control-note')).toBeVisible();
+  await expect(page.locator('#btn-play')).toBeDisabled();
+  await expect(page.locator('#btn-step')).toBeDisabled();
+  const ta = target.locator(':scope > .node-row textarea[name="text"]');
+  await expect(ta).toBeFocused();
+  await ta.fill('社内勉強会を月1回はじめる（まず3か月）');
+  await page.waitForTimeout(2500);
+  await expect(ta).toHaveValue('社内勉強会を月1回はじめる（まず3か月）');
+  await page.screenshot({ path: shot(testInfo, '06-editing-paused'), fullPage: false });
+  await target.locator(':scope > .node-row').getByRole('button', { name: '保存' }).click();
+  await expect(nodeText(page, 'n-study')).toHaveText('社内勉強会を月1回はじめる（まず3か月）');
+  await expect(page.locator('#btn-play')).toBeEnabled();
+  await page.locator('#btn-play').click();
+  await expect(chip(page)).toHaveText('再生中');
 });
 
-test('過去の論点の参照と「現在の論点にする」', async ({ page }) => {
+test('編集は Esc でキャンセルできる', async ({ page }) => {
   await page.goto('/');
-  await stepTimes(page, 9); // 2つ目の論点まで
-  await expect(page.locator('#current-title')).toHaveText('共有ドライブのフォルダ整理');
-  await openDetails(page);
-  await page.locator('#tab-topics').click();
-  await page.locator('#list-topics > li[data-id="t-format"]').getByRole('button', { name: '表示' }).click();
-  await expect(page.locator('#past-banner')).toBeVisible();
-  await expect(page.locator('#current-title')).toHaveText('週次定例の開催形式');
-  await expect(page.locator('#current-meta')).toContainText('会議の現在の論点は「共有ドライブのフォルダ整理」');
-  await page.getByRole('button', { name: '現在の論点に戻る' }).click();
-  await expect(page.locator('#past-banner')).toBeHidden();
-  await page.locator('#list-topics > li[data-id="t-format"]').getByRole('button', { name: '現在の論点にする' }).click();
-  await expect(page.locator('#list-topics > li[data-id="t-format"]')).toContainText('現在');
-  await openDetails(page);
-  await page.locator('#tab-log').click();
-  await expect(page.locator('#list-log > li').first()).toContainText('ユーザー入力');
+  await stepTimes(page, 1);
+  const row = node(page, 'n-study').locator(':scope > .node-row');
+  await row.hover();
+  await row.getByRole('button', { name: '編集' }).click();
+  await row.locator('textarea[name="text"]').fill('書きかけ');
+  await page.keyboard.press('Escape');
+  await expect(nodeText(page, 'n-study')).toHaveText('社内勉強会を月1回はじめる');
+  await expect(page.locator('#btn-step')).toBeEnabled();
+});
+
+test('長文・危険な HTML は文字として表示され、横にはみ出さない', async ({ page }, testInfo) => {
+  await page.goto('/');
+  const payload = '<img src=x onerror="window.__xss=1"><script>window.__xss=2</script>';
+  const long = 'あ'.repeat(40) + 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'.repeat(6);
+  await page.locator('#manual-text').fill(payload);
+  await page.locator('#manual-submit').click();
+  const head = page.locator('#outline > li').first();
+  await page.selectOption('#manual-target', (await head.getAttribute('data-id')) ?? '');
+  await page.locator('#manual-text').fill(long);
+  await page.locator('#manual-submit').click();
+  await expect(head.locator(':scope > .node-row .node-text-inner')).toHaveText(payload);
+  await expect(page.locator('#outline .node-text-inner', { hasText: 'ABCDEFG' })).toHaveCount(1);
+  expect(await page.locator('main img, main script').count()).toBe(0);
+  expect(await page.evaluate(() => window.__xss)).toBeUndefined();
+  // 追加先の選択肢にも文字として入る
+  expect(await page.locator('#manual-target option').nth(1).textContent()).toContain('<img');
+  await noHorizontalOverflow(page);
+  await page.screenshot({ path: shot(testInfo, '07-xss-long'), fullPage: false });
+});
+
+test('縦1列：操作の帯 → アウトライン → 手で書く → 詳細、同じ左端・余白16px以上・横スクロールなし', async ({ page }) => {
+  await page.goto('/');
+  await stepTimes(page, OUTLINE_DEMO_STEPS.length);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const vw = page.viewportSize().width;
+  const order = ['.controls', '#outline-card', '#manual', '#details-fold'];
+  const boxes = [];
+  for (const sel of order) boxes.push(await page.locator(sel).boundingBox());
+  for (let i = 1; i < boxes.length; i++) expect(boxes[i].y).toBeGreaterThan(boxes[i - 1].y);
+  for (const b of boxes) {
+    expect(Math.abs(b.x - boxes[0].x)).toBeLessThanOrEqual(1);
+    expect(b.x).toBeGreaterThanOrEqual(15);
+    expect(b.x + b.width).toBeLessThanOrEqual(vw - 15);
+  }
+  // 最初の見出しは最初の画面に見える
+  const first = await page.locator('#outline > li').first().boundingBox();
+  expect(first.y).toBeLessThan(page.viewportSize().height * 0.6);
+  await noHorizontalOverflow(page);
+  const overflow = await page.evaluate(() => [...document.querySelectorAll('main *')]
+    .filter((el) => !el.closest('.tabs') && el.getClientRects().length && el.getBoundingClientRect().right > window.innerWidth + 0.5)
+    .map((el) => el.id || el.className).slice(0, 5));
+  expect(overflow).toEqual([]);
 });
 
 test('書き出しは明示操作でのみ行い、消去で全て破棄される', async ({ page, baseURL }, testInfo) => {
   const g = await guard(page, baseURL);
   await page.goto('/');
-  await stepTimes(page, 5);
+  await stepTimes(page, 4);
   await openDetails(page);
   await page.locator('#tab-data').click();
-  const [download] = await Promise.all([
-    page.waitForEvent('download'),
-    page.getByRole('button', { name: 'JSONを書き出す' }).click(),
-  ]);
-  expect(download.suggestedFilename()).toBe('meeting-compass-export.json');
-  const path = await download.path();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'JSONを書き出す' }).click()]);
+  expect(download.suggestedFilename()).toBe('meeting-compass-outline.json');
   const { readFile } = await import('node:fs/promises');
-  const json = JSON.parse(await readFile(path, 'utf8'));
+  const json = JSON.parse(await readFile(await download.path(), 'utf8'));
   expect(json.notice).toContain('AIによる会議理解の結果ではありません');
-  expect(json.items.length).toBeGreaterThan(0);
-
-  await page.getByRole('button', { name: 'すべて消去' }).click();
-  await expect(page.locator('#clear-confirm')).toBeVisible();
-  await page.getByRole('button', { name: 'やめる' }).click();
-  await expect(page.locator('#list-proposal > li')).not.toHaveCount(0);
+  expect(Object.keys(json.nodes).length).toBeGreaterThan(0);
   await page.getByRole('button', { name: 'すべて消去' }).click();
   await page.getByRole('button', { name: '消去する' }).click();
   await expect(chip(page)).toHaveText('停止中（消去済み）');
-  await expect(page.locator('#current-title')).toHaveText('内容は消去されました');
-  await expect(page.locator('#list-log > li')).toHaveCount(0);
-  await expect(page.locator('#list-topics > li')).toHaveCount(0);
-  expect(await page.evaluate(() => window.__meetingCompass.snapshot().items.length)).toBe(0);
-  // ブラウザ保存を使っていない
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  await expect(page.locator('#outline-empty')).toContainText('内容は消去されました');
+  expect(await page.evaluate(() => Object.keys(window.__meetingCompass.snapshot().nodes).length)).toBe(0);
   expect(await page.evaluate(() => localStorage.length + sessionStorage.length)).toBe(0);
-  await page.screenshot({ path: shot(testInfo, '09-cleared'), fullPage: false });
+  await page.screenshot({ path: shot(testInfo, '08-cleared'), fullPage: false });
   expect(g.external).toEqual([]);
 });
 
@@ -306,149 +359,17 @@ test('リロードすると内容は残らない（メモリのみ）', async ({
   await page.goto('/');
   await stepTimes(page, 3);
   await page.reload();
-  await expect(page.locator('#current-title')).toHaveText('まだ論点はありません');
+  await expect(page.locator('#outline > li')).toHaveCount(0);
+  await expect(page.locator('#outline-empty')).toBeVisible();
 });
 
-// ---------- 追加：レイアウト・編集保護 ----------
-
-async function box(page, sel) {
-  const b = await page.locator(sel).boundingBox();
-  if (!b) throw new Error(`no box: ${sel}`);
-  return b;
-}
-
-test('縦1カラム：論点→構造→決定/仮案→未解決→次に決めること→アクションの順、横スクロールなし', async ({ page }, testInfo) => {
+test('詳細のタブ（クリックと左右キー）と音声未接続の表示', async ({ page }) => {
   await page.goto('/');
-  // 初期状態でも、いまの論点が最初の画面に見える
-  const vh = page.viewportSize().height;
-  const vw = page.viewportSize().width;
-  let cur = await box(page, '#current-title');
-  expect(cur.y + cur.height, 'いまの論点が最初の画面外').toBeLessThanOrEqual(vh * 0.5);
-  for (let i = 0; i < DEMO_STEPS.length; i++) await page.locator('#btn-step').click();
-  await expect(chip(page)).toHaveText('再生終了（停止中）');
-  await page.evaluate(() => window.scrollTo(0, 0));
-  cur = await box(page, '#current-title');
-  expect(cur.y + cur.height).toBeLessThanOrEqual(vh * 0.5);
-
-  // 順序（上から下）と同じ左端・同じ幅＝縦1カラム
-  const order = ['#controls-more', '#current', '#lanes', '#sum-decisions', '#sum-open', '#sum-next', '#sum-actions', '#manual', '#details-fold'];
-  const boxes = [];
-  for (const sel of order) boxes.push({ sel, ...(await box(page, sel)) });
-  for (let i = 1; i < boxes.length; i++) {
-    expect(boxes[i].y, `${boxes[i].sel} は ${boxes[i - 1].sel} の下`).toBeGreaterThan(boxes[i - 1].y);
-  }
-  const cards = boxes.slice(1);
-  for (const b of cards) {
-    expect(Math.abs(b.x - cards[0].x), `${b.sel} の左端`).toBeLessThanOrEqual(1);
-    expect(Math.abs(b.width - cards[0].width), `${b.sel} の幅`).toBeLessThanOrEqual(1);
-    expect(b.x).toBeGreaterThanOrEqual(15); // 左右16pxの余白
-    expect(b.x + b.width).toBeLessThanOrEqual(vw - 15);
-  }
-
-  // 提案/理由/懸念/トレードオフも縦に並ぶ
-  const lanes = [];
-  for (const k of ['proposal', 'reason', 'concern', 'tradeoff']) lanes.push(await box(page, `.lane-${k}`));
-  for (let i = 1; i < lanes.length; i++) {
-    expect(lanes[i].y).toBeGreaterThan(lanes[i - 1].y + lanes[i - 1].height - 1);
-    expect(Math.abs(lanes[i].x - lanes[0].x)).toBeLessThanOrEqual(1);
-  }
-
-  // 横スクロールなし・はみ出す要素なし（タブ列は自身の中でスクロール）
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-  const overflow = await page.evaluate(() => [...document.querySelectorAll('main *')]
-    .filter((el) => !el.closest('.tabs') && el.getClientRects().length && el.getBoundingClientRect().right > window.innerWidth + 0.5)
-    .map((el) => el.id || el.className).slice(0, 5));
-  expect(overflow).toEqual([]);
-
-  // 確定・仮案・撤回の区別と根拠
-  await expect(page.locator('#count-confirmed')).toHaveText('確定 1');
-  await expect(page.locator('#count-tentative')).toHaveText('仮案 1');
-  await expect(page.locator('#count-withdrawn')).toHaveText('撤回 1');
-  await expect(page.locator('#list-confirmed .item-basis')).toContainText('根拠: 議長の確認に対し');
-  await expect(page.locator('#list-tentative .item-basis')).toContainText('明示的な合意確認がない');
-  // デモ操作の詳細・履歴などは折り畳み
-  expect(await page.locator('#controls-more').evaluate((el) => el.open)).toBe(false);
-  expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(false);
-  await page.screenshot({ path: shot(testInfo, '05-demo-end'), fullPage: false });
-  await page.screenshot({ path: shot(testInfo, '05-demo-end-full'), fullPage: true });
-
-  // 早見サマリーから各セクションへ移動
-  await page.locator('#quick-next').click();
-  await expect(page.locator('#sum-next-title')).toBeInViewport();
-  await page.locator('#quick-withdrawn').click();
-  await expect(page.locator('#withdrawn-details')).toHaveAttribute('open', '');
-  await expect(page.locator('#list-withdrawn .item-basis')).toContainText('撤回理由: 交通費');
-});
-
-test('再生中に修正を開くと自動で一時停止し、入力は消えない', async ({ page }, testInfo) => {
-  await page.goto('/');
-  await setFastSpeed(page);
-  await page.locator('#btn-play').click();
-  const item = page.locator('#list-proposal > li[data-id="p-online"]');
-  await expect(item).toHaveCount(1, { timeout: 5000 });
-  await item.hover();
-  await item.getByRole('button', { name: '修正' }).click();
-  await expect(chip(page)).toHaveText('一時停止中');
-  await expect(page.locator('#control-note')).toBeVisible();
-  await expect(page.locator('#btn-play')).toBeDisabled();
-  await expect(page.locator('#btn-step')).toBeDisabled();
-  const at = await page.locator('#progress-text').textContent();
-  const ta = item.locator('textarea[name="text"]');
-  await expect(ta).toBeFocused();
-  await ta.fill('週次定例を全面オンラインに切り替える（試行は3か月）');
-  await item.locator('input[name="reason"]').fill('期間を追記');
-  await page.waitForTimeout(2500); // 以前は再生で作り直されて入力が消えていた
-  await expect(ta).toHaveValue('週次定例を全面オンラインに切り替える（試行は3か月）');
-  await expect(page.locator('#progress-text')).toHaveText(at ?? '');
-  // 無効な再生ボタンを押しても進まない
-  await page.locator('#btn-step').click({ force: true });
-  await expect(page.locator('#progress-text')).toHaveText(at ?? '');
-  await page.screenshot({ path: shot(testInfo, '10-editing-paused'), fullPage: false });
-  await item.getByRole('button', { name: '保存' }).click();
-  await expect(item.locator('.item-text')).toHaveText('週次定例を全面オンラインに切り替える（試行は3か月）');
-  await expect(page.locator('#control-note')).toBeHidden();
-  await expect(page.locator('#btn-play')).toBeEnabled();
-  await page.locator('#btn-play').click();
-  await expect(chip(page)).toHaveText('再生中');
-});
-
-test('編集は Esc でキャンセルでき、再生ボタンが戻る', async ({ page }) => {
-  await page.goto('/');
-  await page.locator('#btn-step').click();
-  await page.locator('#btn-step').click();
-  const item = page.locator('#list-proposal > li[data-id="p-online"]');
-  await item.hover();
-  await item.getByRole('button', { name: '修正' }).click();
-  await item.locator('textarea[name="text"]').fill('書きかけ');
-  await page.keyboard.press('Escape');
-  await expect(item.locator('.item-text')).toHaveText('週次定例を全面オンラインに切り替える');
-  await expect(page.locator('#btn-step')).toBeEnabled();
-});
-
-test('再生中も手入力欄の入力は保持される', async ({ page }) => {
-  await page.goto('/');
-  await setFastSpeed(page);
-  await page.locator('#btn-play').click();
-  await page.locator('#manual-text').fill('入力途中のメモ');
-  await page.waitForTimeout(2200);
-  await expect(page.locator('#manual-text')).toHaveValue('入力途中のメモ');
-  await page.locator('#btn-pause').click();
-});
-
-test('タブ切り替え（クリックと左右キー）と要確認への導線', async ({ page }) => {
-  await page.goto('/');
-  for (let i = 0; i < 13; i++) await page.locator('#btn-step').click();
-  await expect(page.locator('#review-link')).toBeVisible();
-  await page.locator('#review-link-btn').click();
-  await expect(page.locator('#tab-review')).toHaveAttribute('aria-selected', 'true');
-  await expect(page.locator('#panel-review')).toBeVisible();
-  expect(await page.locator('#details-fold').evaluate((el) => el.open)).toBe(true);
-  await page.locator('#tab-review').focus();
+  await openDetails(page);
+  await expect(page.locator('#panel-log')).toBeVisible();
+  await page.locator('#tab-log').focus();
   await page.keyboard.press('ArrowRight');
-  await expect(page.locator('#tab-topics')).toHaveAttribute('aria-selected', 'true');
-  await expect(page.locator('#list-topics > li')).toHaveCount(3);
-  await expect(page.locator('#tabcount-topics')).toHaveText('3');
-  // 論点チップから過去の論点を参照できる
-  await page.locator('#topic-chips > li[data-id="t-format"] button').click();
-  await expect(page.locator('#past-banner')).toBeVisible();
+  await expect(page.locator('#tab-audio')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#list-routes li')).toHaveCount(3);
+  await expect(page.locator('#panel-audio button')).toBeDisabled();
 });

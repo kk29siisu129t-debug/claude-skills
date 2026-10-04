@@ -1,11 +1,11 @@
 // 画面の配線。state は session（メモリ内）だけが持ち、ここでは差分描画とユーザー操作の変換を行う。
+// 自動でスクロール・並べ替えはしない。移動するのは利用者が「最新の更新へ」などを押したときだけ。
 
-import { KIND_LABELS, STATUS_LABELS, ORIGIN_LABELS, selectView, findItem } from '../core/model.js';
+import { ORIGIN_LABELS, ancestorsOf, flatten, getNode } from '../core/outline.js';
 import { createSession } from '../core/session.js';
 import { PLAYER_STATUS_LABELS } from '../core/player.js';
 import { toJSON, toMarkdown } from '../core/export.js';
 import { createDemoProvider } from '../providers/demo-provider.js';
-import { createManualProvider } from '../providers/manual-provider.js';
 import { createAudioProvider } from '../providers/audio-provider.js';
 import { h, reconcile, flash } from './dom.js';
 import { download } from './download.js';
@@ -13,81 +13,59 @@ import { download } from './download.js';
 const $ = (id) => /** @type {HTMLElement} */ (document.getElementById(id));
 /** Claude Artifact 用の単一HTML版か（scripts/bundle-artifact.mjs が目印の要素を入れる） */
 const ARTIFACT_BUILD = document.getElementById('mc-build')?.dataset.build === 'artifact';
-const TABS = ['review', 'topics', 'log', 'audio', 'data'];
+const TABS = ['log', 'audio', 'data'];
+/** この件数以内に更新されたノードを控えめに強調する */
+const FRESH_WINDOW = 2;
 
 const session = createSession();
 const ui = {
-  /** 表示中の論点（null なら現在の論点） */
-  viewTopicId: /** @type {string|null} */ (null),
-  /** 編集中の要素キー（リスト名:項目ID）。編集中はデモ再生を止め、フォームを作り直さない */
-  editingKey: /** @type {string|null} */ (null),
-  tab: 'review',
+  /** 畳んでいるノード */
+  collapsed: new Set(),
+  /** 畳んだ枝の下に、畳んだ後で追記・訂正があったノード */
+  unseenUnder: new Set(),
+  /** 編集中のノードID。編集中はデモ再生を止め、フォームを作り直さない */
+  editingId: /** @type {string|null} */ (null),
+  /** 「最新の更新へ」を押してから増えた更新数 */
+  sinceJump: 0,
+  lastSeq: 0,
+  tab: 'log',
   cleared: false,
-  lastTopicId: /** @type {string|null} */ (null),
 };
 
 const demo = createDemoProvider({
   session,
   onStep(step, index) {
     $('utterance').textContent = step.utterance;
+    $('step-caption').textContent = `台本 ${index + 1}/${demo.player.total}：${step.caption}（事前に用意した構造イベント）`;
     $('progress-text').textContent = `${index + 1} / ${demo.player.total}`;
   },
   onStatus: () => renderStatus(),
 });
-const manual = createManualProvider({ session });
 const audio = createAudioProvider();
 
 // ---------- 描画 ----------
-
-function topicTitle(state, id) {
-  return state.topics.find((t) => t.id === id)?.title ?? '';
-}
 
 function badge(text, cls) {
   return h('span', { class: `badge ${cls}`, text });
 }
 
-function lastReason(item, change) {
-  for (let i = item.history.length - 1; i >= 0; i--) {
-    if (item.history[i].change === change) return item.history[i].reason;
-  }
+/** 畳まれている最も近い祖先（無ければ null） */
+function collapsedAncestor(state, id) {
+  for (const a of ancestorsOf(state, id)) if (ui.collapsed.has(a)) return a;
   return null;
 }
 
-function itemSignature(item, listName) {
-  return `${item.rev}|${item.status}|${item.kind}|${ui.editingKey === `${listName}:${item.id}` ? 'edit' : ''}|${item.topicId}`;
+function nodeSignature(state, n) {
+  const fresh = n.updatedSeq > state.seq - FRESH_WINDOW;
+  return [n.rev, n.label, n.childIds.length, ui.collapsed.has(n.id), ui.unseenUnder.has(n.id),
+    state.activeId === n.id, fresh, ui.editingId === n.id].join('|');
 }
 
-function itemActions(item, listName) {
-  const b = (action, label, cls = '') => h('button', {
-    type: 'button', class: `btn btn-small ${cls}`, 'data-action': action, 'data-id': item.id, 'data-list': listName, text: label,
-  });
-  const out = [];
-  if (item.kind === 'decision') {
-    // 撤回済みはいきなり確定せず、再検討か仮案に戻してから確定する
-    if (item.status === 'tentative' || item.status === 'revisit') out.push(b('confirm', '確定にする', 'btn-ok'));
-    if (item.status !== 'tentative') out.push(b('tentative', '仮案に戻す'));
-    if (item.status !== 'revisit') out.push(b('revisit', '再検討'));
-    if (item.status !== 'withdrawn') out.push(b('withdraw', '撤回', 'btn-warn'));
-  }
-  if (['open_question', 'next', 'action'].includes(item.kind)) {
-    if (item.status === 'open') out.push(b('resolve', item.kind === 'action' ? '完了' : '解決済みにする', 'btn-ok'));
-    else out.push(b('reopen', '再オープン'));
-  }
-  out.push(b('edit', item.kind === 'unclassified' ? '確認して分類' : '修正'));
-  return h('div', { class: 'item-actions' }, out);
-}
-
-function itemEditor(item, listName) {
-  const options = Object.entries(KIND_LABELS).map(([k, label]) => h('option', { value: k, text: label, selected: k === item.kind }));
-  const isAction = item.kind === 'action';
-  return h('form', { class: 'editor', 'data-id': item.id, 'data-list': listName, 'data-rev': item.rev }, [
-    h('p', { class: 'editor-note', text: 'デモ再生は一時停止中です。保存かキャンセルで編集を終えると再開できます。' }),
-    h('label', { class: 'editor-label', text: '本文' }, [h('textarea', { name: 'text', rows: 3, maxlength: 500 }, [item.text])]),
-    h('label', { class: 'editor-label', text: '種類' }, [h('select', { name: 'kind' }, options)]),
-    isAction && h('label', { class: 'editor-label', text: '担当（空欄なら不明）' }, [h('input', { type: 'text', name: 'owner', value: item.owner ?? '', maxlength: 60, autocomplete: 'off' })]),
-    isAction && h('label', { class: 'editor-label', text: '期限（空欄なら不明）' }, [h('input', { type: 'text', name: 'due', value: item.due ?? '', maxlength: 60, autocomplete: 'off' })]),
-    h('label', { class: 'editor-label', text: '修正の理由（任意）' }, [h('input', { type: 'text', name: 'reason', maxlength: 200, autocomplete: 'off' })]),
+function nodeEditor(n) {
+  return h('form', { class: 'editor', 'data-id': n.id, 'data-rev': n.rev }, [
+    h('p', { class: 'editor-note', text: '台本デモの再生は一時停止中です。保存かキャンセルで再開できます。' }),
+    h('label', { class: 'editor-label', text: '内容' }, [h('textarea', { name: 'text', rows: 2, maxlength: 500 }, [n.text])]),
+    h('label', { class: 'editor-label', text: '訂正の理由（任意）' }, [h('input', { type: 'text', name: 'reason', maxlength: 200, autocomplete: 'off' })]),
     h('div', { class: 'editor-actions' }, [
       h('button', { type: 'submit', class: 'btn btn-small btn-primary', text: '保存' }),
       h('button', { type: 'button', class: 'btn btn-small', 'data-action': 'edit-cancel', text: 'キャンセル' }),
@@ -96,195 +74,138 @@ function itemEditor(item, listName) {
   ]);
 }
 
-function renderItemInto(el, item, isNew, listName, state, opts = {}) {
-  const editing = ui.editingKey === `${listName}:${item.id}`;
-  if (editing) {
-    // 編集中のフォームは作り直さない（入力を消さない）。下で内容が変わった場合だけ知らせる
-    const form = el.querySelector('form.editor');
-    if (form) {
-      const fb = form.querySelector('.editor-feedback');
-      if (fb && Number(form.dataset.rev) !== item.rev) {
-        fb.textContent = '編集中にこの項目が更新されました。保存すると入力内容で訂正します。';
-        fb.classList.add('is-error');
-      }
-      return;
-    }
-  }
-  const sig = itemSignature(item, listName);
+function renderRow(el, state, n, isNew) {
+  const sig = nodeSignature(state, n);
   if (el.dataset.sig === sig) return;
-  const hadSig = !!el.dataset.sig;
-  const wasOpen = el.querySelector('details')?.open ?? false;
-  el.dataset.sig = sig;
-  el.dataset.id = item.id;
-  el.className = `item kind-${item.kind} status-${item.status}${editing ? ' is-editing' : ''}`;
-  el.replaceChildren();
-
-  if (editing) {
-    el.append(itemEditor(item, listName));
+  const row = el.querySelector(':scope > .node-row');
+  if (ui.editingId === n.id && row?.querySelector('form.editor')) {
+    // 編集中は入力を消さない。下で内容が変わったことだけ知らせる
+    const form = row.querySelector('form.editor');
+    const fb = form.querySelector('.editor-feedback');
+    if (fb && Number(/** @type {HTMLElement} */ (form).dataset.rev) !== n.rev) {
+      fb.textContent = '編集中にこの項目が更新されました。保存すると入力内容で訂正します。';
+      fb.classList.add('is-error');
+    }
+    el.dataset.sig = sig;
     return;
   }
+  const hadSig = !!el.dataset.sig;
+  const prevRev = Number(el.dataset.rev || 0);
+  const historyOpen = row?.querySelector('details.history')?.open ?? false;
+  el.dataset.sig = sig;
+  el.dataset.rev = String(n.rev);
+  el.className = [
+    'node', n.parentId ? 'is-branch' : 'is-heading',
+    state.activeId === n.id ? 'is-latest' : '',
+    n.updatedSeq > state.seq - FRESH_WINDOW ? 'is-fresh' : '',
+    ui.collapsed.has(n.id) ? 'is-collapsed' : '',
+  ].filter(Boolean).join(' ');
 
-  const head = [
-    opts.showKind !== false && badge(KIND_LABELS[item.kind], `badge-kind kind-${item.kind}`),
-    (item.kind === 'decision' || item.status === 'resolved' || item.status === 'done') && badge(STATUS_LABELS[item.status], `badge-status st-${item.status}`),
-    item.consensus?.kind === 'unverified' && item.status !== 'confirmed' && badge('合意未確認', 'badge-warn'),
-    item.needsReview && badge('人による確認待ち', 'badge-warn'),
-  ].filter(Boolean);
-
-  const parent = item.parentId ? findItem(state, item.parentId) : null;
-  const metaBits = [
-    item.ruleNote ? `${ORIGIN_LABELS[item.origin]}（${item.ruleNote}）` : ORIGIN_LABELS[item.origin],
-    opts.showTopic && `論点: ${topicTitle(state, item.topicId)}`,
-    parent && `↳ ${KIND_LABELS[parent.kind]}「${parent.text}」`,
-  ].filter(Boolean).join(' ・ ');
-
-  /** 確定・合意未確認・撤回・再検討の根拠／理由は必ず表示する */
-  let basis = null;
-  if (item.kind === 'decision') {
-    if (item.status === 'confirmed' && item.consensus?.note) basis = `根拠: ${item.consensus.note}`;
-    else if (item.status === 'withdrawn') basis = `撤回理由: ${lastReason(item, '撤回') ?? '記録なし'}`;
-    else if (item.status === 'revisit') basis = `再検討の理由: ${lastReason(item, '再検討') ?? '記録なし'}`;
-    else if (item.consensus?.kind === 'unverified') basis = item.consensus.note;
-  }
-
-  const body = [
-    head.length ? h('div', { class: 'item-head' }, head) : null,
-    h('p', { class: 'item-text', text: item.text }),
-    item.kind === 'action' && h('p', { class: 'item-sub item-meta' }, [
-      h('span', { text: `担当: ${item.owner ?? '不明'}`, class: item.owner ? '' : 'unknown' }),
-      h('span', { text: `期限: ${item.due ?? '不明'}`, class: item.due ? '' : 'unknown' }),
-    ]),
-    basis && h('p', { class: 'item-basis', text: basis, title: basis }),
-    h('p', { class: 'item-sub item-origin', text: metaBits, title: metaBits }),
-  ];
-  // サマリー（compact）では行履歴を省き、根拠・理由の1〜2行だけを残す
-  if (item.history.length > 1 && !opts.compact) {
-    body.push(h('details', { class: 'history', open: wasOpen }, [
-      h('summary', { text: `履歴 ${item.history.length}件` }),
-      h('ol', {}, item.history.map((x) => h('li', {}, [
-        h('span', { class: 'history-seq', text: `#${x.seq}` }),
-        h('span', { text: `${x.change}${x.from && x.to && x.from !== x.to ? `：${x.from} → ${x.to}` : ''}` }),
-        x.reason && h('span', { class: 'muted', text: `（${x.reason}）` }),
-        h('span', { class: 'muted', text: ` ・${ORIGIN_LABELS[x.by] ?? x.by}` }),
-      ]))),
-    ]));
-  }
-  body.push(itemActions(item, listName));
-  el.append(...body.filter(Boolean));
-  if (!isNew || hadSig) flash(el, 'flash');
-  else flash(el, 'flash-new');
-}
-
-function renderList(id, items, state, opts = {}) {
-  reconcile($(id), items, (i) => i.id, (el, item, isNew) => renderItemInto(el, item, isNew, id, state, opts));
-}
-
-function renderTopicChips(view) {
-  reconcile($('topic-chips'), view.topics, (t) => t.id, (el, t) => {
-    const viewing = view.shown?.id === t.id;
-    const sig = `${t.title}|${t.isCurrent}|${viewing}|${t.digression}`;
-    if (el.dataset.sig === sig) return;
-    el.dataset.sig = sig;
-    el.dataset.id = t.id;
-    el.className = `topic-chip${t.isCurrent ? ' is-current' : ''}${viewing ? ' is-viewing' : ''}${t.digression ? ' is-digression' : ''}`;
-    el.replaceChildren(h('button', {
-      type: 'button',
-      'data-action': t.isCurrent ? 'view-current' : 'view-topic',
-      'data-id': t.id,
-      'aria-current': t.isCurrent ? 'true' : null,
-      title: t.isCurrent ? '会議の現在の論点' : '押すと参照（会議の論点は変わりません）',
-      text: `${t.isCurrent ? '● ' : ''}${t.title}`,
-    }));
-  });
-}
-
-function renderTopics(view) {
-  reconcile($('list-topics'), view.topics, (t) => t.id, (el, t) => {
-    const viewing = view.shown?.id === t.id;
-    const sig = `${t.title}|${t.isCurrent}|${t.visits}|${t.itemCount}|${viewing}`;
-    if (el.dataset.sig === sig) return;
-    el.dataset.sig = sig;
-    el.dataset.id = t.id;
-    el.className = `topic${t.isCurrent ? ' is-current' : ''}${viewing ? ' is-viewing' : ''}`;
-    el.replaceChildren(
-      h('div', { class: 'topic-main' }, [
-        h('span', { class: 'topic-title', text: t.title }),
-        h('span', { class: 'topic-meta' }, [
-          t.isCurrent && badge('現在', 'badge-current'),
-          t.digression && badge('脱線', 'badge-warn'),
-          t.visits > 1 && badge(`戻り ${t.visits - 1}回`, 'badge-origin'),
-          h('span', { class: 'muted', text: `${t.itemCount}項目` }),
+  const newRow = h('div', { class: 'node-row' });
+  if (ui.editingId === n.id) {
+    newRow.append(nodeEditor(n));
+  } else {
+    const hasKids = n.childIds.length > 0;
+    newRow.append(
+      hasKids
+        ? h('button', {
+          type: 'button', class: 'twisty', 'data-action': 'toggle', 'data-id': n.id,
+          'aria-expanded': String(!ui.collapsed.has(n.id)),
+          'aria-label': ui.collapsed.has(n.id) ? '開く' : '畳む',
+          text: ui.collapsed.has(n.id) ? '▸' : '▾',
+        })
+        : h('span', { class: 'twisty twisty-leaf', 'aria-hidden': 'true', text: '•' }),
+      h('div', { class: 'node-body' }, [
+        h('p', { class: 'node-text' }, [
+          n.label ? badge(n.label, 'badge-label') : null,
+          h('span', { class: 'node-text-inner', text: n.text }),
+        ]),
+        h('p', { class: 'node-meta' }, [
+          h('span', { text: ORIGIN_LABELS[n.origin] ?? n.origin }),
+          n.history.length > 1 ? badge(`訂正 ${n.history.length - 1}`, 'badge-fix') : null,
+          ui.collapsed.has(n.id) && hasKids ? h('span', { class: 'muted', text: `${n.childIds.length}件を畳んでいます` }) : null,
+          ui.unseenUnder.has(n.id) ? badge('新しい追記あり', 'badge-new') : null,
+        ]),
+        n.history.length > 1 ? h('details', { class: 'history', open: historyOpen }, [
+          h('summary', { text: '変更履歴' }),
+          h('ol', {}, n.history.map((x) => h('li', {}, [
+            h('span', { class: 'history-seq', text: `#${x.seq}` }),
+            h('span', { text: x.change === '追加' ? `追加：${x.to}` : `${x.change}：${x.from} → ${x.to}` }),
+            x.reason ? h('span', { class: 'muted', text: `（${x.reason}）` }) : null,
+          ]))),
+        ]) : null,
+        h('div', { class: 'item-actions' }, [
+          h('button', { type: 'button', class: 'btn btn-small', 'data-action': 'add-under', 'data-id': n.id, text: '＋ ここに追記' }),
+          h('button', { type: 'button', class: 'btn btn-small', 'data-action': 'edit', 'data-id': n.id, text: '編集' }),
         ]),
       ]),
-      h('div', { class: 'topic-actions' }, [
-        !viewing && h('button', { type: 'button', class: 'btn btn-small', 'data-action': 'view-topic', 'data-id': t.id, text: '表示' }),
-        !t.isCurrent && h('button', { type: 'button', class: 'btn btn-small', 'data-action': 'switch-topic', 'data-id': t.id, text: '現在の論点にする' }),
-      ]),
     );
+  }
+  if (row) row.replaceWith(newRow);
+  else el.prepend(newRow);
+  if (isNew) flash(el, 'flash-new');
+  else if (hadSig && prevRev !== n.rev) flash(newRow, 'flash');
+}
+
+function renderChildren(container, state, ids) {
+  reconcile(container, ids, (id) => id, (el, id, isNew) => {
+    const n = state.nodes[id];
+    el.dataset.id = id;
+    renderRow(el, state, n, isNew);
+    let kids = /** @type {HTMLElement|null} */ (el.querySelector(':scope > ol.children'));
+    const showKids = n.childIds.length > 0 && !ui.collapsed.has(id);
+    if (showKids) {
+      if (!kids) {
+        kids = h('ol', { class: 'children' });
+        el.append(kids);
+      }
+      renderChildren(kids, state, n.childIds);
+    } else if (kids) {
+      kids.remove();
+    }
   });
 }
 
-function renderLog(view) {
-  const entries = view.log.slice(-80).reverse();
+function renderTargets(state) {
+  const sel = /** @type {HTMLSelectElement} */ ($('manual-target'));
+  const current = sel.value;
+  const opts = [h('option', { value: '', text: '新しい見出し' })];
+  for (const f of flatten(state)) {
+    const t = f.text.length > 28 ? `${f.text.slice(0, 28)}…` : f.text;
+    opts.push(h('option', { value: f.id, text: `${'　'.repeat(f.depth + 1)}└ ${t}` }));
+  }
+  sel.replaceChildren(...opts);
+  sel.value = getNode(state, current) ? current : '';
+}
+
+function renderLog(state) {
+  const entries = state.log.slice(-120).reverse();
   reconcile($('list-log'), entries, (e) => String(e.seq), (el, e) => {
-    if (el.dataset.sig) return; // 履歴は不変
+    if (el.dataset.sig) return;
     el.dataset.sig = '1';
-    el.className = `log-entry${e.rejected ? ' is-rejected' : ''}`;
+    el.className = 'log-entry';
     el.append(
       h('span', { class: 'history-seq', text: `#${e.seq}` }),
       h('span', { class: 'log-text', text: e.summary }),
-      h('span', { class: 'muted', text: ORIGIN_LABELS[e.by] ?? e.by }),
+      h('span', { class: 'muted', text: e.by === 'fixture' ? '台本' : '手で整理' }),
     );
   });
+  $('tabcount-log').textContent = String(state.log.length);
 }
 
-function renderCurrent(view, state) {
-  const { shown, current } = view;
-  $('past-banner').hidden = !view.isViewingPast;
-  $('current').classList.toggle('is-past', view.isViewingPast);
-  $('lanes').classList.toggle('is-past', view.isViewingPast);
-  $('current-eyebrow').textContent = view.isViewingPast ? '過去の論点（参照中）' : 'いまの論点';
-  if (!shown) {
-    $('current-title').textContent = ui.cleared ? '内容は消去されました' : 'まだ論点はありません';
-    $('current-meta').textContent = 'デモを再生するか、下の「手入力」で「議題: ○○」と入力してください。';
-  } else {
-    $('current-title').textContent = shown.title;
-    const bits = [];
-    if (shown.digression) bits.push('脱線した話題');
-    if (shown.visits > 1) bits.push(`この論点に${shown.visits - 1}回戻ってきています`);
-    if (view.isViewingPast && current) bits.push(`会議の現在の論点は「${current.title}」`);
-    bits.push(`由来: ${ORIGIN_LABELS[shown.origin]}`);
-    $('current-meta').textContent = bits.join(' ・ ');
-  }
-  $('current').classList.toggle('is-digression', !!shown?.digression);
-  renderTopicChips(view);
-  const ti = view.topicItems;
-  renderList('list-proposal', ti.proposal, state, { showKind: false });
-  renderList('list-reason', ti.reason, state, { showKind: false });
-  renderList('list-concern', ti.concern, state, { showKind: false });
-  renderList('list-tradeoff', ti.tradeoff, state, { showKind: false });
-  renderList('list-topic-decision', ti.decision, state, { showKind: false });
-  renderList('list-topic-unclassified', ti.unclassified, state, { showKind: false });
-}
-
-function renderTabs(view) {
+function renderTabs() {
   for (const t of TABS) {
     const on = ui.tab === t;
     $(`tab-${t}`).setAttribute('aria-selected', String(on));
     $(`tab-${t}`).tabIndex = on ? 0 : -1;
     $(`panel-${t}`).hidden = !on;
   }
-  $('tabcount-review').textContent = String(view.needsReview.length);
-  $('tabcount-topics').textContent = String(view.topics.length);
-  $('tabcount-log').textContent = String(view.log.length);
-  $('review-link').hidden = view.needsReview.length === 0;
-  $('review-link-btn').textContent = `要確認（未分類） ${view.needsReview.length}件を見る`;
 }
 
 function renderStatus() {
   const chip = $('chip-state');
   const st = demo.player.status;
-  const editing = !!ui.editingKey;
+  const editing = !!ui.editingId;
   chip.dataset.state = st;
   chip.textContent = ui.cleared && st === 'idle' ? '停止中（消去済み）' : PLAYER_STATUS_LABELS[st];
   /** @type {HTMLButtonElement} */ ($('btn-play')).disabled = editing || st === 'playing' || st === 'ended';
@@ -293,49 +214,44 @@ function renderStatus() {
   $('btn-play').textContent = st === 'paused' ? '▶ 再開' : '▶ 再生';
   const note = $('control-note');
   note.hidden = !editing;
-  note.textContent = editing ? '項目を編集中のため、デモ再生を止めています。保存かキャンセルで再開できます。' : '';
+  note.textContent = editing ? '項目を編集中のため、台本デモの再生を止めています。保存かキャンセルで再開できます。' : '';
   const pct = demo.player.total ? (demo.player.cursor / demo.player.total) * 100 : 0;
   $('progress-bar').style.width = `${pct}%`;
   if (st === 'idle') {
     $('progress-text').textContent = `0 / ${demo.player.total}`;
-    $('utterance').textContent = '再生すると、台本上の発言の要約がここに出ます（逐語録ではありません）。';
+    $('step-caption').textContent = '台本デモは、事前に用意した構造イベントを1つずつ流します。';
+    $('utterance').textContent = 'まだ再生していません。';
   }
 }
 
 function render() {
   const state = session.getState();
-  if (ui.viewTopicId && !state.topics.some((t) => t.id === ui.viewTopicId)) ui.viewTopicId = null;
-  if (ui.editingKey && !findItem(state, ui.editingKey.split(':')[1])) ui.editingKey = null;
-  const view = selectView(state, ui.viewTopicId);
-
-  renderCurrent(view, state);
-  renderList('list-confirmed', view.decisions.confirmed, state, { showKind: false, showTopic: true, compact: true });
-  renderList('list-tentative', view.decisions.tentative, state, { showKind: false, showTopic: true, compact: true });
-  renderList('list-withdrawn', view.decisions.withdrawn, state, { showKind: false, showTopic: true, compact: true });
-  $('withdrawn-count').textContent = String(view.decisions.withdrawn.length);
-  $('count-confirmed').textContent = `確定 ${view.decisions.confirmed.length}`;
-  $('count-tentative').textContent = `仮案 ${view.decisions.tentative.length}`;
-  $('count-withdrawn').textContent = `撤回 ${view.decisions.withdrawn.length}`;
-  const unknownOwner = view.actions.filter((a) => a.status === 'open' && !a.owner).length;
-  $('quick-confirmed').textContent = `確定 ${view.decisions.confirmed.length}`;
-  $('quick-tentative').textContent = `仮案 ${view.decisions.tentative.length}`;
-  $('quick-withdrawn').textContent = `撤回 ${view.decisions.withdrawn.length}`;
-  $('quick-next').textContent = `次に決める ${view.nextItems.length}`;
-  $('quick-actions').textContent = `アクション ${view.actions.filter((a) => a.status === 'open').length}${unknownOwner ? `（担当不明 ${unknownOwner}）` : ''}`;
-  $('quick-open').textContent = `未解決 ${view.openQuestions.length}`;
-  renderList('list-next', view.nextItems, state, { showKind: false, showTopic: true, compact: true });
-  renderList('list-actions', view.actions, state, { showKind: false, showTopic: true, compact: true });
-  renderList('list-open', view.openQuestions, state, { showKind: false, showTopic: true, compact: true });
-  renderList('list-review', view.needsReview, state, { showKind: false, showTopic: true });
-  renderTopics(view);
-  renderLog(view);
-  renderTabs(view);
-  renderStatus();
-
-  if (state.currentTopicId !== ui.lastTopicId) {
-    ui.lastTopicId = state.currentTopicId;
-    if (view.current) $('live').textContent = `論点が「${view.current.title}」に切り替わりました`;
+  if (ui.editingId && !getNode(state, ui.editingId)) ui.editingId = null;
+  // 新しく適用された更新を数え、畳まれた枝の下なら「新しい追記あり」を付ける（自動では開かない）
+  for (const entry of state.log) {
+    if (entry.seq <= ui.lastSeq) continue;
+    ui.sinceJump += 1;
+    const hidden = entry.nodeId && collapsedAncestor(state, entry.nodeId);
+    if (hidden) ui.unseenUnder.add(hidden);
   }
+  ui.lastSeq = state.seq;
+  for (const id of [...ui.collapsed]) if (!getNode(state, id)) ui.collapsed.delete(id);
+
+  $('outline-empty').hidden = state.rootIds.length > 0;
+  if (ui.cleared && !state.rootIds.length) {
+    $('outline-empty').firstElementChild.textContent = '内容は消去されました。';
+  } else {
+    $('outline-empty').firstElementChild.replaceChildren(h('strong', { text: 'まだ何もありません。' }), '話題が出るたびに、ここへ見出しと枝が増えていきます。');
+  }
+  renderChildren($('outline'), state, state.rootIds);
+  renderTargets(state);
+  renderLog(state);
+  renderTabs();
+  renderStatus();
+  const jump = /** @type {HTMLButtonElement} */ ($('btn-jump'));
+  jump.disabled = !state.activeId;
+  $('jump-count').hidden = ui.sinceJump === 0 || !state.activeId;
+  $('jump-count').textContent = `${ui.sinceJump}件`;
 }
 
 function renderRoutes() {
@@ -363,15 +279,29 @@ function setFeedback(id, text, ok = true) {
 function resetAll(cleared) {
   demo.player.reset();
   session.clear();
-  ui.viewTopicId = null;
-  ui.editingKey = null;
-  ui.lastTopicId = null;
+  ui.collapsed.clear();
+  ui.unseenUnder.clear();
+  ui.editingId = null;
+  ui.sinceJump = 0;
+  ui.lastSeq = 0;
   ui.cleared = cleared;
 }
 
-function focusEditor(id) {
-  const form = document.querySelector(`form.editor[data-id="${CSS.escape(id ?? '')}"]`);
-  form?.querySelector('textarea')?.focus();
+/** 利用者の操作でだけ呼ぶ：祖先を開いて、その項目まで移動する */
+function revealNode(id) {
+  const state = session.getState();
+  if (!getNode(state, id)) return;
+  for (const a of ancestorsOf(state, id)) {
+    ui.collapsed.delete(a);
+    ui.unseenUnder.delete(a);
+  }
+  render();
+  const el = document.querySelector(`#outline li[data-id="${CSS.escape(id)}"]`);
+  if (el instanceof HTMLElement) {
+    el.scrollIntoView({ block: 'center' });
+    el.querySelector('.node-row')?.classList.add('is-target');
+    window.setTimeout(() => el.querySelector('.node-row')?.classList.remove('is-target'), 1600);
+  }
 }
 
 document.addEventListener('click', (ev) => {
@@ -380,33 +310,42 @@ document.addEventListener('click', (ev) => {
   if (!(btn instanceof HTMLElement) || btn.tagName === 'FORM') return;
   const { action, id } = btn.dataset;
   switch (action) {
-    case 'play': if (!ui.editingKey) { ui.cleared = false; demo.player.play(); } break;
+    case 'play': if (!ui.editingId) { ui.cleared = false; demo.player.play(); } break;
     case 'pause': demo.player.pause(); break;
-    case 'step': if (!ui.editingKey) { ui.cleared = false; demo.player.step(); } break;
+    case 'step': if (!ui.editingId) { ui.cleared = false; demo.player.step(); } break;
     case 'reset':
       resetAll(false);
-      setFeedback('data-feedback', 'リセットしました。デモは最初から、手入力の内容も破棄されています。');
+      setFeedback('data-feedback', 'リセットしました。台本デモは最初から、手で書いた内容も破棄されています。');
       break;
-    case 'tab':
-      ui.tab = TABS.includes(btn.dataset.tab ?? '') ? /** @type {string} */ (btn.dataset.tab) : 'review';
-      // 詳細は折り畳み。外（要確認への導線など）から開いたときは展開する
-      /** @type {HTMLDetailsElement} */ ($('details-fold')).open = true;
+    case 'toggle':
+      if (!id) break;
+      if (ui.collapsed.has(id)) {
+        ui.collapsed.delete(id);
+        ui.unseenUnder.delete(id);
+      } else {
+        ui.collapsed.add(id);
+      }
       break;
-    case 'view-topic': ui.viewTopicId = id ?? null; break;
-    case 'view-current': ui.viewTopicId = null; break;
-    case 'switch-topic': userEvent('topic.switch', { topicId: id }); ui.viewTopicId = null; break;
-    case 'confirm': userEvent('decision.confirm', { itemId: id, evidence: { kind: 'user', note: 'ユーザーが画面で確定操作' } }); break;
-    case 'tentative': userEvent('decision.tentative', { itemId: id, reason: 'ユーザー操作' }); break;
-    case 'revisit': userEvent('decision.revisit', { itemId: id, reason: 'ユーザー操作' }); break;
-    case 'withdraw': userEvent('decision.withdraw', { itemId: id, reason: 'ユーザー操作' }); break;
-    case 'resolve': userEvent('item.resolve', { itemId: id, reason: 'ユーザー操作' }); break;
-    case 'reopen': userEvent('item.reopen', { itemId: id, reason: 'ユーザー操作' }); break;
+    case 'jump-latest': {
+      const latest = session.getState().activeId;
+      ui.sinceJump = 0;
+      if (latest) revealNode(latest);
+      break;
+    }
+    case 'add-under': {
+      const sel = /** @type {HTMLSelectElement} */ ($('manual-target'));
+      sel.value = id ?? '';
+      $('manual').scrollIntoView({ block: 'nearest' });
+      $('manual-text').focus();
+      return;
+    }
     case 'edit':
       // 編集を開いたら再生を自動で一時停止し、編集中は再生・一歩進めるを無効にする
       demo.player.pause();
-      ui.editingKey = `${btn.dataset.list}:${id}`;
+      ui.editingId = id ?? null;
       break;
-    case 'edit-cancel': ui.editingKey = null; break;
+    case 'edit-cancel': ui.editingId = null; break;
+    case 'tab': ui.tab = TABS.includes(btn.dataset.tab ?? '') ? /** @type {string} */ (btn.dataset.tab) : 'log'; break;
     case 'export-json':
     case 'export-md':
       // Artifact の閲覧画面はページからのダウンロードを止めるため、この版では書き出さない
@@ -415,41 +354,36 @@ document.addEventListener('click', (ev) => {
         break;
       }
       if (action === 'export-md') {
-        download('meeting-compass-export.md', toMarkdown(session.getState(), new Date().toISOString()), 'text/markdown');
+        download('meeting-compass-outline.md', toMarkdown(session.getState(), new Date().toISOString()), 'text/markdown');
         setFeedback('data-feedback', 'Markdownを書き出しました（この端末への保存のみ）。');
-        break;
+      } else {
+        download('meeting-compass-outline.json', toJSON(session.getState(), new Date().toISOString()), 'application/json');
+        setFeedback('data-feedback', 'JSONを書き出しました（この端末への保存のみ）。');
       }
-      download('meeting-compass-export.json', toJSON(session.getState(), new Date().toISOString()), 'application/json');
-      setFeedback('data-feedback', 'JSONを書き出しました（この端末への保存のみ）。');
       break;
-    case 'jump': {
-      const dest = document.getElementById(btn.dataset.target ?? '');
-      if (dest instanceof HTMLDetailsElement) dest.open = true;
-      dest?.scrollIntoView({ block: 'start' });
-      return;
-    }
     case 'clear-ask': $('clear-confirm').hidden = false; break;
     case 'clear-no': $('clear-confirm').hidden = true; break;
     case 'clear-yes':
       $('clear-confirm').hidden = true;
       resetAll(true);
-      setFeedback('data-feedback', 'すべて消去しました。メモリ上の内容は破棄され、デモは停止しています。');
+      setFeedback('data-feedback', 'すべて消去しました。メモリ上の内容は破棄され、台本デモは停止しています。');
       break;
     default: return;
   }
   render();
-  if (action === 'edit') focusEditor(id);
-  if (action === 'tab' && btn.id === 'review-link-btn') $('details-fold').scrollIntoView({ block: 'start' });
+  if (action === 'edit') {
+    const form = document.querySelector(`form.editor[data-id="${CSS.escape(id ?? '')}"]`);
+    form?.querySelector('textarea')?.focus();
+  }
 });
 
 document.addEventListener('keydown', (ev) => {
   const target = /** @type {HTMLElement} */ (ev.target);
   if (ev.key === 'Escape' && target.closest('form.editor')) {
-    ui.editingKey = null;
+    ui.editingId = null;
     render();
     return;
   }
-  // タブの左右キー移動
   if ((ev.key === 'ArrowRight' || ev.key === 'ArrowLeft') && target.getAttribute('role') === 'tab') {
     const i = TABS.indexOf(ui.tab);
     ui.tab = TABS[(i + (ev.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
@@ -463,48 +397,39 @@ document.addEventListener('submit', (ev) => {
   ev.preventDefault();
   if (form.id === 'manual-form') {
     const text = /** @type {HTMLTextAreaElement} */ ($('manual-text')).value;
-    const kind = /** @type {HTMLSelectElement} */ ($('manual-kind')).value;
-    const res = manual.submit(text, kind);
-    setFeedback('manual-feedback', res.message, res.ok);
-    if (res.ok) {
-      ui.cleared = false;
-      ui.viewTopicId = null;
-      /** @type {HTMLTextAreaElement} */ ($('manual-text')).value = '';
+    const parentId = /** @type {HTMLSelectElement} */ ($('manual-target')).value || null;
+    if (!text.trim()) {
+      setFeedback('manual-feedback', '入力が空です。内容を入力してください。', false);
+      return;
     }
-    render();
+    const nodeId = session.nextId(parentId ? 'b' : 'h');
+    const r = userEvent('node.add', { node: { id: nodeId, parentId, text } });
+    if (r.ok) {
+      ui.cleared = false;
+      /** @type {HTMLTextAreaElement} */ ($('manual-text')).value = '';
+      setFeedback('manual-feedback', parentId ? '枝に追記しました。' : '見出しを追加しました。');
+      render();
+    } else if (r.existingId) {
+      // 同じ話題・同じ内容は増やさず、既存の項目を「いまの場所」にして移動する
+      userEvent('node.focus', { nodeId: r.existingId });
+      setFeedback('manual-feedback', '同じ内容が既にあるため、新しく作らずに既存の項目へ移動しました。', false);
+      revealNode(r.existingId);
+    } else {
+      setFeedback('manual-feedback', r.message || '追加できませんでした', false);
+      render();
+    }
     return;
   }
   if (form.classList.contains('editor')) {
     const id = form.dataset.id ?? '';
-    const item = findItem(session.getState(), id);
-    if (!item) return;
     const fd = new FormData(form);
-    const reason = String(fd.get('reason') ?? '') || 'ユーザーが修正';
-    const text = String(fd.get('text') ?? '');
-    const kind = String(fd.get('kind') ?? item.kind);
-    const errors = [];
-    if (text.trim() !== item.text) {
-      const r = userEvent('item.correct', { itemId: id, text, reason });
-      if (!r.ok) errors.push(r.message);
-    }
-    if (!errors.length && kind !== item.kind) {
-      const r = userEvent('item.reclassify', { itemId: id, kind, reason });
-      if (!r.ok) errors.push(r.message);
-    }
-    if (!errors.length && item.kind === 'action' && kind === 'action') {
-      const owner = String(fd.get('owner') ?? '').trim() || null;
-      const due = String(fd.get('due') ?? '').trim() || null;
-      if (owner !== item.owner || due !== item.due) {
-        const r = userEvent('action.update', { itemId: id, owner, due });
-        if (!r.ok) errors.push(r.message);
-      }
-    }
-    if (errors.length) {
+    const r = userEvent('node.edit', { nodeId: id, text: String(fd.get('text') ?? ''), reason: String(fd.get('reason') ?? '') || 'ユーザーが訂正' });
+    if (!r.ok && r.message !== '訂正前と同じ内容です') {
       const fb = form.querySelector('.editor-feedback');
-      if (fb) { fb.textContent = errors.join(' / '); fb.classList.add('is-error'); }
+      if (fb) { fb.textContent = r.message; fb.classList.add('is-error'); }
       return;
     }
-    ui.editingKey = null;
+    ui.editingId = null;
     render();
   }
 });
@@ -541,5 +466,5 @@ renderRoutes();
 render();
 // テスト・デバッグ用の読み取り専用フック（state の複製を返すだけ）
 Object.defineProperty(window, '__meetingCompass', {
-  value: Object.freeze({ snapshot: () => structuredClone(session.getState()), providers: [demo.id, manual.id, audio.id] }),
+  value: Object.freeze({ snapshot: () => structuredClone(session.getState()), providers: [demo.id, audio.id] }),
 });

@@ -1,7 +1,7 @@
-// デモ台本プロバイダ：あらかじめ書かれた fixture を順に流すだけ。理解・推論はしない。
+// デモ台本プロバイダ：事前に用意した構造イベント（fixture）を順に流すだけ。発言の理解・推論はしない。
 
 import { createPlayer } from '../core/player.js';
-import { DEMO_STEPS } from '../core/demo-script.js';
+import { OUTLINE_DEMO_STEPS } from '../core/outline-demo.js';
 import { assertProvider } from './contract.js';
 
 /**
@@ -9,7 +9,7 @@ import { assertProvider } from './contract.js';
  *   onStep?: (step: any, index: number, results: any[]) => void,
  *   onStatus?: (s: string) => void, scheduler?: any, intervalMs?: number, steps?: any[] }} opts
  */
-export function createDemoProvider({ session, onStep = () => {}, onStatus = () => {}, scheduler, intervalMs, steps = DEMO_STEPS }) {
+export function createDemoProvider({ session, onStep = () => {}, onStatus = () => {}, scheduler, intervalMs, steps = OUTLINE_DEMO_STEPS }) {
   const player = createPlayer({
     steps,
     scheduler,
@@ -22,10 +22,10 @@ export function createDemoProvider({ session, onStep = () => {}, onStatus = () =
   });
   return assertProvider({
     id: 'demo',
-    label: 'デモ台本（架空の会議）',
+    label: '台本デモ（架空の会議）',
     kind: 'fixture',
     sendsNetwork: false,
-    honestyNote: 'あらかじめ用意した架空会議の台本を順に表示しています。AIによる理解・音声認識ではありません。',
+    honestyNote: '事前に用意した架空会議の構造イベント（台本）を順に流しています。AIによる理解・音声認識ではありません。',
     status: () => ({ state: player.status, detail: `${player.cursor} / ${player.total}` }),
     player,
     steps,

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { applyEvent, createState, findItem, selectView, MAX_TEXT_LENGTH } from '../../web/js/core/model.js';
-import { DEMO_STEPS, allDemoEvents } from '../../web/js/core/demo-script.js';
+import { DEMO_STEPS, allDemoEvents } from './fixtures/structured-meeting.js';
 
 function run(events, state = createState()) {
   const results = [];
