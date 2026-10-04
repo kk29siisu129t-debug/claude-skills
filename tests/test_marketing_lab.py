@@ -1,0 +1,548 @@
+# -*- coding: utf-8 -*-
+"""
+3事業マーケ施策レビュー試作品のテスト（標準ライブラリの unittest だけで動く）。
+
+  python -m unittest discover -s tests -v
+
+外部接続・private hub データの読み込みは一切しない。fixture は data/marketing-lab/fixtures の架空値のみ。
+"""
+import copy
+import hashlib
+import io
+import json
+import os
+import subprocess
+import sys
+import tempfile
+import unittest
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.join(ROOT, 'scripts'))
+import marketing_lab as ml  # noqa: E402
+
+FIX = os.path.join(ROOT, 'data', 'marketing-lab', 'fixtures')
+NOW_S, TODAY_S = '2026-10-04T09:00:00+09:00', '2026-10-04'
+NOW, TODAY = ml.resolve_clock(NOW_S, TODAY_S)
+
+
+def read(path):
+    with io.open(path, encoding='utf-8') as f:
+        return f.read()
+
+
+def write_all(d, bm):
+    for n, b in bm.items():
+        with io.open(os.path.join(d, n), 'w', encoding='utf-8') as f:
+            json.dump(b, f, ensure_ascii=False)
+
+
+def base():
+    return {n: b for n, b in ml.load_dir(FIX)}
+
+
+def run(bizmap):
+    """dict のまま検証する。{ファイル名: dict}"""
+    return {n: (b, ck) for n, b, ck in ml.validate_all(sorted(bizmap.items()), NOW)}
+
+
+def codes(res, name):
+    return [x['code'] for x in res[name][1].errors]
+
+
+def camp(bm, name):
+    return bm[name]['campaigns'][0]
+
+
+def status(bm, name):
+    b = bm[name]
+    res = run(bm)
+    assert not res[name][1].errors, res[name][1].errors
+    return ml.review_status(b, b['campaigns'][0], TODAY)
+
+
+class Normal(unittest.TestCase):
+    def test_three_businesses_validate(self):
+        res = run(base())
+        self.assertEqual(sorted(res), ['passlabo.json', 'potex.json', 't-clinic.json'])
+        for n, (b, ck) in res.items():
+            self.assertEqual(ck.errors, [], n)
+            self.assertIs(b['demo'], True)
+            self.assertEqual(len(b['campaigns']), 1)
+
+    def test_stages_per_business(self):
+        bm = base()
+        st = {n: [s['label'] for s in b['metric_definitions'][0]['stages']] for n, b in bm.items()}
+        self.assertEqual(st['passlabo.json'], ['LINE登録', '相談/面談', '入塾'])
+        self.assertEqual(st['potex.json'], ['登録', '体験', '契約', '着金'])
+        self.assertEqual(st['t-clinic.json'], ['予約', '来院', '契約'])
+        for b in bm.values():
+            self.assertIn('本番未確定', b['metric_definitions'][0]['status'])
+
+    def test_nine_creatives(self):
+        for b in base().values():
+            items = b['campaigns'][0]['creatives']['items']
+            self.assertEqual(len(items), 9)
+            self.assertEqual(len({(i['appeal'], i['tone']) for i in items}), 9)
+            for i in items:
+                self.assertIn('デモ', i['copy'])
+                self.assertIn('asset', i)
+
+    def test_initial_qa_unverified(self):
+        for b in base().values():
+            for i in b['campaigns'][0]['qa']['items']:
+                self.assertEqual(i['status'], '未検証')
+                self.assertIsNone(i['evidence'])
+                self.assertIsNone(i['checked_at'])
+
+    def test_fixture_reviews_are_incomplete(self):
+        bm = base()
+        for n in bm:
+            st, rs = status(bm, n)
+            self.assertEqual(st, 'レビュー未完了', n)
+            self.assertTrue(any('QAが未実施' in r for r in rs))
+
+    def test_fixtures_have_no_pii_like_values(self):
+        import re
+        blob = ''.join(read(os.path.join(FIX, f)) for f in sorted(os.listdir(FIX)))
+        self.assertIsNone(re.search(r'[\w.+-]+@[\w-]+\.[\w.]+', blob), 'メールアドレス風の値')
+        self.assertIsNone(re.search(r'0\d{1,4}-\d{1,4}-\d{3,4}', blob), '電話番号風の値')
+        for url in re.findall(r'https?://[^"\s]+', blob):
+            self.assertTrue(ml._is_demo_url(url), url)
+
+    def test_unknown_request_fields_show_mikakunin(self):
+        doc, _ = ml.build(FIX, NOW, TODAY)
+        self.assertIn('<span class="unk">未確認</span>', doc)  # Tクリの仮説・予算上限は未確認
+        self.assertIn('支出の許可にはなりません', doc)
+
+
+class Ids(unittest.TestCase):
+    def test_unknown_creative_ref(self):
+        bm = base()
+        camp(bm, 'potex.json')['selected_creative'] = {'id': 'PX-CR-99', 'version': 'v1'}
+        self.assertIn('UNKNOWN_REF', codes(run(bm), 'potex.json'))
+
+    def test_duplicate_creative_id(self):
+        bm = base()
+        items = camp(bm, 'passlabo.json')['creatives']['items']
+        items[1]['id'] = items[0]['id']
+        self.assertIn('DUP_ID', codes(run(bm), 'passlabo.json'))
+
+    def test_duplicate_campaign_and_business_id(self):
+        bm = base()
+        bm['passlabo.json']['campaigns'].append(copy.deepcopy(camp(bm, 'passlabo.json')))
+        self.assertIn('DUP_ID', codes(run(bm), 'passlabo.json'))
+        bm = base()
+        bm['z-dup.json'] = copy.deepcopy(bm['potex.json'])
+        self.assertIn('DUP_ID', codes(run(bm), 'z-dup.json'))
+
+    def test_cross_business_creative_ref(self):
+        bm = base()
+        camp(bm, 't-clinic.json')['lp_change']['creative_ref'] = {'id': 'PL-CR-21', 'version': 'v1'}
+        res = run(bm)
+        self.assertIn('CROSS_BIZ', codes(res, 't-clinic.json'))
+        self.assertEqual(res['passlabo.json'][1].errors, [])  # 他事業は巻き込まない
+
+    def test_cross_business_flow_and_metric(self):
+        bm = base()
+        camp(bm, 'potex.json')['flow_ref'] = {'id': 'FL-TC-01', 'version': 'v1'}
+        camp(bm, 'potex.json')['results']['periods'][0]['metric_def'] = {'id': 'MD-PL', 'version': 'v0-demo'}
+        self.assertEqual(codes(run(bm), 'potex.json').count('CROSS_BIZ'), 2)
+
+    def test_approval_for_other_business(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['approvals']['records'][0]['target']['business_id'] = 'potex'
+        self.assertIn('CROSS_BIZ', codes(run(bm), 'passlabo.json'))
+
+    def test_stopped_business_renders_stop_not_review(self):
+        bm = base()
+        camp(bm, 'potex.json')['selected_creative'] = {'id': 'PX-CR-99', 'version': 'v1'}
+        with tempfile.TemporaryDirectory() as d:
+            write_all(d, bm)
+            doc, res = ml.build(d, NOW, TODAY)
+        sec = doc.split('id="biz-potex"')[1].split('</section>')[0]
+        self.assertIn('検証停止', sec)
+        self.assertNotIn('CR比較', sec)
+        self.assertIn('id="biz-passlabo"', doc)
+
+
+class Values(unittest.TestCase):
+    def period(self, bm, name='passlabo.json', i=0):
+        return camp(bm, name)['results']['periods'][i]
+
+    def test_negative_count_and_spend(self):
+        bm = base()
+        self.period(bm)['counts']['clicks'] = -1
+        self.period(bm)['spend_yen'] = -5
+        self.assertEqual(codes(run(bm), 'passlabo.json').count('NEGATIVE'), 2)
+
+    def test_non_integer_and_bool(self):
+        for v in ('12', 1.5, True):
+            bm = base()
+            self.period(bm)['counts']['register'] = v
+            self.assertIn('BAD_VALUE', codes(run(bm), 'passlabo.json'), v)
+
+    def test_nan_infinity_rejected_on_load(self):
+        with tempfile.TemporaryDirectory() as d:
+            txt = read(os.path.join(FIX, 'potex.json'))
+            txt = txt.replace('"spend_yen": 240000', '"spend_yen": NaN', 1)
+            self.assertIn('NaN', txt)
+            with io.open(os.path.join(d, 'potex.json'), 'w', encoding='utf-8') as f:
+                f.write(txt)
+            res = ml.validate_all(ml.load_dir(d), NOW)
+            self.assertEqual(res[0][2].errors[0]['code'], 'SCHEMA')
+
+    def test_missing_count_key_is_error_but_null_is_ok(self):
+        bm = base()
+        del self.period(bm)['counts']['enroll']
+        self.assertIn('MISSING', codes(run(bm), 'passlabo.json'))
+
+    def test_non_demo_url_rejected(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['lp_change']['url'] = 'https://www.example-real-site.jp/lp'
+        self.assertIn('BAD_VALUE', codes(run(bm), 'passlabo.json'))
+
+    def test_incomplete_nine(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['creatives']['items'].pop()
+        self.assertIn('BAD_VALUE', codes(run(bm), 'passlabo.json'))
+
+
+class Dates(unittest.TestCase):
+    def p(self, bm):
+        return camp(bm, 'potex.json')['results']['periods'][0]
+
+    def test_period_start_after_end(self):
+        bm = base()
+        self.p(bm)['start'] = '2026-09-20'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+
+    def test_request_period_reversed(self):
+        bm = base()
+        camp(bm, 'potex.json')['request']['period'] = {'start': '2026-10-01', 'end': '2026-09-01'}
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+
+    def test_occurred_outside_period(self):
+        bm = base()
+        self.p(bm)['occurred']['to'] = '2026-09-20'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+
+    def test_source_updated_after_fetch(self):
+        bm = base()
+        self.p(bm)['source_updated_at'] = '2026-09-29T10:00:00+09:00'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+
+    def test_fetched_in_future_or_before_period_end(self):
+        bm = base()
+        self.p(bm)['fetched_at'] = '2026-10-05T09:00:00+09:00'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+        bm = base()
+        self.p(bm)['source_updated_at'] = '2026-09-10T07:00:00+09:00'
+        self.p(bm)['fetched_at'] = '2026-09-10T09:00:00+09:00'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'potex.json'))
+
+    def test_bad_date_and_naive_datetime(self):
+        bm = base()
+        self.p(bm)['end'] = '2026-02-30'
+        self.p(bm)['fetched_at'] = '2026-09-29T09:00:00'
+        self.assertEqual(codes(run(bm), 'potex.json').count('BAD_DATE'), 2)
+
+    def test_approval_in_future(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['approvals']['records'][0]['at'] = '2026-10-10T09:00:00+09:00'
+        self.assertIn('DATE_ORDER', codes(run(bm), 'passlabo.json'))
+
+
+class Review(unittest.TestCase):
+    def ok_all(self, bm, name):
+        """QA合格（証跡あり）・両者OK にして、条件充足の基準状態を作る"""
+        c = camp(bm, name)
+        for i in c['qa']['items']:
+            i.update(status='合格', evidence='テスト用の架空証跡', checked_at='2026-10-01T10:00:00+09:00', checker='QA役')
+        sel = c['selected_creative']
+        lp = {'id': c['lp_change']['lp_id'], 'version': c['lp_change']['proposed_version']}
+        c['approvals']['records'] = [
+            {'id': 'T-%s' % r['role'], 'role': r['role'], 'status': 'OK',
+             'target': {'business_id': bm[name]['business_id'], 'campaign_id': c['campaign_id'],
+                        'creative': dict(sel), 'lp': dict(lp)},
+             'at': '2026-10-02T10:00:00+09:00', 'scope': 'CR・LP', 'evidence': 'テスト用'}
+            for r in c['approvals']['required']]
+        return c
+
+    def test_all_conditions_met(self):
+        bm = base()
+        self.ok_all(bm, 'passlabo.json')
+        st, rs = status(bm, 'passlabo.json')
+        self.assertEqual((st, rs), ('条件充足（デモ）', []))
+
+    def test_agency_ok_client_ng(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['approvals']['records'][1]['status'] = 'NG'
+        st, rs = status(bm, 'passlabo.json')
+        self.assertEqual(st, 'レビュー未完了')
+        self.assertEqual(rs, ['クライアントがNGです'])
+
+    def test_newer_record_wins_regardless_of_timezone_text(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        ng = copy.deepcopy(c['approvals']['records'][1])
+        ng.update(id='T-client-ng', status='NG', at='2026-10-02T02:00:00+00:00')  # = 11:00 JST、OKより後
+        c['approvals']['records'].append(ng)
+        st, rs = status(bm, 'passlabo.json')
+        self.assertIn('クライアントがNGです', rs)
+
+    def test_approval_on_old_creative_after_revision(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        cr = next(i for i in c['creatives']['items'] if i['id'] == c['selected_creative']['id'])
+        cr['version'] = 'v2'
+        c['selected_creative']['version'] = 'v2'
+        c['lp_change']['creative_ref']['version'] = 'v2'
+        c['qa']['target']['creative']['version'] = 'v2'
+        st, rs = status(bm, 'passlabo.json')
+        self.assertEqual(st, 'レビュー未完了')
+        self.assertEqual(sum('古いCR版' in r for r in rs), 2)
+
+    def test_approval_on_old_lp_after_revision(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['lp_change']['proposed_version'] = 'v5'
+        c['qa']['target']['lp']['version'] = 'v5'
+        st, rs = status(bm, 'passlabo.json')
+        self.assertEqual(sum('古いLP版' in r for r in rs), 2)
+
+    def test_qa_target_stale(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['qa']['target']['flow']['version'] = 'v0'
+        _, rs = status(bm, 'passlabo.json')
+        self.assertTrue(any('QAの対象版' in r and '導線' in r for r in rs))
+
+    def test_ok_without_evidence(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['approvals']['records'][0]['evidence'] = None
+        _, rs = status(bm, 'passlabo.json')
+        self.assertTrue(any('証跡' in r for r in rs))
+
+    def test_qa_failed(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['qa']['items'][3]['status'] = '失敗'
+        _, rs = status(bm, 'passlabo.json')
+        self.assertIn('QAに失敗した項目があります（1件）', rs)
+
+    def test_qa_not_run(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['qa']['items'][0].update(status='未検証', evidence=None, checked_at=None)
+        _, rs = status(bm, 'passlabo.json')
+        self.assertIn('QAが未実施です（未検証 1 / 6件）', rs)
+
+    def test_qa_pass_without_evidence(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        c['qa']['items'][2]['evidence'] = None
+        _, rs = status(bm, 'passlabo.json')
+        self.assertTrue(any('QAの証跡が不足' in r for r in rs))
+
+    def test_qa_missing_item_or_bad_status_stops(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['qa']['items'].pop()
+        self.assertIn('MISSING', codes(run(bm), 'passlabo.json'))
+        bm = base()
+        camp(bm, 'passlabo.json')['qa']['items'][0]['status'] = 'OK'
+        self.assertIn('BAD_VALUE', codes(run(bm), 'passlabo.json'))
+
+    def test_asset_expired(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        cr = next(i for i in c['creatives']['items'] if i['id'] == c['selected_creative']['id'])
+        cr['asset']['expires'] = '2026-10-03'
+        _, rs = status(bm, 'passlabo.json')
+        self.assertTrue(any('使用期限が切れています' in r for r in rs))
+        cr['asset']['expires'] = '2026-10-04'  # 当日までは有効
+        self.assertEqual(status(bm, 'passlabo.json')[0], '条件充足（デモ）')
+
+    def test_asset_rights_unchecked(self):
+        bm = base()
+        c = self.ok_all(bm, 'passlabo.json')
+        next(i for i in c['creatives']['items'] if i['id'] == c['selected_creative']['id'])['asset']['rights_checked'] = False
+        _, rs = status(bm, 'passlabo.json')
+        self.assertTrue(any('権利確認' in r for r in rs))
+
+
+class Metrics(unittest.TestCase):
+    def m(self, counts, spend=100000, name='t-clinic.json'):
+        bm = base()
+        p = copy.deepcopy(camp(bm, name)['results']['periods'][0])
+        p['counts'].update(counts)
+        p['spend_yen'] = spend
+        return {r['name']: r for r in ml.metrics(bm[name], p)}
+
+    def test_normal(self):
+        r = self.m({'impressions': 1000, 'clicks': 30, 'reserve': 3})
+        self.assertEqual(r['CTR']['text'], '3.00%')
+        self.assertEqual(r['CVR']['text'], '10.00%')
+        self.assertEqual(r['CPA']['text'], '¥33,333')
+        self.assertEqual(r['CTR']['formula'], 'クリック ÷ 表示')
+        self.assertEqual((r['CTR']['num'], r['CTR']['den']), (30, 1000))
+
+    def test_zero_denominator(self):
+        r = self.m({'impressions': 0, 'clicks': 0, 'reserve': 0})
+        for k in ('CTR', 'CVR', 'CPA'):
+            self.assertEqual(r[k]['text'], '判定不可')
+            self.assertEqual(r[k]['why'], '分母がゼロ')
+
+    def test_missing_vs_zero(self):
+        r = self.m({'impressions': 1000, 'clicks': 40, 'reserve': None}, spend=None)
+        self.assertEqual(r['CVR']['why'], '分子が未取得')
+        self.assertEqual(r['CPA']['why'], '費用が未取得')
+        r = self.m({'impressions': 1000, 'clicks': 40, 'reserve': 0})
+        self.assertEqual(r['CVR']['text'], '0.00%')  # 0件は0%として正しく出す
+        self.assertEqual(r['CPA']['text'], '判定不可')
+
+    def test_missing_denominator(self):
+        r = self.m({'impressions': None, 'clicks': 40})
+        self.assertEqual((r['CTR']['text'], r['CTR']['why']), ('判定不可', '分母が未取得'))
+
+    def test_no_inf_nan_in_html(self):
+        bm = base()
+        p = camp(bm, 'potex.json')['results']['periods'][0]
+        p['counts'].update(impressions=0, clicks=0, register=0, trial=0, contract=0, paid=None)
+        with tempfile.TemporaryDirectory() as d:
+            write_all(d, bm)
+            doc, _ = ml.build(d, NOW, TODAY)
+        for bad in ('Infinity', 'NaN', 'inf%', 'None'):
+            self.assertNotIn(bad, doc)
+
+    def test_quality_flags(self):
+        bm = base()
+        p = copy.deepcopy(camp(bm, 't-clinic.json')['results']['periods'][0])
+        p['counts'].update(reserve=5, visit=9, contract=None)
+        fl = ml.quality_flags(bm['t-clinic.json'], p)
+        self.assertTrue(any('来院（9）が手前の予約（5）より多い' in x for x in fl))
+        self.assertTrue(any('契約 が未取得（ゼロではありません）' in x for x in fl))
+
+
+class Compare(unittest.TestCase):
+    def test_different_population_blocked(self):
+        bm = base()
+        r = ml.compare(bm['potex.json'], camp(bm, 'potex.json')['results'], {'a': 'PX-P1', 'b': 'PX-P2'})
+        self.assertTrue(r['blocked'])
+        self.assertEqual(r['rows'], [])
+
+    def test_different_definition_version_blocked(self):
+        bm = base()
+        res = camp(bm, 'passlabo.json')['results']
+        res['periods'][1]['metric_def'] = {'id': 'MD-PL', 'version': 'v0-demo-2'}
+        r = ml.compare(bm['passlabo.json'], res, {'a': 'PL-P1', 'b': 'PL-P2'})
+        self.assertTrue(any('定義の版' in x for x in r['blocked']))
+
+    def test_different_length_notes_and_no_causal_claim(self):
+        bm = base()
+        r = ml.compare(bm['t-clinic.json'], camp(bm, 't-clinic.json')['results'], {'a': 'TC-P1', 'b': 'TC-P2'})
+        self.assertEqual(r['blocked'], [])
+        self.assertTrue(any('期間の長さが違います' in x for x in r['notes']))
+        self.assertTrue(any('因果' not in x or '検証していません' in x for x in r['notes']))
+        ctr = next(x for x in r['rows'] if x['name'] == 'CTR')
+        self.assertEqual(ctr['diff'], '判定不可')
+
+    def test_unknown_period_in_comparison(self):
+        bm = base()
+        camp(bm, 'passlabo.json')['results']['comparisons'] = [{'a': 'PL-P1', 'b': 'PL-P9'}]
+        self.assertIn('UNKNOWN_REF', codes(run(bm), 'passlabo.json'))
+
+
+class Render(unittest.TestCase):
+    def test_escape(self):
+        bm = base()
+        evil = '<script>alert("x")</script>&\'"'
+        c = camp(bm, 'passlabo.json')
+        c['title'] = evil
+        c['creatives']['items'][0]['copy'] = evil
+        c['results']['next_hypotheses'] = [evil]
+        bm['passlabo.json']['business_name'] = evil
+        with tempfile.TemporaryDirectory() as d:
+            write_all(d, bm)
+            doc, _ = ml.build(d, NOW, TODAY)
+        self.assertNotIn('<script>alert', doc)
+        self.assertIn('&lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt;&amp;&#x27;&quot;', doc)
+        self.assertEqual(doc.count('<script>'), 1)  # タブ切替の1本だけ
+
+    def test_demo_banner_and_no_action_buttons(self):
+        doc, _ = ml.build(FIX, NOW, TODAY)
+        self.assertIn('試作品・架空データです', doc)
+        for biz in ('passlabo', 'potex', 't-clinic'):
+            self.assertIn('id="biz-%s"' % biz, doc)
+        low = doc.lower()
+        for bad in ('<button', '<form', '<input', 'fetch(', 'xmlhttprequest', 'websocket', 'publish', 'navigator.sendbeacon'):
+            self.assertNotIn(bad, low)
+        import re
+        for href in re.findall(r'href="([^"]+)"', doc):
+            self.assertTrue(href.startswith('#'), href)  # 外部へのリンクは置かない（URLは文字として表示）
+        self.assertNotIn('src="http', doc)
+
+    def test_every_step_present_for_each_business(self):
+        doc, _ = ml.build(FIX, NOW, TODAY)
+        for biz in ('passlabo', 'potex', 't-clinic'):
+            sec = doc.split('id="biz-%s"' % biz)[1].split('</section>')[0]
+            for step in ('依頼', 'CR比較', 'LP変更票', '計測QA', '承認レビュー', '実験結果・次の仮説', '本番に進む前に足りないもの'):
+                self.assertIn(step, sec, (biz, step))
+
+
+class Build(unittest.TestCase):
+    def build_once(self, out):
+        env = dict(os.environ, OFFICE_NOW=NOW_S, OFFICE_TODAY=TODAY_S)
+        p = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'build-marketing-lab.py'), out],
+                           env=env, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+        with io.open(out, 'rb') as f:
+            return hashlib.sha256(f.read()).hexdigest()
+
+    def test_reproducible(self):
+        with tempfile.TemporaryDirectory() as d:
+            a = self.build_once(os.path.join(d, 'a.html'))
+            b = self.build_once(os.path.join(d, 'b.html'))
+        self.assertEqual(a, b)
+
+    def test_exit_code_on_stop(self):
+        with tempfile.TemporaryDirectory() as d:
+            bm = base()
+            camp(bm, 'potex.json')['flow_ref'] = {'id': 'FL-XX-01', 'version': 'v1'}
+            fx = os.path.join(d, 'fx')
+            os.mkdir(fx)
+            write_all(fx, bm)
+            env = dict(os.environ, OFFICE_NOW=NOW_S, OFFICE_TODAY=TODAY_S)
+            p = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'build-marketing-lab.py'),
+                                os.path.join(d, 'o.html'), '--fixtures', fx], env=env, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 2)
+        self.assertIn('検証停止', p.stdout)
+
+    def test_office_today_mmdd_compatible(self):
+        now, today = ml.resolve_clock(NOW_S, '10-04')
+        self.assertEqual(today.isoformat(), '2026-10-04')
+        with self.assertRaises(ValueError):
+            ml.resolve_clock('2026-10-04T09:00:00', None)
+
+    def test_builder_reads_no_private_hub_data(self):
+        import ast
+        for f in ('build-marketing-lab.py', 'marketing_lab.py'):
+            tree = ast.parse(read(os.path.join(ROOT, 'scripts', f)))
+            mods = {a.name.split('.')[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+            mods |= {n.module.split('.')[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom) and n.module}
+            self.assertFalse(mods & {'urllib', 'requests', 'socket', 'http', 'subprocess', 'smtplib'}, (f, mods))
+            doc = tree.body[0].value.value  # モジュールの説明文は除く
+            consts = [n.value for n in ast.walk(tree) if isinstance(n, ast.Constant) and isinstance(n.value, str)
+                      and n.value != doc]
+            for c in consts:
+                for name in ('people', 'issues', 'mytasks', '_cal_raw', 'workload', 'proposals', 'crew'):
+                    self.assertNotIn(name, c, (f, c))
+
+    def test_office_entry_link(self):
+        src = read(os.path.join(ROOT, 'scripts', 'build-office.py'))
+        self.assertIn('href="marketing-lab.html"', src)
+
+
+if __name__ == '__main__':
+    unittest.main()

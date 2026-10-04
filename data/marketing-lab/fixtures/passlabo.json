@@ -1,0 +1,515 @@
+{
+ "schema": "marketing-lab/v1",
+ "business_id": "passlabo",
+ "business_name": "PASSLABO / PASSCAL",
+ "demo": true,
+ "note": "すべて架空の値。実在の顧客・生徒・患者・担当者の情報は含まない",
+ "metric_definitions": [
+  {
+   "id": "MD-PL",
+   "version": "v0-demo",
+   "status": "デモ用（本番未確定）",
+   "stages": [
+    {
+     "key": "register",
+     "label": "LINE登録",
+     "definition": "LINE友だち追加の件数（デモ定義）"
+    },
+    {
+     "key": "consult",
+     "label": "相談/面談",
+     "definition": "相談・面談の予約確定（デモ定義）"
+    },
+    {
+     "key": "enroll",
+     "label": "入塾",
+     "definition": "入塾手続き完了（デモ定義）"
+    }
+   ],
+   "primary_cv_stage": "consult"
+  }
+ ],
+ "lps": [
+  {
+   "id": "LP-PL-01",
+   "current_version": "v3",
+   "url": "https://passlabo.example.invalid/lp"
+  }
+ ],
+ "flows": [
+  {
+   "id": "FL-PL-01",
+   "version": "v1",
+   "lp_id": "LP-PL-01",
+   "form_id": "FORM-PL-01",
+   "thanks_path": "/thanks",
+   "utm_rule": "utm_campaign=campaign_id / utm_content=CR ID",
+   "id_carry": "LP → フォームの hidden 項目で campaign_id と CR ID を渡す（デモ設計）",
+   "events": [
+    {
+     "name": "pl_register",
+     "stage": "register",
+     "rule": "1行動につき1回"
+    }
+   ]
+  }
+ ],
+ "checklist": [
+  {
+   "item": "広告アカウント・広告APIとの接続",
+   "state": "意図的に未接続",
+   "note": "試作品では接続しない。配信・停止・増額はこの画面の対象外"
+  },
+  {
+   "item": "本番の指標定義（各段階の数え方）",
+   "state": "未確定",
+   "note": "fixture の定義はデモ用。本番定義は事業側と合意が必要"
+  },
+  {
+   "item": "フォーム / Thanks / CVイベントの実装確認",
+   "state": "未検証",
+   "note": "実フォーム送信・タグ確認はしていない"
+  },
+  {
+   "item": "実績データの取得元と更新時刻",
+   "state": "未接続",
+   "note": "集計値はすべて架空。取得元・取得頻度・締め日が未確定"
+  },
+  {
+   "item": "代理店・クライアントの承認者と承認手順",
+   "state": "未確定",
+   "note": "役割だけ置いている。誰が・何の版を・どこで承認するかの合意が必要"
+  },
+  {
+   "item": "素材の権利・使用期限の確認手順",
+   "state": "未確定",
+   "note": "デモでは文字のみ。実素材を使う前に出典と期限の台帳が必要"
+  }
+ ],
+ "campaigns": [
+  {
+   "campaign_id": "PL-C01",
+   "title": "【架空】秋の学習相談キャンペーン",
+   "request": {
+    "product": "個別指導の学習相談（デモ）",
+    "persona": "中学生の保護者。部活と両立できる勉強法を探している（架空の像）",
+    "objective": "LINE登録から学習相談の予約までを増やす",
+    "primary_cv": {
+     "stage": "consult",
+     "label": "相談/面談",
+     "definition": "相談・面談の予約が確定した件数（デモ定義）"
+    },
+    "period": {
+     "start": "2026-09-01",
+     "end": "2026-09-28"
+    },
+    "hypothesis": "「部活と両立」を前面に出すと、相談予約までの離脱が減る",
+    "budget_cap": {
+     "media_yen": 300000,
+     "production_yen": null
+    }
+   },
+   "creatives": {
+    "appeal_axes": [
+     {
+      "key": "result",
+      "label": "成績アップ"
+     },
+     {
+      "key": "balance",
+      "label": "部活と両立"
+     },
+     {
+      "key": "price",
+      "label": "初回無料"
+     }
+    ],
+    "tone_axes": [
+     {
+      "key": "calm",
+      "label": "落ち着いた"
+     },
+     {
+      "key": "friendly",
+      "label": "親しみ"
+     },
+     {
+      "key": "urgent",
+      "label": "期限訴求"
+     }
+    ],
+    "items": [
+     {
+      "id": "PL-CR-11",
+      "version": "v1",
+      "appeal": "result",
+      "tone": "calm",
+      "hypothesis": "成果を示すと登録率が上がる",
+      "copy": "【デモ仮コピー】定期テストに向けた学習計画を一緒に作ります（落ち着いた）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-12",
+      "version": "v1",
+      "appeal": "result",
+      "tone": "friendly",
+      "hypothesis": "成果を示すと登録率が上がる",
+      "copy": "【デモ仮コピー】定期テストに向けた学習計画を一緒に作ります（親しみ）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-13",
+      "version": "v1",
+      "appeal": "result",
+      "tone": "urgent",
+      "hypothesis": "成果を示すと登録率が上がる",
+      "copy": "【デモ仮コピー】定期テストに向けた学習計画を一緒に作ります（期限訴求）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-21",
+      "version": "v1",
+      "appeal": "balance",
+      "tone": "calm",
+      "hypothesis": "悩みに寄せると相談まで進む",
+      "copy": "【デモ仮コピー】部活が忙しくても続く勉強のやり方（落ち着いた）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-22",
+      "version": "v1",
+      "appeal": "balance",
+      "tone": "friendly",
+      "hypothesis": "悩みに寄せると相談まで進む",
+      "copy": "【デモ仮コピー】部活が忙しくても続く勉強のやり方（親しみ）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-23",
+      "version": "v1",
+      "appeal": "balance",
+      "tone": "urgent",
+      "hypothesis": "悩みに寄せると相談まで進む",
+      "copy": "【デモ仮コピー】部活が忙しくても続く勉強のやり方（期限訴求）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-31",
+      "version": "v1",
+      "appeal": "price",
+      "tone": "calm",
+      "hypothesis": "費用の不安を消すと登録が増える",
+      "copy": "【デモ仮コピー】初回の学習相談は無料です（落ち着いた）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-32",
+      "version": "v1",
+      "appeal": "price",
+      "tone": "friendly",
+      "hypothesis": "費用の不安を消すと登録が増える",
+      "copy": "【デモ仮コピー】初回の学習相談は無料です（親しみ）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PL-CR-33",
+      "version": "v1",
+      "appeal": "price",
+      "tone": "urgent",
+      "hypothesis": "費用の不安を消すと登録が増える",
+      "copy": "【デモ仮コピー】初回の学習相談は無料です（期限訴求）",
+      "cta": "LINEで相談枠を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     }
+    ]
+   },
+   "selected_creative": {
+    "id": "PL-CR-21",
+    "version": "v1"
+   },
+   "metric_def_ref": {
+    "id": "MD-PL",
+    "version": "v0-demo"
+   },
+   "flow_ref": {
+    "id": "FL-PL-01",
+    "version": "v1"
+   },
+   "lp_change": {
+    "id": "LPC-PL-01",
+    "lp_id": "LP-PL-01",
+    "url": "https://passlabo.example.invalid/lp?v=4",
+    "current_version": "v3",
+    "proposed_version": "v4",
+    "creative_ref": {
+     "id": "PL-CR-21",
+     "version": "v1"
+    },
+    "changes": [
+     {
+      "where": "ファーストビュー見出し",
+      "before": "成績が上がる個別指導",
+      "after": "部活と両立できる勉強のやり方"
+     },
+     {
+      "where": "CTAボタン",
+      "before": "資料請求",
+      "after": "LINEで相談枠を見る"
+     }
+    ],
+    "expected_action": "LINE登録後、相談予約フォームまで進む",
+    "alignment": {
+     "appeal": "CRの「部活と両立」と見出しを一致させる",
+     "price": "CRでは価格を出さない。LPの料金表は変更なし",
+     "cta": "CR・LPとも「LINEで相談枠を見る」"
+    },
+    "measurement_impact": "CTA変更でクリックイベント名は変えない。LINE登録イベントは従来どおり",
+    "reviewer": "代理店の制作担当（役割）",
+    "rollback_version": "v3"
+   },
+   "qa": {
+    "target": {
+     "creative": {
+      "id": "PL-CR-21",
+      "version": "v1"
+     },
+     "lp": {
+      "id": "LP-PL-01",
+      "version": "v4"
+     },
+     "flow": {
+      "id": "FL-PL-01",
+      "version": "v1"
+     },
+     "form_id": "FORM-PL-01"
+    },
+    "items": [
+     {
+      "key": "mobile",
+      "plan": "iPhone/Android の縦画面で、ファーストビューとCTAが切れずに見えるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "links",
+      "plan": "広告→LP→フォームの全リンクを踏み、404・別ページ遷移がないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "form_thanks",
+      "plan": "テスト用フォームで送信し、Thanks ページに着くかを見る（本番フォームには送らない）",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "utm_id",
+      "plan": "UTM と campaign_id / CR ID がフォーム送信まで落ちずに引き継がれるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "duplicate",
+      "plan": "同じ人の再送信・ブラウザ戻るで二重登録・二重計上にならないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "event_once",
+      "plan": "CVイベントが1回の行動で1回だけ発火するかをタグ確認ツールで見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     }
+    ]
+   },
+   "approvals": {
+    "required": [
+     {
+      "role": "agency",
+      "label": "代理店"
+     },
+     {
+      "role": "client",
+      "label": "クライアント"
+     }
+    ],
+    "records": [
+     {
+      "id": "AP-PL-01",
+      "role": "agency",
+      "status": "OK",
+      "target": {
+       "business_id": "passlabo",
+       "campaign_id": "PL-C01",
+       "creative": {
+        "id": "PL-CR-21",
+        "version": "v1"
+       },
+       "lp": {
+        "id": "LP-PL-01",
+        "version": "v4"
+       }
+      },
+      "at": "2026-09-29T15:00:00+09:00",
+      "scope": "CR文言とLP見出し",
+      "evidence": "デモ記録：社内レビュー票 #demo-1"
+     },
+     {
+      "id": "AP-PL-02",
+      "role": "client",
+      "status": "NG",
+      "target": {
+       "business_id": "passlabo",
+       "campaign_id": "PL-C01",
+       "creative": {
+        "id": "PL-CR-21",
+        "version": "v1"
+       },
+       "lp": {
+        "id": "LP-PL-01",
+        "version": "v4"
+       }
+      },
+      "at": "2026-09-30T11:00:00+09:00",
+      "scope": "CR文言",
+      "evidence": "デモ記録：「無料の表現を見直したい」",
+      "note": "デモ"
+     }
+    ]
+   },
+   "results": {
+    "periods": [
+     {
+      "id": "PL-P1",
+      "label": "前半（架空）",
+      "start": "2026-09-01",
+      "end": "2026-09-14",
+      "population": "LINE広告経由（架空）",
+      "metric_def": {
+       "id": "MD-PL",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-01",
+       "to": "2026-09-14"
+      },
+      "source_updated_at": "2026-09-29T08:00:00+09:00",
+      "fetched_at": "2026-09-30T09:00:00+09:00",
+      "counts": {
+       "impressions": 40000,
+       "clicks": 520,
+       "register": 61,
+       "consult": 4,
+       "enroll": null
+      },
+      "spend_yen": 180000
+     },
+     {
+      "id": "PL-P2",
+      "label": "後半（架空）",
+      "start": "2026-09-15",
+      "end": "2026-09-28",
+      "population": "LINE広告経由（架空）",
+      "metric_def": {
+       "id": "MD-PL",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-15",
+       "to": "2026-09-28"
+      },
+      "source_updated_at": "2026-09-29T08:00:00+09:00",
+      "fetched_at": "2026-09-30T09:00:00+09:00",
+      "counts": {
+       "impressions": 38000,
+       "clicks": 610,
+       "register": 70,
+       "consult": 0,
+       "enroll": null
+      },
+      "spend_yen": 175000
+     }
+    ],
+    "comparisons": [
+     {
+      "a": "PL-P1",
+      "b": "PL-P2"
+     }
+    ],
+    "data_quality": [
+     "入塾は未取得（ゼロではない）。入塾まで追う取得元が未確定",
+     "後半の相談/面談が0件。計測漏れか導線切れかは未切り分け"
+    ],
+    "next_hypotheses": [
+     "登録→相談の区間で、相談フォームへのリンクが機能しているかを先に確かめる（計測漏れと導線切れの切り分け）",
+     "クライアントNGの「無料」表現を外した版で、登録率が維持できるかを見る"
+    ]
+   }
+  }
+ ]
+}

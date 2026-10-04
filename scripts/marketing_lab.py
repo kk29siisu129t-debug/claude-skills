@@ -1,0 +1,974 @@
+# -*- coding: utf-8 -*-
+"""
+claude-hub/scripts/marketing_lab.py
+
+3事業マーケティング試作品（読取り中心）の共通モジュール。
+依頼 → CR比較 → LP差分 → 計測QA → 承認レビュー → 実験結果・次の仮説 を
+business_id ごとに分けた架空fixtureから組み立てる。
+
+- 標準ライブラリだけで動く。外部API・広告API・Sheets には一切つながない
+- 実在の people / 顧客 / 生徒 / 患者 / カレンダーのデータは読まない
+- 公開・配信・承認を実行するボタンは作らない（表示だけ）
+"""
+import datetime
+import decimal
+import glob
+import html
+import io
+import json
+import os
+
+SCHEMA = 'marketing-lab/v1'
+
+QA_KEYS = [
+    ('mobile', 'スマホ表示'),
+    ('links', 'リンク'),
+    ('form_thanks', 'フォーム / Thanks'),
+    ('utm_id', 'UTM / ID の連続性'),
+    ('duplicate', '重複（二重登録・二重計上）'),
+    ('event_once', 'イベントが1回だけ発火'),
+]
+QA_STATUS = ('未検証', '合格', '失敗')
+APPROVAL_STATUS = ('未了', 'OK', 'NG')
+UNKNOWN = '未確認'
+NOT_FETCHED = '未取得'
+UNDECIDABLE = '判定不可'
+
+
+# ---------------------------------------------------------------- 読み込み
+
+class FixtureError(Exception):
+    pass
+
+
+def _reject_constant(name):
+    # json は既定で NaN / Infinity を通してしまう。数値の欄に入ると誤った率になる
+    raise FixtureError('不正な数値 %s は使えません' % name)
+
+
+def load_dir(path):
+    """fixture ディレクトリの *.json を名前順に読む。戻り値は [(ファイル名, dict | FixtureError)]"""
+    out = []
+    for fp in sorted(glob.glob(os.path.join(path, '*.json'))):
+        name = os.path.basename(fp)
+        try:
+            with io.open(fp, encoding='utf-8') as f:
+                out.append((name, json.load(f, parse_constant=_reject_constant)))
+        except (ValueError, FixtureError) as ex:
+            out.append((name, FixtureError(str(ex))))
+    return out
+
+
+# ---------------------------------------------------------------- 型の確認
+
+def _parse_date(s):
+    if not isinstance(s, str):
+        return None
+    try:
+        return datetime.date.fromisoformat(s)
+    except ValueError:
+        return None
+
+
+def _parse_dt(s):
+    if not isinstance(s, str):
+        return None
+    try:
+        d = datetime.datetime.fromisoformat(s)
+    except ValueError:
+        return None
+    # 時差の無い日時は比較できないので受け付けない
+    return d if d.tzinfo else None
+
+
+def _is_count(v):
+    return isinstance(v, int) and not isinstance(v, bool)
+
+
+def _is_number(v):
+    return isinstance(v, (int, float)) and not isinstance(v, bool)
+
+
+class Checker:
+    """1事業ぶんの検証結果を集める。errors があればその事業は「検証停止」"""
+
+    def __init__(self, biz_id):
+        self.biz = biz_id
+        self.errors = []
+
+    def err(self, code, where, msg):
+        self.errors.append({'code': code, 'where': where, 'msg': msg})
+
+    def need(self, obj, key, where):
+        if not isinstance(obj, dict) or key not in obj:
+            self.err('MISSING', where, '%s がありません' % key)
+            return None
+        return obj[key]
+
+    def count(self, v, where, allow_null=True):
+        if v is None:
+            if not allow_null:
+                self.err('BAD_VALUE', where, '値がありません')
+            return
+        if not _is_count(v):
+            self.err('BAD_VALUE', where, '整数ではありません: %r' % (v,))
+        elif v < 0:
+            self.err('NEGATIVE', where, '負の値です: %d' % v)
+
+    def money(self, v, where):
+        if v is None:
+            return
+        if not _is_number(v):
+            self.err('BAD_VALUE', where, '数値ではありません: %r' % (v,))
+        elif v < 0:
+            self.err('NEGATIVE', where, '負の値です: %r' % (v,))
+
+    def date(self, v, where, allow_null=False):
+        if v is None and allow_null:
+            return None
+        d = _parse_date(v)
+        if d is None:
+            self.err('BAD_DATE', where, '日付として読めません: %r' % (v,))
+        return d
+
+    def dt(self, v, where, allow_null=False):
+        if v is None and allow_null:
+            return None
+        d = _parse_dt(v)
+        if d is None:
+            self.err('BAD_DATE', where, '時差付きの日時として読めません: %r' % (v,))
+        return d
+
+
+# ---------------------------------------------------------------- ID 台帳
+
+def _ids(biz):
+    """事業が持つ ID を種類ごとに返す。{種類: {id: 現行版}}"""
+    reg = {'metric_def': {}, 'flow': {}, 'lp': {}, 'creative': {}, 'campaign': {}}
+    for m in biz.get('metric_definitions') or []:
+        if isinstance(m, dict):
+            reg['metric_def'].setdefault(m.get('id'), m.get('version'))
+    for f in biz.get('flows') or []:
+        if isinstance(f, dict):
+            reg['flow'].setdefault(f.get('id'), f.get('version'))
+    for lp in biz.get('lps') or []:
+        if isinstance(lp, dict):
+            reg['lp'].setdefault(lp.get('id'), lp.get('current_version'))
+    for c in biz.get('campaigns') or []:
+        if not isinstance(c, dict):
+            continue
+        reg['campaign'].setdefault(c.get('campaign_id'), None)
+        for cr in ((c.get('creatives') or {}).get('items') or []):
+            if isinstance(cr, dict):
+                reg['creative'].setdefault(cr.get('id'), cr.get('version'))
+    return reg
+
+
+def _dups(seq):
+    seen, dup = set(), []
+    for x in seq:
+        if x in seen and x not in dup:
+            dup.append(x)
+        seen.add(x)
+    return dup
+
+
+def _owner_map(all_biz):
+    """全事業の ID → 持ち主の business_id。他事業参照の判定に使う"""
+    own = {}
+    for b in all_biz:
+        bid = b.get('business_id')
+        for kind, ids in _ids(b).items():
+            for i in ids:
+                own.setdefault((kind, i), set()).add(bid)
+    return own
+
+
+# ---------------------------------------------------------------- 検証
+
+def _ref(ck, reg, owners, kind, ref, where):
+    """{id, version} 参照を同じ事業内で引く。戻り値は現行版（見つからなければ None）"""
+    if not isinstance(ref, dict) or 'id' not in ref:
+        ck.err('MISSING', where, '参照 {id, version} がありません')
+        return None
+    rid = ref.get('id')
+    if rid in reg[kind]:
+        return reg[kind][rid]
+    others = sorted(b for b in owners.get((kind, rid), set()) if b != ck.biz)
+    if others:
+        ck.err('CROSS_BIZ', where, '他事業（%s）の %s を参照しています: %s' % ('・'.join(others), kind, rid))
+    else:
+        ck.err('UNKNOWN_REF', where, '不明な %s ID です: %s' % (kind, rid))
+    return None
+
+
+def validate_business(biz, owners, now, seen_biz):
+    bid = biz.get('business_id') if isinstance(biz, dict) else None
+    ck = Checker(bid or '(不明)')
+    if not isinstance(biz, dict):
+        ck.err('SCHEMA', '/', 'オブジェクトではありません')
+        return ck
+    if biz.get('schema') != SCHEMA:
+        ck.err('SCHEMA', 'schema', '%s ではありません: %r' % (SCHEMA, biz.get('schema')))
+    if not isinstance(bid, str) or not bid:
+        ck.err('MISSING', 'business_id', 'business_id がありません')
+    elif bid in seen_biz:
+        ck.err('DUP_ID', 'business_id', 'business_id が重複しています: %s' % bid)
+    if biz.get('demo') is not True:
+        ck.err('SCHEMA', 'demo', '試作品の fixture は demo: true が必須です')
+
+    # 重複 ID（種類ごと）
+    lists = [
+        ('metric_def', [m.get('id') for m in biz.get('metric_definitions') or [] if isinstance(m, dict)]),
+        ('flow', [f.get('id') for f in biz.get('flows') or [] if isinstance(f, dict)]),
+        ('lp', [x.get('id') for x in biz.get('lps') or [] if isinstance(x, dict)]),
+        ('campaign', [c.get('campaign_id') for c in biz.get('campaigns') or [] if isinstance(c, dict)]),
+    ]
+    crs = []
+    for c in biz.get('campaigns') or []:
+        if isinstance(c, dict):
+            crs += [x.get('id') for x in ((c.get('creatives') or {}).get('items') or []) if isinstance(x, dict)]
+    lists.append(('creative', crs))
+    for kind, ids in lists:
+        for i in ids:
+            if not isinstance(i, str) or not i:
+                ck.err('MISSING', kind, 'ID が空です')
+        for d in _dups(ids):
+            ck.err('DUP_ID', kind, '%s ID が重複しています: %s' % (kind, d))
+
+    reg = _ids(biz)
+
+    stage_keys = {}
+    for m in biz.get('metric_definitions') or []:
+        keys = [s.get('key') for s in m.get('stages') or [] if isinstance(s, dict)]
+        if len(keys) < 2:
+            ck.err('BAD_VALUE', 'metric_definitions/%s' % m.get('id'), '段階は2つ以上必要です')
+        for d in _dups(keys):
+            ck.err('DUP_ID', 'metric_definitions/%s' % m.get('id'), '段階キーが重複しています: %s' % d)
+        if m.get('primary_cv_stage') not in keys:
+            ck.err('UNKNOWN_REF', 'metric_definitions/%s' % m.get('id'), '主要CVの段階が定義にありません')
+        stage_keys[m.get('id')] = keys
+
+    for f in biz.get('flows') or []:
+        w = 'flows/%s' % f.get('id')
+        _ref(ck, reg, owners, 'lp', {'id': f.get('lp_id')}, w + '/lp_id')
+        ev = [e.get('name') for e in f.get('events') or [] if isinstance(e, dict)]
+        for d in _dups(ev):
+            ck.err('DUP_ID', w, 'イベント名が重複しています: %s' % d)
+
+    for ci, c in enumerate(biz.get('campaigns') or []):
+        _validate_campaign(ck, c, 'campaigns/%s' % (c.get('campaign_id') or ci), reg, owners, stage_keys, now)
+    return ck
+
+
+def _validate_campaign(ck, c, w, reg, owners, stage_keys, now):
+    req = ck.need(c, 'request', w) or {}
+    p = req.get('period') or {}
+    s = ck.date(p.get('start'), w + '/request/period/start', allow_null=True)
+    e = ck.date(p.get('end'), w + '/request/period/end', allow_null=True)
+    if s and e and s > e:
+        ck.err('DATE_ORDER', w + '/request/period', '開始日が終了日より後です')
+    cap = req.get('budget_cap') or {}
+    ck.money(cap.get('media_yen'), w + '/request/budget_cap/media_yen')
+    ck.money(cap.get('production_yen'), w + '/request/budget_cap/production_yen')
+
+    mref = ck.need(c, 'metric_def_ref', w)
+    _ref(ck, reg, owners, 'metric_def', mref, w + '/metric_def_ref')
+    keys = stage_keys.get((mref or {}).get('id'), [])
+    cv = (req.get('primary_cv') or {}).get('stage')
+    if cv is not None and keys and cv not in keys:
+        ck.err('UNKNOWN_REF', w + '/request/primary_cv', '主要CVの段階が指標定義にありません: %s' % cv)
+    _ref(ck, reg, owners, 'flow', ck.need(c, 'flow_ref', w), w + '/flow_ref')
+
+    # CR: 訴求3軸 × トンマナ3軸 = 9提案
+    crs = c.get('creatives') or {}
+    ap = [a.get('key') for a in crs.get('appeal_axes') or []]
+    tn = [t.get('key') for t in crs.get('tone_axes') or []]
+    if len(set(ap)) != 3 or len(set(tn)) != 3:
+        ck.err('BAD_VALUE', w + '/creatives', '訴求とトンマナはそれぞれ3軸必要です')
+    combos = [(x.get('appeal'), x.get('tone')) for x in crs.get('items') or []]
+    want = {(a, t) for a in ap for t in tn}
+    if len(combos) != 9 or set(combos) != want:
+        ck.err('BAD_VALUE', w + '/creatives', '訴求×トンマナの9提案がそろっていません（%d件）' % len(combos))
+    for x in crs.get('items') or []:
+        xw = w + '/creatives/%s' % x.get('id')
+        if not x.get('version'):
+            ck.err('MISSING', xw, '版がありません')
+        a = x.get('asset') or {}
+        ck.date(a.get('expires'), xw + '/asset/expires', allow_null=True)
+    _ref(ck, reg, owners, 'creative', ck.need(c, 'selected_creative', w), w + '/selected_creative')
+
+    lc = ck.need(c, 'lp_change', w) or {}
+    _ref(ck, reg, owners, 'lp', {'id': lc.get('lp_id')}, w + '/lp_change/lp_id')
+    _ref(ck, reg, owners, 'creative', lc.get('creative_ref'), w + '/lp_change/creative_ref')
+    url = lc.get('url') or ''
+    if not _is_demo_url(url):
+        ck.err('BAD_VALUE', w + '/lp_change/url', 'デモURLは example.invalid 等の予約ドメインに限ります: %s' % url)
+
+    qa = ck.need(c, 'qa', w) or {}
+    t = qa.get('target') or {}
+    _ref(ck, reg, owners, 'creative', t.get('creative'), w + '/qa/target/creative')
+    _ref(ck, reg, owners, 'lp', t.get('lp'), w + '/qa/target/lp')
+    _ref(ck, reg, owners, 'flow', t.get('flow'), w + '/qa/target/flow')
+    qk = [i.get('key') for i in qa.get('items') or []]
+    for d in _dups(qk):
+        ck.err('DUP_ID', w + '/qa', 'QA項目が重複しています: %s' % d)
+    for k, _ in QA_KEYS:
+        if k not in qk:
+            ck.err('MISSING', w + '/qa', 'QA項目がありません: %s' % k)
+    for i in qa.get('items') or []:
+        if i.get('status') not in QA_STATUS:
+            ck.err('BAD_VALUE', w + '/qa/%s' % i.get('key'), 'QA状態が不正です: %r' % (i.get('status'),))
+        if i.get('checked_at') is not None:
+            d = ck.dt(i.get('checked_at'), w + '/qa/%s/checked_at' % i.get('key'))
+            if d and d > now:
+                ck.err('DATE_ORDER', w + '/qa/%s' % i.get('key'), '確認日時が現在より未来です')
+
+    ap_ = ck.need(c, 'approvals', w) or {}
+    rids = [r.get('id') for r in ap_.get('records') or []]
+    for d in _dups(rids):
+        ck.err('DUP_ID', w + '/approvals', '承認記録IDが重複しています: %s' % d)
+    roles = [r.get('role') for r in ap_.get('required') or []]
+    for d in _dups(roles):
+        ck.err('DUP_ID', w + '/approvals/required', '役割が重複しています: %s' % d)
+    for r in ap_.get('records') or []:
+        rw = w + '/approvals/%s' % r.get('id')
+        if r.get('status') not in APPROVAL_STATUS:
+            ck.err('BAD_VALUE', rw, '承認状態が不正です: %r' % (r.get('status'),))
+        if r.get('role') not in roles:
+            ck.err('UNKNOWN_REF', rw, '必要な役割にない承認です: %r' % (r.get('role'),))
+        tg = r.get('target') or {}
+        if tg.get('business_id') != ck.biz:
+            ck.err('CROSS_BIZ', rw, '他事業（%s）向けの承認が混ざっています' % tg.get('business_id'))
+        if tg.get('campaign_id') != c.get('campaign_id'):
+            ck.err('UNKNOWN_REF', rw, '別の施策への承認です: %r' % (tg.get('campaign_id'),))
+        _ref(ck, reg, owners, 'creative', tg.get('creative'), rw + '/creative')
+        _ref(ck, reg, owners, 'lp', tg.get('lp'), rw + '/lp')
+        if r.get('at') is not None:
+            d = ck.dt(r.get('at'), rw + '/at')
+            if d and d > now:
+                ck.err('DATE_ORDER', rw, '承認日時が現在より未来です')
+
+    res = ck.need(c, 'results', w) or {}
+    pids = [p.get('id') for p in res.get('periods') or []]
+    for d in _dups(pids):
+        ck.err('DUP_ID', w + '/results', '集計期間IDが重複しています: %s' % d)
+    for p in res.get('periods') or []:
+        pw = w + '/results/%s' % p.get('id')
+        mk = stage_keys.get((p.get('metric_def') or {}).get('id'), [])
+        _ref(ck, reg, owners, 'metric_def', p.get('metric_def'), pw + '/metric_def')
+        if not p.get('population'):
+            ck.err('MISSING', pw, '母集団（分母の範囲）がありません')
+        ps = ck.date(p.get('start'), pw + '/start')
+        pe = ck.date(p.get('end'), pw + '/end')
+        if ps and pe and ps > pe:
+            ck.err('DATE_ORDER', pw, '期間の開始日が終了日より後です')
+        occ = p.get('occurred') or {}
+        of = ck.date(occ.get('from'), pw + '/occurred/from')
+        ot = ck.date(occ.get('to'), pw + '/occurred/to')
+        if of and ot and of > ot:
+            ck.err('DATE_ORDER', pw + '/occurred', '発生期間の開始が終了より後です')
+        if ps and pe and of and ot and (of < ps or ot > pe):
+            ck.err('DATE_ORDER', pw + '/occurred', '発生期間が集計期間の外にはみ出しています')
+        su = ck.dt(p.get('source_updated_at'), pw + '/source_updated_at')
+        fa = ck.dt(p.get('fetched_at'), pw + '/fetched_at')
+        if su and fa and su > fa:
+            ck.err('DATE_ORDER', pw, '元データの更新日時が取得日時より後です（取得後に元が変わっています）')
+        if fa and fa > now:
+            ck.err('DATE_ORDER', pw, '取得日時が現在より未来です')
+        if pe and fa and fa.date() < pe:
+            ck.err('DATE_ORDER', pw, '期間の終了前に取得した値です（期間が締まっていません）')
+        cnt = p.get('counts') or {}
+        for k in ['impressions', 'clicks'] + mk:
+            if k not in cnt:
+                ck.err('MISSING', pw + '/counts', '%s の欄がありません（未取得なら null）' % k)
+        for k, v in cnt.items():
+            if k not in ['impressions', 'clicks'] + mk:
+                ck.err('UNKNOWN_REF', pw + '/counts/%s' % k, '指標定義にない段階です')
+            ck.count(v, pw + '/counts/%s' % k)
+        ck.money(p.get('spend_yen'), pw + '/spend_yen')
+    for cmp_ in res.get('comparisons') or []:
+        for side in ('a', 'b'):
+            if cmp_.get(side) not in pids:
+                ck.err('UNKNOWN_REF', w + '/results/comparisons', '不明な集計期間です: %r' % (cmp_.get(side),))
+
+
+RESERVED_HOSTS = ('example.invalid', 'example.com', 'example.org', 'example.net')
+
+
+def _is_demo_url(url):
+    if not isinstance(url, str):
+        return False
+    for scheme in ('https://', 'http://'):
+        if url.startswith(scheme):
+            host = url[len(scheme):].split('/', 1)[0].split('?', 1)[0].lower()
+            return host in RESERVED_HOSTS or host.endswith('.invalid') or host.endswith('.test')
+    return False
+
+
+def validate_all(loaded, now):
+    """loaded: load_dir の戻り値。{ファイル名: Checker} と 事業のリストを返す"""
+    good = [(n, b) for n, b in loaded if isinstance(b, dict)]
+    owners = _owner_map([b for _, b in good])
+    seen, out = set(), []
+    for name, b in loaded:
+        if isinstance(b, FixtureError):
+            ck = Checker('(%s)' % name)
+            ck.err('SCHEMA', name, 'JSONとして読めません: %s' % b)
+            out.append((name, None, ck))
+            continue
+        ck = validate_business(b, owners, now, seen)
+        if isinstance(b, dict) and isinstance(b.get('business_id'), str):
+            seen.add(b['business_id'])
+        out.append((name, b, ck))
+    return out
+
+
+# ---------------------------------------------------------------- 評価
+
+def _latest(recs):
+    """同じ役割に複数の記録があれば、日時の新しいものを採る（日時なしは最も古い扱い）"""
+    if not recs:
+        return None
+    floor = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
+    return sorted(recs, key=lambda r: _parse_dt(r.get('at')) or floor)[-1]
+
+
+def _same(ref, cur_version):
+    return isinstance(ref, dict) and cur_version is not None and ref.get('version') == cur_version
+
+
+def review_status(biz, c, today):
+    """施策1件のレビュー状態。戻り値 (state, [理由])。state は レビュー未完了 / 条件充足（デモ）"""
+    reasons = []
+    reg = _ids(biz)
+    sel = c['selected_creative']
+    cr_ver = reg['creative'].get(sel['id'])
+    if sel.get('version') != cr_ver:
+        reasons.append('選んだCR %s の版 %s は現行版 %s ではありません' % (sel['id'], sel.get('version'), cr_ver))
+    lc = c['lp_change']
+    lp_target = lc.get('proposed_version')
+    cr = next(x for x in c['creatives']['items'] if x['id'] == sel['id'])
+    a = cr.get('asset') or {}
+    exp = _parse_date(a.get('expires'))
+    if not a.get('rights_checked'):
+        reasons.append('選んだCRの素材の権利確認が未了です')
+    if exp is None:
+        reasons.append('選んだCRの素材の使用期限が未確認です')
+    elif exp < today:
+        reasons.append('選んだCRの素材の使用期限が切れています（%s）' % exp.isoformat())
+    if not _same(lc.get('creative_ref'), cr_ver):
+        reasons.append('LP変更票が古いCR版を前提にしています')
+
+    # QA
+    qa = c['qa']
+    t = qa['target']
+    flow_ver = reg['flow'].get(c['flow_ref']['id'])
+    stale = []
+    if not _same(t.get('creative'), cr_ver):
+        stale.append('CR')
+    if (t.get('lp') or {}).get('version') != lp_target:
+        stale.append('LP')
+    if not _same(t.get('flow'), flow_ver):
+        stale.append('導線')
+    if stale:
+        reasons.append('QAの対象版が現行と違います（%s）' % '・'.join(stale))
+    st = [i['status'] for i in qa['items']]
+    if '失敗' in st:
+        reasons.append('QAに失敗した項目があります（%d件）' % st.count('失敗'))
+    if '未検証' in st:
+        reasons.append('QAが未実施です（未検証 %d / %d件）' % (st.count('未検証'), len(st)))
+    noev = [i['key'] for i in qa['items'] if i['status'] != '未検証' and not (i.get('evidence') and i.get('checked_at'))]
+    if noev:
+        reasons.append('QAの証跡が不足しています（%s）' % '・'.join(noev))
+
+    # 承認：役割ごとに別判定
+    for role in c['approvals']['required']:
+        recs = [r for r in c['approvals']['records'] if r['role'] == role['role']]
+        reasons += approval_problems(role, _latest(recs), cr_ver, lp_target, sel['id'])
+    return ('レビュー未完了' if reasons else '条件充足（デモ）'), reasons
+
+
+def approval_verdict(role, rec, cr_ver, lp_ver, cr_id):
+    """1役割の判定。戻り値 (表示ラベル, 問題文のリスト)"""
+    lab = role.get('label') or role['role']
+    if rec is None or rec.get('status') == '未了':
+        return '未了', ['%sの承認が未了です' % lab]
+    if rec.get('status') == 'NG':
+        return 'NG', ['%sがNGです' % lab]
+    probs = []
+    tg = rec.get('target') or {}
+    if (tg.get('creative') or {}).get('id') != cr_id or (tg.get('creative') or {}).get('version') != cr_ver:
+        probs.append('%sのOKは古いCR版（%s %s）に対するものです' % (
+            lab, (tg.get('creative') or {}).get('id'), (tg.get('creative') or {}).get('version')))
+    if (tg.get('lp') or {}).get('version') != lp_ver:
+        probs.append('%sのOKは古いLP版（%s）に対するものです' % (lab, (tg.get('lp') or {}).get('version')))
+    if not (rec.get('evidence') and rec.get('at') and rec.get('scope')):
+        probs.append('%sのOKに証跡・日時・範囲のいずれかがありません' % lab)
+    if probs:
+        return 'OK（無効）', probs
+    return 'OK', []
+
+
+def approval_problems(role, rec, cr_ver, lp_ver, cr_id):
+    return approval_verdict(role, rec, cr_ver, lp_ver, cr_id)[1]
+
+
+# ---------------------------------------------------------------- 指標
+
+def _rate(num, den):
+    """率。戻り値 (値 | None, 理由)。None は判定不可。0 と未取得を混ぜない"""
+    if num is None or den is None:
+        return None, '%sが未取得' % ('分子' if num is None else '分母')
+    if den == 0:
+        return None, '分母がゼロ'
+    return decimal.Decimal(num) / decimal.Decimal(den), ''
+
+
+def _fmt_pct(v):
+    q = (v * 100).quantize(decimal.Decimal('0.01'), rounding=decimal.ROUND_HALF_UP)
+    return '%s%%' % q
+
+
+def _fmt_yen(v):
+    q = decimal.Decimal(v).quantize(decimal.Decimal('1'), rounding=decimal.ROUND_HALF_UP)
+    return '¥{:,}'.format(int(q))
+
+
+def _fmt_count(v):
+    return NOT_FETCHED if v is None else '{:,}'.format(v)
+
+
+def metrics(biz, period):
+    """CTR / CVR / CPA と段階間の率。各行 {name, formula, num, den, value, text, why}"""
+    md = next(m for m in biz['metric_definitions'] if m['id'] == period['metric_def']['id'])
+    labels = {s['key']: s['label'] for s in md['stages']}
+    cnt = period['counts']
+    cv = md['primary_cv_stage']
+    rows = []
+
+    def add(name, formula, nk, dk, num, den, money=False):
+        if money:
+            if num is None or den is None:
+                v, why = None, '%sが未取得' % ('費用' if num is None else '分母')
+            elif den == 0:
+                v, why = None, '分母がゼロ'
+            else:
+                v, why = decimal.Decimal(str(num)) / decimal.Decimal(den), ''
+        else:
+            v, why = _rate(num, den)
+        text = UNDECIDABLE if v is None else (_fmt_yen(v) if money else _fmt_pct(v))
+        rows.append({'name': name, 'formula': formula, 'num_label': nk, 'den_label': dk,
+                     'num': num, 'den': den, 'value': v, 'text': text, 'why': why, 'money': money})
+
+    add('CTR', 'クリック ÷ 表示', 'クリック', '表示', cnt.get('clicks'), cnt.get('impressions'))
+    add('CVR', '%s ÷ クリック' % labels[cv], labels[cv], 'クリック', cnt.get(cv), cnt.get('clicks'))
+    add('CPA', '費用 ÷ %s' % labels[cv], '費用', labels[cv], period.get('spend_yen'), cnt.get(cv), money=True)
+    st = [s['key'] for s in md['stages']]
+    for a, b in zip(st, st[1:]):
+        add('%s→%s' % (labels[a], labels[b]), '%s ÷ %s' % (labels[b], labels[a]),
+            labels[b], labels[a], cnt.get(b), cnt.get(a))
+    return rows
+
+
+def quality_flags(biz, period):
+    """値の並びのおかしさ。止めはしないが、画面で必ず見せる"""
+    md = next(m for m in biz['metric_definitions'] if m['id'] == period['metric_def']['id'])
+    cnt = period['counts']
+    out = []
+    seq = [('impressions', '表示'), ('clicks', 'クリック')] + [(s['key'], s['label']) for s in md['stages']]
+    for (a, al), (b, bl) in zip(seq, seq[1:]):
+        if a == 'clicks' and b == md['stages'][0]['key']:
+            continue  # クリック以外の流入（自然流入など）が混ざりうるので比べない
+        va, vb = cnt.get(a), cnt.get(b)
+        if va is not None and vb is not None and vb > va:
+            out.append('%s（%d）が手前の%s（%d）より多い。計測の重複か定義の違いを確認' % (bl, vb, al, va))
+    for k, lab in seq:
+        if cnt.get(k) is None:
+            out.append('%s が未取得（ゼロではありません）' % lab)
+    if period.get('spend_yen') is None:
+        out.append('費用が未取得（ゼロではありません）')
+    return out
+
+
+def compare(biz, res, cmp_):
+    pa = next(p for p in res['periods'] if p['id'] == cmp_['a'])
+    pb = next(p for p in res['periods'] if p['id'] == cmp_['b'])
+    out = {'a': pa, 'b': pb, 'blocked': [], 'notes': [], 'rows': []}
+    if pa['population'] != pb['population']:
+        out['blocked'].append('母集団が違うため比較しません（%s ／ %s）' % (pa['population'], pb['population']))
+    if pa['metric_def'] != pb['metric_def']:
+        out['blocked'].append('指標定義の版が違うため比較しません（%s %s ／ %s %s）' % (
+            pa['metric_def']['id'], pa['metric_def']['version'], pb['metric_def']['id'], pb['metric_def']['version']))
+    if out['blocked']:
+        return out
+    la = (_parse_date(pa['end']) - _parse_date(pa['start'])).days + 1
+    lb = (_parse_date(pb['end']) - _parse_date(pb['start'])).days + 1
+    if la != lb:
+        out['notes'].append('期間の長さが違います（%d日 ／ %d日）。件数は比べず、率だけ並べます' % (la, lb))
+    ma, mb = metrics(biz, pa), metrics(biz, pb)
+    for ra, rb in zip(ma, mb):
+        if ra['value'] is None or rb['value'] is None:
+            d = UNDECIDABLE
+        elif ra['money']:
+            d = ('+' if rb['value'] >= ra['value'] else '-') + _fmt_yen(abs(rb['value'] - ra['value']))
+        else:
+            pt = ((rb['value'] - ra['value']) * 100).quantize(decimal.Decimal('0.01'), rounding=decimal.ROUND_HALF_UP)
+            d = ('%+.2fpt' % pt)
+        out['rows'].append({'name': ra['name'], 'a': ra['text'], 'b': rb['text'], 'diff': d})
+    out['notes'].append('差は観測値です。施策が原因かどうかは検証していません')
+    return out
+
+
+# ---------------------------------------------------------------- 描画
+
+def e(v):
+    return html.escape('' if v is None else str(v), quote=True)
+
+
+def u(v):
+    """未確認を明示する表示。空文字・null は「未確認」"""
+    return '<span class="unk">%s</span>' % UNKNOWN if v in (None, '') else e(v)
+
+
+def _yen_or_unknown(v):
+    return '<span class="unk">%s</span>' % UNKNOWN if v is None else e(_fmt_yen(v))
+
+
+def _badge(state):
+    cls = {'検証停止': 'stop', 'レビュー未完了': 'wait', '条件充足（デモ）': 'ok'}.get(state, 'wait')
+    return '<span class="badge %s">%s</span>' % (cls, e(state))
+
+
+def _ver(ref):
+    return '%s %s' % (e((ref or {}).get('id')), e((ref or {}).get('version')))
+
+
+def render_business(name, biz, ck, today, now):
+    bid = (biz or {}).get('business_id') or name
+    h = []
+    title = (biz or {}).get('business_name') or bid
+    h.append('<section class="biz" id="biz-%s" data-biz="%s">' % (e(bid), e(bid)))
+    h.append('<h2>%s <small>business_id: %s</small></h2>' % (e(title), e(bid)))
+    if ck.errors:
+        h.append('<div class="panel stopbox">%s<p>この事業のデータに矛盾があるため、'
+                 'レビュー・集計を表示せず検証を止めています。fixture を直して作り直してください。</p><ul>'
+                 % _badge('検証停止'))
+        for x in ck.errors:
+            h.append('<li><code>%s</code> %s <span class="where">%s</span></li>' % (e(x['code']), e(x['msg']), e(x['where'])))
+        h.append('</ul></div></section>')
+        return ''.join(h)
+
+    for c in biz['campaigns']:
+        h.append(_render_campaign(biz, c, today))
+    h.append(_render_checklist(biz))
+    h.append('</section>')
+    return ''.join(h)
+
+
+def _step(n, title, body, open_=False):
+    return ('<details class="step"%s><summary><span class="sn">%d</span>%s</summary>'
+            '<div class="sb">%s</div></details>') % (' open' if open_ else '', n, e(title), body)
+
+
+def _render_campaign(biz, c, today):
+    state, reasons = review_status(biz, c, today)
+    reg = _ids(biz)
+    h = ['<article class="camp">']
+    h.append('<h3>%s <small>campaign_id: %s</small></h3>' % (e(c.get('title')), e(c['campaign_id'])))
+    h.append('<div class="statusline">%s<span class="note">公開・配信・承認を実行する操作はこの画面にありません</span></div>'
+             % _badge(state))
+    if reasons:
+        h.append('<ul class="reasons">%s</ul>' % ''.join('<li>%s</li>' % e(r) for r in reasons))
+    links = '依頼 → CR比較 → LP差分 → 計測QA → 承認レビュー → 結果・次の仮説'
+    h.append('<p class="flowline">%s</p>' % e(links))
+
+    # 1 依頼
+    r = c['request']
+    cv = r.get('primary_cv') or {}
+    md = next(m for m in biz['metric_definitions'] if m['id'] == c['metric_def_ref']['id'])
+    cap = r.get('budget_cap') or {}
+    per = r.get('period') or {}
+    b = ['<dl class="kv">']
+    for k, v in [('商品', u(r.get('product'))), ('顧客像（個人情報なし）', u(r.get('persona'))),
+                 ('目的', u(r.get('objective'))),
+                 ('主要CV', '%s<br><small>定義: %s</small>' % (u(cv.get('label')), u(cv.get('definition')))),
+                 ('期間', '%s 〜 %s' % (u(per.get('start')), u(per.get('end')))),
+                 ('仮説', u(r.get('hypothesis'))),
+                 ('媒体費の見積上限', _yen_or_unknown(cap.get('media_yen'))),
+                 ('制作費の見積上限', _yen_or_unknown(cap.get('production_yen')))]:
+        b.append('<dt>%s</dt><dd>%s</dd>' % (e(k), v))
+    b.append('</dl><p class="warn">見積上限は検討用のメモです。保存しても支出の許可にはなりません。</p>')
+    b.append('<p class="small">指標定義 %s %s（%s）: %s</p>' % (
+        e(md['id']), e(md['version']), e(md.get('status')),
+        ' → '.join('%s<small>（%s）</small>' % (e(s['label']), e(s.get('definition'))) for s in md['stages'])))
+    h.append(_step(1, '依頼', ''.join(b), open_=True))
+
+    # 2 CR 比較
+    crs = c['creatives']
+    sel = c['selected_creative']
+    b = ['<p class="warn">コピーと素材はすべてデモ用の仮案です。有料の画像生成・実顧客の素材は使っていません。</p>',
+         '<div class="tblwrap"><table class="grid"><thead><tr><th>訴求＼トンマナ</th>']
+    b += ['<th>%s</th>' % e(t['label']) for t in crs['tone_axes']]
+    b.append('</tr></thead><tbody>')
+    for a in crs['appeal_axes']:
+        b.append('<tr><th>%s</th>' % e(a['label']))
+        for t in crs['tone_axes']:
+            x = next(i for i in crs['items'] if i['appeal'] == a['key'] and i['tone'] == t['key'])
+            asset = x.get('asset') or {}
+            exp = _parse_date(asset.get('expires'))
+            tags = []
+            if x['id'] == sel['id']:
+                tags.append('<span class="tag sel">選定</span>')
+            if exp is not None and exp < today:
+                tags.append('<span class="tag bad">素材期限切れ</span>')
+            if not asset.get('rights_checked'):
+                tags.append('<span class="tag">権利未確認</span>')
+            b.append('<td><div class="cr"><div class="crid">%s %s %s</div><div class="copy">「%s」</div>'
+                     '<div class="small">仮説: %s</div><div class="small">CTA: %s</div>'
+                     '<div class="small">素材: %s／権利: %s／期限: %s</div></div></td>' % (
+                         e(x['id']), e(x['version']), ''.join(tags), e(x.get('copy')), u(x.get('hypothesis')),
+                         u(x.get('cta')), u(asset.get('source')), u(asset.get('rights')), u(asset.get('expires'))))
+        b.append('</tr>')
+    b.append('</tbody></table></div>')
+    h.append(_step(2, 'CR比較（訴求3軸 × トンマナ3軸 = 9提案）', ''.join(b)))
+
+    # 3 LP 差分
+    lc = c['lp_change']
+    b = ['<dl class="kv">']
+    for k, v in [('LP', '%s（%s）' % (e(lc['lp_id']), e(lc.get('url')))),
+                 ('現行版 → 提案版', '%s → %s' % (u(lc.get('current_version')), u(lc.get('proposed_version')))),
+                 ('前提のCR', _ver(lc.get('creative_ref'))),
+                 ('期待する行動', u(lc.get('expected_action'))),
+                 ('CRとの整合（訴求）', u((lc.get('alignment') or {}).get('appeal'))),
+                 ('CRとの整合（価格）', u((lc.get('alignment') or {}).get('price'))),
+                 ('CRとの整合（CTA）', u((lc.get('alignment') or {}).get('cta'))),
+                 ('計測への影響', u(lc.get('measurement_impact'))),
+                 ('確認者（役割）', u(lc.get('reviewer'))),
+                 ('戻す版', u(lc.get('rollback_version')))]:
+        b.append('<dt>%s</dt><dd>%s</dd>' % (e(k), v))
+    b.append('</dl><div class="tblwrap"><table><thead><tr><th>変更箇所</th><th>現行</th><th>提案</th></tr></thead><tbody>')
+    for ch in lc.get('changes') or []:
+        b.append('<tr><td>%s</td><td>%s</td><td>%s</td></tr>' % (e(ch.get('where')), u(ch.get('before')), u(ch.get('after'))))
+    b.append('</tbody></table></div><p class="small">URLは予約ドメインのデモです。実際のページはありません。</p>')
+    h.append(_step(3, 'LP変更票', ''.join(b)))
+
+    # 4 計測 QA
+    qa = c['qa']
+    t = qa['target']
+    flow = next(f for f in biz['flows'] if f['id'] == c['flow_ref']['id'])
+    b = ['<p>対象: CR %s ／ LP %s ／ 導線 %s ／ フォーム %s</p>' % (
+        _ver(t.get('creative')), _ver(t.get('lp')), _ver(t.get('flow')), u(t.get('form_id'))),
+        '<p class="small">イベント定義（導線 %s %s）: %s</p>' % (e(flow['id']), e(flow['version']), '、'.join(
+            '%s（%s・%s）' % (e(ev['name']), e(ev.get('stage')), e(ev.get('rule'))) for ev in flow.get('events') or [])),
+        '<p class="warn">「計画」は確認のやり方、「実施証跡」は実際に確認した記録です。'
+        'この試作品ではフォーム送信もイベント確認も行っていないため、初期状態はすべて未検証です。</p>',
+        '<div class="tblwrap"><table><thead><tr><th>項目</th><th>状態</th><th>計画</th><th>実施証跡</th></tr></thead><tbody>']
+    labels = dict(QA_KEYS)
+    for i in qa['items']:
+        cls = {'未検証': 'wait', '合格': 'ok', '失敗': 'stop'}[i['status']]
+        ev = i.get('evidence')
+        evs = ('%s（%s・%s）' % (e(ev), e(i.get('checked_at')), u(i.get('checker')))) if ev else '<span class="unk">なし</span>'
+        b.append('<tr><td>%s</td><td><span class="badge %s">%s</span></td><td>%s</td><td>%s</td></tr>' % (
+            e(labels.get(i['key'], i['key'])), cls, e(i['status']), u(i.get('plan')), evs))
+    b.append('</tbody></table></div>')
+    h.append(_step(4, '計測QA', ''.join(b)))
+
+    # 5 承認レビュー
+    cr_ver = reg['creative'].get(sel['id'])
+    lp_ver = lc.get('proposed_version')
+    b = ['<p>現行の対象版: CR %s %s ／ LP %s %s</p>' % (e(sel['id']), e(cr_ver), e(lc['lp_id']), e(lp_ver)),
+         '<p class="small">代理店とクライアントは別々に判定します。片方のOKで全体OKにはしません。</p>',
+         '<div class="tblwrap"><table><thead><tr><th>役割</th><th>判定</th><th>対象（事業/施策/CR/LP）</th>'
+         '<th>日時</th><th>範囲</th><th>証跡</th></tr></thead><tbody>']
+    for role in c['approvals']['required']:
+        recs = [x for x in c['approvals']['records'] if x['role'] == role['role']]
+        rec = _latest(recs)
+        lab, probs = approval_verdict(role, rec, cr_ver, lp_ver, sel['id'])
+        cls = 'ok' if lab == 'OK' else ('stop' if lab == 'NG' else 'wait')
+        if rec:
+            tg = rec.get('target') or {}
+            tgt = '%s / %s / %s / %s' % (e(tg.get('business_id')), e(tg.get('campaign_id')),
+                                         _ver(tg.get('creative')), _ver(tg.get('lp')))
+            b.append('<tr><td>%s</td><td><span class="badge %s">%s</span>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+                e(role.get('label')), cls, e(lab), ''.join('<div class="small">%s</div>' % e(p) for p in probs),
+                tgt, u(rec.get('at')), u(rec.get('scope')), u(rec.get('evidence'))))
+        else:
+            b.append('<tr><td>%s</td><td><span class="badge wait">未了</span></td><td colspan="4">記録なし</td></tr>'
+                     % e(role.get('label')))
+    b.append('</tbody></table></div><p class="small">ここに出ている承認はすべてデモの記録です。</p>')
+    h.append(_step(5, '承認レビュー', ''.join(b)))
+
+    # 6 結果
+    res = c['results']
+    b = ['<p class="warn">以下はすべて架空の集計値です。実績のライブ取得はしていません。</p>']
+    for p in res['periods']:
+        b.append('<div class="period"><h4>%s <small>%s</small></h4>' % (e(p.get('label')), e(p['id'])))
+        b.append('<p class="small">期間 %s〜%s ／ 母集団 %s ／ 定義 %s ／ 発生 %s〜%s ／ 元更新 %s ／ 取得 %s</p>' % (
+            e(p['start']), e(p['end']), e(p['population']), _ver(p['metric_def']),
+            e(p['occurred']['from']), e(p['occurred']['to']), e(p['source_updated_at']), e(p['fetched_at'])))
+        md_ = next(m for m in biz['metric_definitions'] if m['id'] == p['metric_def']['id'])
+        cnt = p['counts']
+        b.append('<p class="small">件数: 表示 %s ／ クリック %s ／ %s ／ 費用 %s</p>' % (
+            e(_fmt_count(cnt.get('impressions'))), e(_fmt_count(cnt.get('clicks'))),
+            ' ／ '.join('%s %s' % (e(s['label']), e(_fmt_count(cnt.get(s['key'])))) for s in md_['stages']),
+            e(NOT_FETCHED if p.get('spend_yen') is None else _fmt_yen(p['spend_yen']))))
+        b.append('<div class="tblwrap"><table><thead><tr><th>指標</th><th>値</th><th>算式</th><th>分子 / 分母</th></tr></thead><tbody>')
+        for m in metrics(biz, p):
+            nd = '%s %s / %s %s' % (e(m['num_label']), e(_fmt_count(m['num']) if not m['money'] or m['num'] is None
+                                                        else _fmt_yen(m['num'])),
+                                    e(m['den_label']), e(_fmt_count(m['den'])))
+            val = e(m['text']) + ('<div class="small">%s</div>' % e(m['why']) if m['why'] else '')
+            b.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (e(m['name']), val, e(m['formula']), nd))
+        b.append('</tbody></table></div>')
+        fl = quality_flags(biz, p)
+        if fl:
+            b.append('<ul class="dq">%s</ul>' % ''.join('<li>%s</li>' % e(x) for x in fl))
+        b.append('</div>')
+    for cm in res.get('comparisons') or []:
+        r_ = compare(biz, res, cm)
+        b.append('<div class="period"><h4>比較 %s → %s</h4>' % (e(cm['a']), e(cm['b'])))
+        if r_['blocked']:
+            b.append('<ul class="dq">%s</ul>' % ''.join('<li>%s</li>' % e(x) for x in r_['blocked']))
+        else:
+            b.append('<div class="tblwrap"><table><thead><tr><th>指標</th><th>%s</th><th>%s</th><th>差</th></tr></thead><tbody>'
+                     % (e(cm['a']), e(cm['b'])))
+            for rw in r_['rows']:
+                b.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
+                    e(rw['name']), e(rw['a']), e(rw['b']), e(rw['diff'])))
+            b.append('</tbody></table></div>')
+        b.append('<p class="small">%s</p></div>' % '<br>'.join(e(x) for x in r_['notes']))
+    if res.get('data_quality'):
+        b.append('<h4>データ品質の問題</h4><ul class="dq">%s</ul>' % ''.join('<li>%s</li>' % e(x) for x in res['data_quality']))
+    if res.get('next_hypotheses'):
+        b.append('<h4>次の仮説（検証前）</h4><ul>%s</ul>' % ''.join('<li>%s</li>' % e(x) for x in res['next_hypotheses']))
+    h.append(_step(6, '実験結果・次の仮説', ''.join(b)))
+    h.append('</article>')
+    return ''.join(h)
+
+
+def _render_checklist(biz):
+    h = ['<div class="panel"><h3>本番に進む前に足りないもの</h3><ul class="check">']
+    for x in biz.get('checklist') or []:
+        h.append('<li><span class="cb" aria-hidden="true">□</span><b>%s</b> <span class="tag">%s</span>'
+                 '<div class="small">%s</div></li>' % (e(x.get('item')), e(x.get('state')), u(x.get('note'))))
+    h.append('</ul></div>')
+    return ''.join(h)
+
+
+CSS = """
+:root{--bg:#F7F5F0;--fg:#22201C;--mut:#6B665C;--card:#FFFFFF;--line:#E2DDD2;--acc:#2F6F9F;
+--ok:#2E7D4F;--okb:#E3F3E8;--wait:#9A6400;--waitb:#FFF2D6;--stop:#B3261E;--stopb:#FDE5E2;--demo:#5A3E9B;--demob:#EFE8FB}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181B;--fg:#ECE9E2;--mut:#A39E93;
+--card:#212328;--line:#34373E;--acc:#7DB6E0;--ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;
+--stop:#FF9A90;--stopb:#3D1F1C;--demo:#C7B2F5;--demob:#2B2340}}
+:root[data-theme="dark"]{--bg:#17181B;--fg:#ECE9E2;--mut:#A39E93;--card:#212328;--line:#34373E;--acc:#7DB6E0;
+--ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;--stop:#FF9A90;--stopb:#3D1F1C;--demo:#C7B2F5;--demob:#2B2340}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
+.demo{position:sticky;top:0;z-index:5;background:var(--demob);color:var(--demo);border-bottom:2px solid var(--demo);
+padding:8px 16px;font-weight:700;font-size:13px}
+header,main{max-width:1080px;margin:0 auto;padding:0 16px}
+h1{font-size:20px;margin:16px 0 4px}h2{font-size:18px;margin:20px 0 8px}h3{font-size:16px;margin:12px 0 6px}
+h4{font-size:14px;margin:12px 0 4px}small,.small{color:var(--mut);font-size:12px}
+nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
+nav.tabs a{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);
+text-decoration:none;font-size:14px}
+nav.tabs a[aria-current="true"]{border-color:var(--acc);color:var(--acc);font-weight:700}
+.js .biz{display:none}.js .biz.on{display:block}
+.camp,.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
+.statusline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.badge{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.badge.ok{background:var(--okb);color:var(--ok)}.badge.wait{background:var(--waitb);color:var(--wait)}
+.badge.stop{background:var(--stopb);color:var(--stop)}
+.note{font-size:12px;color:var(--mut)}.reasons{margin:6px 0;padding-left:20px;font-size:13px}
+.flowline{font-size:12px;color:var(--mut);margin:6px 0}
+.step{border-top:1px solid var(--line)}.step summary{cursor:pointer;padding:10px 0;font-weight:700;list-style:none}
+.step summary::-webkit-details-marker{display:none}
+.sn{display:inline-block;width:22px;height:22px;border-radius:50%;background:var(--acc);color:var(--card);
+text-align:center;line-height:22px;font-size:12px;margin-right:8px}
+.kv{display:grid;grid-template-columns:minmax(110px,200px) 1fr;gap:4px 12px;margin:0}
+.kv dt{color:var(--mut);font-size:13px}.kv dd{margin:0}
+@media (max-width:560px){.kv{grid-template-columns:1fr}.kv dd{margin-bottom:6px}}
+.warn{background:var(--waitb);color:var(--fg);border-left:4px solid var(--wait);padding:6px 10px;font-size:13px;border-radius:6px}
+.unk{color:var(--wait);font-weight:700}
+.tblwrap{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border:1px solid var(--line);padding:6px 8px;vertical-align:top;text-align:left}
+.tblwrap table{min-width:600px}table.grid{min-width:720px}
+td:first-child,th:first-child{white-space:nowrap}
+@media (max-width:560px){.demo{font-size:12px;padding:6px 16px}}.cr .copy{margin:2px 0}.crid{font-family:ui-monospace,monospace;font-size:12px}
+.tag{display:inline-block;font-size:11px;padding:0 6px;border-radius:4px;border:1px solid var(--line);margin-left:4px}
+.tag.sel{border-color:var(--acc);color:var(--acc)}.tag.bad{border-color:var(--stop);color:var(--stop)}
+.dq{font-size:13px;color:var(--wait)}.stopbox{border-color:var(--stop)}.where{font-size:11px;color:var(--mut)}
+.check{list-style:none;padding:0}.check li{margin:6px 0}.cb{margin-right:6px}
+.period{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
+code{font-size:12px}
+footer{max-width:1080px;margin:24px auto;padding:0 16px 32px;color:var(--mut);font-size:12px}
+"""
+
+JS = """
+document.documentElement.classList.add('js');
+(function(){
+ var secs=[].slice.call(document.querySelectorAll('section.biz'));
+ var tabs=[].slice.call(document.querySelectorAll('nav.tabs a'));
+ function show(id){
+  if(!secs.some(function(s){return s.id===id;})) id=secs.length?secs[0].id:'';
+  secs.forEach(function(s){s.classList.toggle('on',s.id===id);});
+  tabs.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'true':'false');});
+ }
+ tabs.forEach(function(a){a.addEventListener('click',function(ev){ev.preventDefault();
+  var id=a.getAttribute('href').slice(1);
+  try{history.replaceState(null,'','#'+id);}catch(e){}
+  show(id);});});
+ addEventListener('hashchange',function(){show(location.hash.slice(1));});
+ show(location.hash.slice(1));
+})();
+"""
+
+
+def render(results, today, now, source_label):
+    secs, tabs = [], []
+    for name, biz, ck in results:
+        bid = (biz or {}).get('business_id') or name
+        label = (biz or {}).get('business_name') or bid
+        mark = ' ⚠' if ck.errors else ''
+        tabs.append('<a href="#biz-%s">%s%s</a>' % (e(bid), e(label), e(mark)))
+        secs.append(render_business(name, biz, ck, today, now))
+    return ''.join([
+        '<!doctype html><html lang="ja"><head><meta charset="utf-8">',
+        '<meta name="viewport" content="width=device-width,initial-scale=1">',
+        '<title>マーケ施策レビュー試作</title><style>', CSS, '</style></head><body>',
+        '<div class="demo" role="note">試作品・架空データです。広告・LP・フォーム・計測・Sheetsには接続していません。'
+        '表示される承認・数値は本物ではありません。</div>',
+        '<header><h1>3事業マーケ施策レビュー（試作品）</h1>',
+        '<p class="small">基準時刻 %s ／ 判定日 %s ／ データ: %s ／ 読取り専用</p>' % (
+            e(now.isoformat()), e(today.isoformat()), e(source_label)),
+        '<nav class="tabs" aria-label="事業">', ''.join(tabs), '</nav></header><main>',
+        ''.join(secs),
+        '</main><footer>この画面は試作品です。公開・配信・停止・増額・承認の実行はできません。'
+        '数値の差は観測値であり、因果は検証していません。</footer>',
+        '<script>', JS, '</script></body></html>'])
+
+
+def resolve_clock(now_s=None, today_s=None):
+    """OFFICE_NOW（ISO・時差付き）と OFFICE_TODAY（YYYY-MM-DD か build-office.py と同じ MM-DD）を解く"""
+    if now_s:
+        now = datetime.datetime.fromisoformat(now_s)
+        if now.tzinfo is None:
+            raise ValueError('OFFICE_NOW には時差を付けてください: %s' % now_s)
+    else:
+        now = datetime.datetime.now().astimezone().replace(microsecond=0)
+    if today_s:
+        today = (datetime.date.fromisoformat(today_s) if len(today_s) == 10
+                 else datetime.date.fromisoformat('%04d-%s' % (now.year, today_s)))
+    else:
+        today = now.date()
+    return now, today
+
+
+def build(fixture_dir, now, today, source_label=None):
+    results = validate_all(load_dir(fixture_dir), now)
+    if not results:
+        raise FixtureError('fixture がありません: %s' % fixture_dir)
+    return render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir))), results
