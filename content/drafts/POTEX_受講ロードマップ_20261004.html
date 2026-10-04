@@ -1,0 +1,271 @@
+<title>POTEX 受講ロードマップ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 単一カラムの社内メモ。表は横スクロール枠、状態はピルで示す */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --fg:#1d2422; --muted:#5b6662; --line:#d9dfdb;
+  --accent:#1f6b5c; --accent-soft:#e3efeb;
+  --ok:#2f7a3e; --ok-bg:#e4f2e6; --warn:#9a6a00; --warn-bg:#fbf1d6; --bad:#a83a2c; --bad-bg:#f8e3df; --unk:#5b6662; --unk-bg:#eceeed;
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a201e; --fg:#e4e9e6; --muted:#9aa6a1; --line:#2c3532;
+  --accent:#6cc4ae; --accent-soft:#1f302b;
+  --ok:#7ccf8b; --ok-bg:#1c2e20; --warn:#e3b84f; --warn-bg:#33290f; --bad:#f08a7a; --bad-bg:#3a1f1a; --unk:#a5b0ab; --unk-bg:#252c29;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a201e; --fg:#e4e9e6; --muted:#9aa6a1; --line:#2c3532;
+  --accent:#6cc4ae; --accent-soft:#1f302b;
+  --ok:#7ccf8b; --ok-bg:#1c2e20; --warn:#e3b84f; --warn-bg:#33290f; --bad:#f08a7a; --bad-bg:#3a1f1a; --unk:#a5b0ab; --unk-bg:#252c29;
+  color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.75;padding-inline:16px;padding-block:32px 64px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:44px}
+header{display:grid;gap:10px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,5vw,36px);line-height:1.3;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:22px;margin:0;text-wrap:balance;display:flex;gap:12px;align-items:baseline}
+h2 .no{font-family:var(--f-mono);font-size:14px;color:var(--accent);font-weight:500}
+h3{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0}
+p{margin:0}
+.meta{color:var(--muted);font-size:13px}
+section{display:grid;gap:16px;min-width:0}
+.lead{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:20px 22px;display:grid;gap:14px}
+.lead ol{margin:0;padding-left:1.4em;display:grid;gap:10px}
+.lead b{color:var(--accent)}
+.kpi{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:flex-end}
+.kpi .num{font-family:var(--f-mono);font-size:34px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .lbl{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.kpi > div{display:grid;gap:6px}
+.gauge{position:relative;height:12px;background:var(--unk-bg);border-radius:6px;overflow:hidden}
+.gauge span{position:absolute;inset:0 auto 0 0;background:var(--bad)}
+.gauge i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg)}
+.gauge-cap{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.04em;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.stage{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+td.name{font-weight:700;white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+.price{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:11.5px;line-height:1.5;padding:1px 8px;border-radius:999px;white-space:nowrap;font-weight:500}
+.ok{color:var(--ok);background:var(--ok-bg)} .warn{color:var(--warn);background:var(--warn-bg)} .bad{color:var(--bad);background:var(--bad-bg)} .unk{color:var(--unk);background:var(--unk-bg)}
+.note{font-size:13.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px}
+.insight{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:14px}
+.insight b{color:var(--accent)}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.factors{display:grid;gap:22px}
+.factor{display:grid;gap:10px}
+.factor h3 .tag{font-family:var(--f-mono);font-size:12px;color:var(--accent);margin-right:8px}
+.decide{counter-reset:d;list-style:none;margin:0;padding:0;display:grid;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.decide li{counter-increment:d;display:grid;grid-template-columns:2.2em 1fr auto;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:baseline}
+.decide li:last-child{border-bottom:0}
+.decide li::before{content:counter(d);font-family:var(--f-mono);color:var(--accent);font-weight:500}
+.decide .d-body{min-width:0}
+.decide .d-body small{display:block;color:var(--muted);font-size:13px}
+.prio{font-family:var(--f-mono);font-size:11.5px;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:var(--muted)}
+tr.grp td{background:var(--accent-soft);color:var(--accent);font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.04em;padding:7px 12px}
+table.svc{min-width:900px} table.svc td.name{white-space:normal;min-width:9em}
+table.matrix td.u{color:var(--muted);text-align:center}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (max-width:560px){.decide li{grid-template-columns:1.8em 1fr}.decide .prio{grid-column:2}}
+</style>
+
+<style>
+.wrap{max-width:1080px}
+.rm{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.rm table{min-width:980px;font-size:13px;table-layout:fixed}
+.rm th,.rm td{border-right:1px solid var(--line)}
+.rm th:last-child,.rm td:last-child{border-right:0}
+.rm thead th{background:var(--bg);vertical-align:bottom}
+.rm thead th .ph{display:block;font-family:var(--f-display);font-size:14px;color:var(--fg);letter-spacing:0}
+.rm thead th .sub{display:block;font-family:var(--f-mono);font-size:11px;color:var(--muted);font-weight:400;margin-top:2px}
+.rm th.lane,.rm td.lane{position:sticky;left:0;z-index:1;background:var(--bg);width:7.5em;font-family:var(--f-display);font-weight:700;font-size:12.5px;color:var(--fg)}
+.rm col.c-lane{width:7.5em}
+.rm tr.theme td{background:var(--accent-soft);font-family:var(--f-display);font-weight:700;color:var(--accent);font-size:13.5px}
+.rm tr.theme td.lane{background:var(--accent-soft)}
+.rm tr.risk td{background:var(--bad-bg)}
+.rm tr.risk td.lane{background:var(--bad-bg);color:var(--bad)}
+.rm ul{margin:0;padding-left:1.1em;display:grid;gap:5px}
+.rm li{line-height:1.6}
+.t{display:inline-block;font-size:10.5px;line-height:1.45;padding:0 6px;border-radius:999px;margin-left:4px;vertical-align:1px;white-space:nowrap;font-weight:500}
+.t.k{color:var(--ok);background:var(--ok-bg)} .t.s{color:var(--unk);background:var(--unk-bg)} .t.a{color:var(--warn);background:var(--warn-bg)}
+.s-no{font-family:var(--f-mono);font-size:11.5px;color:var(--accent);font-weight:500}
+.plan-head{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:baseline}
+.plan-head .who{font-size:13px;color:var(--muted)}
+.holes{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.hole{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:14px 16px;display:grid;gap:6px;align-content:start;min-width:0}
+.hole h3{font-size:15px}
+.hole p{font-size:13.5px;color:var(--muted)}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">POTEX ／ カリキュラム進行 ／ 2026-10-04</div>
+  <h1>POTEX 受講ロードマップ</h1>
+  <p class="meta">3ヶ月プランと6ヶ月プランで、契約から卒業後までに受講者が何をどの順で受けるかを、会議記録から組み立てた。プランごとのカリキュラム表は社内記録に無いため、発言をつなぎ合わせて再構成している。</p>
+  <div class="legend"><span><span class="t k">確定</span> 記録で決定・運用中</span><span><span class="t a">案</span> 検討中・移行中</span><span><span class="t s">推定</span> 発言からの推測</span></div>
+</header>
+
+<section>
+  <div class="lead">
+    <p><b>前提にした推定。</b>「4回目・8回目のセッション後に月次レポート」（9/23）、「6回目前後が契約の中間」（10/4）という2つの発言から、<b>3ヶ月プランは週1回・全12回</b>と推定した。6ヶ月プランの回数は手がかりが無い。</p>
+    <p><b>3ヶ月と6ヶ月の違い（8/31 営業方針）。</b>生活習慣系は3ヶ月でクロージングする。コンサル・事業伴走系は「3ヶ月で仕組みを整え、残りの3ヶ月でコンサル」の6ヶ月で提案する。マスタープランは6ヶ月・¥597,800。</p>
+  </div>
+</section>
+
+<section>
+  <div class="plan-head"><h2><span class="no">A</span>3ヶ月プラン</h2><span class="who">主な対象：生活習慣・自己管理の改善</span></div>
+  <div class="rm"><table>
+    <colgroup><col class="c-lane"><col><col><col><col><col></colgroup>
+    <thead><tr>
+      <th class="lane">　</th>
+      <th><span class="ph">契約〜開始</span><span class="sub">Day 0〜3</span></th>
+      <th><span class="ph">1ヶ月目</span><span class="sub">セッション #1〜4</span></th>
+      <th><span class="ph">2ヶ月目</span><span class="sub">#5〜8</span></th>
+      <th><span class="ph">3ヶ月目</span><span class="sub">#9〜12</span></th>
+      <th><span class="ph">卒業後</span><span class="sub">継続プラン</span></th>
+    </tr></thead>
+    <tbody>
+      <tr class="theme"><td class="lane">テーマ</td><td>期待値を合わせる</td><td>現在地を知り、目標と習慣を決める</td><td>習慣を回して定着させる</td><td>変化を振り返り、次の目標を示す</td><td>続けるか、卒業か</td></tr>
+      <tr><td class="lane">個別セッション<br><span class="meta">30分</span></td>
+        <td><ul><li>—</li></ul></td>
+        <td><ul>
+          <li><span class="s-no">#1</span> 初回セッション。事前ワークをもとに目標を決め、習慣（クエスト）をセットする<span class="t k">確定</span></li>
+          <li>初回では淡泊なコンサルはしない。必要な人はトスアップ<span class="t k">確定</span></li>
+          <li>「最後に変わるのは自分」というマインドセットを伝える（10月以降強化）<span class="t a">案</span></li>
+          <li><span class="s-no">#2〜4</span> クエストの実行状況を見て調整<span class="t s">推定</span></li>
+        </ul></td>
+        <td><ul>
+          <li><span class="s-no">#5〜8</span> 習慣の定着とPDCA<span class="t s">推定</span></li>
+          <li><span class="s-no">#6前後</span> <b>ギアアップセッション</b>。固定アジェンダで中間振り返り、目標を引き上げる<span class="t a">案 10/4</span></li>
+        </ul></td>
+        <td><ul>
+          <li><span class="s-no">#9〜</span> 終盤チェックリスト：入会時からの変化を数字と言葉で振り返る／「本当にそれで十分ですか」と次の可能性を示す<span class="t k">8/12作成</span></li>
+          <li><span class="s-no">#11</span> <b>AFS</b>（最終回の1回前へ移動中）。継続プランを営業担当が案内<span class="t a">移行中</span></li>
+          <li><span class="s-no">#12</span> 最終回</li>
+        </ul></td>
+        <td><ul><li>月1回のコーチング<span class="t a">案</span></li><li>梅 ¥8,000〜松 ¥34,800/月<span class="t a">案 9/23</span></li></ul></td>
+      </tr>
+      <tr><td class="lane">日次</td>
+        <td><ul><li>アプリ登録、事前ワーク（ステータスチェッカー＝現在地診断／ゴールナビ）<span class="t k">確定</span></li><li>事前ワークからAIがクエスト案を作り、コーチが編集<span class="t a">アプリ実装中</span></li></ul></td>
+        <td><ul><li>クエストを毎日記録</li><li>コーチが日次FB（頻度はプラン別に未確認。毎日〜2日に1回）<span class="t s">推定</span></li></ul></td>
+        <td><ul><li>同上</li><li>記録が途切れる・満足度が下がるとアラートを出し、コーチがフォロー<span class="t a">アプリ11月</span></li></ul></td>
+        <td><ul><li>同上</li></ul></td>
+        <td><ul><li>FBは毎日〜3日に1回（案で揺れている）<span class="t a">案</span></li></ul></td>
+      </tr>
+      <tr><td class="lane">節目の面談</td>
+        <td><ul><li>成約の翌日にフォロー動画を自動配信<span class="t a">案 9/19</span></li><li><b>コンシェルジュ面談</b>（成約から3日以内）。期待値調整、受講者としてのルール、Discord自己紹介まで<span class="t k">確定</span></li></ul></td>
+        <td><ul><li>30〜40日目：<b>アップグレード面談</b>（担当営業）<span class="t k">確定</span></li></ul></td>
+        <td><ul><li>ギアアップ（上記）</li></ul></td>
+        <td><ul><li>AFS（上記）</li></ul></td>
+        <td><ul><li>卒業生のアプリ権限の扱いが未整理（10/3）</li></ul></td>
+      </tr>
+      <tr><td class="lane">月次・<br>コミュニティ</td>
+        <td><ul><li>Discordに参加</li></ul></td>
+        <td><ul><li>#4のあと：月次レポート①<span class="t a">運用基準未確定</span></li><li>オンライン交流会・オフ会（月1回程度）</li></ul></td>
+        <td><ul><li>#8のあと：月次レポート②<span class="t a">同</span></li><li>交流会・ワークショップ</li></ul></td>
+        <td><ul><li>最終月の振り返りを「卒業式」にする案<span class="t a">案 9/2</span></li></ul></td>
+        <td><ul><li>コミュニティに残れるかはプラン次第（マスター以外は未確認）</li></ul></td>
+      </tr>
+      <tr class="risk"><td class="lane">離脱しやすい点</td>
+        <td><ul><li>期待値のずれから受け身・外圧待ちになる（低満足度の共通パターン 8/12）</li><li>クーリングオフ率 6.5%（基準1%、9/23）</li></ul></td>
+        <td><ul><li>クエストが「宿題」に感じられてつらくなる</li><li>初回で信頼関係が作れない</li></ul></td>
+        <td><ul><li>中間の振り返りが仕組みになっていない</li><li>1ヶ月前の自分を忘れ、変化を実感できない</li></ul></td>
+        <td><ul><li><b>「習慣化できたので十分」で終わる</b>（継続しなかった3件の共通理由 8/12）</li><li>最終回の後のAFSには誘いにくい</li></ul></td>
+        <td><ul><li>継続すると本商品よりFBが減り、体験が下がる</li></ul></td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <div class="plan-head"><h2><span class="no">B</span>6ヶ月プラン</h2><span class="who">主な対象：キャリア・事業・SNS（コンサル・事業伴走）／マスター ¥597,800</span></div>
+  <div class="rm"><table>
+    <colgroup><col class="c-lane"><col><col><col><col><col><col></colgroup>
+    <thead><tr>
+      <th class="lane">　</th>
+      <th><span class="ph">契約〜開始</span><span class="sub">Day 0〜3</span></th>
+      <th><span class="ph">1ヶ月目</span><span class="sub">立ち上げ</span></th>
+      <th><span class="ph">2〜3ヶ月目</span><span class="sub">仕組み化</span></th>
+      <th><span class="ph">3ヶ月目末</span><span class="sub">中間</span></th>
+      <th><span class="ph">4〜6ヶ月目</span><span class="sub">コンサル・成果</span></th>
+      <th><span class="ph">卒業後</span><span class="sub">継続プラン</span></th>
+    </tr></thead>
+    <tbody>
+      <tr class="theme"><td class="lane">テーマ</td><td>期待値を合わせる</td><td>現在地・目標・習慣を決める</td><td>成果を出すための仕組みを整える</td><td>目標を引き上げ、テーマを切り替える</td><td>事業・キャリアの成果を出す</td><td>続けるか、卒業か</td></tr>
+      <tr><td class="lane">個別セッション<br><span class="meta">30分</span></td>
+        <td><ul><li>—</li></ul></td>
+        <td><ul><li>初回セッションは3ヶ月プランと同じ（事前ワーク→目標→クエスト）<span class="t k">確定</span></li><li>回数・間隔はプラン別に未確認</li></ul></td>
+        <td><ul><li>習慣・時間の使い方・行動の仕組みを整える<span class="t s">推定 8/31</span></li></ul></td>
+        <td><ul><li><b>ギアアップセッション</b>（契約の中間）<span class="t a">案 10/4</span></li><li>経営・事業課題への切り替え。30分では足りず満足度が下がった例あり（9/28）</li></ul></td>
+        <td><ul><li>事業・キャリアのコンサル<span class="t s">推定 8/31</span></li><li>必要に応じてスポットコーチ（SNS運用・事業伴走）を回数券で追加<span class="t a">商品化中</span></li><li>終盤チェックリスト → 最終回の1回前に<b>AFS</b><span class="t a">移行中</span></li></ul></td>
+        <td><ul><li>月1回のコーチング<span class="t a">案</span></li></ul></td>
+      </tr>
+      <tr><td class="lane">日次</td>
+        <td><ul><li>事前ワーク（現在地診断・ゴールナビ）</li></ul></td>
+        <td><ul><li>クエスト記録＋コーチの日次FB</li></ul></td>
+        <td><ul><li>同上</li></ul></td>
+        <td><ul><li>クエストを事業・キャリアのKPIに組み替えるかは記録に無い</li></ul></td>
+        <td><ul><li>同上（後半の日次の中身は未確認）</li></ul></td>
+        <td><ul><li>FBは毎日〜3日に1回（案）</li></ul></td>
+      </tr>
+      <tr><td class="lane">節目の面談</td>
+        <td><ul><li>フォロー動画、コンシェルジュ面談（3日以内）</li></ul></td>
+        <td><ul><li>30〜40日目のアップグレード面談。ベーシックからマスターへ上がった例あり（9/29）</li></ul></td>
+        <td><ul><li>—</li></ul></td>
+        <td><ul><li>ギアアップ（上記）</li><li>目標が大きく変わるならコーチ交代も選択肢。ただし仕組みが無い（10/4）</li></ul></td>
+        <td><ul><li>AFS（上記）</li></ul></td>
+        <td><ul><li>—</li></ul></td>
+      </tr>
+      <tr><td class="lane">月次・<br>コミュニティ</td>
+        <td><ul><li>Discordに参加</li></ul></td>
+        <td><ul><li>月次レポート（月1回×6回）<span class="t s">推定</span></li><li>交流会・オフ会</li></ul></td>
+        <td><ul><li>同上</li></ul></td>
+        <td><ul><li>同上</li></ul></td>
+        <td><ul><li>同上</li><li>プレミアムは在籍中オフ会無料（案）</li></ul></td>
+        <td><ul><li><b>マスターはコミュニティ無期限</b><span class="t k">確定 9/9</span></li></ul></td>
+      </tr>
+      <tr class="risk"><td class="lane">離脱しやすい点</td>
+        <td><ul><li>3ヶ月プランと同じ</li></ul></td>
+        <td><ul><li>同上</li></ul></td>
+        <td><ul><li>仕組み化の段階で成果がまだ出ず、中だるみする<span class="t s">推定</span></li></ul></td>
+        <td><ul><li>習慣の伴走から事業の伴走へ期待が上がったとき、コーチが応えられないと他社と比べ始める（8/12の事例）</li></ul></td>
+        <td><ul><li><b>後半3ヶ月の中身が定義されていない</b>。コーチの力量次第になる</li></ul></td>
+        <td><ul><li>無期限コミュニティがあるため、継続プランに払う理由が弱い<span class="t s">推定</span></li></ul></td>
+      </tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="no">C</span>ロードマップから見える設計の穴</h2>
+  <div class="holes">
+    <div class="hole"><h3>2ヶ月目がほぼ空白</h3><p>初回と終盤には型がある。2ヶ月目に予定された節目は、まだ案のギアアップだけ。中だるみと「変化を実感できない」が起きる位置と重なる。</p></div>
+    <div class="hole"><h3>ゴールが「習慣化」で閉じている</h3><p>3ヶ月目に習慣化を達成すると、受講者は「十分」と判断する。卒業後の次の段（キャリア・事業・スキル）が最初から地図に載っていない。</p></div>
+    <div class="hole"><h3>6ヶ月プランの後半が言語化されていない</h3><p>「3ヶ月で仕組み、6ヶ月でコンサル」は営業トークにはあるが、セッションのアジェンダには落ちていない。10/4に田原さんがアジェンダ再構築を担当。</p></div>
+    <div class="hole"><h3>継続プランが「同じことの薄い版」</h3><p>月1コーチングとFB頻度の低下だけで、卒業後に新しく始まるものが無い。ロードマップの次の章になっていない。</p></div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">D</span>埋めたい情報</h2>
+  <ul class="plain">
+    <li>プランごとのセッション回数・間隔（3ヶ月＝週1・全12回の推定が正しいか）</li>
+    <li>6ヶ月プランの4〜6ヶ月目のセッション内容</li>
+    <li>日次FBのプラン別頻度</li>
+    <li>月次レポートを出すタイミング（4・8回目後か月末か）</li>
+    <li>ライト・ベーシック・プレミアムの期間（3ヶ月か6ヶ月か）</li>
+  </ul>
+</section>
+
+<footer>出典：朝会（8/31・9/19・9/23）、統括会議（9/9）、顧客満足度定例（8/12・9/17・10/1）、クリエイティブ定例（9/22・9/26）、task会（9/28・9/29・10/3）、田原さん会議（9/23）、POTEX対面 みなとみらい（10/4）、営業朝会ほか。関連ページ：<a href="https://claude.ai/artifact/85fTqCBHTN6kyQypaRGXVD" style="color:var(--accent)">POTEX 商品設計の洗い出し</a></footer>
+
+</div>
