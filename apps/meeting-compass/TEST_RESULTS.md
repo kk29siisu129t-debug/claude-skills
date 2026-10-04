@@ -1,6 +1,6 @@
 # テスト結果（自動生成ログ）
 
-実行日時: 2026-10-04T01:06:07Z / Node v22.22.0 / Playwright 1.56.1 (Chromium)
+実行日時: 2026-10-04T01:20:50Z / Node v22.22.0 / Playwright 1.56.1 (Chromium) / 対象: レイアウト改修後
 
 ## npm run lint
 ```
@@ -62,21 +62,32 @@ exit: 0
 
 ## npm run test:e2e
 ```
-  ✓   1 [desktop] › tests/e2e/app.spec.js:38:1 › 初期表示：由来の明記・停止状態・外部送信なし (488ms)
-  ✓   2 [mobile] › tests/e2e/app.spec.js:38:1 › 初期表示：由来の明記・停止状態・外部送信なし (933ms)
-  ✓   3 [desktop] › tests/e2e/app.spec.js:53:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認 (2.5s)
-  ✓   4 [mobile] › tests/e2e/app.spec.js:53:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認 (4.9s)
-  ✓   5 [desktop] › tests/e2e/app.spec.js:113:1 › 再生・一時停止・再開・リセット (5.0s)
-  ✓   7 [desktop] › tests/e2e/app.spec.js:136:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正 (1.4s)
-  ✓   8 [desktop] › tests/e2e/app.spec.js:204:1 › 危険な HTML 入力は文字として表示され、実行されない (424ms)
-  ✓   9 [desktop] › tests/e2e/app.spec.js:224:1 › 過去の論点の参照と「現在の論点にする」 (695ms)
-  ✓   6 [mobile] › tests/e2e/app.spec.js:113:1 › 再生・一時停止・再開・リセット (5.0s)
-  ✓  10 [desktop] › tests/e2e/app.spec.js:239:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される (715ms)
-  ✓  12 [desktop] › tests/e2e/app.spec.js:271:1 › リロードすると内容は残らない（メモリのみ） (507ms)
-  ✓  11 [mobile] › tests/e2e/app.spec.js:136:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正 (2.4s)
-  ✓  13 [mobile] › tests/e2e/app.spec.js:204:1 › 危険な HTML 入力は文字として表示され、実行されない (549ms)
-  ✓  14 [mobile] › tests/e2e/app.spec.js:224:1 › 過去の論点の参照と「現在の論点にする」 (729ms)
-  ✓  15 [mobile] › tests/e2e/app.spec.js:239:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される (870ms)
-  ✓  16 [mobile] › tests/e2e/app.spec.js:271:1 › リロードすると内容は残らない（メモリのみ） (371ms)
-  16 passed (17.0s)
+  ✓   2 [desktop] › tests/e2e/app.spec.js:38:1 › 初期表示：由来の明記・停止状態・外部送信なし
+  ✓   1 [mobile] › tests/e2e/app.spec.js:38:1 › 初期表示：由来の明記・停止状態・外部送信なし
+  ✓   3 [desktop] › tests/e2e/app.spec.js:57:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認
+  ✓   4 [mobile] › tests/e2e/app.spec.js:57:1 › デモ：話題切替・脱線・戻り・撤回・訂正・合意未確認を一歩ずつ確認
+  ✓   5 [desktop] › tests/e2e/app.spec.js:117:1 › 再生・一時停止・再開・リセット
+  ✓   6 [mobile] › tests/e2e/app.spec.js:117:1 › 再生・一時停止・再開・リセット
+  ✓   7 [desktop] › tests/e2e/app.spec.js:143:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正
+  ✓   9 [desktop] › tests/e2e/app.spec.js:212:1 › 危険な HTML 入力は文字として表示され、実行されない
+  ✓  10 [desktop] › tests/e2e/app.spec.js:232:1 › 過去の論点の参照と「現在の論点にする」
+  ✓   8 [mobile] › tests/e2e/app.spec.js:143:1 › 手入力：空入力の拒否・規則分類・未分類・手動確定と修正
+  ✓  11 [desktop] › tests/e2e/app.spec.js:249:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
+  ✓  12 [mobile] › tests/e2e/app.spec.js:212:1 › 危険な HTML 入力は文字として表示され、実行されない
+  ✓  13 [desktop] › tests/e2e/app.spec.js:282:1 › リロードすると内容は残らない（メモリのみ）
+  ✓  14 [mobile] › tests/e2e/app.spec.js:232:1 › 過去の論点の参照と「現在の論点にする」
+  ✓  16 [mobile] › tests/e2e/app.spec.js:249:1 › 書き出しは明示操作でのみ行い、消去で全て破棄される
+  ✓  15 [desktop] › tests/e2e/app.spec.js:297:1 › 初期 viewport 内に現在論点・決定・次に決めること・アクションが収まる
+  ✓  17 [mobile] › tests/e2e/app.spec.js:282:1 › リロードすると内容は残らない（メモリのみ）
+  ✓  19 [mobile] › tests/e2e/app.spec.js:297:1 › 初期 viewport 内に現在論点・決定・次に決めること・アクションが収まる
+  ✓  18 [desktop] › tests/e2e/app.spec.js:354:1 › 再生中に修正を開くと自動で一時停止し、入力は消えない
+  ✓  21 [desktop] › tests/e2e/app.spec.js:386:1 › 編集は Esc でキャンセルでき、再生ボタンが戻る
+  ✓  20 [mobile] › tests/e2e/app.spec.js:354:1 › 再生中に修正を開くと自動で一時停止し、入力は消えない
+  ✓  23 [mobile] › tests/e2e/app.spec.js:386:1 › 編集は Esc でキャンセルでき、再生ボタンが戻る
+  ✓  22 [desktop] › tests/e2e/app.spec.js:399:1 › 再生中も手入力欄の入力は保持される
+  ✓  25 [desktop] › tests/e2e/app.spec.js:409:1 › タブ切り替え（クリックと左右キー）と要確認への導線
+  ✓  24 [mobile] › tests/e2e/app.spec.js:399:1 › 再生中も手入力欄の入力は保持される
+  ✓  26 [mobile] › tests/e2e/app.spec.js:409:1 › タブ切り替え（クリックと左右キー）と要確認への導線
+  26 passed
+exit: 0
 ```
