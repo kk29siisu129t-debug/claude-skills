@@ -2,7 +2,7 @@
   "name": "potex-bigfive",
   "version": "0.1.0",
   "private": true,
-  "description": "POTEX 自己理解チェック（Mini-IPIP をもとにした独自日本語訳）。ブラウザ内だけで動く公開デモ。",
+  "description": "POTEX キャリアを考えるための自己理解（IPIP の項目を参考にした独自の4択の簡易分析）。ブラウザ内だけで動く公開デモ。",
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {

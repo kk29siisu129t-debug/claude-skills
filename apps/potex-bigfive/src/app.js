@@ -10,7 +10,7 @@
   const C = PotexContent;
   const L = PotexLogic;
 
-  /** @typedef {'home'|'about'|'question'|'review'|'results'|'needs'|'routes'|'action'|'summary'} Screen */
+  /** @typedef {'home'|'about'|'question'|'review'|'results'|'career'|'paths'|'needs'|'routes'|'action'|'summary'} Screen */
 
   /**
    * @typedef {{
@@ -18,8 +18,14 @@
    *   qIndex: number,
    *   answers: Array<number|null>,
    *   editingFromReview: boolean,
+   *   career: Career,
+   *   careerFrom: Screen,
+   *   primaryChoice: 'auto'|'none'|PathId,
+   *   careerActionId: string|null,
+   *   reviewTiming: string|null,
    *   needs: Needs,
    *   needsFrom: Screen,
+   *   summaryFrom: Screen,
    *   routeId: string|null,
    *   routeDecided: boolean,
    *   actionId: string|null,
@@ -35,8 +41,14 @@
       qIndex: 0,
       answers: new Array(S.ITEM_COUNT).fill(null),
       editingFromReview: false,
+      career: PotexCareer.emptyCareer(),
+      careerFrom: 'home',
+      primaryChoice: 'auto',
+      careerActionId: null,
+      reviewTiming: null,
       needs: L.emptyNeeds(),
       needsFrom: 'home',
+      summaryFrom: 'paths',
       routeId: null,
       routeDecided: false,
       actionId: null,
@@ -213,6 +225,11 @@
   function hasAnyData() {
     return (
       state.answers.some((a) => a !== null) ||
+      state.career.style !== null ||
+      state.career.functions.length > 0 ||
+      state.primaryChoice !== 'auto' ||
+      state.careerActionId !== null ||
+      state.reviewTiming !== null ||
       state.needs.goals.length > 0 ||
       state.needs.barriers.length > 0 ||
       state.needs.prefs.length > 0 ||
@@ -241,26 +258,35 @@
   function screenHome() {
     return [
       h('p', { class: 'eyebrow' }, 'POTEX'),
-      heading('screen-title', '自己理解チェック'),
+      heading('screen-title', 'キャリアを考えるための自己理解'),
       h(
         'p',
         { class: 'lead' },
-        '自分の傾向を振り返り、目標・困りごと・使える時間・支援の好みを整理して、POTEXの支援の使い方を自分で選ぶためのツールです。',
+        'いまの自分の骨格（考え方や動き方の傾向）を簡易分析で振り返り、希望する働き方・関心のある仕事・これまでの経験を整理して、キャリアの解像度を上げるためのツールです。',
+      ),
+      h(
+        'p',
+        { class: 'muted' },
+        'ここでいう骨格は、変わらない本質を決めつけるものではなく、いま時点の自己理解です。職種の向き不向きや採用の可否を判定するものでもありません。',
       ),
       h(
         'ol',
         { class: 'steps', 'aria-label': '進め方' },
-        h('li', null, h('strong', null, '20問のチェック'), h('span', null, '普段の自分について、4択で答えます（約3分）')),
-        h('li', null, h('strong', null, '振り返り'), h('span', null, '5つの観点の数値と、考えてみたい問いを見ます')),
-        h('li', null, h('strong', null, '目標と希望の整理'), h('span', null, '選択式で、テーマや使える時間を選びます')),
-        h('li', null, h('strong', null, '支援の使い方を選ぶ'), h('span', null, '3つの案を見比べ、自分で選びます')),
-        h('li', null, h('strong', null, '最初の小さな行動'), h('span', null, '自分で行う次の一歩を1つ決めます')),
+        h('li', null, h('strong', null, '20問の簡易分析'), h('span', null, '普段の自分について、4択で答えます（約3分）')),
+        h('li', null, h('strong', null, '働き方と学び方の振り返り'), h('span', null, '5つの観点の数値と、考えてみたい問いを見ます')),
+        h('li', null, h('strong', null, 'キャリアの整理'), h('span', null, '希望する働き方、関心のある職能、経験を選びます')),
+        h('li', null, h('strong', null, 'キャリアの道すじの例'), h('span', null, '3つの例を比べ、今週の小さな検証行動を選びます')),
+        h('li', null, h('strong', null, 'POTEXの支援の使い方（任意）'), h('span', null, '必要なら、支援の使い方を自分で選びます')),
       ),
       h(
         'div',
         { class: 'actions' },
         button('簡易分析を始める', () => go('about'), { variant: 'primary', id: 'start' }),
-        button('チェックを飛ばして、支援の使い方を考える', () => go('needs', { needsFrom: 'home' }), {
+        button('分析を飛ばして、キャリアを整理する', () => go('career', { careerFrom: 'home' }), {
+          id: 'skip-to-career',
+        }),
+        button('POTEXの支援の使い方を見る', () => go('needs', { needsFrom: 'home' }), {
+          variant: 'quiet',
           id: 'skip-to-needs',
         }),
       ),
@@ -283,7 +309,8 @@
         { class: 'plain-list' },
         h('li', null, '20問それぞれについて、普段の自分にどのくらい当てはまるかを「当てはまる」から「当てはまらない」までの4択で答えます。選ぶとすぐ次の質問に進みます。正解や不正解はありません。'),
         h('li', null, '結果は5つの観点ごとに、1〜4の数値で表示します。タイプ分けや、優劣・順位づけはしません。'),
-        h('li', null, '前の質問に戻って、答えを変えられます。途中でやめて、支援の使い方の画面に進むこともできます。'),
+        h('li', null, '結果は、働き方や学び方を考える問いのために使います。職種の向き不向きや、キャリアの候補を決めるためには使いません。'),
+        h('li', null, '前の質問に戻って、答えを変えられます。途中でやめて、キャリアの整理に進むこともできます。'),
         h('li', null, C.PRIVACY_NOTE),
       ),
       sourcesBlock(),
@@ -401,7 +428,7 @@
         answeredCount() > 0 && !state.editingFromReview
           ? button('回答一覧を見る', () => go('review'), { variant: 'quiet', id: 'to-review' })
           : null,
-        button('チェックを中断して、支援の使い方を考える', () => go('needs', { needsFrom: 'question', editingFromReview: false }), {
+        button('分析を中断して、キャリアを整理する', () => go('career', { careerFrom: 'question', editingFromReview: false }), {
           variant: 'quiet',
           id: 'question-skip',
         }),
@@ -509,23 +536,315 @@
           h('div', null, h('dt', null, '4に近いほど'), h('dd', null, f.high)),
         ),
         f.note ? h('p', { class: 'factor-note' }, f.note) : null,
-        list('振り返りの問い', f.reflections, 'reflect-list'),
+        list('働き方と学び方を考える問い', f.reflections, 'reflect-list'),
       );
     });
 
     return [
       backBar('回答の確認へ', () => go('review')),
-      heading('screen-title', 'チェックの結果'),
+      heading('screen-title', '簡易分析の結果'),
       callout(C.DISCLAIMER, 'important'),
-      h('p', { class: 'lead' }, '5つの観点ごとに、4問の答えから計算した値（1〜4）を示します。どちらの端にも良い・悪いはありません。数値に答えを出すより、問いを手がかりに振り返ってみてください。'),
+      h('p', { class: 'lead' }, '5つの観点ごとに、4問の答えから計算した値（1〜4）を示します。どちらの端にも良い・悪いはありません。数値に答えを出すより、問いを手がかりに、自分に合う働き方や学び方を振り返ってみてください。'),
+      callout(PotexCareer.NOTES.personality),
       ...factorBlocks,
       callout(C.UNCERTAINTY_NOTE),
       sourcesBlock(),
       h(
         'div',
         { class: 'actions' },
-        button('支援の使い方を考える', () => go('needs', { needsFrom: 'results' }), { variant: 'primary', id: 'to-needs' }),
+        button('キャリアを整理する', () => go('career', { careerFrom: 'results' }), { variant: 'primary', id: 'to-career' }),
         button('回答を見直す', () => go('review'), { id: 'results-review' }),
+      ),
+    ];
+  }
+
+  /**
+   * 選択式のチップ（チェックボックスまたはラジオ）。変更時は状態だけを更新する。
+   * @param {{ type: 'checkbox'|'radio', name: string, id: string, label: string, checked: boolean, onChange: (checked: boolean) => void }} o
+   */
+  function chip(o) {
+    const input = /** @type {HTMLInputElement} */ (
+      h('input', { type: o.type, name: o.name, id: o.id, value: o.id, checked: o.checked })
+    );
+    input.addEventListener('change', () => o.onChange(input.checked));
+    return h(
+      'li',
+      null,
+      h('label', { class: 'chip', for: o.id }, input, h('span', { class: 'chip-mark', 'aria-hidden': 'true' }), h('span', null, o.label)),
+    );
+  }
+
+  /** @param {Partial<Career>} patch @param {string|null} [focus] */
+  function setCareer(patch, focus) {
+    const career = { ...state.career, ...patch };
+    if (focus === undefined) {
+      state = { ...state, career };
+      syncHeaderReset();
+    } else {
+      update({ career }, { focus });
+    }
+  }
+
+  function screenCareer() {
+    const K = PotexCareer;
+    const career = state.career;
+
+    const styleGroup = h(
+      'fieldset',
+      { class: 'need-group' },
+      h('legend', null, h('span', { class: 'need-title' }, '希望する働き方'), h('span', { class: 'need-hint' }, '1つ選べます。あとから変えられます。')),
+      h(
+        'ul',
+        { class: 'chips' },
+        ...K.WORK_STYLES.map((w) =>
+          chip({
+            type: 'radio',
+            name: 'career-style',
+            id: `career-style-${w.id}`,
+            label: w.label,
+            checked: career.style === w.id,
+            onChange: (on) => {
+              if (on) setCareer({ style: w.id });
+            },
+          }),
+        ),
+      ),
+      h('p', { class: 'field-note' }, K.NOTES.style),
+    );
+
+    const fnGroup = h(
+      'fieldset',
+      { class: 'need-group' },
+      h('legend', null, h('span', { class: 'need-title' }, '関心のある職能'), h('span', { class: 'need-hint' }, '当てはまるものをいくつでも選べます。')),
+      h(
+        'ul',
+        { class: 'chips' },
+        ...K.FUNCTIONS.map((f) =>
+          chip({
+            type: 'checkbox',
+            name: 'career-fn',
+            id: `career-fn-${f.id}`,
+            label: f.label,
+            checked: career.functions.includes(f.id),
+            onChange: (on) => {
+              // 描画時の値ではなく、最新の状態から組み立てる（他の職能の自己申告を消さないため）
+              const cur = state.career;
+              const set = new Set(cur.functions);
+              if (on) set.add(f.id);
+              else set.delete(f.id);
+              const experience = { ...cur.experience };
+              const evidence = { ...cur.evidence };
+              if (!on) {
+                delete experience[f.id];
+                delete evidence[f.id];
+              }
+              // 職能ごとの自己申告欄が増減するので描き直す
+              setCareer({ functions: K.FUNCTIONS.map((x) => x.id).filter((id) => set.has(id)), experience, evidence }, `career-fn-${f.id}`);
+            },
+          }),
+        ),
+      ),
+      h('p', { class: 'field-note' }, K.NOTES.functions),
+    );
+
+    const selfReports = career.functions.map((fn) => {
+      const name = K.labelOf(K.FUNCTIONS, fn);
+      const radioGroup = (/** @type {'experience'|'evidence'} */ key, /** @type {string} */ title, /** @type {ReadonlyArray<CareerChoice>} */ choices) =>
+        h(
+          'fieldset',
+          { class: 'sub-group' },
+          h('legend', null, `${title}（${name}）`),
+          h(
+            'ul',
+            { class: 'chips' },
+            ...choices.map((c) =>
+              chip({
+                type: 'radio',
+                name: `career-${key}-${fn}`,
+                id: `career-${key}-${fn}-${c.id}`,
+                label: c.label,
+                checked: career[key][fn] === c.id,
+                onChange: (on) => {
+                  if (on) setCareer({ [key]: { ...state.career[key], [fn]: c.id } });
+                },
+              }),
+            ),
+          ),
+        );
+      return h(
+        'section',
+        { class: 'self-report', 'aria-labelledby': `report-${fn}` },
+        h('h2', { class: 'self-report-title', id: `report-${fn}` }, `「${name}」の自己申告`),
+        radioGroup('experience', '経験', K.EXPERIENCE),
+        radioGroup('evidence', '根拠の種類', K.EVIDENCE),
+      );
+    });
+
+    const back = state.careerFrom;
+    const backLabel = back === 'results' ? '結果へ戻る' : back === 'question' ? '質問へ戻る' : back === 'paths' ? '道すじの例へ戻る' : 'トップへ戻る';
+
+    return [
+      backBar(backLabel, () => go(back)),
+      heading('screen-title', 'キャリアの整理'),
+      h(
+        'p',
+        { class: 'lead' },
+        'すべて選択式で、答えたくない項目は飛ばせます。ここで選んだ希望・関心・経験だけを、次の画面の「キャリアの道すじの例」の根拠に使います。性格の分析結果は使いません。',
+      ),
+      styleGroup,
+      fnGroup,
+      selfReports.length > 0
+        ? h('div', { class: 'self-reports' }, h('p', { class: 'field-note' }, K.NOTES.selfReport), ...selfReports)
+        : null,
+      h(
+        'div',
+        { class: 'actions' },
+        button('キャリアの道すじの例を見る', () => go('paths'), { variant: 'primary', id: 'to-paths' }),
+      ),
+    ];
+  }
+
+  function screenPaths() {
+    const K = PotexCareer;
+    const career = state.career;
+    const primary = K.primaryPath(career, state.primaryChoice);
+    const auto = state.primaryChoice === 'auto';
+
+    const cards = K.PATHS.map((p) => {
+      const view = K.pathView(p.id, career);
+      const isPrimary = primary === p.id;
+      const roleLabel = primary === null ? null : isPrimary ? '主候補' : '比較候補';
+      return h(
+        'article',
+        { class: isPrimary ? 'route path is-selected' : 'route path', 'aria-labelledby': `path-${p.id}` },
+        h(
+          'div',
+          { class: 'route-head' },
+          h('p', { class: 'route-index' }, `道すじ ${p.id}`),
+          roleLabel ? h('p', { class: isPrimary ? 'route-chosen' : 'route-compare' }, isPrimary ? h('span', { 'aria-hidden': 'true' }, '★ ') : null, roleLabel) : null,
+        ),
+        h('h2', { id: `path-${p.id}`, class: 'route-title' }, p.title),
+        h('p', null, p.summary),
+        h(
+          'ol',
+          { class: 'stages', 'aria-label': `${p.title}の段階` },
+          ...p.stages.map((st) =>
+            h('li', null, h('span', { class: 'stage-name' }, st.stage), h('span', { class: 'stage-roles' }, st.roles.join(' → '))),
+          ),
+        ),
+        h(
+          'div',
+          { class: 'list-block' },
+          h('h3', { class: 'mini-title' }, 'この道すじを表示している理由'),
+          h('p', { class: 'role-reason' }, K.roleReason(p.id, career, state.primaryChoice)),
+          view.reasons.length > 0
+            ? h('ul', { class: 'reason-list' }, ...view.reasons.map((t) => h('li', null, t)))
+            : h('p', { class: 'muted' }, 'キャリアの整理で選んだ内容に、この道すじと直接つながる項目はありません。'),
+        ),
+        h(
+          'details',
+          { class: 'path-details', id: `details-${p.id}`, open: isPrimary },
+          h('summary', null, 'まだ確かめたい点と、今週試せること'),
+          list('まだ確かめたい点', view.unknowns, 'confirm-list'),
+          list('今週試せることの例', view.actionIds.slice(0, 2).map((id) => K.actionLabel(id)), 'reflect-list action-list'),
+        ),
+        button(
+          isPrimary ? '暫定の主候補にしています' : 'この道すじを暫定の主候補にする',
+          () => update({ primaryChoice: p.id }, { focus: `primary-${p.id}` }),
+          { variant: isPrimary ? 'primary' : 'secondary', id: `primary-${p.id}`, pressed: isPrimary },
+        ),
+      );
+    });
+
+    const actionOptions = K.actionChoices(primary).map((a) =>
+      h(
+        'li',
+        null,
+        h(
+          'label',
+          { class: 'option option-text', for: `cact-${a.id}` },
+          (() => {
+            const input = /** @type {HTMLInputElement} */ (
+              h('input', { type: 'radio', name: 'career-action', id: `cact-${a.id}`, value: a.id, checked: state.careerActionId === a.id })
+            );
+            input.addEventListener('change', () => {
+              if (input.checked) {
+                state = { ...state, careerActionId: a.id };
+                syncHeaderReset();
+              }
+            });
+            return input;
+          })(),
+          h('span', { class: 'option-label' }, a.label),
+          h('span', { class: 'option-check', 'aria-hidden': 'true' }),
+        ),
+      ),
+    );
+
+    const style = K.WORK_STYLES.find((w) => w.id === career.style);
+    let status;
+    if (primary) {
+      const title = K.PATHS.find((p) => p.id === primary)?.title;
+      status = auto
+        ? `希望する働き方「${style ? style.label : ''}」から、「${title}」を主候補として表示しています。ほかの2つは比較候補です。主候補はいつでも変えられます。`
+        : `「${title}」を主候補に選んでいます。ほかの2つは比較候補です。`;
+    } else {
+      status =
+        '主候補を決めずに、3つの道すじを優劣なく並べています。決めていなくても、気になる道すじを1つ仮の主候補にしたり、まず1つ試して確かめたりできます。';
+    }
+
+    return [
+      backBar('キャリアの整理へ', () => go('career')),
+      heading('screen-title', 'キャリアの道すじの例'),
+      h('div', { class: 'notice' }, h('p', null, K.NOTES.paths), h('p', null, K.NOTES.noBigMoves)),
+      h('p', { class: 'lead', id: 'path-status' }, status),
+      h('div', { class: 'route-list' }, ...cards),
+      h(
+        'div',
+        { class: 'undecided' },
+        button(
+          primary === null ? '主候補を決めずに比べる（選択中）' : '主候補を決めずに比べる',
+          () => update({ primaryChoice: 'none' }, { focus: 'primary-none' }),
+          { id: 'primary-none', pressed: primary === null },
+        ),
+        h('p', { class: 'muted' }, K.NOTES.move),
+      ),
+      h(
+        'fieldset',
+        { class: 'question' },
+        h('legend', { class: 'need-title' }, '今週まず試すことを1つ選ぶ'),
+        h('p', { class: 'need-hint' }, '道すじが未定でも選べます。あとから変えられ、選ばずに進むこともできます。'),
+        h('ul', { class: 'options' }, ...actionOptions),
+      ),
+      h(
+        'fieldset',
+        { class: 'need-group' },
+        h('legend', null, h('span', { class: 'need-title' }, 'いつ振り返るか'), h('span', { class: 'need-hint' }, '1つ選べます。')),
+        h(
+          'ul',
+          { class: 'chips' },
+          ...K.REVIEW_TIMINGS.map((t) =>
+            chip({
+              type: 'radio',
+              name: 'review-timing',
+              id: `timing-${t.id}`,
+              label: t.label,
+              checked: state.reviewTiming === t.id,
+              onChange: (on) => {
+                if (on) {
+                  state = { ...state, reviewTiming: t.id };
+                  syncHeaderReset();
+                }
+              },
+            }),
+          ),
+        ),
+      ),
+      h(
+        'div',
+        { class: 'actions' },
+        button('ここまでをまとめる', () => go('summary', { summaryFrom: 'paths' }), { variant: 'primary', id: 'paths-summary' }),
+        button('POTEXの支援の使い方も考える', () => go('needs', { needsFrom: 'paths' }), { id: 'paths-to-needs' }),
       ),
     ];
   }
@@ -593,12 +912,12 @@
 
     const backTarget = state.needsFrom;
     const backLabel =
-      backTarget === 'results' ? '結果へ戻る' : backTarget === 'question' ? '質問へ戻る' : 'トップへ戻る';
+      backTarget === 'paths' ? '道すじの例へ戻る' : backTarget === 'results' ? '結果へ戻る' : backTarget === 'question' ? '質問へ戻る' : 'トップへ戻る';
 
     return [
       backBar(backLabel, () => go(backTarget)),
       heading('screen-title', '目標と希望の整理'),
-      h('p', { class: 'lead' }, 'すべて選択式で、答えたくない項目は飛ばせます。ここで選んだ内容だけを、次の画面で支援の使い方の案に添える「理由」に使います。性格チェックの結果は使いません。'),
+      h('p', { class: 'lead' }, 'POTEXの支援をどう使うかを考えるための、任意の質問です。すべて選択式で、答えたくない項目は飛ばせます。ここで選んだ内容だけを、次の画面で支援の使い方の案に添える「理由」に使います。性格の分析結果は使いません。'),
       ...groups,
       h(
         'div',
@@ -664,7 +983,7 @@
         { class: 'actions' },
         button('最初の小さな行動を選ぶ', () => go('action'), { variant: 'primary', id: 'to-action' }),
         answeredCount() < S.ITEM_COUNT
-          ? button('自己理解チェックを受ける', () => go(answeredCount() > 0 ? 'question' : 'about'), { variant: 'quiet', id: 'routes-take-check' })
+          ? button('簡易分析を受ける', () => go(answeredCount() > 0 ? 'question' : 'about'), { variant: 'quiet', id: 'routes-take-check' })
           : null,
       ),
     ];
@@ -719,12 +1038,19 @@
       h(
         'div',
         { class: 'actions' },
-        button('次のアクションをまとめる', () => go('summary'), { variant: 'primary', id: 'to-summary' }),
+        button('次のアクションをまとめる', () => go('summary', { summaryFrom: 'action' }), { variant: 'primary', id: 'to-summary' }),
       ),
     ];
   }
 
   function screenSummary() {
+    const careerSummary = PotexCareer.summary({
+      career: state.career,
+      primary: PotexCareer.primaryPath(state.career, state.primaryChoice),
+      actionId: state.careerActionId,
+      timingId: state.reviewTiming,
+    });
+    const potexTouched = state.routeDecided || state.actionId !== null;
     const summary = L.buildSummary({
       routeId: state.routeDecided ? state.routeId : null,
       actionId: state.actionId,
@@ -735,11 +1061,31 @@
       '価格、提供の条件、利用規約は、POTEXの担当者に直接ご確認ください。',
     ];
     return [
-      backBar('行動を選び直す', () => go('action')),
+      backBar(state.summaryFrom === 'action' ? '行動を選び直す' : '道すじの例へ戻る', () => go(state.summaryFrom)),
       heading('screen-title', 'あなたの次のアクション'),
-      h('p', { class: 'next-action' }, summary.headline),
-      h('ul', { class: 'plain-list' }, ...summary.lines.map((t) => h('li', null, t))),
-      list('始める前に確認したいこと', confirm, 'confirm-list'),
+      h(
+        'div',
+        { class: 'next-action' },
+        careerSummary.action ? h('p', { id: 'next-career' }, careerSummary.action) : null,
+        potexTouched && state.actionId ? h('p', { id: 'next-potex' }, summary.headline.replace('次にあなたがすること：', 'POTEXの支援で最初にすること：')) : null,
+        !careerSummary.action && !(potexTouched && state.actionId) ? h('p', null, '次にすることは、まだ選んでいません。道すじの例の画面で、今週まず試すことと振り返る時期を選べます。') : null,
+      ),
+      h(
+        'section',
+        { class: 'summary-block', 'aria-labelledby': 'sum-career' },
+        h('h2', { id: 'sum-career', class: 'mini-title' }, 'キャリアの整理'),
+        h('ul', { class: 'plain-list' }, ...careerSummary.lines.map((t) => h('li', null, t))),
+        h('p', { class: 'muted' }, PotexCareer.NOTES.noBigMoves),
+      ),
+      h(
+        'section',
+        { class: 'summary-block', 'aria-labelledby': 'sum-potex' },
+        h('h2', { id: 'sum-potex', class: 'mini-title' }, 'POTEXの支援の使い方（任意）'),
+        potexTouched
+          ? h('ul', { class: 'plain-list' }, ...summary.lines.map((t) => h('li', null, t)))
+          : h('p', { class: 'muted' }, 'まだ考えていません。必要なときに、支援の使い方の案を見て自分で選べます。'),
+      ),
+      list('始める前に確認したいこと', potexTouched ? confirm : [], 'confirm-list'),
       h(
         'div',
         { class: 'consult', role: 'status' },
@@ -750,10 +1096,14 @@
       h(
         'div',
         { class: 'actions' },
-        button('支援の使い方を選び直す', () => go('routes'), { id: 'summary-routes' }),
+        button('試すことや道すじを選び直す', () => go('paths'), { id: 'summary-paths' }),
+        button(potexTouched ? '支援の使い方を選び直す' : 'POTEXの支援の使い方を考える', () => go(potexTouched ? 'routes' : 'needs', potexTouched ? {} : { needsFrom: 'paths' }), {
+          variant: 'quiet',
+          id: 'summary-routes',
+        }),
         answeredCount() === S.ITEM_COUNT
-          ? button('チェックの結果を見る', () => go('results'), { variant: 'quiet', id: 'summary-results' })
-          : button('自己理解チェックを受ける', () => go(answeredCount() > 0 ? 'question' : 'about'), { variant: 'quiet', id: 'summary-take-check' }),
+          ? button('簡易分析の結果を見る', () => go('results'), { variant: 'quiet', id: 'summary-results' })
+          : button('簡易分析を受ける', () => go(answeredCount() > 0 ? 'question' : 'about'), { variant: 'quiet', id: 'summary-take-check' }),
       ),
     ];
   }
@@ -795,7 +1145,7 @@
           },
         },
         h('h2', { id: 'reset-title' }, '最初からやり直しますか'),
-        h('p', { id: 'reset-desc' }, 'チェックの回答、結果、目標と希望の選択、選んだ支援の使い方と行動を、すべて消します。元に戻すことはできません。'),
+        h('p', { id: 'reset-desc' }, '簡易分析の回答と結果、キャリアの整理の選択、選んだ道すじと検証行動、POTEXの支援についての選択を、すべて消します。元に戻すことはできません。'),
         h(
           'div',
           { class: 'dialog-actions' },
@@ -825,6 +1175,8 @@
       question: screenQuestion,
       review: screenReview,
       results: screenResults,
+      career: screenCareer,
+      paths: screenPaths,
       needs: screenNeeds,
       routes: screenRoutes,
       action: screenAction,
@@ -846,7 +1198,7 @@
     const header = h(
       'header',
       { class: 'app-header' },
-      h('p', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'POTEX'), h('span', { class: 'brand-sub' }, '自己理解チェック')),
+      h('p', { class: 'brand' }, h('span', { class: 'brand-mark' }, 'POTEX'), h('span', { class: 'brand-sub' }, 'キャリアの自己理解')),
       h('p', { class: 'demo-pill' }, '公開デモ'),
       resetBtn,
     );

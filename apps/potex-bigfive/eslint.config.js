@@ -52,6 +52,7 @@ export default [
         PotexScoring: 'readonly',
         PotexContent: 'readonly',
         PotexLogic: 'readonly',
+        PotexCareer: 'readonly',
       },
     },
     rules: {

@@ -4,9 +4,9 @@ import vm from 'node:vm';
 
 const read = (f) => readFileSync(new URL(`../../src/${f}`, import.meta.url), 'utf8');
 
-const code = [read('scoring.js'), read('content.js'), read('logic.js')].join('\n');
-const api = vm.runInThisContext(`${code}\n;({ PotexScoring, PotexContent, PotexLogic })`, {
+const code = [read('scoring.js'), read('content.js'), read('logic.js'), read('career.js')].join('\n');
+const api = vm.runInThisContext(`${code}\n;({ PotexScoring, PotexContent, PotexLogic, PotexCareer })`, {
   filename: 'potex-src.js',
 });
 
-export const { PotexScoring, PotexContent, PotexLogic } = api;
+export const { PotexScoring, PotexContent, PotexLogic, PotexCareer } = api;

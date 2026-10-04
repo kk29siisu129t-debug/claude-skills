@@ -8,5 +8,5 @@
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": []
   },
-  "files": ["src/scoring.js", "src/content.js", "src/logic.js", "src/app.js"]
+  "files": ["src/scoring.js", "src/content.js", "src/logic.js", "src/career.js", "src/app.js"]
 }

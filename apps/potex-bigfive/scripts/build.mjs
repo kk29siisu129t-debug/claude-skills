@@ -9,7 +9,7 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const appDir = path.resolve(here, '..');
 const src = (f) => path.join(appDir, 'src', f);
 
-export const SCRIPT_ORDER = ['scoring.js', 'content.js', 'logic.js', 'app.js'];
+export const SCRIPT_ORDER = ['scoring.js', 'content.js', 'logic.js', 'career.js', 'app.js'];
 
 const TITLE = 'POTEX 自己理解チェック';
 const CSP = [
@@ -33,7 +33,7 @@ async function main() {
   const js = `'use strict';\n${scripts.join('\n')}`;
   const body = [
     `<title>${TITLE}</title>`,
-    `<meta name="description" content="Mini-IPIPをもとにした独自日本語訳の20問で自分の傾向を振り返り、支援の使い方を自分で選ぶ公開デモ。回答は送信・保存しません。">`,
+    `<meta name="description" content="IPIPの項目を参考にした独自の4択の簡易分析で自分の傾向を振り返り、希望・関心・経験からキャリアの道すじの例を比べる公開デモ。回答は送信・保存しません。">`,
     `<meta name="referrer" content="no-referrer">`,
     `<style>\n${css}</style>`,
     `<div id="app" lang="ja"></div>`,
