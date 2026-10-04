@@ -1,0 +1,283 @@
+<title>POTEX 商品設計の洗い出し</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Zen+Kaku+Gothic+New:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: 単一カラムの社内メモ。表は横スクロール枠、状態はピルで示す */
+:root{
+  --bg:#f6f7f5; --surface:#ffffff; --fg:#1d2422; --muted:#5b6662; --line:#d9dfdb;
+  --accent:#1f6b5c; --accent-soft:#e3efeb;
+  --ok:#2f7a3e; --ok-bg:#e4f2e6; --warn:#9a6a00; --warn-bg:#fbf1d6; --bad:#a83a2c; --bad-bg:#f8e3df; --unk:#5b6662; --unk-bg:#eceeed;
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"Noto Sans JP","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --surface:#1a201e; --fg:#e4e9e6; --muted:#9aa6a1; --line:#2c3532;
+  --accent:#6cc4ae; --accent-soft:#1f302b;
+  --ok:#7ccf8b; --ok-bg:#1c2e20; --warn:#e3b84f; --warn-bg:#33290f; --bad:#f08a7a; --bad-bg:#3a1f1a; --unk:#a5b0ab; --unk-bg:#252c29;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --surface:#1a201e; --fg:#e4e9e6; --muted:#9aa6a1; --line:#2c3532;
+  --accent:#6cc4ae; --accent-soft:#1f302b;
+  --ok:#7ccf8b; --ok-bg:#1c2e20; --warn:#e3b84f; --warn-bg:#33290f; --bad:#f08a7a; --bad-bg:#3a1f1a; --unk:#a5b0ab; --unk-bg:#252c29;
+  color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.75;padding-inline:16px;padding-block:32px 64px}
+.wrap{max-width:880px;margin:0 auto;display:grid;gap:44px}
+header{display:grid;gap:10px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--accent);text-transform:uppercase}
+h1{font-family:var(--f-display);font-weight:900;font-size:clamp(26px,5vw,36px);line-height:1.3;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:700;font-size:22px;margin:0;text-wrap:balance;display:flex;gap:12px;align-items:baseline}
+h2 .no{font-family:var(--f-mono);font-size:14px;color:var(--accent);font-weight:500}
+h3{font-family:var(--f-display);font-weight:700;font-size:17px;margin:0}
+p{margin:0}
+.meta{color:var(--muted);font-size:13px}
+section{display:grid;gap:16px;min-width:0}
+.lead{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:20px 22px;display:grid;gap:14px}
+.lead ol{margin:0;padding-left:1.4em;display:grid;gap:10px}
+.lead b{color:var(--accent)}
+.kpi{display:flex;flex-wrap:wrap;gap:10px 28px;align-items:flex-end}
+.kpi .num{font-family:var(--f-mono);font-size:34px;font-weight:500;line-height:1;font-variant-numeric:tabular-nums}
+.kpi .lbl{font-size:12px;color:var(--muted);letter-spacing:.04em}
+.kpi > div{display:grid;gap:6px}
+.gauge{position:relative;height:12px;background:var(--unk-bg);border-radius:6px;overflow:hidden}
+.gauge span{position:absolute;inset:0 auto 0 0;background:var(--bad)}
+.gauge i{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--fg)}
+.gauge-cap{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+.tbl{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+th,td{text-align:left;vertical-align:top;padding:10px 12px;border-bottom:1px solid var(--line)}
+th{font-weight:700;font-size:12px;color:var(--muted);letter-spacing:.04em;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.stage{font-family:var(--f-mono);font-size:12px;color:var(--muted);white-space:nowrap}
+td.name{font-weight:700;white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+.price{font-family:var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+.pill{display:inline-block;font-size:11.5px;line-height:1.5;padding:1px 8px;border-radius:999px;white-space:nowrap;font-weight:500}
+.ok{color:var(--ok);background:var(--ok-bg)} .warn{color:var(--warn);background:var(--warn-bg)} .bad{color:var(--bad);background:var(--bad-bg)} .unk{color:var(--unk);background:var(--unk-bg)}
+.note{font-size:13.5px;color:var(--muted);border-left:3px solid var(--line);padding-left:12px}
+.insight{background:var(--accent-soft);border-radius:8px;padding:14px 16px;font-size:14px}
+.insight b{color:var(--accent)}
+ul.plain{margin:0;padding-left:1.2em;display:grid;gap:6px}
+.factors{display:grid;gap:22px}
+.factor{display:grid;gap:10px}
+.factor h3 .tag{font-family:var(--f-mono);font-size:12px;color:var(--accent);margin-right:8px}
+.decide{counter-reset:d;list-style:none;margin:0;padding:0;display:grid;gap:0;border:1px solid var(--line);border-radius:10px;background:var(--surface)}
+.decide li{counter-increment:d;display:grid;grid-template-columns:2.2em 1fr auto;gap:12px;padding:12px 16px;border-bottom:1px solid var(--line);align-items:baseline}
+.decide li:last-child{border-bottom:0}
+.decide li::before{content:counter(d);font-family:var(--f-mono);color:var(--accent);font-weight:500}
+.decide .d-body{min-width:0}
+.decide .d-body small{display:block;color:var(--muted);font-size:13px}
+.prio{font-family:var(--f-mono);font-size:11.5px;white-space:nowrap}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;font-size:12px;color:var(--muted)}
+tr.grp td{background:var(--accent-soft);color:var(--accent);font-family:var(--f-display);font-weight:700;font-size:13px;letter-spacing:.04em;padding:7px 12px}
+table.svc{min-width:900px} table.svc td.name{white-space:normal;min-width:9em}
+table.matrix td.u{color:var(--muted);text-align:center}
+footer{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+@media (max-width:560px){.decide li{grid-template-columns:1.8em 1fr}.decide .prio{grid-column:2}}
+</style>
+
+<div class="wrap">
+
+<header>
+  <div class="eyebrow">POTEX ／ 継続率改善 ／ 2026-10-04</div>
+  <h1>POTEX 商品設計の洗い出し</h1>
+  <p class="meta">継続率を上げる設計変更のための現状整理。出典は8〜10月の会議記録（朝会・統括会議・顧客満足度定例・コーチ統括定例ほか）と事業ナレッジ。記録に無い項目は「未確認」、推測は推測と明記。</p>
+</header>
+
+<section>
+  <div class="lead">
+    <div class="kpi">
+      <div><span class="lbl">継続率 直近（10/1）</span><span class="num">&lt;30%</span></div>
+      <div><span class="lbl">9月累計</span><span class="num">22.2%</span></div>
+      <div><span class="lbl">8月</span><span class="num">6%</span></div>
+      <div><span class="lbl">目標</span><span class="num" style="color:var(--accent)">50%</span></div>
+    </div>
+    <div>
+      <div class="gauge" role="img" aria-label="継続率 9月累計22.2%、目標50%"><span style="width:22.2%"></span><i style="left:50%"></i></div>
+      <div class="gauge-cap"><span>0%</span><span>目標 50%</span><span>100%</span></div>
+    </div>
+    <ol>
+      <li><b>継続率は目標の半分以下。</b>6% → 23% → 30%未満と改善はしているが、地道な積み上げでは30%も見通せないという認識（10/1）。</li>
+      <li><b>継続プランの料金案が記録上3通りあり、現行が確定していない。</b>10/4の対面で決める予定だった。</li>
+      <li><b>挙がっている離脱要因は、価格より手前にある。</b>AFSの位置、コーチとの関係、3ヶ月後・半年後の姿が見えないこと、ペルソナ。料金表だけ直しても継続率は動かない可能性が高い（9/23「料金設計以前の問題」）。</li>
+    </ol>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">1</span>提供サービス一覧（頻度別）</h2>
+  <p class="meta">受講者が契約後に受け取るものを、頻度ごとに並べた。「継続プラン」列は卒業後にそのサービスが残るかどうか。</p>
+  <div class="legend"><span><span class="pill ok">稼働</span> 運用中</span><span><span class="pill warn">変更中</span> 決定済み・移行中</span><span><span class="pill bad">未確定</span> 検討中・開発中</span><span><span class="pill unk">未確認</span> 記録に無い</span></div>
+
+  <div class="tbl"><table class="svc">
+    <thead><tr><th>頻度</th><th>サービス</th><th>中身</th><th>提供者</th><th>継続プラン</th><th>状態</th></tr></thead>
+    <tbody>
+      <tr class="grp"><td colspan="6">常時</td></tr>
+      <tr><td class="stage">常時</td><td class="name">POTEXアプリ</td><td>習慣トラッキング中心。コーチチャット・コミュニティ・目標シートを統合する全面リニューアルを開発中（11月末に全リリース目標、総額230万円）</td><td>開発：まさ（pierrot）チーム</td><td>未確認（卒業生の権限管理が論点 10/2）</td><td><span class="pill warn">リニューアル中</span></td></tr>
+      <tr><td class="stage">常時</td><td class="name">Discordコミュニティ</td><td>自己紹介・グッドニュース部屋など。認証率43%、自己紹介完了率63%（10/3）。アプリ統合までの3〜4ヶ月はDiscordを継続</td><td>大場さん（コミュニティ定例オーナー）・新川さん</td><td><b>マスターは無期限</b>／他プランは未確認</td><td><span class="pill ok">稼働</span></td></tr>
+
+      <tr class="grp"><td colspan="6">毎日〜数日に1回</td></tr>
+      <tr><td class="stage">毎日〜2日に1回</td><td class="name">日次フィードバック（デイリークエスト）</td><td>受講者の日々の記録にコーチがFB。「毎日FBに強く価値を感じる顧客が一定数いる」（8/31）。「デイリークエストが2日に1回」との発言もあり（8/9）。<b>プラン別の頻度は未確認</b></td><td>担当コーチ</td><td>旧：2日に1回／新案：毎日（9/1案）または3日に1回（9/11最安案）</td><td><span class="pill unk">頻度未確認</span></td></tr>
+      <tr><td class="stage">日次（予定）</td><td class="name">AIフィードバック</td><td>受講者向けAI FB。Under25には組込み済み。コーチ用のAI下書き機能は10月中旬リリース予定</td><td>AI＋コーチ確認</td><td>9/1案で「AIで毎日FB」を継続プランの柱に（新川さん構築）</td><td><span class="pill bad">開発中</span></td></tr>
+
+      <tr class="grp"><td colspan="6">セッションごと</td></tr>
+      <tr><td class="stage">契約中 定期</td><td class="name">個別コーチングセッション</td><td>1回30分（延長案あり・未決 10/4）。中身はコーチング＋コンサル（「コーチング」の呼び名と実態がずれている 9/23）。<b>プラン別の回数・間隔は未確認</b>（「6回目前後が契約の中間」発言から全12回前後と推測）</td><td>担当コーチ（34名、5チーム制）</td><td>月1回</td><td><span class="pill unk">回数未確認</span></td></tr>
+      <tr><td class="stage">毎セッション後</td><td class="name">満足度アンケート</td><td>4段階の体感満足度＋コメント。回収率10〜30%でコーチ差が大きい。アプリでの未回答通知を開発予定</td><td>コーチが送付</td><td>未確認</td><td><span class="pill bad">回収率低</span></td></tr>
+
+      <tr class="grp"><td colspan="6">月1〜2回</td></tr>
+      <tr><td class="stage">月1回</td><td class="name">月次レポート</td><td>その月の振り返りとネクストアクション。機能は実装済み。出すタイミング（4・8回目のセッション後か月末か）が未確定。11月から運用の見込み</td><td>コーチ（アプリ）</td><td>未確認</td><td><span class="pill bad">運用未確定</span></td></tr>
+      <tr><td class="stage">月2回</td><td class="name">グループセッション</td><td>5名1組。<b>Under25のみ</b></td><td>コーチ</td><td>—</td><td><span class="pill ok">稼働</span></td></tr>
+      <tr><td class="stage">月1回程度</td><td class="name">オンライン交流会</td><td>9/29は想定15名に対し24名参加。ブレイクアウト＋質問コーナー</td><td>新川さん・石島さん</td><td>未確認</td><td><span class="pill ok">稼働</span></td></tr>
+      <tr><td class="stage">月1回程度</td><td class="name">オフ会／オフラインイベント</td><td>9/21オフ会 約50名。10/25に朝活オフライン開催予定</td><td>運営（大場さん）</td><td>プレミアムは在籍中無料が特典案</td><td><span class="pill ok">稼働</span></td></tr>
+      <tr><td class="stage">不定期</td><td class="name">テーマ別ワークショップ・ライブ配信</td><td>アスリートWS（満足度97.4%、定期開催決定）、SNS WS（10名・満足度88%）、10/10 コミュニティ内ライブ配信</td><td>福井さん・榊原さん・登壇者</td><td>未確認</td><td><span class="pill ok">稼働</span></td></tr>
+
+      <tr class="grp"><td colspan="6">契約期間中に1回（節目）</td></tr>
+      <tr><td class="stage">成約後3日以内</td><td class="name">コンシェルジュ面談</td><td>オンボーディング。Discord自己紹介までその場で完了させる運用を試験中。KPIに「解約率低下」「BA創出・採用につながる顧客のマーキング」（9/14）。クーリングオフ対策も兼ねる</td><td>石島さん → 佐々木拓也さん・新井河さん・新川さんへ移管中</td><td>—</td><td><span class="pill warn">移管中</span></td></tr>
+      <tr><td class="stage">30〜40日目</td><td class="name">40日アップグレード面談</td><td>上位プランへの差額移行（約+¥50,000）。CSからの連絡では反応が薄く、担当営業が直接面談する形へ</td><td>担当営業</td><td>—</td><td><span class="pill warn">変更中</span></td></tr>
+      <tr><td class="stage">契約の中盤</td><td class="name">ギアアップセッション</td><td>中間振り返り。現状はコーチが流れでやっている。固定アジェンダで全員に入れる案（10/4）</td><td>コーチ／佐々木拓也さん・新井河さん</td><td>—</td><td><span class="pill bad">体系化検討中</span></td></tr>
+      <tr><td class="stage">最終回の1回前</td><td class="name">AFS（アフターフォローセッション）</td><td>卒業後の継続プランを案内する場。最終回の後から1回前へ移す方向（9/17）。名称変更も検討中（例：未来戦略会議）</td><td>営業担当に一元化（コーチからの打診は停止）</td><td>ここが継続の入口</td><td><span class="pill warn">変更中</span></td></tr>
+
+      <tr class="grp"><td colspan="6">随時・オプション</td></tr>
+      <tr><td class="stage">随時（有料）</td><td class="name">スポットコーチ</td><td>SNS運用・事業伴走の専門家が単発で入る。1回2〜5万円相当。回数券化・カタログ化を設計中。解約リスク対応でコーチを替える前提で投入することもある（10/3）</td><td>スポットコーチ（時給7,000円前後で採用中）</td><td>未確認</td><td><span class="pill bad">商品化中</span></td></tr>
+      <tr><td class="stage">随時</td><td class="name">コーチ変更</td><td>満足度低下・解約リスク時に個別対応。目標が変わった時に気軽に替えられる仕組みは無い（10/4）</td><td>リーダー・統括</td><td>—</td><td><span class="pill unk">仕組み無し</span></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section>
+  <h2><span class="no">2</span>プラン × サービス</h2>
+  <p class="meta">記録で確認できたものだけ埋めた。空欄が多いこと自体が、プラン間の差が社内でも言語化されていない可能性を示している。</p>
+  <div class="tbl"><table class="matrix">
+    <thead><tr><th>サービス</th><th>ライト</th><th>ベーシック</th><th>マスター</th><th>プレミアム</th><th>Under25</th><th>継続プラン（9/23案）</th></tr></thead>
+    <tbody>
+      <tr><td class="name">価格</td><td class="price">¥275,000</td><td class="u">?</td><td class="price">6ヶ月 ¥597,800</td><td class="u">?</td><td class="u">?</td><td class="price">梅 ¥8,000/月<br>竹 ¥23,800/月〜<br>松 ¥34,800/月〜</td></tr>
+      <tr><td class="name">期間</td><td class="u">?</td><td class="u">?</td><td>6ヶ月</td><td class="u">?</td><td class="u">?</td><td>月次自動更新／3・6・12ヶ月（梅は12ヶ月のみ）</td></tr>
+      <tr><td class="name">個別セッション</td><td class="u">?</td><td class="u">?</td><td class="u">?</td><td class="u">?</td><td>月1回</td><td>月1回</td></tr>
+      <tr><td class="name">日次FB</td><td class="u">?</td><td class="u">?</td><td class="u">?</td><td class="u">?</td><td>AI FB</td><td>毎日〜3日に1回（案で揺れている）</td></tr>
+      <tr><td class="name">グループセッション</td><td>—</td><td>—</td><td>—</td><td>—</td><td>月2回</td><td>—</td></tr>
+      <tr><td class="name">コミュニティ</td><td class="u">?</td><td class="u">?</td><td><b>無期限</b></td><td class="u">?</td><td class="u">?</td><td>最安プランの役割（9/11）</td></tr>
+      <tr><td class="name">オフ会</td><td class="u">?</td><td class="u">?</td><td class="u">?</td><td>在籍中無料（案）</td><td class="u">?</td><td class="u">?</td></tr>
+      <tr><td class="name">8月後半の成約比率</td><td class="num">16%</td><td class="num">50%</td><td colspan="2" class="u">?</td><td>—</td><td>—</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">他の商品：POTEX SKILLS（月1万円程度、10/15ローンチ予定、アプリ組込みで再設計中）、for biz（AI研修・Executive、収益構造未確定）、法人コンサル単発（1回5万円）。</p>
+</section>
+
+<section>
+  <h2><span class="no">3</span>継続プラン：記録上3通りの案</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>日付</th><th>出典</th><th>案</th></tr></thead>
+    <tbody>
+      <tr><td class="num">9/1</td><td>朝会</td><td>毎日FB＋月1コーチング。<span class="price">3ヶ月 ¥180,000</span> ／ <span class="price">6ヶ月 ¥290,000</span></td></tr>
+      <tr><td class="num">9/11</td><td>朝会</td><td>1年・6ヶ月・3ヶ月で、自動更新より安くする。最安は月1コーチング＋3日に1回FBで <span class="price">月¥8,000〜10,000</span>。「本当に欲しいものは上位プランにしか無い」構造。最安はコミュニティ活性化の役割</td></tr>
+      <tr><td class="num">9/23</td><td>田原さん会議</td><td>梅 <span class="price">¥8,000/月</span>（12ヶ月のみ）／竹 <span class="price">¥23,800/月〜</span>／松 <span class="price">¥34,800/月〜</span>。Stripeで月次自動更新＋3・6・12ヶ月</td></tr>
+    </tbody>
+  </table></div>
+  <ul class="plain">
+    <li>9/23案が最新。ただし<b>梅・竹・松それぞれの中身（セッション回数・FB頻度）は記録に無い</b>。</li>
+    <li>9/1案（3ヶ月18万＝月6万）と9/23の竹（月2.38万）は月額で約2.5倍違う。同じ「毎日FB」なのか確認が要る。</li>
+    <li>旧継続プランのFBは2日に1回。「毎日FBに強く価値を感じる顧客が一定数いる」（8/31）。</li>
+    <li>10/1時点で「継続プランの幅が実質マスターライトしかない」（榊原さん）。新プランはまだ売られていないと読める。</li>
+  </ul>
+  <div class="insight"><b>推測：</b>梅 ¥8,000/月は、ライトの36分割（月¥7,638）とほぼ同額。顧客から見ると「本商品の分割払いと同じ額で、中身は月1回に減る」。値頃感を比べる相手がここになる可能性がある。</div>
+</section>
+
+<section>
+  <h2><span class="no">4</span>継続率の数字（定義が揃っていない）</h2>
+  <div class="tbl"><table>
+    <thead><tr><th>時点</th><th>値</th><th>分母</th><th>出典</th></tr></thead>
+    <tbody>
+      <tr><td>8月</td><td class="num">6%<span class="meta">（検討中込みで最大20%）</span></td><td>AFS実施15件。無断キャンセル5件は分母外</td><td>8/31 朝会</td></tr>
+      <tr><td>8月</td><td class="num">5〜6%</td><td>卒業20名</td><td>9/1 朝会</td></tr>
+      <tr><td>8/30時点</td><td class="num">15〜20%</td><td><span class="pill unk">未記載</span></td><td>コーチ統括定例</td></tr>
+      <tr><td>9/23時点</td><td class="num">23%</td><td><span class="pill unk">未記載</span></td><td>田原さん会議</td></tr>
+      <tr><td>9月累計</td><td class="num">22.2%</td><td><span class="pill unk">未記載</span></td><td>顧客満足度定例 9/24</td></tr>
+      <tr><td>10/1時点</td><td class="num">30%未満</td><td><span class="pill unk">未記載</span></td><td>顧客満足度定例</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">分母が「AFS実施者」か「卒業者」かで値が変わる。AFSに来なかった人を外すと継続率は高く見える。設計変更の効果を測る前に、分母を「卒業者全員」に固定する。月20名規模なので月次ではなく四半期累計で見る。</p>
+</section>
+
+<section>
+  <h2><span class="no">5</span>継続を妨げている設計要因</h2>
+  <p class="meta">会議で指摘済みのもの。E は推測を含む。</p>
+  <div class="factors">
+    <div class="factor">
+      <h3><span class="tag">A</span>継続を打診する場の設計</h3>
+      <div class="tbl"><table>
+        <thead><tr><th>要因</th><th>出典</th><th>対応</th></tr></thead>
+        <tbody>
+          <tr><td>コーチが頭出し → 担当変更で心理的ハードルが上がる</td><td>8/31</td><td><span class="pill ok">済</span> コーチの打診を停止しAFS営業担当に一元化</td></tr>
+          <tr><td>最終回で「ありがとうございました」と締めた後にAFSへ誘うのは難しい</td><td>9/17</td><td><span class="pill warn">移行中</span> AFSを最終回の1回前へ</td></tr>
+          <tr><td>AFSの位置づけ・名前が弱い</td><td>9/17</td><td><span class="pill bad">検討中</span> 「未来戦略会議」等に改名（有田さん）</td></tr>
+          <tr><td>AFSでの離脱理由はコーチとの関係性が多い</td><td>9/23</td><td><span class="pill bad">未着手</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <div class="factor">
+      <h3><span class="tag">B</span>本商品の中で「先」が見えていない</h3>
+      <ul class="plain">
+        <li>3ヶ月後・半年後にどうなっているかのイメージが具体的でない（10/4）</li>
+        <li>POTEXが目指す「理想の受講者像」がふわっとしていて、コーチもクライアントも目指す先を共有していない（10/4）</li>
+        <li>中間地点のギアアップセッションが体系化されていない。コーチが流れでやっている（10/4）</li>
+        <li>月次レポートの運用基準（4・8回目後か月末か）が未確定（9/23）</li>
+        <li>成長を可視化するレベル・称号・スキルツリーが無い（9/23・10/4）</li>
+      </ul>
+    </div>
+    <div class="factor">
+      <h3><span class="tag">C</span>誰に売っているか</h3>
+      <ul class="plain">
+        <li>継続しやすいのはキャリア・転職・事業・SNSなど<b>実利が伴う層</b>。目標がふわっとした人は継続のイメージが湧きにくい（10/1 田原さん）</li>
+        <li>カウンセリング寄り（お守り的な安心感）も継続しやすい（10/1）</li>
+        <li>「コーチング」という言葉が実態（コンサル込み）とずれ、顧客の要求水準を下げている（9/23）</li>
+      </ul>
+    </div>
+    <div class="factor">
+      <h3><span class="tag">D</span>提供品質</h3>
+      <ul class="plain">
+        <li>コーチ34名中、Dランク相当13名・C以下17名（8/30）</li>
+        <li>コーチ歴が長くキャパも多いのに継続ゼロのコーチがいる（10/1）</li>
+        <li>コーチ交代が起きにくい。手放すインセンティブが無い（10/4）</li>
+        <li>アンケート回収率10〜30%で、満足度をそもそも測れていない（10/1）</li>
+      </ul>
+    </div>
+    <div class="factor">
+      <h3><span class="tag">E</span>商品構造そのもの</h3>
+      <ul class="plain">
+        <li>マスターのコミュニティ無期限特典は「一生涯フォロー」のメッセージとして維持（9/9）。卒業後もコミュニティに残れるなら、継続プランに払う理由が1つ減る。継続プランとの役割分担は記録に無い。<span class="pill unk">推測</span></li>
+        <li>旧継続プランのFBは本商品より薄い（2日に1回）。<b>継続すると体験が下がる</b>設計になっている。</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="no">6</span>設計変更で決めること</h2>
+  <p class="meta">右端は着手の推奨順。田原さんの優先順位（9/23）は「商品設計 → コーチ養成講座 → 月次レポート」。</p>
+  <ol class="decide">
+    <li><div class="d-body">継続プランの中身と価格を1案に決める<small>梅竹松それぞれのセッション回数・FB頻度。9/1案（3ヶ月18万）との関係</small></div><span class="prio">3. 本体</span></li>
+    <li><div class="d-body">継続率の定義<small>分母を卒業者全員に固定するか</small></div><span class="prio">2. 測定</span></li>
+    <li><div class="d-body">AFSの位置と名前<small>最終回の1回前への変更を全コーチ一律で始める日付</small></div><span class="prio">1. 今週</span></li>
+    <li><div class="d-body">本商品の中間に固定アジェンダの「ギアアップセッション」を入れるか<small>月次レポートと同じタイミングにするか</small></div><span class="prio">3. 本体</span></li>
+    <li><div class="d-body">継続前提で売るか<small>営業時に「3ヶ月で仕組み、6ヶ月でコンサル」（8/31）のように、卒業後の段まで最初から見せるか</small></div><span class="prio">3. 本体</span></li>
+    <li><div class="d-body">マスターの無期限コミュニティと継続プランの役割分担</div><span class="prio">4. 上流</span></li>
+    <li><div class="d-body">ペルソナを実利層に寄せるか<small>寄せると成約数が減る可能性がある。売上とのトレードオフ</small></div><span class="prio">4. 上流</span></li>
+    <li><div class="d-body">コーチ交代の仕組み<small>目標が変わった時に交代を当たり前にするか</small></div><span class="prio">4. 上流</span></li>
+  </ol>
+</section>
+
+<section>
+  <h2><span class="no">7</span>未確認（次に埋める）</h2>
+  <ul class="plain">
+    <li>ライト／ベーシック／プレミアムの価格・期間・セッション回数・FB頻度の一覧（Stripeか営業資料にあるはず）</li>
+    <li>Under25の価格</li>
+    <li>梅竹松の中身</li>
+    <li>10/4の対面で継続プランの価格が決まったか（みなとみらい会議のメモには価格の記載が無い）</li>
+    <li>継続率の各数字の分母</li>
+  </ul>
+</section>
+
+<footer>出典：朝会（8/31・9/1・9/7・9/8・9/11）、統括会議（9/2・9/9）、顧客満足度定例（9/17・10/1）、コーチ統括定例（8/30）、田原さん会議（9/23）、POTEX対面 みなとみらい（10/4）、事業ナレッジ potex.md。</footer>
+
+</div>
