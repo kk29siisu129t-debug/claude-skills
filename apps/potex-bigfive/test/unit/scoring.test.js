@@ -47,64 +47,71 @@ test('因子ごとの項目番号', () => {
 });
 
 const scoresOf = (r) => ({ ...S.scoreResponses(r) });
+const all = (v) => ({ E: v, A: v, C: v, N: v, O: v });
 
-test('全3 → 全因子3', () => {
-  assert.deepEqual(scoresOf(fill(3)), { E: 3, A: 3, C: 3, N: 3, O: 3 });
+test('尺度は1〜4の4択', () => {
+  assert.equal(S.SCALE_MIN, 1);
+  assert.equal(S.SCALE_MAX, 4);
 });
 
-test('正項目5・逆項目1 → 全因子5', () => {
-  assert.deepEqual(scoresOf(byKey((it) => (it.keyed === 1 ? 5 : 1))), { E: 5, A: 5, C: 5, N: 5, O: 5 });
+test('全4 → E/A/C/N=2.5, O=1.75', () => {
+  assert.deepEqual(scoresOf(fill(4)), { E: 2.5, A: 2.5, C: 2.5, N: 2.5, O: 1.75 });
 });
 
-test('正項目1・逆項目5 → 全因子1', () => {
-  assert.deepEqual(scoresOf(byKey((it) => (it.keyed === 1 ? 1 : 5))), { E: 1, A: 1, C: 1, N: 1, O: 1 });
+test('全1 → E/A/C/N=2.5, O=3.25', () => {
+  assert.deepEqual(scoresOf(fill(1)), { E: 2.5, A: 2.5, C: 2.5, N: 2.5, O: 3.25 });
 });
 
-test('全5 → E/A/C/N=3, O=2', () => {
-  assert.deepEqual(scoresOf(fill(5)), { E: 3, A: 3, C: 3, N: 3, O: 2 });
+test('正項目4・逆項目1 → 全因子4', () => {
+  assert.deepEqual(scoresOf(byKey((it) => (it.keyed === 1 ? 4 : 1))), all(4));
 });
 
-test('全1 → E/A/C/N=3, O=4', () => {
-  assert.deepEqual(scoresOf(fill(1)), { E: 3, A: 3, C: 3, N: 3, O: 4 });
+test('正項目1・逆項目4 → 全因子1', () => {
+  assert.deepEqual(scoresOf(byKey((it) => (it.keyed === 1 ? 1 : 4))), all(1));
 });
 
-test('逆項目を1→5にすると、その因子の平均だけが1下がる', () => {
+test('逆転は 5 − 回答（1↔4、2↔3）', () => {
+  // O は 1問が正、3問が逆。正項目を2、逆項目を3にすると 2,2,2,2 → 2
+  assert.equal(scoresOf(byKey((it) => (it.keyed === 1 ? 2 : 3))).O, 2);
+  assert.equal(scoresOf(byKey((it) => (it.keyed === 1 ? 3 : 2))).O, 3);
+});
+
+test('逆項目を1→4にすると、その因子の平均だけが0.75下がる', () => {
   const reversed = S.ITEMS.filter((it) => it.keyed === -1);
   assert.equal(reversed.length, 11);
   for (const item of reversed) {
-    const base = fill(3);
+    const base = fill(2);
     base[item.no - 1] = 1;
-    const changed = fill(3);
-    changed[item.no - 1] = 5;
+    const changed = fill(2);
+    changed[item.no - 1] = 4;
     const a = S.scoreResponses(base);
     const b = S.scoreResponses(changed);
     for (const f of S.FACTOR_ORDER) {
-      const diff = a[f] - b[f];
-      assert.equal(diff, f === item.factor ? 1 : 0, `項目${item.no}: 因子${f}`);
+      assert.equal(a[f] - b[f], f === item.factor ? 0.75 : 0, `項目${item.no}: 因子${f}`);
     }
   }
 });
 
-test('正項目を1→5にすると、その因子の平均だけが1上がる', () => {
+test('正項目を1→4にすると、その因子の平均だけが0.75上がる', () => {
   for (const item of S.ITEMS.filter((it) => it.keyed === 1)) {
-    const lo = fill(3);
+    const lo = fill(2);
     lo[item.no - 1] = 1;
-    const hi = fill(3);
-    hi[item.no - 1] = 5;
+    const hi = fill(2);
+    hi[item.no - 1] = 4;
     const a = S.scoreResponses(lo);
     const b = S.scoreResponses(hi);
-    for (const f of S.FACTOR_ORDER) assert.equal(b[f] - a[f], f === item.factor ? 1 : 0);
+    for (const f of S.FACTOR_ORDER) assert.equal(b[f] - a[f], f === item.factor ? 0.75 : 0);
   }
 });
 
-test('結果は1〜5の範囲で0.25刻み', () => {
+test('結果は1〜4の範囲で0.25刻み', () => {
   let seed = 7;
-  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) % 5) + 1;
+  const rand = () => ((seed = (seed * 1103515245 + 12345) % 2147483648) % 4) + 1;
   for (let n = 0; n < 500; n += 1) {
     const r = Array.from({ length: 20 }, rand);
     const s = S.scoreResponses(r);
     for (const f of S.FACTOR_ORDER) {
-      assert.ok(s[f] >= 1 && s[f] <= 5);
+      assert.ok(s[f] >= 1 && s[f] <= 4);
       assert.equal((s[f] * 4) % 1, 0);
     }
   }
@@ -128,8 +135,20 @@ test('未回答を拒否する（初期値で埋めない）', () => {
   assert.throws(() => S.scoreResponses(new Array(20).fill(null)), RangeError);
 });
 
+test('旧形式の5を無効値として拒否する', () => {
+  assert.equal(S.isValidAnswer(5), false);
+  const r = fill(3);
+  r[0] = 5;
+  const v = S.validateResponses(r);
+  assert.equal(v.ok, false);
+  assert.deepEqual([...v.invalid], [1]);
+  assert.match(v.message, /1〜4の整数ではない/);
+  assert.throws(() => S.scoreResponses(r), RangeError);
+  assert.throws(() => S.scoreResponses(fill(5)), RangeError);
+});
+
 test('範囲外・非整数・型違いを拒否する', () => {
-  for (const bad of [0, 6, -1, 2.5, 3.0000001, NaN, Infinity, '3', true, {}, [3]]) {
+  for (const bad of [0, 5, 6, -1, 2.5, 3.0000001, NaN, Infinity, '3', true, {}, [3]]) {
     const r = fill(3);
     r[10] = bad;
     const v = S.validateResponses(r);
@@ -147,13 +166,13 @@ test('長さ違い・配列以外を拒否する', () => {
 });
 
 test('isValidAnswer', () => {
-  for (const ok of [1, 2, 3, 4, 5]) assert.equal(S.isValidAnswer(ok), true);
-  for (const ng of [0, 6, 1.5, '1', null, undefined, NaN]) assert.equal(S.isValidAnswer(ng), false);
+  for (const ok of [1, 2, 3, 4]) assert.equal(S.isValidAnswer(ok), true);
+  for (const ng of [0, 5, 6, 1.5, '1', null, undefined, NaN]) assert.equal(S.isValidAnswer(ng), false);
 });
 
 test('表示は小数第2位まで', () => {
-  assert.equal(S.formatScore(3), '3.00');
-  assert.equal(S.formatScore(3.25), '3.25');
+  assert.equal(S.formatScore(2.5), '2.50');
+  assert.equal(S.formatScore(1.75), '1.75');
 });
 
 test('入力配列を書き換えない', () => {

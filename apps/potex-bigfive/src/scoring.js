@@ -1,6 +1,7 @@
 // @ts-check
 /*
- * Mini-IPIP（20項目）をもとにした独自日本語訳の採点ロジック。
+ * Mini-IPIP（20項目）の項目を参考に、独自の日本語訳と4択形式に変えた簡易分析の採点ロジック。
+ * 原版の5段階ではなく 1〜4 の4択で答える独自形式で、標準版 Mini-IPIP の得点とは比較できない。
  * DOM や保存領域には一切触れない純粋関数のみ。
  * 項目の符号（+ / 逆）と因子記号は内部データで、画面には表示しない。
  */
@@ -46,12 +47,12 @@ const PotexScoring = (() => {
   });
 
   const SCALE_MIN = 1;
-  const SCALE_MAX = 5;
+  const SCALE_MAX = 4;
   const ITEM_COUNT = 20;
 
   /**
-   * 1つの回答値が「1〜5の整数」かどうか。
-   * 文字列 "3"、3.5、NaN、null、undefined はすべて不正。
+   * 1つの回答値が「1〜4の整数」かどうか。
+   * 旧形式の 5、文字列 "3"、2.5、NaN、null、undefined はすべて不正。
    * @param {unknown} value
    * @returns {value is number}
    */
@@ -96,13 +97,13 @@ const PotexScoring = (() => {
     if (missing.length > 0) {
       message = `未回答の質問があります（${missing.join('、')}）。`;
     } else if (invalid.length > 0) {
-      message = `1〜5の整数ではない回答があります（${invalid.join('、')}）。`;
+      message = `1〜4の整数ではない回答があります（${invalid.join('、')}）。`;
     }
     return { ok, missing, invalid, message };
   }
 
   /**
-   * 項目の採点値。逆転項目は 6 − 回答。
+   * 項目の採点値。逆転項目は 5 − 回答（1↔4、2↔3）。
    * @param {Item} item
    * @param {number} answer
    */
@@ -111,7 +112,7 @@ const PotexScoring = (() => {
   }
 
   /**
-   * 5因子の得点（各4項目の平均、1〜5の連続値）を返す。
+   * 5因子の得点（各4項目の平均、1〜4の連続値）を返す。
    * 検証に通らない入力では例外を投げ、部分的な結果は返さない。
    * @param {unknown} responses
    * @returns {Readonly<Record<FactorKey, number>>}

@@ -2,10 +2,18 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { PotexContent as C, PotexLogic as L } from './load.js';
 
-const DISCLAIMER = '医療上の診断ではありません。結果は自己回答に基づく、その時点の傾向です。日本語訳の信頼性・妥当性は未検証です';
+const DISCLAIMER =
+  'IPIPの項目を参考に、独自の日本語訳と4択形式に変更した自己理解用の簡易分析です。この形式の信頼性・妥当性は未検証です。医療上の診断ではありません。';
 
 test('免責文は指定どおり', () => {
-  assert.ok(C.DISCLAIMER.startsWith(DISCLAIMER));
+  assert.equal(C.DISCLAIMER, DISCLAIMER);
+});
+
+test('標準版や検証済み日本語版と誤認させない説明がある', () => {
+  const notes = C.SOURCE_NOTES.join('');
+  assert.match(notes, /4択/);
+  assert.match(notes, /標準版の Mini-IPIP でも、検証済みの日本語版でもありません/);
+  assert.match(C.UNCERTAINTY_NOTE, /比べられません/);
 });
 
 test('因子の日本語名', () => {
@@ -18,17 +26,20 @@ test('因子の日本語名', () => {
   assert.match(C.FACTORS.N.note, /値が大きいほど、気分が揺れやすい方向/);
 });
 
-test('回答の選択肢', () => {
+test('回答の選択肢は上から「当てはまる」の4択で、中立の選択肢がない', () => {
   assert.deepEqual(
     C.SCALE.map((s) => [s.value, s.label]),
     [
-      [1, 'まったく当てはまらない'],
+      [4, '当てはまる'],
+      [3, 'やや当てはまる'],
       [2, 'あまり当てはまらない'],
-      [3, 'どちらともいえない'],
-      [4, 'やや当てはまる'],
-      [5, 'とても当てはまる'],
+      [1, '当てはまらない'],
     ],
   );
+  const text = JSON.stringify(C);
+  assert.ok(!text.includes('どちらともいえない'));
+  assert.ok(!text.includes('とても当てはまる'));
+  assert.ok(!text.includes('まったく当てはまらない'));
 });
 
 test('出典URLとDonnellanらの文献', () => {

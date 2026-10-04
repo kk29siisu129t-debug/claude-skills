@@ -470,6 +470,49 @@ progress::-moz-progress-bar {
   line-height: 1.6;
 }
 
+/* 4択の回答ボタン（押すとすぐ次の質問へ進む） */
+.answer {
+  appearance: none;
+  width: 100%;
+  grid-template-columns: 1fr 22px;
+  min-height: 60px;
+  font: inherit;
+  font-size: 17px;
+  color: var(--ink);
+  text-align: left;
+}
+
+.answer:active {
+  background: var(--accent-soft);
+}
+
+.answer[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.answer[aria-pressed="true"] .option-label {
+  font-weight: 600;
+}
+
+.answer[aria-pressed="true"] .option-check {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+.answer[aria-pressed="true"] .option-check::after {
+  content: "✓";
+  color: var(--accent-ink);
+  font-size: 13px;
+  line-height: 1;
+}
+
+.q-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
 .option input {
   position: absolute;
   opacity: 0;

@@ -48,9 +48,13 @@
   /** @type {State} */
   let state = initialState();
 
-  /** 画面切り替え直後の誤タップ（連打）を無視する時間。 */
-  const TAP_GUARD_MS = 350;
-  let lastTransitionAt = 0;
+  /**
+   * 画面切り替え直後の操作を無視する時間（ミリ秒）。
+   * 二重クリック・二重タップの2回目が、切り替わった後の画面（次の質問など）に届いて
+   * 回答や移動として扱われるのを防ぐ。
+   */
+  const LOCK_MS = 450;
+  let lockUntil = 0;
 
   /** 次の描画後にフォーカスを当てる要素の id。 */
   /** @type {string|null} */
@@ -162,7 +166,7 @@
    */
   function update(patch, opts = {}) {
     state = { ...state, ...patch };
-    if (opts.transition) lastTransitionAt = Date.now();
+    if (opts.transition) lockUntil = performance.now() + LOCK_MS;
     pendingFocusId = opts.focus === undefined ? null : opts.focus;
     render();
   }
@@ -172,8 +176,38 @@
     update({ screen, message: '', ...extra }, { focus: 'screen-title', transition: true });
   }
 
-  function guardTap() {
-    return Date.now() - lastTransitionAt < TAP_GUARD_MS;
+  function isLocked() {
+    return performance.now() < lockUntil;
+  }
+
+  // 画面切り替え直後のクリックを、どのボタンやラベルに届く前にも止める
+  root.addEventListener(
+    'click',
+    (ev) => {
+      if (isLocked()) {
+        ev.preventDefault();
+        ev.stopImmediatePropagation();
+      }
+    },
+    true,
+  );
+  // Enter / Space の押し続け（キーリピート）でボタンが繰り返し押されないようにする
+  root.addEventListener(
+    'keydown',
+    (ev) => {
+      if (ev.repeat && (ev.key === 'Enter' || ev.key === ' ')) ev.preventDefault();
+    },
+    true,
+  );
+
+  /** スクリーンリーダー向けのお知らせ。#app の外に置き、描き直しで消えないようにする。 */
+  const liveRegion = document.createElement('p');
+  liveRegion.className = 'sr-only';
+  liveRegion.setAttribute('aria-live', 'polite');
+  document.body.append(liveRegion);
+  /** @param {string} text */
+  function announce(text) {
+    liveRegion.textContent = text;
   }
 
   function hasAnyData() {
@@ -195,7 +229,8 @@
 
   function resetAll() {
     state = initialState();
-    lastTransitionAt = Date.now();
+    lockUntil = performance.now() + LOCK_MS;
+    announce('すべての回答と選択を消しました。');
     pendingFocusId = 'screen-title';
     render();
   }
@@ -215,7 +250,7 @@
       h(
         'ol',
         { class: 'steps', 'aria-label': '進め方' },
-        h('li', null, h('strong', null, '20問のチェック'), h('span', null, '普段の自分について、5段階で答えます（約3分）')),
+        h('li', null, h('strong', null, '20問のチェック'), h('span', null, '普段の自分について、4択で答えます（約3分）')),
         h('li', null, h('strong', null, '振り返り'), h('span', null, '5つの観点の数値と、考えてみたい問いを見ます')),
         h('li', null, h('strong', null, '目標と希望の整理'), h('span', null, '選択式で、テーマや使える時間を選びます')),
         h('li', null, h('strong', null, '支援の使い方を選ぶ'), h('span', null, '3つの案を見比べ、自分で選びます')),
@@ -224,7 +259,7 @@
       h(
         'div',
         { class: 'actions' },
-        button('チェックを始める', () => go('about'), { variant: 'primary', id: 'start' }),
+        button('簡易分析を始める', () => go('about'), { variant: 'primary', id: 'start' }),
         button('チェックを飛ばして、支援の使い方を考える', () => go('needs', { needsFrom: 'home' }), {
           id: 'skip-to-needs',
         }),
@@ -246,8 +281,8 @@
       h(
         'ul',
         { class: 'plain-list' },
-        h('li', null, '20問それぞれについて、普段の自分にどのくらい当てはまるかを5段階で答えます。正解や不正解はありません。'),
-        h('li', null, '結果は5つの観点ごとに、1〜5の数値で表示します。タイプ分けや、優劣・順位づけはしません。'),
+        h('li', null, '20問それぞれについて、普段の自分にどのくらい当てはまるかを「当てはまる」から「当てはまらない」までの4択で答えます。選ぶとすぐ次の質問に進みます。正解や不正解はありません。'),
+        h('li', null, '結果は5つの観点ごとに、1〜4の数値で表示します。タイプ分けや、優劣・順位づけはしません。'),
         h('li', null, '前の質問に戻って、答えを変えられます。途中でやめて、支援の使い方の画面に進むこともできます。'),
         h('li', null, C.PRIVACY_NOTE),
       ),
@@ -280,76 +315,51 @@
     const item = S.ITEMS[i];
     const current = state.answers[i];
     const total = S.ITEM_COUNT;
-    const errorId = 'answer-error';
+    const isLast = i === total - 1;
+    const returnsToReview = state.editingFromReview || isLast;
 
-    const errorEl = h('p', { id: errorId, class: 'field-error', role: 'alert' }, state.message);
-    if (!state.message) errorEl.hidden = true;
+    /** 回答を記録して、すぐ次の質問（最後と一覧からの編集時は回答の確認）へ進む。 @param {number} value */
+    const choose = (value) => {
+      if (isLocked() || !S.isValidAnswer(value)) return;
+      const answers = state.answers.slice();
+      answers[i] = value;
+      const label = C.SCALE.find((s) => s.value === value)?.label || '';
+      announce(`質問${item.no}に「${label}」と回答しました。`);
+      if (returnsToReview) go('review', { answers, editingFromReview: false });
+      else go('question', { answers, qIndex: i + 1 });
+    };
 
-    const options = C.SCALE.map((opt) => {
-      const id = `q${item.no}-a${opt.value}`;
-      const input = /** @type {HTMLInputElement} */ (
-        h('input', {
-          type: 'radio',
-          name: `q${item.no}`,
-          id,
-          value: String(opt.value),
-          checked: current === opt.value,
-          'aria-describedby': state.message ? errorId : undefined,
-        })
-      );
-      input.addEventListener('change', () => {
-        const value = Number(input.value);
-        if (!S.isValidAnswer(value)) return;
-        const answers = state.answers.slice();
-        answers[i] = value;
-        // 選び直しで画面全体を描き直さず、状態とエラー表示だけを更新する
-        state = { ...state, answers, message: '' };
-        errorEl.hidden = true;
-        errorEl.textContent = '';
-        updateProgress();
-      });
-      return h(
+    const options = C.SCALE.map((opt) =>
+      h(
         'li',
         null,
         h(
-          'label',
-          { class: 'option', for: id },
-          input,
-          h('span', { class: 'option-num', 'aria-hidden': 'true' }, String(opt.value)),
+          'button',
+          {
+            type: 'button',
+            class: 'option answer',
+            id: `q${item.no}-a${opt.value}`,
+            'aria-pressed': String(current === opt.value),
+            'aria-describedby': 'q-hint',
+            onclick: () => choose(opt.value),
+          },
           h('span', { class: 'option-label' }, opt.label),
           h('span', { class: 'option-check', 'aria-hidden': 'true' }),
         ),
-      );
-    });
-
-    const progress = h('progress', { id: 'q-progress', max: String(total), value: String(answeredCount()) });
-    const answeredText = h('span', { id: 'answered-text' }, `回答済み ${answeredCount()}問`);
-    function updateProgress() {
-      progress.setAttribute('value', String(answeredCount()));
-      answeredText.textContent = `回答済み ${answeredCount()}問`;
-    }
-
-    const isLast = i === total - 1;
-    const nextLabel = state.editingFromReview ? '回答一覧に戻る' : isLast ? '回答を確認する' : '次へ';
-
-    const onNext = () => {
-      if (guardTap()) return;
-      if (!S.isValidAnswer(state.answers[i])) {
-        update({ message: '5つの中から1つ選ぶと、先に進めます。' }, { focus: 'next' });
-        return;
-      }
-      if (state.editingFromReview || isLast) {
-        go('review', { editingFromReview: false });
-      } else {
-        go('question', { qIndex: i + 1 });
-      }
-    };
+      ),
+    );
 
     const onBack = () => {
-      if (guardTap()) return;
       if (state.editingFromReview) go('review', { editingFromReview: false });
       else if (i === 0) go('about');
       else go('question', { qIndex: i - 1 });
+    };
+
+    const keepLabel = returnsToReview ? '回答を変えずに、回答の確認へ' : '回答を変えずに、次の質問へ';
+    const onKeep = () => {
+      if (!S.isValidAnswer(state.answers[i])) return;
+      if (returnsToReview) go('review', { editingFromReview: false });
+      else go('question', { qIndex: i + 1 });
     };
 
     return [
@@ -361,23 +371,33 @@
           'p',
           { class: 'progress-text' },
           h('span', { class: 'q-count' }, `質問 ${i + 1} / ${total}`),
-          answeredText,
+          h('span', { id: 'answered-text' }, `回答済み ${answeredCount()}問`),
         ),
         h('label', { class: 'sr-only', for: 'q-progress' }, '回答の進み具合'),
-        progress,
+        h('progress', { id: 'q-progress', max: String(total), value: String(answeredCount()) }),
       ),
       h(
-        'fieldset',
-        { class: 'question', 'aria-labelledby': 'screen-title', 'aria-describedby': 'q-prompt' },
+        'section',
+        { class: 'question', 'aria-labelledby': 'screen-title' },
         h('p', { class: 'eyebrow', id: 'q-prompt' }, '普段の自分に、どのくらい当てはまりますか'),
-        h('h1', { id: 'screen-title', tabindex: '-1', class: 'screen-title question-text' }, item.text),
-        h('ul', { class: 'options' }, ...options),
+        h('h1', { id: 'screen-title', tabindex: '-1', class: 'screen-title question-text', 'aria-describedby': 'q-prompt' }, item.text),
+        h(
+          'ul',
+          { class: 'options', role: 'group', 'aria-labelledby': 'screen-title' },
+          ...options,
+        ),
+        h(
+          'p',
+          { class: 'q-hint', id: 'q-hint' },
+          returnsToReview
+            ? '選ぶと、回答の確認画面に進みます。'
+            : '選ぶと、すぐ次の質問に進みます。前の質問へ戻って選び直すこともできます。',
+        ),
       ),
-      errorEl,
       h(
         'div',
         { class: 'actions' },
-        button(nextLabel, onNext, { variant: 'primary', id: 'next' }),
+        S.isValidAnswer(current) ? button(keepLabel, onKeep, { variant: 'quiet', id: 'keep-next' }) : null,
         answeredCount() > 0 && !state.editingFromReview
           ? button('回答一覧を見る', () => go('review'), { variant: 'quiet', id: 'to-review' })
           : null,
@@ -417,7 +437,6 @@
     });
 
     const onResults = () => {
-      if (guardTap()) return;
       const v = S.validateResponses(state.answers);
       if (!v.ok) {
         update({ message: `${v.message}すべての質問に答えると、結果を表示できます。` }, { focus: 'review-error' });
@@ -474,20 +493,20 @@
             'p',
             { class: 'factor-score' },
             h('span', { class: 'score-num' }, S.formatScore(score)),
-            h('span', { class: 'score-range' }, '（1〜5）'),
+            h('span', { class: 'score-range' }, '（1〜4）'),
           ),
         ),
         h(
           'div',
           { class: 'scale', 'aria-hidden': 'true' },
-          h('span', { class: 'scale-track' }, ...[1, 2, 3, 4, 5].map(() => h('span', { class: 'scale-tick' })), marker),
-          h('span', { class: 'scale-labels' }, ...[1, 2, 3, 4, 5].map((n) => h('span', null, String(n)))),
+          h('span', { class: 'scale-track' }, ...[1, 2, 3, 4].map(() => h('span', { class: 'scale-tick' })), marker),
+          h('span', { class: 'scale-labels' }, ...[1, 2, 3, 4].map((n) => h('span', null, String(n)))),
         ),
         h(
           'dl',
           { class: 'poles' },
           h('div', null, h('dt', null, '1に近いほど'), h('dd', null, f.low)),
-          h('div', null, h('dt', null, '5に近いほど'), h('dd', null, f.high)),
+          h('div', null, h('dt', null, '4に近いほど'), h('dd', null, f.high)),
         ),
         f.note ? h('p', { class: 'factor-note' }, f.note) : null,
         list('振り返りの問い', f.reflections, 'reflect-list'),
@@ -498,7 +517,7 @@
       backBar('回答の確認へ', () => go('review')),
       heading('screen-title', 'チェックの結果'),
       callout(C.DISCLAIMER, 'important'),
-      h('p', { class: 'lead' }, '5つの観点ごとに、4問の答えから計算した値（1〜5）を示します。どちらの端にも良い・悪いはありません。数値に答えを出すより、問いを手がかりに振り返ってみてください。'),
+      h('p', { class: 'lead' }, '5つの観点ごとに、4問の答えから計算した値（1〜4）を示します。どちらの端にも良い・悪いはありません。数値に答えを出すより、問いを手がかりに振り返ってみてください。'),
       ...factorBlocks,
       callout(C.UNCERTAINTY_NOTE),
       sourcesBlock(),
