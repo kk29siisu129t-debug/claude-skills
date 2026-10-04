@@ -1,0 +1,40 @@
+// セッション：メモリ内だけで state を保持する。永続化（localStorage 等）は一切しない。
+
+import { applyEvent, createState } from './model.js';
+
+export function createSession() {
+  let state = createState();
+  let counter = 0;
+  /** @type {Set<(state: any, result: any) => void>} */
+  const listeners = new Set();
+
+  const notify = (result) => {
+    for (const fn of listeners) fn(state, result);
+  };
+
+  return {
+    getState: () => state,
+    /** 呼び出し側が付けたイベントIDのまま適用する（重複は無視される）。 */
+    dispatch(event) {
+      const result = applyEvent(state, event);
+      state = result.state;
+      notify(result);
+      return result;
+    },
+    /** 手入力・ユーザー操作用の、セッション内で決定的に増える ID。 */
+    nextId(prefix) {
+      counter += 1;
+      return `${prefix}-${String(counter).padStart(3, '0')}`;
+    },
+    /** 内容をすべて破棄して初期状態に戻す。 */
+    clear() {
+      state = createState();
+      counter = 0;
+      notify({ ok: true, cleared: true, changedIds: [] });
+    },
+    subscribe(fn) {
+      listeners.add(fn);
+      return () => listeners.delete(fn);
+    },
+  };
+}

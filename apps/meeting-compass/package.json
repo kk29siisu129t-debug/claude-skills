@@ -1,0 +1,28 @@
+{
+  "name": "meeting-compass",
+  "version": "0.1.0",
+  "private": true,
+  "description": "会議の論点・決定を構造で示すプロトタイプ（デモ台本＋手入力、外部送信なし）",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test \"tests/unit/*.test.js\"",
+    "test:e2e": "playwright test",
+    "typecheck": "tsc -p jsconfig.json",
+    "lint": "eslint .",
+    "build": "node scripts/build.mjs",
+    "check": "npm run lint && npm run typecheck && npm run test:unit && npm run build"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.56.1",
+    "@types/node": "^22.20.5",
+    "eslint": "^10.12.0",
+    "globals": "^17.13.0",
+    "typescript": "^5.9.3"
+  }
+}
