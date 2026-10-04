@@ -16,6 +16,7 @@ import glob
 import html
 import io
 import json
+import math
 import os
 
 SCHEMA = 'marketing-lab/v1'
@@ -33,6 +34,9 @@ APPROVAL_STATUS = ('未了', 'OK', 'NG')
 UNKNOWN = '未確認'
 NOT_FETCHED = '未取得'
 UNDECIDABLE = '判定不可'
+# 件数・金額の上限（1000兆）。これを超える値は入力ミスとして止める。
+# 上限が無いと Decimal の丸めが桁あふれで例外になり、画面ごと落ちる
+MAX_VALUE = 10 ** 15
 
 
 # ---------------------------------------------------------------- 読み込み
@@ -46,6 +50,14 @@ def _reject_constant(name):
     raise FixtureError('不正な数値 %s は使えません' % name)
 
 
+def _parse_float(s):
+    # 1e999 は json では NaN/Infinity ではなく float inf になる。読込時点で止める
+    v = float(s)
+    if not math.isfinite(v):
+        raise FixtureError('有限でない数値 %s は使えません' % s[:40])
+    return v
+
+
 def load_dir(path):
     """fixture ディレクトリの *.json を名前順に読む。戻り値は [(ファイル名, dict | FixtureError)]"""
     out = []
@@ -53,7 +65,7 @@ def load_dir(path):
         name = os.path.basename(fp)
         try:
             with io.open(fp, encoding='utf-8') as f:
-                out.append((name, json.load(f, parse_constant=_reject_constant)))
+                out.append((name, json.load(f, parse_constant=_reject_constant, parse_float=_parse_float)))
         except (ValueError, FixtureError) as ex:
             out.append((name, FixtureError(str(ex))))
     return out
@@ -86,7 +98,20 @@ def _is_count(v):
 
 
 def _is_number(v):
-    return isinstance(v, (int, float)) and not isinstance(v, bool)
+    """有限の数値だけ。Python から直接渡された inf / nan もここで落とす"""
+    if isinstance(v, bool) or not isinstance(v, (int, float)):
+        return False
+    return not (isinstance(v, float) and not math.isfinite(v))
+
+
+def _show(v):
+    """エラー文に出す値。巨大な整数は str() 自体が例外になるので桁数だけ出す"""
+    if _is_count(v) and abs(v) > 10 ** 30:
+        return '（%d桁を超える整数）' % 30
+    if isinstance(v, float) and not math.isfinite(v):
+        return '（有限でない数値）'
+    r = repr(v)
+    return r if len(r) <= 60 else r[:57] + '...'
 
 
 class Checker:
@@ -111,17 +136,21 @@ class Checker:
                 self.err('BAD_VALUE', where, '値がありません')
             return
         if not _is_count(v):
-            self.err('BAD_VALUE', where, '整数ではありません: %r' % (v,))
+            self.err('BAD_VALUE', where, '整数ではありません: %s' % _show(v))
         elif v < 0:
-            self.err('NEGATIVE', where, '負の値です: %d' % v)
+            self.err('NEGATIVE', where, '負の値です: %s' % _show(v))
+        elif v > MAX_VALUE:
+            self.err('BAD_VALUE', where, '上限（%d）を超えています: %s' % (MAX_VALUE, _show(v)))
 
     def money(self, v, where):
         if v is None:
             return
         if not _is_number(v):
-            self.err('BAD_VALUE', where, '数値ではありません: %r' % (v,))
+            self.err('BAD_VALUE', where, '有限の数値ではありません: %s' % _show(v))
         elif v < 0:
-            self.err('NEGATIVE', where, '負の値です: %r' % (v,))
+            self.err('NEGATIVE', where, '負の値です: %s' % _show(v))
+        elif v > MAX_VALUE:
+            self.err('BAD_VALUE', where, '上限（%d）を超えています: %s' % (MAX_VALUE, _show(v)))
 
     def date(self, v, where, allow_null=False):
         if v is None and allow_null:
@@ -138,6 +167,110 @@ class Checker:
         if d is None:
             self.err('BAD_DATE', where, '時差付きの日時として読めません: %r' % (v,))
         return d
+
+
+# ---------------------------------------------------------------- 形の確認
+# 意味の検証より先に、型と必須キーだけを見る。ここで落ちた事業は意味の検証も描画もしない。
+# 壊れた配列や欠けた必須キーで AttributeError などが出て、画面全体が落ちるのを防ぐ。
+
+class _Opt:
+    def __init__(self, spec):
+        self.spec = spec
+
+
+def OPT(spec):
+    """省略・null を許す"""
+    return _Opt(spec)
+
+
+ANY = object()     # 型は意味の検証（Checker.count / money 等）で見る
+MAP = object()     # 中身を問わない dict（件数の表など）
+STR, BOOL = str, bool
+
+_REF = {'id': STR, 'version': STR}
+_STAGE = {'key': STR, 'label': STR, 'definition': OPT(STR)}
+_SHAPE_CAMP = {
+    'campaign_id': STR, 'title': OPT(STR),
+    'request': {'product': OPT(STR), 'persona': OPT(STR), 'objective': OPT(STR),
+                'primary_cv': OPT({'stage': OPT(STR), 'label': OPT(STR), 'definition': OPT(STR)}),
+                'period': OPT({'start': OPT(STR), 'end': OPT(STR)}), 'hypothesis': OPT(STR),
+                'budget_cap': OPT({'media_yen': ANY, 'production_yen': ANY})},
+    'creatives': {'appeal_axes': [{'key': STR, 'label': STR}], 'tone_axes': [{'key': STR, 'label': STR}],
+                  'items': [{'id': STR, 'version': STR, 'appeal': STR, 'tone': STR, 'hypothesis': OPT(STR),
+                             'copy': OPT(STR), 'cta': OPT(STR),
+                             'asset': OPT({'source': OPT(STR), 'rights': OPT(STR), 'rights_checked': OPT(BOOL),
+                                           'expires': OPT(STR)})}]},
+    'selected_creative': _REF, 'metric_def_ref': _REF, 'flow_ref': _REF,
+    'lp_change': {'id': OPT(STR), 'lp_id': STR, 'url': STR, 'current_version': OPT(STR), 'proposed_version': STR,
+                  'creative_ref': _REF, 'changes': OPT([{'where': STR, 'before': OPT(STR), 'after': OPT(STR)}]),
+                  'expected_action': OPT(STR),
+                  'alignment': OPT({'appeal': OPT(STR), 'price': OPT(STR), 'cta': OPT(STR)}),
+                  'measurement_impact': OPT(STR), 'reviewer': OPT(STR), 'rollback_version': OPT(STR)},
+    'qa': {'target': {'creative': _REF, 'lp': _REF, 'flow': _REF, 'form_id': OPT(STR)},
+           'items': [{'key': STR, 'plan': OPT(STR), 'status': STR, 'evidence': OPT(STR), 'checked_at': OPT(STR),
+                      'checker': OPT(STR)}]},
+    'approvals': {'required': [{'role': STR, 'label': OPT(STR)}],
+                  'records': [{'id': STR, 'role': STR, 'status': STR,
+                               'target': {'business_id': STR, 'campaign_id': STR, 'creative': _REF, 'lp': _REF},
+                               'at': OPT(STR), 'scope': OPT(STR), 'evidence': OPT(STR), 'note': OPT(STR)}]},
+    'results': {'periods': [{'id': STR, 'label': OPT(STR), 'start': STR, 'end': STR, 'population': STR,
+                             'metric_def': _REF, 'occurred': {'from': STR, 'to': STR},
+                             'source_updated_at': STR, 'fetched_at': STR, 'counts': MAP, 'spend_yen': ANY}],
+                'comparisons': OPT([{'a': STR, 'b': STR}]), 'data_quality': OPT([STR]),
+                'next_hypotheses': OPT([STR])},
+}
+SHAPE = {
+    'schema': STR, 'business_id': STR, 'business_name': OPT(STR), 'demo': ANY, 'note': OPT(STR),
+    'metric_definitions': [{'id': STR, 'version': STR, 'status': OPT(STR), 'stages': [_STAGE],
+                            'primary_cv_stage': STR}],
+    'lps': [{'id': STR, 'current_version': STR, 'url': OPT(STR)}],
+    'flows': [{'id': STR, 'version': STR, 'lp_id': STR, 'form_id': OPT(STR), 'thanks_path': OPT(STR),
+               'utm_rule': OPT(STR), 'id_carry': OPT(STR),
+               'events': [{'name': STR, 'stage': OPT(STR), 'rule': OPT(STR)}]}],
+    'checklist': OPT([{'item': STR, 'state': STR, 'note': OPT(STR)}]),
+    'campaigns': [_SHAPE_CAMP],
+}
+_TYPE_JA = {str: '文字列', bool: '真偽値', list: '配列', dict: 'オブジェクト'}
+
+
+def check_shape(v, spec=SHAPE, where='', out=None, limit=30):
+    """型と必須キーの違反を [(where, msg)] で返す。多すぎる場合は limit 件で打ち切る"""
+    out = [] if out is None else out
+    if len(out) >= limit:
+        return out
+    if isinstance(spec, _Opt):
+        return out if v is None else check_shape(v, spec.spec, where, out, limit)
+    if spec is ANY:
+        return out
+    if spec is MAP:
+        if not isinstance(v, dict):
+            out.append((where or '/', 'オブジェクトが必要です'))
+        return out
+    if isinstance(spec, dict):
+        if not isinstance(v, dict):
+            out.append((where or '/', 'オブジェクトが必要です'))
+            return out
+        for k, sub in spec.items():
+            if k not in v:
+                if not isinstance(sub, _Opt):
+                    out.append(('%s/%s' % (where, k), '必須キーがありません'))
+            else:
+                check_shape(v[k], sub, '%s/%s' % (where, k), out, limit)
+        return out
+    if isinstance(spec, list):
+        if not isinstance(v, list):
+            out.append((where, '配列が必要です'))
+            return out
+        for i, x in enumerate(v):
+            check_shape(x, spec[0], '%s[%d]' % (where, i), out, limit)
+        return out
+    if spec is bool:
+        ok = isinstance(v, bool)
+    else:
+        ok = isinstance(v, spec) and not isinstance(v, bool)
+    if not ok:
+        out.append((where, '%sが必要です' % _TYPE_JA.get(spec, spec.__name__)))
+    return out
 
 
 # ---------------------------------------------------------------- ID 台帳
@@ -216,6 +349,8 @@ def validate_business(biz, owners, now, seen_biz):
         ck.err('DUP_ID', 'business_id', 'business_id が重複しています: %s' % bid)
     if biz.get('demo') is not True:
         ck.err('SCHEMA', 'demo', '試作品の fixture は demo: true が必須です')
+    if not biz.get('campaigns'):
+        ck.err('MISSING', 'campaigns', '施策が1件もありません')
 
     # 重複 ID（種類ごと）
     lists = [
@@ -407,20 +542,35 @@ def _is_demo_url(url):
 
 
 def validate_all(loaded, now):
-    """loaded: load_dir の戻り値。{ファイル名: Checker} と 事業のリストを返す"""
-    good = [(n, b) for n, b in loaded if isinstance(b, dict)]
-    owners = _owner_map([b for _, b in good])
+    """loaded: load_dir の戻り値。[(ファイル名, 事業 | None, Checker)] を返す。
+    形が壊れた事業は意味の検証・描画をせず、検証停止として返す（他の事業は続ける）"""
+    shape = {}
+    for name, b in loaded:
+        if not isinstance(b, FixtureError):
+            shape[name] = check_shape(b)
+    owners = _owner_map([b for n, b in loaded if n in shape and not shape[n]])
     seen, out = set(), []
     for name, b in loaded:
         if isinstance(b, FixtureError):
-            ck = Checker('(%s)' % name)
+            ck = Checker(os.path.splitext(name)[0])
             ck.err('SCHEMA', name, 'JSONとして読めません: %s' % b)
             out.append((name, None, ck))
             continue
-        ck = validate_business(b, owners, now, seen)
-        if isinstance(b, dict) and isinstance(b.get('business_id'), str):
-            seen.add(b['business_id'])
-        out.append((name, b, ck))
+        bid = b.get('business_id') if isinstance(b, dict) else None
+        if shape[name]:
+            ck = Checker(bid if isinstance(bid, str) and bid else os.path.splitext(name)[0])
+            for w, msg in shape[name]:
+                ck.err('SCHEMA', w or '/', msg)
+            out.append((name, None, ck))
+        else:
+            try:
+                ck = validate_business(b, owners, now, seen)
+            except Exception as ex:  # 想定外の形でも画面全体は落とさない
+                ck = Checker(bid)
+                ck.err('INTERNAL', name, '検証中に想定外の値で止まりました: %s' % type(ex).__name__)
+            out.append((name, b, ck))
+        if isinstance(bid, str):
+            seen.add(bid)
     return out
 
 
@@ -645,7 +795,7 @@ def _ver(ref):
 
 
 def render_business(name, biz, ck, today, now):
-    bid = (biz or {}).get('business_id') or name
+    bid = (biz or {}).get('business_id') or ck.biz or name
     h = []
     title = (biz or {}).get('business_name') or bid
     h.append('<section class="biz" id="biz-%s" data-biz="%s">' % (e(bid), e(bid)))
@@ -930,11 +1080,16 @@ document.documentElement.classList.add('js');
 def render(results, today, now, source_label):
     secs, tabs = [], []
     for name, biz, ck in results:
-        bid = (biz or {}).get('business_id') or name
+        bid = (biz or {}).get('business_id') or ck.biz or name
         label = (biz or {}).get('business_name') or bid
         mark = ' ⚠' if ck.errors else ''
         tabs.append('<a href="#biz-%s">%s%s</a>' % (e(bid), e(label), e(mark)))
-        secs.append(render_business(name, biz, ck, today, now))
+        try:
+            secs.append(render_business(name, biz, ck, today, now))
+        except Exception as ex:  # 検証を通っても描画で落ちた事業だけ止める
+            stop = Checker(bid)
+            stop.err('INTERNAL', name, '描画中に想定外の値で止まりました: %s' % type(ex).__name__)
+            secs.append(render_business(name, None, stop, today, now))
     return ''.join([
         '<!doctype html><html lang="ja"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -945,7 +1100,8 @@ def render(results, today, now, source_label):
         '<p class="small">基準時刻 %s ／ 判定日 %s ／ データ: %s ／ 読取り専用</p>' % (
             e(now.isoformat()), e(today.isoformat()), e(source_label)),
         '<nav class="tabs" aria-label="事業">', ''.join(tabs), '</nav></header><main>',
-        ''.join(secs),
+        ''.join(secs) or ('<div class="panel stopbox">%s<p>fixture が1件もありません。'
+                          '表示できる事業が無いため検証を止めています。</p></div>' % _badge('検証停止')),
         '</main><footer>この画面は試作品です。公開・配信・停止・増額・承認の実行はできません。'
         '数値の差は観測値であり、因果は検証していません。</footer>',
         '<script>', JS, '</script></body></html>'])
@@ -969,6 +1125,4 @@ def resolve_clock(now_s=None, today_s=None):
 
 def build(fixture_dir, now, today, source_label=None):
     results = validate_all(load_dir(fixture_dir), now)
-    if not results:
-        raise FixtureError('fixture がありません: %s' % fixture_dir)
     return render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir))), results

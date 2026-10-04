@@ -28,7 +28,7 @@ python -m unittest discover -s tests -v
   生成した場合は保存前に消すか、対象ファイルだけ stage する）
 - `OFFICE_NOW` は時差付きISO、`OFFICE_TODAY` は `YYYY-MM-DD` か build-office.py と同じ `MM-DD`
 - `--fixtures <dir>` で別の fixture を読める（テストで使用）
-- 終了コード: 0 = 全事業を検証できた／2 = 検証停止の事業がある（画面は作り、止まった理由を出す）
+- 終了コード: 0 = 全事業を検証できた／2 = 検証停止の事業がある、または fixture が0件（画面は作り、止まった理由を出す）
 - office.html の入口は相対リンク `marketing-lab.html`。**Artifact として office.html だけを公開した場合はリンク先が無い。**
   公開の方法（同じ Artifact に files で載せるか、別 Artifact にするか）は未決定で、この段階では公開しない
 
@@ -63,8 +63,12 @@ python -m unittest discover -s tests -v
 
 **検証停止**（その事業はレビュー・集計を出さず、理由だけ出す。他の事業は巻き込まない）
 
+- 読めないJSON、`NaN` / `Infinity`、`1e999` のような有限でない数値、4300桁を超える整数リテラル（読込時に拒否）
+- 形の違反（`marketing_lab.SHAPE`）: 必須キーの欠け、配列・オブジェクト・文字列の型違い。形が壊れた事業は意味の検証も描画もしない
+- fixture が0件なら画面に「検証停止」を出す。想定外の例外も事業単位の検証停止に変え、画面全体は落とさない
 - 不明ID・重複ID・他事業のIDや他事業向け承認の混入
-- 負数、整数でない件数、bool、NaN / Infinity（読込時に拒否）、予約ドメイン以外のURL
+- 負数、整数でない件数、bool、有限でない数値（Python から直接渡された `float('inf')` / `nan` も）、
+  上限 1000兆（`MAX_VALUE = 10**15`）を超える件数・金額、予約ドメイン以外のURL
 - 日付が読めない、時差の無い日時、開始＞終了、発生期間が集計期間の外、元更新＞取得、取得が未来、期間終了前の取得、承認・QA確認日時が未来
 - 9提案（訴求3×トンマナ3）がそろわない、QA6項目の欠け、状態値の不正
 
@@ -81,6 +85,15 @@ python -m unittest discover -s tests -v
 **指標**: CTR = クリック ÷ 表示、CVR = 主要CV ÷ クリック、CPA = 費用 ÷ 主要CV、加えて段階間の率。
 分母ゼロ・分子/分母の未取得は「判定不可」と理由を出す（Infinity / NaN / 誤った0%は出さない）。
 比較は母集団か定義版が違えば止め、期間の長さが違えば件数を比べず率だけ並べる。差は観測値で、因果は検証していない。
+
+## hub 入口の結合確認（実データなし）
+
+`tests/test_marketing_lab.py` の `OfficeIntegration` は、一時ディレクトリに `build-office.py`・`build-marketing-lab.py`・
+`marketing_lab.py`・架空fixture と、空の stub `data/issues.json`（`{"issues":[],"priority":{"weights":{}}}`）だけを置いて
+両方のビルドを走らせる。build-office.py の読込先は自分のディレクトリ基準（`HUB`）なので、実データは参照されない。
+Python の監査フックで open を記録し、一時ディレクトリと Python 本体以外を開いていないこと、
+`data/` で読んだのが stub だけであることを確かめたうえで、`office.html` の入口リンク先 `marketing-lab.html` が
+隣に生成されていることを見る。stub は課題0件なので、office.html の中身（部屋・課題の表示）の確認にはならない。
 
 ## 本番接続までの未確定事項
 

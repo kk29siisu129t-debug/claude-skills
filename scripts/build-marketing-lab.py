@@ -34,6 +34,9 @@ def main(argv):
     with io.open(out, 'w', encoding='utf-8', newline='\n') as f:
         f.write(doc)
     print('wrote', out)
+    if not results:
+        print('  fixture が1件もありません: 検証停止')
+        return 2
     stopped = 0
     for name, biz, ck in results:
         bid = (biz or {}).get('business_id') or name

@@ -544,5 +544,202 @@ class Build(unittest.TestCase):
         self.assertIn('href="marketing-lab.html"', src)
 
 
+
+class Robustness(unittest.TestCase):
+    """不正値・壊れた構造で画面全体が落ちず、その事業だけ検証停止になること"""
+
+    def check(self, mut, name='potex.json', code=None):
+        bm = base()
+        mut(bm)
+        res = ml.validate_all(sorted(bm.items()), NOW)
+        doc = ml.render(res, TODAY, NOW, 'test')  # 例外が出ないこと
+        stopped = {n for n, b, ck in res if ck.errors}
+        self.assertEqual(stopped, {name})
+        if code:
+            self.assertIn(code, [x['code'] for n, b, ck in res if n == name for x in ck.errors])
+        sec = doc.split('id="biz-%s"' % name.replace('.json', ''))[1].split('</section>')[0]
+        self.assertIn('検証停止', sec)
+        for bad in ('Infinity', 'NaN', 'inf', 'nan'):
+            self.assertNotIn(bad, doc)
+        for other in ({'passlabo.json', 'potex.json', 't-clinic.json'} - {name}):
+            self.assertIn('id="biz-%s"' % other.replace('.json', ''), doc)
+        return res
+
+    def P(self, bm):
+        return camp(bm, 'potex.json')['results']['periods'][0]
+
+    def test_python_inf_nan_in_spend_budget_counts(self):
+        for v in (float('inf'), float('-inf'), float('nan')):
+            self.check(lambda bm: self.P(bm).__setitem__('spend_yen', v), code='BAD_VALUE')
+            self.check(lambda bm: camp(bm, 'potex.json')['request']['budget_cap'].__setitem__('media_yen', v),
+                       code='BAD_VALUE')
+            self.check(lambda bm: self.P(bm)['counts'].__setitem__('clicks', v), code='BAD_VALUE')
+
+    def test_huge_integers(self):
+        for v in (10 ** 15 + 1, 10 ** 400, 10 ** 5000):
+            self.check(lambda bm: self.P(bm)['counts'].__setitem__('impressions', v), code='BAD_VALUE')
+            self.check(lambda bm: self.P(bm).__setitem__('spend_yen', v), code='BAD_VALUE')
+
+    def test_upper_bound_is_computable(self):
+        bm = base()
+        p = self.P(bm)
+        p['spend_yen'] = 10 ** 15
+        p['counts'].update(impressions=10 ** 15, clicks=10 ** 15, register=1, trial=1)
+        res = run(bm)
+        self.assertEqual(res['potex.json'][1].errors, [])
+        r = {x['name']: x['text'] for x in ml.metrics(bm['potex.json'], p)}
+        self.assertEqual(r['CTR'], '100.00%')
+        self.assertEqual(r['CPA'], '¥1,000,000,000,000,000')
+        p['counts'].update(impressions=1, clicks=10 ** 15)  # 表示1に対してクリック1000兆（並びは品質警告で出す）
+        r = {x['name']: x['text'] for x in ml.metrics(bm['potex.json'], p)}
+        self.assertEqual(r['CTR'], '100000000000000000.00%')
+
+    def test_overflow_and_huge_literals_rejected_on_load(self):
+        with tempfile.TemporaryDirectory() as d:
+            for lit in ('1e999', '-1e400', '9' * 5000):
+                with io.open(os.path.join(d, 'x.json'), 'w', encoding='utf-8') as f:
+                    f.write('{"spend_yen": %s}' % lit)
+                (name, got), = ml.load_dir(d)
+                self.assertIsInstance(got, ml.FixtureError, lit[:10])
+            doc, res = ml.build(d, NOW, TODAY)
+            self.assertEqual(res[0][2].errors[0]['code'], 'SCHEMA')
+            self.assertIn('検証停止', doc)
+
+    def test_broken_structures(self):
+        cases = [
+            lambda bm: bm['potex.json'].__setitem__('campaigns', {'a': 1}),
+            lambda bm: bm['potex.json'].__setitem__('campaigns', ['x']),
+            lambda bm: bm['potex.json'].pop('campaigns'),
+            lambda bm: bm['potex.json'].pop('metric_definitions'),
+            lambda bm: bm['potex.json'].__setitem__('lps', None),
+            lambda bm: bm['potex.json']['flows'][0].__setitem__('events', 'x'),
+            lambda bm: camp(bm, 'potex.json').__setitem__('request', [1]),
+            lambda bm: camp(bm, 'potex.json').pop('qa'),
+            lambda bm: camp(bm, 'potex.json')['qa'].__setitem__('items', 'x'),
+            lambda bm: camp(bm, 'potex.json')['results'].__setitem__('periods', 'x'),
+            lambda bm: self.P(bm).__setitem__('counts', [1]),
+            lambda bm: self.P(bm).pop('fetched_at'),
+            lambda bm: camp(bm, 'potex.json')['creatives']['items'][0].__setitem__('id', ['a']),
+            lambda bm: camp(bm, 'potex.json')['creatives']['items'][0].__setitem__('asset', 'x'),
+            lambda bm: camp(bm, 'potex.json')['lp_change'].__setitem__('changes', 'xy'),
+            lambda bm: camp(bm, 'potex.json')['results'].__setitem__('next_hypotheses', 'xy'),
+            lambda bm: camp(bm, 'potex.json').__setitem__('title', 5),
+            lambda bm: camp(bm, 'potex.json').__setitem__('selected_creative', None),
+            lambda bm: bm.__setitem__('potex.json', [1, 2]),
+        ]
+        for i, mut in enumerate(cases):
+            with self.subTest(case=i):
+                self.check(mut, code='SCHEMA')
+
+    def test_broken_approval_target_other_business_unaffected(self):
+        self.check(lambda bm: camp(bm, 'passlabo.json')['approvals']['records'][0].__setitem__('target', 'x'),
+                   name='passlabo.json', code='SCHEMA')
+
+    def test_empty_campaigns(self):
+        self.check(lambda bm: bm['potex.json'].__setitem__('campaigns', []), code='MISSING')
+
+    def test_broken_json_file(self):
+        with tempfile.TemporaryDirectory() as d:
+            write_all(d, {k: v for k, v in base().items() if k != 'potex.json'})
+            with io.open(os.path.join(d, 'potex.json'), 'w', encoding='utf-8') as f:
+                f.write('[1, 2')
+            doc, res = ml.build(d, NOW, TODAY)
+        self.assertEqual([n for n, b, ck in res if ck.errors], ['potex.json'])
+        self.assertIn('JSONとして読めません', doc)
+
+    def test_empty_fixture_directory(self):
+        with tempfile.TemporaryDirectory() as d:
+            doc, res = ml.build(d, NOW, TODAY)
+            self.assertEqual(res, [])
+            self.assertIn('fixture が1件もありません', doc)
+            self.assertIn('検証停止', doc)
+            env = dict(os.environ, OFFICE_NOW=NOW_S, OFFICE_TODAY=TODAY_S)
+            p = subprocess.run([sys.executable, os.path.join(ROOT, 'scripts', 'build-marketing-lab.py'),
+                                os.path.join(d, 'o.html'), '--fixtures', d], env=env, capture_output=True, text=True)
+        self.assertEqual(p.returncode, 2, p.stderr)
+        self.assertIn('検証停止', p.stdout)
+
+
+# build-office.py を、一時ディレクトリの架空 stub だけで動かす。
+# 監査フックで open を記録し、一時ディレクトリと Python 本体以外のファイルを開いていないことを確かめる。
+AUDIT = r"""
+import os, sys, json, runpy, sysconfig
+root = os.path.realpath(sys.argv[1]); script = sys.argv[2]; log = sys.argv[3]
+opened = []
+def hook(ev, args):
+    if ev == 'open' and isinstance(args[0], str):
+        opened.append(os.path.realpath(args[0]))
+sys.addaudithook(hook)
+sys.argv = [script] + sys.argv[4:]
+try:
+    runpy.run_path(script, run_name='__main__')
+except SystemExit as ex:
+    if ex.code not in (0, None):
+        raise
+finally:
+    snap = list(opened)  # ログ自身を開く前の記録だけ残す
+    with open(log, 'w', encoding='utf-8') as f:
+        json.dump(snap, f)
+"""
+
+
+class OfficeIntegration(unittest.TestCase):
+    """実データを使わず、build-office.py の入口 → 隣の架空 marketing-lab.html を確かめる"""
+
+    def run_audited(self, hub, script, *args):
+        log = os.path.join(hub, '..', os.path.basename(script) + '.log')
+        env = {'PATH': os.environ.get('PATH', ''), 'OFFICE_NOW': NOW_S, 'OFFICE_TODAY': TODAY_S,
+               'PYTHONDONTWRITEBYTECODE': '1'}
+        p = subprocess.run([sys.executable, '-c', AUDIT, hub, script, log] + list(args),
+                           env=env, cwd=hub, capture_output=True, text=True)
+        with io.open(log, encoding='utf-8') as f:
+            opened = json.load(f)
+        return p, opened
+
+    def outside(self, hub, opened):
+        import sysconfig
+        allowed = [os.path.realpath(hub) + os.sep] + sorted({
+            os.path.realpath(x) for x in (sys.prefix, sys.base_prefix, sysconfig.get_paths()['stdlib'],
+                                          sysconfig.get_paths()['platstdlib'])})
+        return sorted({o for o in opened if not any(o.startswith(a) for a in allowed)})
+
+    def test_office_entry_to_adjacent_lab(self):
+        import shutil
+        with tempfile.TemporaryDirectory() as tmp:
+            hub = os.path.realpath(os.path.join(tmp, 'hub'))
+            os.makedirs(os.path.join(hub, 'scripts'))
+            os.makedirs(os.path.join(hub, 'data', 'marketing-lab'))
+            for f in ('build-office.py', 'build-marketing-lab.py', 'marketing_lab.py'):
+                shutil.copy(os.path.join(ROOT, 'scripts', f), os.path.join(hub, 'scripts', f))
+            shutil.copytree(FIX, os.path.join(hub, 'data', 'marketing-lab', 'fixtures'))
+            # build-office.py が必須で読むのは issues.json だけ。空の架空 stub を置く（実データはコピーしない）
+            with io.open(os.path.join(hub, 'data', 'issues.json'), 'w', encoding='utf-8') as f:
+                json.dump({'issues': [], 'priority': {'weights': {}}}, f)
+
+            p, opened = self.run_audited(hub, os.path.join(hub, 'scripts', 'build-office.py'))
+            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+            self.assertEqual(self.outside(hub, opened), [])
+            data_read = sorted({os.path.relpath(o, hub) for o in opened
+                                if o.startswith(os.path.join(hub, 'data') + os.sep)})
+            self.assertEqual(data_read, ['data/issues.json'])
+
+            p, opened = self.run_audited(hub, os.path.join(hub, 'scripts', 'build-marketing-lab.py'))
+            self.assertEqual(p.returncode, 0, p.stdout + p.stderr)
+            self.assertEqual(self.outside(hub, opened), [])
+            data_read = sorted({os.path.relpath(o, hub) for o in opened
+                                if o.startswith(os.path.join(hub, 'data') + os.sep)})
+            self.assertTrue(data_read and all(x.startswith('data/marketing-lab/fixtures/') for x in data_read), data_read)
+
+            office = read(os.path.join(hub, 'office.html'))
+            import re
+            hrefs = re.findall(r'<a class="mo" href="([^"]+)"[^>]*>([^<]+)</a>', office)
+            self.assertIn(('marketing-lab.html', 'マーケ試作（架空）'), hrefs)
+            target = os.path.join(hub, 'marketing-lab.html')
+            self.assertTrue(os.path.isfile(target))
+            lab = read(target)
+            self.assertIn('試作品・架空データです', lab)
+            for biz in ('passlabo', 'potex', 't-clinic'):
+                self.assertIn('id="biz-%s"' % biz, lab)
+
 if __name__ == '__main__':
     unittest.main()
