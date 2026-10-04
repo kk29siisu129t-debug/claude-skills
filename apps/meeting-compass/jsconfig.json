@@ -13,5 +13,5 @@
     "maxNodeModuleJsDepth": 0,
     "types": ["node"]
   },
-  "include": ["web/js/**/*.js", "server.mjs", "scripts/**/*.mjs"]
+  "include": ["web/js/**/*.js", "server.mjs", "server/**/*.mjs", "scripts/**/*.mjs"]
 }

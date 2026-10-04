@@ -32,6 +32,22 @@ export default [
     },
   },
   {
+    // ライブ経路の共通基盤はベンダー非依存・無通信。通信は将来の承認済みアダプタだけに置く
+    files: ['server/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node } },
+    rules: {
+      'no-restricted-globals': ['error',
+        { name: 'fetch', message: '共通基盤から直接通信しない（プロバイダ注入）' },
+        { name: 'WebSocket', message: '共通基盤から直接通信しない（プロバイダ注入）' },
+        { name: 'XMLHttpRequest', message: '共通基盤から直接通信しない' },
+      ],
+      'no-restricted-imports': ['error', { paths: ['node:http', 'node:https', 'node:net', 'node:tls', 'node:dgram', 'http', 'https', 'net', 'tls', 'dgram', 'undici', 'ws'].map((name) => ({ name, message: '共通基盤から直接通信しない' })) }],
+      'no-restricted-syntax': ['error',
+        { selector: "MemberExpression[object.name='process'][property.name='env']", message: 'process.env は server.mjs で読み、設定として注入する' },
+      ],
+    },
+  },
+  {
     files: ['*.js', '*.mjs', 'scripts/**/*.mjs', 'tests/**/*.js', 'tests/**/*.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },

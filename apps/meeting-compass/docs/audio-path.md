@@ -27,3 +27,9 @@ CSP `connect-src 'none'; media-src 'none'` で、ブラウザ上でも取得・�
 - `web/js/providers/contract.js` — 全プロバイダ共通の契約。出力は `applyEvent` が受け付ける構造化イベントのみ。
 - `web/js/providers/audio-provider.js` — 現在は `start()` が `AudioNotConfiguredError` を投げるだけ。`navigator.mediaDevices` には触れない（ユニットテストで確認）。
 - 将来は `audio-provider.js` → 自前サーバー（文字起こし・構造化）→ 構造化イベント → `session.dispatch` の順に流す。UI・モデル層は変更不要にする。
+
+## 現在の実装状況（共通基盤のみ）
+
+- `server/live/` にベンダー非依存の共通基盤があります（ゲート、上限、まとめ、schema 検証、差分適用、停止処理）。`web/js/live/capture-session.js` は取得関数を注入するインターフェースです。
+- 実接続アダプタ・HTTP エンドポイント・UI 配線は未実装で、実 API・実音声では未検証です。
+- 将来の流れ：ブラウザでの取得（capture-session）→ 自前サーバー（http-guard を通す）→ 文字起こしプロバイダ（final 区間だけ）→ batcher → 構造化プロバイダ → validate / applyStructuring → ブラウザ側の session.dispatch。

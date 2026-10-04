@@ -34,6 +34,7 @@ export const ORIGIN_LABELS = /** @type {const} */ ({
   fixture: 'デモ台本',
   rule: 'ルール判定',
   user: 'ユーザー入力',
+  model: '自動抽出（要確認）',
 });
 
 export const MAX_TEXT_LENGTH = 500;
