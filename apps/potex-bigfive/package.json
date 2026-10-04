@@ -1,0 +1,23 @@
+{
+  "name": "potex-bigfive",
+  "version": "0.1.0",
+  "private": true,
+  "description": "POTEX 自己理解チェック（Mini-IPIP をもとにした独自日本語訳）。ブラウザ内だけで動く公開デモ。",
+  "license": "UNLICENSED",
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "lint": "eslint .",
+    "typecheck": "tsc -p jsconfig.json",
+    "test": "node --test \"test/unit/*.test.js\"",
+    "test:e2e": "npm run build && node --test --test-concurrency=1 \"test/e2e/*.test.js\"",
+    "check": "npm run lint && npm run typecheck && npm run build && npm test && node --test --test-concurrency=1 \"test/e2e/*.test.js\""
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "eslint": "9.39.5",
+    "globals": "17.13.0",
+    "playwright": "1.56.1",
+    "typescript": "7.0.2"
+  }
+}
