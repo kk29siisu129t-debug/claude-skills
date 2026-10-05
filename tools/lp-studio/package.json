@@ -1,0 +1,14 @@
+{
+  "name": "lp-studio",
+  "private": true,
+  "version": "0.1.0",
+  "description": "ブリーフ→構成→WF→PC/SP→HTML→LPO仮説を1つのproject JSONで扱うツール（依存なし）",
+  "type": "module",
+  "scripts": {
+    "start": "node serve.mjs",
+    "test": "node --test tests/unit/*.test.mjs",
+    "test:e2e": "node --test --test-concurrency=1 tests/e2e/app.e2e.mjs",
+    "test:all": "npm test && npm run test:e2e",
+    "seed": "node seed/make-seed.mjs"
+  }
+}

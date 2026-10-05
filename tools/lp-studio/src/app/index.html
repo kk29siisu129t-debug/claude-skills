@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-bkSaI7brBYa8QEfmP5/oHVkW+4oDSKlgGnSJ8I2/h4o='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self' about:; child-src 'self' about:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>LP Studio</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">LP Studio <span class="ver">schema v1</span></div>
+  <label class="pname"><span class="sr">プロジェクト名</span><input id="project-name" type="text" maxlength="120"></label>
+  <div class="actions" role="toolbar" aria-label="プロジェクト操作">
+    <button id="btn-undo" type="button" title="元に戻す (Ctrl+Z)">↶ 戻す</button>
+    <button id="btn-redo" type="button" title="やり直す (Ctrl+Shift+Z)">↷ やり直す</button>
+    <button id="btn-save" type="button">JSON保存</button>
+    <label class="btn" for="file-load" tabindex="0" id="btn-load">JSON読込</label>
+    <input id="file-load" type="file" accept=".json,application/json" class="sr">
+    <button id="btn-seed" type="button">架空seed</button>
+    <button id="btn-new" type="button">新規</button>
+  </div>
+</header>
+<div id="ai-status" class="ai-status" role="note"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<nav class="tabs" role="tablist" aria-label="工程">
+  <button role="tab" id="tab-brief" aria-controls="panel" data-tab="brief">1 ブリーフ</button>
+  <button role="tab" id="tab-plan" aria-controls="panel" data-tab="plan">2 構成・WF</button>
+  <button role="tab" id="tab-design" aria-controls="panel" data-tab="design">3 デザイン PC/SP</button>
+  <button role="tab" id="tab-cta" aria-controls="panel" data-tab="cta">4 CTA比較</button>
+  <button role="tab" id="tab-export" aria-controls="panel" data-tab="export">5 根拠・検証・Export</button>
+  <button role="tab" id="tab-lpo" aria-controls="panel" data-tab="lpo">6 LPO</button>
+  <button role="tab" id="tab-gen" aria-controls="panel" data-tab="gen">7 生成（Claude Code）</button>
+</nav>
+<main id="panel" role="tabpanel" tabindex="-1"></main>
+<script type="module" src="./app.js"></script>
+</body>
+</html>
