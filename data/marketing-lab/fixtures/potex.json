@@ -452,7 +452,11 @@
        "contract": 3,
        "paid": null
       },
-      "spend_yen": 240000
+      "spend_yen": 240000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      },
      {
       "id": "PX-P2",
@@ -478,7 +482,11 @@
        "contract": 2,
        "paid": null
       },
-      "spend_yen": 310000
+      "spend_yen": 310000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      }
     ],
     "comparisons": [

@@ -446,7 +446,11 @@
        "visit": 7,
        "contract": 0
       },
-      "spend_yen": 150000
+      "spend_yen": 150000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      },
      {
       "id": "TC-P2",
@@ -468,10 +472,18 @@
        "impressions": null,
        "clicks": 300,
        "reserve": 9,
-       "visit": null,
-       "contract": null
+       "visit": {
+        "raw": ""
+       },
+       "contract": {
+        "raw": "#REF!"
+       }
       },
-      "spend_yen": null
+      "spend_yen": null,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      }
     ],
     "comparisons": [
@@ -481,7 +493,7 @@
      }
     ],
     "data_quality": [
-     "第3週は表示・来院・契約・費用が未取得。CTR・CPAは判定不可",
+     "第3週は表示・費用が未取得、来院が空欄、契約が数式エラー（いずれも0ではない）。CTR・CPAは判定不可",
      "2期間の長さが違う（14日／7日）ため、件数は比べない"
     ],
     "next_hypotheses": [

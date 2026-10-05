@@ -1,0 +1,394 @@
+{
+ "schema": "marketing-lab/measurement/v1",
+ "dataset_id": "beta",
+ "demo": true,
+ "synthetic": true,
+ "business": {
+  "id": "demo-beta",
+  "name": "架空事業ベータ",
+  "brand": "デモブランドB"
+ },
+ "note": "架空の事業・架空の数値。実在の事業・人・集計とは無関係",
+ "sources": [
+  {
+   "id": "SRC-B1",
+   "ref": "synthetic://beta/ads-table",
+   "timezone": "Asia/Tokyo",
+   "data_cutoff": "2026-10-01T00:00:00+09:00",
+   "fetched_at": "2026-10-02T09:00:00+09:00"
+  },
+  {
+   "id": "SRC-B2",
+   "ref": "synthetic://beta/platform-export",
+   "timezone": "America/Los_Angeles",
+   "data_cutoff": "2026-10-01T00:00:00-07:00",
+   "fetched_at": "2026-10-01T18:00:00-07:00"
+  }
+ ],
+ "metric_definitions": [
+  {
+   "id": "B-CV",
+   "version": "v1",
+   "label": "申込（発生日・行数）",
+   "unit": "rows",
+   "basis": "occurrence",
+   "purpose": "marketing"
+  },
+  {
+   "id": "B-UU",
+   "version": "v1",
+   "label": "申込者（発生日・人数）",
+   "unit": "unique_people",
+   "basis": "occurrence",
+   "purpose": "marketing"
+  },
+  {
+   "id": "B-COST",
+   "version": "v1",
+   "label": "費用",
+   "unit": "currency",
+   "basis": "occurrence",
+   "purpose": "marketing",
+   "currency": "JPY",
+   "cost_basis": "媒体費・税抜"
+  },
+  {
+   "id": "B-COST-T",
+   "version": "v1",
+   "label": "費用（税込）",
+   "unit": "currency",
+   "basis": "occurrence",
+   "purpose": "marketing",
+   "currency": "JPY",
+   "cost_basis": "媒体費・税込"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "B-CMP-1",
+   "level": "campaign",
+   "parent": null,
+   "label": "秋の申込（架空）"
+  },
+  {
+   "id": "B-AD-1",
+   "level": "ad",
+   "parent": "B-CMP-1"
+  },
+  {
+   "id": "B-AD-2",
+   "level": "ad",
+   "parent": "B-CMP-1"
+  },
+  {
+   "id": "B-CR-1",
+   "level": "creative",
+   "parent": "B-AD-1"
+  },
+  {
+   "id": "B-CR-2",
+   "level": "creative",
+   "parent": "B-AD-1"
+  },
+  {
+   "id": "B-CR-3",
+   "level": "creative",
+   "parent": "B-AD-2"
+  }
+ ],
+ "observations": [
+  {
+   "id": "B-O1",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C2",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 50,
+   "node": "B-CMP-1"
+  },
+  {
+   "id": "B-O2",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C3",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 30,
+   "node": "B-AD-1"
+  },
+  {
+   "id": "B-O3",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C4",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 20,
+   "node": "B-AD-2"
+  },
+  {
+   "id": "B-O4",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C5",
+   "level": "creative",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 18,
+   "under": "B-AD-1",
+   "creative_id_raw": "B-CR-1"
+  },
+  {
+   "id": "B-O5",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C6",
+   "level": "creative",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 12,
+   "under": "B-AD-1",
+   "creative_id_raw": ""
+  },
+  {
+   "id": "B-O6",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C7",
+   "level": "creative",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": "0",
+   "under": "B-AD-2",
+   "creative_id_raw": "B-CR-3"
+  },
+  {
+   "id": "B-O7",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "C8",
+   "level": "creative",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 20,
+   "under": "B-AD-2",
+   "creative_id_raw": "B-CR-9"
+  },
+  {
+   "id": "B-O8",
+   "metric": {
+    "id": "B-COST",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "D2",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 300000,
+   "node": "B-CMP-1"
+  },
+  {
+   "id": "B-O9",
+   "metric": {
+    "id": "B-COST",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "D3",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": "180,000",
+   "node": "B-AD-1"
+  },
+  {
+   "id": "B-O10",
+   "metric": {
+    "id": "B-COST",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "D4",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 130000,
+   "node": "B-AD-2"
+  },
+  {
+   "id": "B-O11",
+   "metric": {
+    "id": "B-UU",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "E2",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 45,
+   "node": "B-CMP-1"
+  },
+  {
+   "id": "B-O12",
+   "metric": {
+    "id": "B-UU",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "E3",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 28,
+   "node": "B-AD-1"
+  },
+  {
+   "id": "B-O13",
+   "metric": {
+    "id": "B-UU",
+    "version": "v1"
+   },
+   "source": "SRC-B1",
+   "cell": "E4",
+   "level": "ad",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 19,
+   "node": "B-AD-2"
+  },
+  {
+   "id": "B-O14",
+   "metric": {
+    "id": "B-COST-T",
+    "version": "v1"
+   },
+   "source": "SRC-B2",
+   "cell": "B2",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 330000,
+   "node": "B-CMP-1"
+  },
+  {
+   "id": "B-O15",
+   "metric": {
+    "id": "B-CV",
+    "version": "v1"
+   },
+   "source": "SRC-B2",
+   "cell": "C2",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 49,
+   "node": "B-CMP-1"
+  }
+ ],
+ "ratios": [
+  {
+   "id": "B-R1",
+   "label": "費用（税抜）÷ 申込",
+   "intent": "cost_per",
+   "numerator": "B-O8",
+   "denominator": "B-O1"
+  },
+  {
+   "id": "B-R2",
+   "label": "費用（税込・米国太平洋時間）÷ 申込（日本時間）",
+   "intent": "cost_per",
+   "numerator": "B-O14",
+   "denominator": "B-O1"
+  },
+  {
+   "id": "B-R3",
+   "label": "申込（行数）÷ 申込者（人数）",
+   "intent": "conversion",
+   "numerator": "B-O1",
+   "denominator": "B-O11"
+  }
+ ],
+ "comparisons": [
+  {
+   "id": "B-C1",
+   "label": "費用 税抜 vs 税込",
+   "a": "B-O8",
+   "b": "B-O14"
+  },
+  {
+   "id": "B-C2",
+   "label": "creative B-CR-3 vs 未紐付けの行",
+   "a": "B-O6",
+   "b": "B-O7"
+  },
+  {
+   "id": "B-C3",
+   "label": "申込 広告1 vs 広告2",
+   "a": "B-O2",
+   "b": "B-O3"
+  },
+  {
+   "id": "B-C4",
+   "label": "申込 日本時間の表 vs 米国太平洋時間の書出し",
+   "a": "B-O1",
+   "b": "B-O15"
+  }
+ ]
+}

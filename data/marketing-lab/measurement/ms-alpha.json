@@ -1,0 +1,381 @@
+{
+ "schema": "marketing-lab/measurement/v1",
+ "dataset_id": "alpha",
+ "demo": true,
+ "synthetic": true,
+ "business": {
+  "id": "demo-alpha",
+  "name": "架空事業アルファ",
+  "brand": "デモブランドA"
+ },
+ "note": "架空の事業・架空の数値。実在の事業・人・集計とは無関係",
+ "sources": [
+  {
+   "id": "SRC-A1",
+   "ref": "synthetic://alpha/register-table",
+   "timezone": "Asia/Tokyo",
+   "data_cutoff": "2026-10-01T00:00:00+09:00",
+   "fetched_at": "2026-10-02T09:00:00+09:00"
+  }
+ ],
+ "metric_definitions": [
+  {
+   "id": "A-REG",
+   "version": "v1",
+   "label": "登録（発生日）",
+   "unit": "rows",
+   "basis": "occurrence",
+   "purpose": "marketing"
+  },
+  {
+   "id": "A-CONS",
+   "version": "v1",
+   "label": "相談（発生日）",
+   "unit": "rows",
+   "basis": "occurrence",
+   "purpose": "marketing"
+  },
+  {
+   "id": "A-REG-C",
+   "version": "v1",
+   "label": "登録者（登録cohort）",
+   "unit": "unique_people",
+   "basis": "registration_cohort",
+   "purpose": "marketing"
+  },
+  {
+   "id": "A-CONS-C",
+   "version": "v1",
+   "label": "cohort内の相談者",
+   "unit": "unique_people",
+   "basis": "registration_cohort",
+   "purpose": "marketing",
+   "population_of": {
+    "id": "A-REG-C",
+    "version": "v1"
+   }
+  },
+  {
+   "id": "A-FEE",
+   "version": "v1",
+   "label": "手数料請求の対象件数",
+   "unit": "rows",
+   "basis": "occurrence",
+   "purpose": "billing"
+  },
+  {
+   "id": "A-CLICK",
+   "version": "v1",
+   "label": "クリック",
+   "unit": "rows",
+   "basis": "occurrence",
+   "purpose": "marketing"
+  }
+ ],
+ "nodes": [
+  {
+   "id": "A-CMP-WEB",
+   "level": "campaign",
+   "parent": null,
+   "label": "Web広告（架空）"
+  },
+  {
+   "id": "A-CMP-REF",
+   "level": "campaign",
+   "parent": null,
+   "label": "紹介（架空）"
+  }
+ ],
+ "observations": [
+  {
+   "id": "A-O1",
+   "metric": {
+    "id": "A-REG",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "C10",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 120,
+   "node": "A-CMP-WEB"
+  },
+  {
+   "id": "A-O2",
+   "metric": {
+    "id": "A-CONS",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "D10",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 0,
+   "node": "A-CMP-WEB"
+  },
+  {
+   "id": "A-O3",
+   "metric": {
+    "id": "A-CONS",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "D9",
+   "level": "campaign",
+   "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+   },
+   "raw": "",
+   "node": "A-CMP-WEB"
+  },
+  {
+   "id": "A-O4",
+   "metric": {
+    "id": "A-REG",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "C9",
+   "level": "campaign",
+   "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+   },
+   "raw": "#REF!",
+   "node": "A-CMP-WEB"
+  },
+  {
+   "id": "A-O5",
+   "metric": {
+    "id": "A-REG-C",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "F9",
+   "level": "campaign",
+   "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+   },
+   "raw": 95,
+   "node": "A-CMP-WEB",
+   "cohort": {
+    "start": "2026-08-01",
+    "end": "2026-08-31",
+    "observation_end": "2026-09-30"
+   }
+  },
+  {
+   "id": "A-O6",
+   "metric": {
+    "id": "A-CONS-C",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "G9",
+   "level": "campaign",
+   "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+   },
+   "raw": 19,
+   "node": "A-CMP-WEB",
+   "cohort": {
+    "start": "2026-08-01",
+    "end": "2026-08-31",
+    "observation_end": "2026-09-30"
+   }
+  },
+  {
+   "id": "A-O7",
+   "metric": {
+    "id": "A-REG-C",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "F10",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 110,
+   "node": "A-CMP-WEB",
+   "cohort": {
+    "start": "2026-09-01",
+    "end": "2026-09-30",
+    "observation_end": "2026-10-31"
+   }
+  },
+  {
+   "id": "A-O8",
+   "metric": {
+    "id": "A-CONS-C",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "G10",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 7,
+   "node": "A-CMP-WEB",
+   "cohort": {
+    "start": "2026-09-01",
+    "end": "2026-09-30",
+    "observation_end": "2026-10-31"
+   }
+  },
+  {
+   "id": "A-O9",
+   "metric": {
+    "id": "A-FEE",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "H10",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": 5,
+   "node": "A-CMP-WEB"
+  },
+  {
+   "id": "A-O10",
+   "metric": {
+    "id": "A-CLICK",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "B20",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": null,
+   "node": "A-CMP-REF",
+   "declared_state": "not_applicable"
+  },
+  {
+   "id": "A-O11",
+   "metric": {
+    "id": "A-REG",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "C20",
+   "level": "campaign",
+   "period": {
+    "start": "2026-09-01",
+    "end": "2026-09-30"
+   },
+   "raw": null,
+   "node": "A-CMP-REF",
+   "declared_state": "unavailable"
+  },
+  {
+   "id": "A-O12",
+   "metric": {
+    "id": "A-REG",
+    "version": "v1"
+   },
+   "source": "SRC-A1",
+   "cell": "C11",
+   "level": "campaign",
+   "period": {
+    "start": "2026-10-01",
+    "end": "2026-10-31"
+   },
+   "raw": 3,
+   "node": "A-CMP-WEB"
+  }
+ ],
+ "ratios": [
+  {
+   "id": "A-R1",
+   "label": "8月登録cohortの相談率",
+   "intent": "conversion",
+   "numerator": "A-O6",
+   "denominator": "A-O5"
+  },
+  {
+   "id": "A-R2",
+   "label": "9月登録cohortの相談率",
+   "intent": "conversion",
+   "numerator": "A-O8",
+   "denominator": "A-O7"
+  },
+  {
+   "id": "A-R3",
+   "label": "9月 相談÷登録（発生日）",
+   "intent": "conversion",
+   "numerator": "A-O2",
+   "denominator": "A-O1"
+  },
+  {
+   "id": "A-R4",
+   "label": "8月cohortの相談 ÷ 9月の登録（発生日）",
+   "intent": "conversion",
+   "numerator": "A-O6",
+   "denominator": "A-O1"
+  },
+  {
+   "id": "A-R5",
+   "label": "手数料請求の対象 ÷ 登録",
+   "intent": "conversion",
+   "numerator": "A-O9",
+   "denominator": "A-O1"
+  },
+  {
+   "id": "A-R6",
+   "label": "8月 相談÷登録（発生日）",
+   "intent": "conversion",
+   "numerator": "A-O3",
+   "denominator": "A-O4"
+  }
+ ],
+ "comparisons": [
+  {
+   "id": "A-C1",
+   "label": "登録 8月 → 9月",
+   "a": "A-O4",
+   "b": "A-O1"
+  },
+  {
+   "id": "A-C2",
+   "label": "登録cohort 8月 → 9月",
+   "a": "A-O5",
+   "b": "A-O7"
+  },
+  {
+   "id": "A-C3",
+   "label": "9月 登録（発生日・行数） vs 登録者（cohort・人数）",
+   "a": "A-O1",
+   "b": "A-O7"
+  },
+  {
+   "id": "A-C4",
+   "label": "相談 8月 → 9月",
+   "a": "A-O3",
+   "b": "A-O2"
+  },
+  {
+   "id": "A-C5",
+   "label": "登録 9月 → 10月",
+   "a": "A-O1",
+   "b": "A-O12"
+  }
+ ]
+}

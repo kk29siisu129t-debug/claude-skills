@@ -467,7 +467,11 @@
        "consult": 4,
        "enroll": null
       },
-      "spend_yen": 180000
+      "spend_yen": 180000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      },
      {
       "id": "PL-P2",
@@ -492,7 +496,11 @@
        "consult": 0,
        "enroll": null
       },
-      "spend_yen": 175000
+      "spend_yen": 175000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
      }
     ],
     "comparisons": [

@@ -18,6 +18,9 @@ import io
 import json
 import math
 import os
+import re
+
+import measurement as ms
 
 SCHEMA = 'marketing-lab/v1'
 
@@ -135,6 +138,14 @@ class Checker:
             if not allow_null:
                 self.err('BAD_VALUE', where, '値がありません')
             return
+        if isinstance(v, dict):
+            # 元の値と状態を持つ形 {raw, declared_state}。元の値の誤りは止めずに「元データエラー」として見せる
+            extra = sorted(set(v) - {'raw', 'declared_state'})
+            if 'raw' not in v or extra:
+                self.err('BAD_VALUE', where, '{raw, declared_state} の形が必要です')
+            elif v.get('declared_state') not in (None,) + ms.DECLARABLE:
+                self.err('BAD_VALUE', where, 'declared_state は unavailable / not_applicable のどちらかです')
+            return
         if not _is_count(v):
             self.err('BAD_VALUE', where, '整数ではありません: %s' % _show(v))
         elif v < 0:
@@ -215,7 +226,8 @@ _SHAPE_CAMP = {
                                'at': OPT(STR), 'scope': OPT(STR), 'evidence': OPT(STR), 'note': OPT(STR)}]},
     'results': {'periods': [{'id': STR, 'label': OPT(STR), 'start': STR, 'end': STR, 'population': STR,
                              'metric_def': _REF, 'occurred': {'from': STR, 'to': STR},
-                             'source_updated_at': STR, 'fetched_at': STR, 'counts': MAP, 'spend_yen': ANY}],
+                             'source_updated_at': STR, 'fetched_at': STR, 'counts': MAP, 'spend_yen': ANY,
+                             'basis': STR, 'timezone': STR, 'currency': STR, 'cost_basis': STR}],
                 'comparisons': OPT([{'a': STR, 'b': STR}]), 'data_quality': OPT([STR]),
                 'next_hypotheses': OPT([STR])},
 }
@@ -522,6 +534,20 @@ def _validate_campaign(ck, c, w, reg, owners, stage_keys, now):
                 ck.err('UNKNOWN_REF', pw + '/counts/%s' % k, '指標定義にない段階です')
             ck.count(v, pw + '/counts/%s' % k)
         ck.money(p.get('spend_yen'), pw + '/spend_yen')
+        if p.get('basis') != 'occurrence':
+            # この画面の期間集計は発生日基準だけ。登録cohort基準は計測の正規化レイヤー側で扱う
+            ck.err('BAD_VALUE', pw + '/basis', '期間集計の基準は occurrence（発生日）だけに対応しています')
+        tst, zi, tmsg = ms.tz_status(p.get('timezone'))
+        if tst == ms.TZ_UNKNOWN:
+            ck.err('BAD_TZ', pw + '/timezone', tmsg)
+        elif tst == ms.TZ_VALID:
+            for k, d in (('source_updated_at', su), ('fetched_at', fa)):
+                if d is not None and d.utcoffset() != d.astimezone(zi).utcoffset():
+                    ck.err('BAD_TZ', pw + '/' + k, '日時の時差が %s のその時点の時差と一致しません' % p['timezone'])
+        if not re.match(r'^[A-Z]{3}$', p.get('currency') or ''):
+            ck.err('BAD_VALUE', pw + '/currency', '通貨は ISO 3文字です')
+        if not (p.get('cost_basis') or '').strip():
+            ck.err('MISSING', pw + '/cost_basis', '費用基準がありません')
     for cmp_ in res.get('comparisons') or []:
         for side in ('a', 'b'):
             if cmp_.get(side) not in pids:
@@ -666,13 +692,27 @@ def approval_problems(role, rec, cr_ver, lp_ver, cr_id):
 
 # ---------------------------------------------------------------- 指標
 
+def _cval(v):
+    """件数欄の値。戻り値 (値 | None, 状態の説明)。
+    null は「未取得」、{raw, declared_state} は計測の正規化レイヤーで状態に直す。0 は 0 のまま"""
+    if v is None:
+        return None, NOT_FETCHED
+    if isinstance(v, dict):
+        n = ms.normalize(v.get('raw'), v.get('declared_state'), 'rows')
+        if n['state'] in ms.MEASURED:
+            return n['value'], ''
+        return None, ms.STATE_JA[n['state']] + ('（%s）' % n['detail'] if n['detail'] else '')
+    return v, ''
+
+
 def _rate(num, den):
-    """率。戻り値 (値 | None, 理由)。None は判定不可。0 と未取得を混ぜない"""
-    if num is None or den is None:
-        return None, '%sが未取得' % ('分子' if num is None else '分母')
-    if den == 0:
+    """率。戻り値 (値 | None, 理由)。None は判定不可。0 と未取得・空欄・エラーを混ぜない"""
+    (nv, ns), (dv, ds_) = _cval(num), _cval(den)
+    if nv is None or dv is None:
+        return None, '%sが%s' % (('分子', ns) if nv is None else ('分母', ds_))
+    if dv == 0:
         return None, '分母がゼロ'
-    return decimal.Decimal(num) / decimal.Decimal(den), ''
+    return decimal.Decimal(nv) / decimal.Decimal(dv), ''
 
 
 def _fmt_pct(v):
@@ -686,6 +726,12 @@ def _fmt_yen(v):
 
 
 def _fmt_count(v):
+    """件数の表示。状態付きの値は、状態と原値の両方を出す"""
+    if isinstance(v, dict):
+        n = ms.normalize(v.get('raw'), v.get('declared_state'), 'rows')
+        if n['state'] in ms.MEASURED:
+            return '{:,}（原値 {}）'.format(int(n['value']), ms.raw_text(v.get('raw')))
+        return '%s（原値 %s）' % (ms.STATE_JA[n['state']], ms.raw_text(v.get('raw')))
     return NOT_FETCHED if v is None else '{:,}'.format(v)
 
 
@@ -697,27 +743,31 @@ def metrics(biz, period):
     cv = md['primary_cv_stage']
     rows = []
 
-    def add(name, formula, nk, dk, num, den, money=False):
+    def add(name, label, formula, nk, dk, num, den, money=False):
         if money:
-            if num is None or den is None:
-                v, why = None, '%sが未取得' % ('費用' if num is None else '分母')
-            elif den == 0:
+            dv, ds_ = _cval(den)
+            if num is None or dv is None:
+                v, why = None, ('費用が未取得' if num is None else '分母が%s' % ds_)
+            elif dv == 0:
                 v, why = None, '分母がゼロ'
             else:
-                v, why = decimal.Decimal(str(num)) / decimal.Decimal(den), ''
+                v, why = decimal.Decimal(str(num)) / decimal.Decimal(dv), ''
         else:
             v, why = _rate(num, den)
         text = UNDECIDABLE if v is None else (_fmt_yen(v) if money else _fmt_pct(v))
-        rows.append({'name': name, 'formula': formula, 'num_label': nk, 'den_label': dk,
+        rows.append({'name': name, 'label': label, 'formula': formula, 'num_label': nk, 'den_label': dk,
                      'num': num, 'den': den, 'value': v, 'text': text, 'why': why, 'money': money})
 
-    add('CTR', 'クリック ÷ 表示', 'クリック', '表示', cnt.get('clicks'), cnt.get('impressions'))
-    add('CVR', '%s ÷ クリック' % labels[cv], labels[cv], 'クリック', cnt.get(cv), cnt.get('clicks'))
-    add('CPA', '費用 ÷ %s' % labels[cv], '費用', labels[cv], period.get('spend_yen'), cnt.get(cv), money=True)
+    # 期間集計は発生日基準。分子の人が分母に含まれる保証が無いので、CTR 以外は「件数比」と呼び、CVR とは呼ばない
+    add('CTR', 'CTR（同期間・同じ広告）', 'クリック ÷ 表示', 'クリック', '表示', cnt.get('clicks'), cnt.get('impressions'))
+    add('CVR', '件数比 %s÷クリック（同期間・CVRではない）' % labels[cv], '%s ÷ クリック' % labels[cv],
+        labels[cv], 'クリック', cnt.get(cv), cnt.get('clicks'))
+    add('CPA', 'CPA（%s %s・同期間）' % (period.get('currency'), period.get('cost_basis')),
+        '費用 ÷ %s' % labels[cv], '費用', labels[cv], period.get('spend_yen'), cnt.get(cv), money=True)
     st = [s['key'] for s in md['stages']]
     for a, b in zip(st, st[1:]):
-        add('%s→%s' % (labels[a], labels[b]), '%s ÷ %s' % (labels[b], labels[a]),
-            labels[b], labels[a], cnt.get(b), cnt.get(a))
+        add('%s→%s' % (labels[a], labels[b]), '件数比 %s÷%s（同期間・同じ人とは限らない）' % (labels[b], labels[a]),
+            '%s ÷ %s' % (labels[b], labels[a]), labels[b], labels[a], cnt.get(b), cnt.get(a))
     return rows
 
 
@@ -730,12 +780,13 @@ def quality_flags(biz, period):
     for (a, al), (b, bl) in zip(seq, seq[1:]):
         if a == 'clicks' and b == md['stages'][0]['key']:
             continue  # クリック以外の流入（自然流入など）が混ざりうるので比べない
-        va, vb = cnt.get(a), cnt.get(b)
+        va, vb = _cval(cnt.get(a))[0], _cval(cnt.get(b))[0]
         if va is not None and vb is not None and vb > va:
             out.append('%s（%d）が手前の%s（%d）より多い。計測の重複か定義の違いを確認' % (bl, vb, al, va))
     for k, lab in seq:
-        if cnt.get(k) is None:
-            out.append('%s が未取得（ゼロではありません）' % lab)
+        v, why = _cval(cnt.get(k))
+        if v is None:
+            out.append('%s が%s（ゼロではありません）' % (lab, why))
     if period.get('spend_yen') is None:
         out.append('費用が未取得（ゼロではありません）')
     return out
@@ -750,6 +801,13 @@ def compare(biz, res, cmp_):
     if pa['metric_def'] != pb['metric_def']:
         out['blocked'].append('指標定義の版が違うため比較しません（%s %s ／ %s %s）' % (
             pa['metric_def']['id'], pa['metric_def']['version'], pb['metric_def']['id'], pb['metric_def']['version']))
+    for k, lab in (('basis', '基準'), ('timezone', 'timezone'), ('currency', '通貨'), ('cost_basis', '費用基準')):
+        if pa.get(k) != pb.get(k):
+            out['blocked'].append('%sが違うため比較しません（%s ／ %s）' % (lab, pa.get(k), pb.get(k)))
+    for p_ in (pa, pb):
+        tst = ms.tz_status(p_.get('timezone'))[0]
+        if tst != ms.TZ_VALID:
+            out['blocked'].append('%s の timezone %s は%sのため比較しません' % (p_['id'], p_.get('timezone'), ms.TZ_JA[tst]))
     if out['blocked']:
         return out
     la = (_parse_date(pa['end']) - _parse_date(pa['start'])).days + 1
@@ -765,7 +823,7 @@ def compare(biz, res, cmp_):
         else:
             pt = ((rb['value'] - ra['value']) * 100).quantize(decimal.Decimal('0.01'), rounding=decimal.ROUND_HALF_UP)
             d = ('%+.2fpt' % pt)
-        out['rows'].append({'name': ra['name'], 'a': ra['text'], 'b': rb['text'], 'diff': d})
+        out['rows'].append({'name': ra['name'], 'label': ra['label'], 'a': ra['text'], 'b': rb['text'], 'diff': d})
     out['notes'].append('差は観測値です。施策が原因かどうかは検証していません')
     return out
 
@@ -954,22 +1012,24 @@ def _render_campaign(biz, c, today):
     b = ['<p class="warn">以下はすべて架空の集計値です。実績のライブ取得はしていません。</p>']
     for p in res['periods']:
         b.append('<div class="period"><h4>%s <small>%s</small></h4>' % (e(p.get('label')), e(p['id'])))
-        b.append('<p class="small">期間 %s〜%s ／ 母集団 %s ／ 定義 %s ／ 発生 %s〜%s ／ 元更新 %s ／ 取得 %s</p>' % (
-            e(p['start']), e(p['end']), e(p['population']), _ver(p['metric_def']),
+        b.append('<p class="small">期間 %s〜%s（%s・timezone %s）／ 母集団 %s ／ 定義 %s ／ 発生 %s〜%s ／ 元更新 %s ／ 取得 %s</p>' % (
+            e(p['start']), e(p['end']), e(ms.BASES.get(p['basis'], p['basis'])), e(p['timezone']),
+            e(p['population']), _ver(p['metric_def']),
             e(p['occurred']['from']), e(p['occurred']['to']), e(p['source_updated_at']), e(p['fetched_at'])))
         md_ = next(m for m in biz['metric_definitions'] if m['id'] == p['metric_def']['id'])
         cnt = p['counts']
         b.append('<p class="small">件数: 表示 %s ／ クリック %s ／ %s ／ 費用 %s</p>' % (
             e(_fmt_count(cnt.get('impressions'))), e(_fmt_count(cnt.get('clicks'))),
             ' ／ '.join('%s %s' % (e(s['label']), e(_fmt_count(cnt.get(s['key'])))) for s in md_['stages']),
-            e(NOT_FETCHED if p.get('spend_yen') is None else _fmt_yen(p['spend_yen']))))
+            e((NOT_FETCHED if p.get('spend_yen') is None else _fmt_yen(p['spend_yen'])) + '（%s・%s）' % (
+                p['currency'], p['cost_basis']))))
         b.append('<div class="tblwrap"><table><thead><tr><th>指標</th><th>値</th><th>算式</th><th>分子 / 分母</th></tr></thead><tbody>')
         for m in metrics(biz, p):
             nd = '%s %s / %s %s' % (e(m['num_label']), e(_fmt_count(m['num']) if not m['money'] or m['num'] is None
                                                         else _fmt_yen(m['num'])),
                                     e(m['den_label']), e(_fmt_count(m['den'])))
             val = e(m['text']) + ('<div class="small">%s</div>' % e(m['why']) if m['why'] else '')
-            b.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (e(m['name']), val, e(m['formula']), nd))
+            b.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (e(m['label']), val, e(m['formula']), nd))
         b.append('</tbody></table></div>')
         fl = quality_flags(biz, p)
         if fl:
@@ -985,7 +1045,7 @@ def _render_campaign(biz, c, today):
                      % (e(cm['a']), e(cm['b'])))
             for rw in r_['rows']:
                 b.append('<tr><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>' % (
-                    e(rw['name']), e(rw['a']), e(rw['b']), e(rw['diff'])))
+                    e(rw['label']), e(rw['a']), e(rw['b']), e(rw['diff'])))
             b.append('</tbody></table></div>')
         b.append('<p class="small">%s</p></div>' % '<br>'.join(e(x) for x in r_['notes']))
     if res.get('data_quality'):
@@ -1054,6 +1114,13 @@ td:first-child,th:first-child{white-space:nowrap}
 .check{list-style:none;padding:0}.check li{margin:6px 0}.cb{margin-right:6px}
 .period{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
 code{font-size:12px}
+.tabsep{flex-basis:100%;font-size:12px;color:var(--mut);margin-top:4px}
+.st{display:inline-block;padding:0 8px;border-radius:999px;font-size:12px;font-weight:700;white-space:nowrap}
+.st.ok{background:var(--okb);color:var(--ok)}.st.wait{background:var(--waitb);color:var(--wait)}
+.st.stop{background:var(--stopb);color:var(--stop)}.st.na{border:1px solid var(--line);color:var(--mut)}
+.series{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
+.ratio{border-top:1px solid var(--line);padding:8px 0}.ratio .val{font-weight:700;margin-left:6px}
+tr.parent td{font-weight:700}tr.sum td{background:var(--bg)}
 footer{max-width:1080px;margin:24px auto;padding:0 16px 32px;color:var(--mut);font-size:12px}
 """
 
@@ -1077,7 +1144,8 @@ document.documentElement.classList.add('js');
 """
 
 
-def render(results, today, now, source_label):
+def render(results, today, now, source_label, measurement=None):
+    """measurement: measurement.validate_all の戻り値（無ければ計測タブを出さない）"""
     secs, tabs = [], []
     for name, biz, ck in results:
         bid = (biz or {}).get('business_id') or ck.biz or name
@@ -1090,6 +1158,15 @@ def render(results, today, now, source_label):
             stop = Checker(bid)
             stop.err('INTERNAL', name, '描画中に想定外の値で止まりました: %s' % type(ex).__name__)
             secs.append(render_business(name, None, stop, today, now))
+    if measurement is not None:
+        tabs.append('<span class="tabsep">計測の正規化（合成データ）</span>')
+        mrs = ms.render_all(measurement)
+        tabs += [t for t, _ in mrs]
+        secs += [x for _, x in mrs]
+        if not mrs:
+            tabs.append('<a href="#ms-none">計測: なし ⚠</a>')
+            secs.append('<section class="biz ms" id="ms-none"><div class="panel stopbox">%s<p>計測の合成 fixture が'
+                        '1件もありません。検証を止めています。</p></div></section>' % _badge('検証停止'))
     return ''.join([
         '<!doctype html><html lang="ja"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width,initial-scale=1">',
@@ -1123,6 +1200,9 @@ def resolve_clock(now_s=None, today_s=None):
     return now, today
 
 
-def build(fixture_dir, now, today, source_label=None):
+def build(fixture_dir, now, today, source_label=None, measurement_dir=None):
+    """measurement_dir を渡すと、計測の正規化（合成データ）のタブを足す"""
     results = validate_all(load_dir(fixture_dir), now)
-    return render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir))), results
+    mres = ms.validate_all(ms.load_dir(measurement_dir), now) if measurement_dir is not None else None
+    doc = render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir)), mres)
+    return doc, results

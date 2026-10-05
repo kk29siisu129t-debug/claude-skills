@@ -15,6 +15,9 @@ PASSLABO / POTEX / Tクリニック で、架空の施策を1件ずつ
 | `scripts/marketing_lab.py` | 読込・検証・評価・HTML描画の共通モジュール（標準ライブラリのみ） |
 | `scripts/build-marketing-lab.py` | preview 生成。hub の private データ（issues / people / mytasks / カレンダー等）は読まない |
 | `tests/test_marketing_lab.py` | 自動テスト（unittest） |
+| `data/marketing-lab/measurement/*.json` | 計測の正規化レイヤーの合成fixture（架空事業アルファ／ベータ・架空の数値） |
+| `scripts/measurement.py` | 計測の正規化・検証レイヤー（値状態・比較可能性・比の判定・親子の突き合わせ） |
+| `tests/test_measurement.py` | 計測レイヤーの回帰テスト |
 | `scripts/build-office.py` | ヘッダに「マーケ試作（架空）」の入口リンクを1つ追加しただけ |
 
 ## 作り方・見方
@@ -57,7 +60,7 @@ python -m unittest discover -s tests -v
 | `lp_change` | `lp_id` / `url` / `current_version` / `proposed_version` / `creative_ref` / `changes[{where,before,after}]` / `expected_action` / `alignment{appeal,price,cta}` / `measurement_impact` / `reviewer` / `rollback_version` |
 | `qa` | `target{creative,lp,flow,form_id}` と `items[{key,plan,status,evidence,checked_at,checker}]`。key は `mobile` `links` `form_thanks` `utm_id` `duplicate` `event_once` の6つ必須。status は `未検証`/`合格`/`失敗`、初期は `未検証` |
 | `approvals` | `required[{role,label}]` と `records[{id,role,status(未了/OK/NG),target{business_id,campaign_id,creative,lp},at,scope,evidence}]` |
-| `results` | `periods[{id,label,start,end,population,metric_def,occurred{from,to},source_updated_at,fetched_at,counts,spend_yen}]`、`comparisons[{a,b}]`、`data_quality[]`、`next_hypotheses[]`。counts の未取得は null（0 と区別） |
+| `results` | `periods[{id,label,start,end,population,metric_def,occurred{from,to},source_updated_at,fetched_at,counts,spend_yen,basis,timezone,currency,cost_basis}]`、`comparisons[{a,b}]`、`data_quality[]`、`next_hypotheses[]`。counts の値は 整数／null（未取得）／`{raw, declared_state}`（計測レイヤーで状態に直す）。`basis` は `occurrence` のみ、`timezone` は IANA 名 |
 
 ## 判定のルール
 
@@ -95,6 +98,69 @@ Python の監査フックで open を記録し、一時ディレクトリと Pyt
 `data/` で読んだのが stub だけであることを確かめたうえで、`office.html` の入口リンク先 `marketing-lab.html` が
 隣に生成されていることを見る。stub は課題0件なので、office.html の中身（部屋・課題の表示）の確認にはならない。
 
+## 計測の正規化・検証レイヤー（合成データ）
+
+画面の「計測の正規化（合成データ）」タブ。**架空事業アルファ／ベータの合成データだけ**で動き、元データのシート・API・実集計には
+つながない。出典は `synthetic://` の placeholder 以外を検証停止にする（実 sheet ID や URL を入れられない）。
+
+### 値の状態（0 と欠測を混ぜない）
+
+| 状態 | 元の値の例 | 扱い |
+|---|---|---|
+| 値あり | `120` `"180,000"` | 正規化値を持つ |
+| 0（実測） | `0` `"0"` | **0 のまま保持**。比の分子にも使う。分母なら「判定不可（分母が0）」 |
+| 空欄 | `null` `""` `"  "` | 0 にしない。足さない・比べない |
+| 取得不可 | `declared_state: "unavailable"` | 元が空のときだけ宣言できる |
+| 元データエラー | `"#REF!"` `"#DIV/0!"` `"-"` `"abc"` 負数・小数の件数・bool・巨大値 | 理由を出す。値として使わない |
+| 対象外 | `declared_state: "not_applicable"` | 元が空のときだけ宣言できる。値があるのに宣言したら矛盾としてエラー |
+
+原値（`null` と `""` と `0` と `"0"` を見分けられる形）と状態を、画面の全行で並べて出す。
+
+### 観測行が持つもの
+
+事業・ブランド、source（`synthetic://` placeholder・IANA timezone・データ cutoff・取得時刻）、指標定義（id/版・ラベル・
+`unit`＝行数/人数（ユニーク）/金額・`basis`＝発生日/登録cohort・`purpose`＝マーケ計測/手数料請求の対象判定・金額なら通貨と費用基準・
+`population_of`）、報告期間、cohort（開始・終了・観測終了日）、階層（campaign / ad / creative）、creative の元のID、元の位置（架空）、原値。
+
+### 判定のルール
+
+- **系列**: 定義・版・単位・基準・用途・timezone・通貨/費用基準・階層が1つでも違えば別の表。同じ系列・対象・期間・source の行が
+  2つあれば検証停止（上書きも合算もしない）
+- **conversion rate と呼べるのは**、分子と分母が同じ対象・同じ期間・同じ登録cohort、分子が分母の母集団の部分集合として定義され
+  （`population_of`）、両方とも測れていて分母が0でなく、cohort の観測が cutoff までに終わっているときだけ
+- **open cohort**（観測終了日の翌日0時が cutoff より後）は「暫定比（未成熟・CVRではない）」。値は出すが確定 CVR として扱わない
+- **発生日基準の同期間の比**は「件数比（CVRではない）」。分子の人が分母に含まれる保証が無いため
+- **期間・基準・対象・timezone・単位が違う比**、金額を含む比は「計算しない」（値を出さない）
+- **手数料請求の対象判定**の定義を含む比は CVR にしない。マーケの定義が請求ルールを `rule_ref` や `population_of` に持つと検証停止
+- **費用 ÷ 件数**は同じ対象・期間・timezone で、通貨と費用基準を必ず表示。期間が締まっていなければ計算しない
+- **親子**: 親の値と子の行は足さない。子が全部測れていれば「行のある子の合計」と親との差を出し、どちらが正しいかは決めない。
+  人数（ユニーク）は重複しうるので子を足さない。子に空欄やエラーがあれば合計を出さない
+- **creative**: ID が空の行は「ID欠落（未紐付け）」、台帳に無い・所属が違う ID は「ID不一致（未紐付け）」。成果は捨てずに未紐付けとして残し、
+  名前付き creative と比べない。行の無い creative は「行なし（0の証拠ではありません）」
+- **比較**: 両方測れていて、定義・版・単位・基準・用途・timezone・通貨/費用基準・期間の長さ・階層が同じで、どちらも締まっていて、
+  未紐付けでないときだけ差を出す。差は観測値で、原因は検証していない
+- **timezone**: IANA 名をそのまま持つ。固定時差や東京への置き換えはしない。標準の `zoneinfo` で引けたものだけ「検証済み」とし、
+  cutoff・取得時刻の時差がその時点の時差（夏時間を含む）と合わなければ検証停止。未知の名前も検証停止。
+  timezone データベースが無い環境（Windows で `tzdata` が無い等）では「未検証」と表示し、成熟判定・比・比較を止める
+- **既存の期間集計**（施策の結果）も同じ考え方に寄せた: 期間は発生日基準として明示し、`主要CV÷クリック` と段階間の比は
+  「件数比（同期間・CVRではない）」と表示。CPA には通貨・費用基準を出し、基準・timezone・通貨・費用基準が違う期間は比較しない
+
+### 合成fixtureの例と、比較を止める理由
+
+| 例（架空事業アルファ／ベータ） | 判定 |
+|---|---|
+| 8月登録cohort 相談19 ÷ 登録者95（観測終了9/30・cutoff 10/1 0時） | conversion rate（確定）20.00% |
+| 9月登録cohort 相談7 ÷ 登録者110（観測終了10/31） | 暫定比 6.36%（open cohort） |
+| 9月 相談（発生日）`0` ÷ 登録（発生日）120 | 件数比 0.00%（0は保持。CVRではない） |
+| 8月cohortの相談 ÷ 9月の登録（発生日） | 計算しない（期間・基準が違う） |
+| 手数料請求の対象5 ÷ 登録120 | 件数比（請求判定の定義を含むのでCVRではない） |
+| 8月 相談 `""` ÷ 登録 `"#REF!"` | 判定不可（空欄・数式エラー） |
+| 費用（税込・America/Los_Angeles）÷ 申込（Asia/Tokyo） | 計算しない（timezone が違う） |
+| 申込（行数）÷ 申込者（人数） | 計算しない（単位が違う） |
+| 広告B-AD-1の申込30 と creative行 18＋ID欠落12、B-CR-2 は行なし | 行のある子の合計30。B-CR-2 は0扱いしない |
+| キャンペーン費用 300,000 と 広告の合計 310,000 | 差 JPY -10,000 を表示し、どちらが正しいかは決めない |
+| 申込者（人数）45 と 広告 28・19 | 合計を出さない（人数は重複しうる） |
+
 ## 本番接続までの未確定事項
 
 1. 各事業の本番の段階定義（何を登録・相談・体験・来院・契約・着金と数えるか）と定義版の管理者
@@ -104,3 +170,6 @@ Python の監査フックで open を記録し、一時ディレクトリと Pyt
 5. 素材の権利・使用期限の台帳
 6. office.html からの入口の公開方法（Artifact の構成）
 7. 書き込み（依頼の起票や承認の記録）を画面から行うか。現状は fixture を直してビルドし直す読取り専用
+8. 計測レイヤー: 実データの取得元ごとの timezone・cutoff・取得時刻の持ち方、`population_of` を誰が定義するか、
+   cohort の観測期間の長さ、費用基準（税抜/税込・手数料込）、creative の台帳と元のIDの対応。いずれも合成fixtureで形だけ決めた段階
+9. Windows で動かす場合、`tzdata` が無いと timezone は「未検証」になり、比・比較が止まる（安全側。インストールはしていない）
