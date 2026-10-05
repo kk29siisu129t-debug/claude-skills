@@ -1,0 +1,5 @@
+# 録画は大きいので、リポジトリには入れず添付で渡す（docs/motion/*-timeline.json は残す）
+docs/motion/*.mp4
+docs/motion/*.gif
+docs/motion/*.webm
+docs/motion/.tmp-*

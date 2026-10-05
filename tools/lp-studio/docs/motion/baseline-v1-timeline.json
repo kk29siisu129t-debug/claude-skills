@@ -1,0 +1,139 @@
+{
+  "input": "examples/claude-code-run/safe.html",
+  "reduced": false,
+  "recordedAt": "2026-10-05T23:19:49.182Z",
+  "runs": [
+    {
+      "tag": "pc",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "fv": {
+        "kicker": {
+          "firstVisible": 578,
+          "fullyVisible": 1167
+        },
+        "h1": {
+          "firstVisible": 730,
+          "fullyVisible": 1150
+        },
+        "sub": {
+          "firstVisible": 850,
+          "fullyVisible": 1383
+        },
+        "visual": {
+          "firstVisible": 850,
+          "fullyVisible": 1383
+        },
+        "cta": {
+          "firstVisible": 1004,
+          "fullyVisible": 1683
+        }
+      },
+      "sticky": [
+        {
+          "t": 407,
+          "shown": false,
+          "scrollY": 0,
+          "pageHeight": 5593
+        },
+        {
+          "t": 3535,
+          "shown": true,
+          "scrollY": 639,
+          "pageHeight": 5593
+        },
+        {
+          "t": 7136,
+          "shown": false,
+          "scrollY": 2956,
+          "pageHeight": 5593
+        },
+        {
+          "t": 8487,
+          "shown": true,
+          "scrollY": 3834,
+          "pageHeight": 5593
+        },
+        {
+          "t": 9350,
+          "shown": false,
+          "scrollY": 4394,
+          "pageHeight": 5593
+        }
+      ],
+      "stickyShownWhileInlineCtaCentered": [
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "tag": "sp",
+      "viewport": {
+        "width": 400,
+        "height": 760
+      },
+      "fv": {
+        "kicker": {
+          "firstVisible": 195,
+          "fullyVisible": 811
+        },
+        "h1": {
+          "firstVisible": 344,
+          "fullyVisible": 794
+        },
+        "sub": {
+          "firstVisible": 494,
+          "fullyVisible": 1027
+        },
+        "visual": {
+          "firstVisible": 494,
+          "fullyVisible": 1027
+        },
+        "cta": {
+          "firstVisible": 644,
+          "fullyVisible": 1327
+        }
+      },
+      "sticky": [
+        {
+          "t": 119,
+          "shown": false,
+          "scrollY": 0,
+          "pageHeight": 6114
+        },
+        {
+          "t": 3227,
+          "shown": true,
+          "scrollY": 714,
+          "pageHeight": 6114
+        },
+        {
+          "t": 6794,
+          "shown": false,
+          "scrollY": 3302,
+          "pageHeight": 6114
+        },
+        {
+          "t": 7911,
+          "shown": true,
+          "scrollY": 4105,
+          "pageHeight": 6114
+        },
+        {
+          "t": 9194,
+          "shown": false,
+          "scrollY": 4997,
+          "pageHeight": 6114
+        }
+      ],
+      "stickyShownWhileInlineCtaCentered": [
+        false,
+        false,
+        false
+      ]
+    }
+  ]
+}
