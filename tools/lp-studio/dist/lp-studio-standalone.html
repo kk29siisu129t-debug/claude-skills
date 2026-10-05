@@ -1,0 +1,2775 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ncryGUi052b6Wfdx1L9avxfQgsVgMcYnKLhHbNk5EjI=' 'sha256-bkSaI7brBYa8QEfmP5/oHVkW+4oDSKlgGnSJ8I2/h4o='; style-src 'unsafe-inline'; img-src data:; frame-src 'self' about:; child-src 'self' about: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>LP Studio（自己完結版）</title>
+<style>:root{--bg:#f4f5f8;--card:#fff;--ink:#1b1f2b;--muted:#5a6172;--line:#d9dde6;--pri:#2741b8;--ok:#1f6f5c;--ng:#a3271b;--warn:#7a4b00;--focus:#ffbf00}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:system-ui,"Hiragino Sans","Noto Sans JP",sans-serif;color:var(--ink);background:var(--bg);font-size:15px;line-height:1.7;overflow-x:hidden}
+.sr{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+button,.btn,select,input,textarea{font:inherit;color:inherit}
+button,.btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;min-height:36px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:#fff;cursor:pointer;line-height:1.3}
+button:hover,.btn:hover{border-color:var(--pri)}
+button:disabled{opacity:.45;cursor:not-allowed}
+button.primary{background:var(--pri);border-color:var(--pri);color:#fff;font-weight:700}
+button.danger{color:var(--ng)}
+input[type=text],input[type=url],input[type=number],input[type=date],textarea,select{width:100%;min-width:0;padding:7px 10px;border:1px solid #b8bfcc;border-radius:8px;background:#fff}
+input[type=color]{width:44px;height:36px;padding:2px;border:1px solid #b8bfcc;border-radius:8px;background:#fff;flex:none}
+textarea{resize:vertical}
+.topbar{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:10px 16px;background:#141826;color:#fff}
+.topbar .brand{font-weight:800;letter-spacing:.04em}
+.topbar .ver{font-size:11px;opacity:.7;margin-left:4px}
+.topbar .pname{flex:1 1 200px;min-width:0}
+.topbar .pname input{background:#232838;border-color:#3a4157;color:#fff}
+.topbar .actions{display:flex;flex-wrap:wrap;gap:6px}
+.topbar button,.topbar .btn{background:#232838;border-color:#3a4157;color:#fff;font-size:13px;min-height:34px}
+.ai-status{background:#fff7dc;border-bottom:1px solid #f0dc9a;color:#4a3b00;font-size:13px;padding:6px 16px}
+.toast{position:fixed;left:50%;bottom:16px;transform:translate(-50%,20px);max-width:min(92vw,560px);background:#141826;color:#fff;border-radius:10px;padding:10px 16px;opacity:0;pointer-events:none;transition:.25s;z-index:100;font-size:14px}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast[data-kind=error]{background:var(--ng)}
+.tabs{display:flex;gap:4px;overflow-x:auto;padding:8px 12px 0;background:#e6e8ee;border-bottom:1px solid var(--line);scrollbar-width:thin}
+.tabs [role=tab]{flex:none;border-radius:8px 8px 0 0;border-bottom:none;background:#f3f4f7;font-size:14px}
+.tabs [role=tab][aria-selected=true]{background:var(--card);font-weight:800;border-color:var(--pri);box-shadow:inset 0 3px 0 var(--pri)}
+main{padding:16px;max-width:1500px;margin:0 auto;outline:none}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px;min-width:0}
+.card h2{font-size:18px;margin:0 0 8px}.card h3{font-size:16px;margin:12px 0 6px}.card h4{font-size:13px;margin:10px 0 2px;color:var(--muted)}
+.sec-title{font-size:17px;margin:20px 0 8px}
+.grid-2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:start}
+.grid-2 .card{margin-bottom:0}
+.span-all{grid-column:1/-1}
+.plan-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
+.plan-layout .card{margin-bottom:0}
+.design{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.design .card{margin-bottom:0}
+.field{margin:10px 0;display:grid;gap:4px}
+.field>label{font-weight:700;font-size:14px}
+.field.st-unconfirmed{border-left:4px solid #e1b100;padding-left:8px}
+.field.st-missing{border-left:4px solid var(--ng);padding-left:8px}
+.field.st-confirmed{border-left:4px solid var(--ok);padding-left:8px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:6px 0}
+.row>select{width:auto}
+.row>input[type=text],.row>input[type=number],.row>input[type=date]{flex:1 1 140px;width:auto}
+.row.tiny button{min-height:30px;padding:3px 9px;font-size:13px}
+.muted{color:var(--muted)}.small{font-size:13px}
+.hint{font-size:12px;border-radius:4px;padding:1px 6px}
+.lv-missing,.lv-block{color:var(--ng)}.lv-unconfirmed,.lv-claim,.lv-token,.lv-placeholder,.lv-unverified,.lv-review,.lv-unapproved{color:var(--warn)}
+.badge{display:inline-block;font-size:12px;line-height:1.5;font-weight:700;border-radius:999px;padding:1px 8px;background:#e8ebf2;color:#2a3040;margin:1px 2px 1px 0}
+.badge.ok{background:#dff1ea;color:var(--ok)}
+.badge.soft{background:#f1f2f5;color:var(--muted);font-weight:500}
+.badge.lv-missing,.badge.lv-block{background:#fbe3df;color:var(--ng)}
+.badge.lv-unconfirmed,.badge.lv-claim,.badge.lv-token,.badge.lv-placeholder,.badge.lv-unverified,.badge.lv-review,.badge.lv-unapproved{background:#fff1cc;color:var(--warn)}
+.ok{color:var(--ok)}.ng{color:var(--ng)}.warn{color:var(--warn)}
+ul.plain{list-style:none;padding:0;margin:4px 0}
+.tokens{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.token{display:grid;grid-template-columns:auto 1fr;gap:4px 6px;align-items:center}
+.token label{grid-column:1/-1;font-weight:700;font-size:13px}
+.modes{display:flex;flex-wrap:wrap;gap:8px}
+.mode{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:5px 12px;cursor:pointer;background:#fff}
+.mode.on{border-color:var(--pri);background:#eef1ff;font-weight:700}
+.mode-body{margin-top:8px}
+label.inline{display:flex;gap:6px;align-items:flex-start;font-size:14px;margin:4px 0}
+label.inline input{margin-top:5px;flex:none}
+ol.plan{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.plan-item{border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:#fafbfc}
+.plan-item.sel{border-color:var(--pri);background:#eef1ff}
+.plan-item .pick{display:grid;gap:2px;text-align:left;width:100%;border:none;background:transparent;padding:2px 0;justify-content:start}
+.plan-item .role{font-size:12px;color:var(--muted);font-weight:400}
+.plan-item .tags{margin:4px 0}
+fieldset.refs{border:1px solid var(--line);border-radius:8px;margin:10px 0;padding:6px 10px}
+ul.issues{list-style:none;padding:0;margin:6px 0;display:grid;gap:4px;font-size:13px}
+.alert{background:#fbe3df;border:1px solid #f0b8ae;color:#5e140c;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
+.alert ul{margin:4px 0;padding-left:18px}
+.okbox{background:#dff1ea;border:1px solid #a9d8c6;color:#0f4b3c;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:14px}
+.frame-wrap{--scale:1;width:calc(var(--fw) * var(--scale));height:calc(var(--fh) * var(--scale));overflow:hidden;border:1px solid var(--line);border-radius:10px;background:#fff;max-width:100%}
+.frame-wrap iframe{width:var(--fw);height:var(--fh);border:0;transform:scale(var(--scale));transform-origin:0 0;display:block;background:#fff}
+.cta-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.cta-card.active{border-color:var(--pri);box-shadow:0 0 0 2px #c9d1ff}
+.table-wrap{overflow-x:auto;max-width:100%}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#f3f4f7;white-space:nowrap}
+.fiction-banner{position:sticky;top:0;z-index:5;background:#5e140c;color:#fff;font-weight:700;padding:8px 14px;border-radius:8px;margin-bottom:12px;font-size:14px}
+.verdicts{padding-left:18px;font-size:14px}
+.v-not-evaluable strong{color:var(--warn)}.v-difference-observed strong{color:var(--ok)}
+.hyp .prio{font-size:12px;border-radius:999px;padding:1px 8px;color:#fff;background:#6b7280;vertical-align:2px}
+.prio.p-高{background:var(--ng)}.prio.p-中{background:#b26a00}
+.hyp ul{margin:2px 0;padding-left:18px;font-size:14px}
+details summary{cursor:pointer;font-size:14px;margin:6px 0}
+#gen-prompt{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px}
+.rep-errors,.rep-rejected{color:var(--ng)}.rep-warnings{color:var(--warn)}.rep-added{color:var(--ok)}
+@media (max-width:1100px){.plan-layout{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.plan-layout>.card:last-child{grid-column:1/-1}.design{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.grid-2,.plan-layout{grid-template-columns:minmax(0,1fr)}main{padding:10px}.card{padding:12px}.topbar{padding:8px 10px}.topbar .actions{width:100%}.topbar button,.topbar .btn{flex:1 1 auto;padding:4px 8px}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">LP Studio <span class="ver">schema v1</span></div>
+  <label class="pname"><span class="sr">プロジェクト名</span><input id="project-name" type="text" maxlength="120"></label>
+  <div class="actions" role="toolbar" aria-label="プロジェクト操作">
+    <button id="btn-undo" type="button" title="元に戻す (Ctrl+Z)">↶ 戻す</button>
+    <button id="btn-redo" type="button" title="やり直す (Ctrl+Shift+Z)">↷ やり直す</button>
+    <button id="btn-save" type="button">JSON保存</button>
+    <label class="btn" for="file-load" tabindex="0" id="btn-load">JSON読込</label>
+    <input id="file-load" type="file" accept=".json,application/json" class="sr">
+    <button id="btn-seed" type="button">架空seed</button>
+    <button id="btn-new" type="button">新規</button>
+  </div>
+</header>
+<div id="ai-status" class="ai-status" role="note"></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<nav class="tabs" role="tablist" aria-label="工程">
+  <button role="tab" id="tab-brief" aria-controls="panel" data-tab="brief">1 ブリーフ</button>
+  <button role="tab" id="tab-plan" aria-controls="panel" data-tab="plan">2 構成・WF</button>
+  <button role="tab" id="tab-design" aria-controls="panel" data-tab="design">3 デザイン PC/SP</button>
+  <button role="tab" id="tab-cta" aria-controls="panel" data-tab="cta">4 CTA比較</button>
+  <button role="tab" id="tab-export" aria-controls="panel" data-tab="export">5 根拠・検証・Export</button>
+  <button role="tab" id="tab-lpo" aria-controls="panel" data-tab="lpo">6 LPO</button>
+  <button role="tab" id="tab-gen" aria-controls="panel" data-tab="gen">7 生成（Claude Code）</button>
+</nav>
+<main id="panel" role="tabpanel" tabindex="-1"></main>
+<script>(() => {
+"use strict";
+const __mods = {};
+window.__LP_STUDIO_EMBED__ = { seed: "{\n  \"schemaVersion\": 1,\n  \"id\": \"seed-michishirube\",\n  \"name\": \"ミチシルベ簿記（架空デモ）\",\n  \"updatedAt\": \"2026-10-05T00:00:00.000Z\",\n  \"brief\": {\n    \"product\": {\n      \"value\": \"ミチシルベ簿記（オンライン学習伴走・架空）\",\n      \"status\": \"confirmed\"\n    },\n    \"audience\": {\n      \"value\": \"仕事と両立しながら簿記2級を目指す社会人\",\n      \"status\": \"confirmed\"\n    },\n    \"problem\": {\n      \"value\": \"教材は買ったが、平日の夜に何から手をつけるか決められず、週末にまとめてやろうとして崩れる\",\n      \"status\": \"confirmed\"\n    },\n    \"promise\": {\n      \"value\": \"毎晩15分の「次にやること」が決まっている状態をつくる\",\n      \"status\": \"confirmed\"\n    },\n    \"offer\": {\n      \"value\": \"初回の学習設計面談（オンライン）\",\n      \"status\": \"unconfirmed\"\n    },\n    \"price\": {\n      \"value\": \"\",\n      \"status\": \"missing\"\n    },\n    \"ctaLabel\": {\n      \"value\": \"学習設計面談を予約する\",\n      \"status\": \"confirmed\"\n    },\n    \"ctaUrl\": {\n      \"value\": \"https://example.com/apply?utm_content=demo01\",\n      \"status\": \"confirmed\"\n    },\n    \"tone\": {\n      \"value\": \"落ち着いて具体的。煽らない。\",\n      \"status\": \"confirmed\"\n    },\n    \"operator\": {\n      \"value\": \"架空株式会社ミチシルベ（デモ用の架空事業者）\",\n      \"status\": \"confirmed\"\n    },\n    \"category\": \"education\"\n  },\n  \"brand\": {\n    \"primary\": \"#2741b8\",\n    \"accent\": \"#c42f57\",\n    \"ink\": \"#1b1f2b\",\n    \"paper\": \"#fbf8f3\",\n    \"font\": \"sans\"\n  },\n  \"evidence\": [\n    {\n      \"id\": \"ev-hours\",\n      \"claim\": \"【架空】面談後4週間の平均学習日数は週4.2日\",\n      \"sourceType\": \"internal-data\",\n      \"source\": \"架空の社内集計（デモ用・2026年8月）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 4.2,\n      \"metricUnit\": \"日/週\",\n      \"note\": \"デモ用の架空値\"\n    },\n    {\n      \"id\": \"ev-plan\",\n      \"claim\": \"学習計画は面談で一緒に作り、毎晩15分の単位に分けて、週ごとに見直す\",\n      \"sourceType\": \"policy\",\n      \"source\": \"架空のサービス仕様書 v1（デモ用）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": null,\n      \"metricUnit\": \"\",\n      \"note\": \"\"\n    },\n    {\n      \"id\": \"ev-voice\",\n      \"claim\": \"【架空・未確認】受講者アンケートで満足度92%\",\n      \"sourceType\": \"other\",\n      \"source\": \"出典未確認\",\n      \"status\": \"unverified\",\n      \"verifiedBy\": \"\",\n      \"verifiedAt\": \"\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 92,\n      \"metricUnit\": \"%\",\n      \"note\": \"未検証の例。safe export には出ない\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"id\": \"fv\",\n      \"type\": \"fv\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"{{promise}}\",\n        \"lead\": \"{{audience}}のための学習伴走\",\n        \"body\": \"教材を増やすのではなく、毎日の「次の一手」を先に決めておく。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"empathy\",\n      \"type\": \"empathy\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"こんな夜が続いていませんか\",\n        \"lead\": \"\",\n        \"body\": \"{{problem}}\",\n        \"note\": \"\",\n        \"items\": [\n          \"帰宅して机に向かっても、どこから再開するかを考えるうちに時間が過ぎる\",\n          \"週末に取り返そうとして、結局どちらも中途半端になる\",\n          \"進んでいるのか遅れているのか、自分では判断がつかない\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"reframe\",\n      \"type\": \"reframe\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"足りないのは、やる気ではなく「次の一手」の設計かもしれません\",\n        \"lead\": \"\",\n        \"body\": \"時間が取れない日ほど、何をやるかを考える負担が重くなります。\",\n        \"note\": \"\",\n        \"items\": [\n          \"その日の気分で範囲を決める\",\n          \"遅れたら週末にまとめて取り返す\"\n        ],\n        \"itemsAlt\": [\n          \"15分で終わる単位に分けておく\",\n          \"週ごとに計画そのものを見直す\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"origin\",\n      \"type\": \"origin\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"なぜ「伴走」なのか\",\n        \"lead\": \"\",\n        \"body\": \"教材の良し悪しより、続ける段取りでつまずく人が多い、という問題意識から設計しました。\\n内容は講座ではなく、学習計画を一緒に作り、週ごとに見直す仕組みです。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"steps\",\n      \"type\": \"steps\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"申込後の流れ\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"「{{ctaLabel}}」から日時を選ぶ\",\n          \"面談で、今の進み具合と使える時間を一緒に確認する\",\n          \"1週間分の「毎晩15分」の計画を受け取る\",\n          \"週に一度、計画を見直す\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"scope\",\n      \"type\": \"scope\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"提供範囲\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{offer}}\",\n          \"週ごとの計画の見直し\"\n        ],\n        \"itemsAlt\": [\n          \"教材の販売\",\n          \"試験の合格の約束\"\n        ]\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"recommit\",\n      \"type\": \"recommit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"次にやることが決まっていれば、15分でも前に進める\",\n        \"lead\": \"当てはまると感じたら、まず今の状況を一緒に整理しましょう。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"proof\",\n      \"type\": \"proof\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"根拠\",\n        \"lead\": \"確認できた事実と出典だけを載せています。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-hours\",\n        \"ev-plan\",\n        \"ev-voice\"\n      ]\n    },\n    {\n      \"id\": \"fit\",\n      \"type\": \"fit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"向いている人 / 向いていない人\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{audience}}\",\n          \"毎晩15分なら確保できる人\"\n        ],\n        \"itemsAlt\": [\n          \"短期間での一発合格だけを求める人\",\n          \"教材選びの相談だけをしたい人\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"closing\",\n      \"type\": \"closing\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"机に向かったら、すぐ手が動く毎日へ\",\n        \"lead\": \"\",\n        \"body\": \"計画は面談で一緒に作ります。まずは今の状況を聞かせてください。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"footer\",\n      \"type\": \"footer\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"\",\n        \"lead\": \"\",\n        \"body\": \"運営: {{operator}}\",\n        \"note\": \"このページはデモ用の架空事業です。\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    }\n  ],\n  \"cta\": {\n    \"activeVariant\": \"a\",\n    \"variants\": [\n      {\n        \"id\": \"a\",\n        \"label\": \"\",\n        \"color\": \"#d6335d\",\n        \"timing\": \"spec\"\n      },\n      {\n        \"id\": \"b\",\n        \"label\": \"まず15分の相談を予約する\",\n        \"color\": \"#1f6f5c\",\n        \"timing\": \"after-half\"\n      }\n    ]\n  },\n  \"lpo\": {\n    \"dataset\": {\n      \"fictional\": true,\n      \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n      \"experiments\": [\n        {\n          \"id\": \"exp-fv-aug\",\n          \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-01\",\n          \"end\": \"2026-08-14\",\n          \"plannedEnd\": \"2026-08-14\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4200,\n              \"ctaClicks\": 520,\n              \"conversions\": 126\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4150,\n              \"ctaClicks\": 610,\n              \"conversions\": 168\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-fv-full\",\n          \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-15\",\n          \"end\": \"2026-09-11\",\n          \"plannedEnd\": \"2026-09-11\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。必要サンプルに到達した例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 16020,\n              \"ctaClicks\": 1990,\n              \"conversions\": 481\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 15980,\n              \"ctaClicks\": 2240,\n              \"conversions\": 607\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-cta-sep\",\n          \"name\": \"固定CTA 表示タイミング（実施中）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-09-15\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-10-12\",\n          \"missingDays\": 2,\n          \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: FV後に表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 6100,\n              \"ctaClicks\": 810,\n              \"conversions\": 170\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 常時表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 5400,\n              \"ctaClicks\": null,\n              \"conversions\": null\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-ad-sessions\",\n          \"name\": \"広告流入別の参考集計（定義が異なる）\",\n          \"page\": \"/lp/boki-ad\",\n          \"timezone\": \"UTC\",\n          \"start\": \"2026-09-01\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-09-30\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 広告LP\",\n              \"expectedShare\": 1,\n              \"unit\": \"sessions\",\n              \"conversionDefinition\": \"CTAボタンのクリック\",\n              \"measurement\": \"架空: タグ計測（同意前も含む）\",\n              \"visitors\": 9800,\n              \"ctaClicks\": 1300,\n              \"conversions\": 1300\n            }\n          ]\n        }\n      ]\n    }\n  }\n}\n", dataset: "{\n  \"fictional\": true,\n  \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n  \"experiments\": [\n    {\n      \"id\": \"exp-fv-aug\",\n      \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-01\",\n      \"end\": \"2026-08-14\",\n      \"plannedEnd\": \"2026-08-14\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4200, \"ctaClicks\": 520, \"conversions\": 126 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4150, \"ctaClicks\": 610, \"conversions\": 168 }\n      ]\n    },\n    {\n      \"id\": \"exp-fv-full\",\n      \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-15\",\n      \"end\": \"2026-09-11\",\n      \"plannedEnd\": \"2026-09-11\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。必要サンプルに到達した例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 16020, \"ctaClicks\": 1990, \"conversions\": 481 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 15980, \"ctaClicks\": 2240, \"conversions\": 607 }\n      ]\n    },\n    {\n      \"id\": \"exp-cta-sep\",\n      \"name\": \"固定CTA 表示タイミング（実施中）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-09-15\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-10-12\",\n      \"missingDays\": 2,\n      \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: FV後に表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 6100, \"ctaClicks\": 810, \"conversions\": 170 },\n        { \"id\": \"b\", \"name\": \"B: 常時表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 5400, \"ctaClicks\": null, \"conversions\": null }\n      ]\n    },\n    {\n      \"id\": \"exp-ad-sessions\",\n      \"name\": \"広告流入別の参考集計（定義が異なる）\",\n      \"page\": \"/lp/boki-ad\",\n      \"timezone\": \"UTC\",\n      \"start\": \"2026-09-01\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-09-30\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 広告LP\", \"expectedShare\": 1, \"unit\": \"sessions\", \"conversionDefinition\": \"CTAボタンのクリック\", \"measurement\": \"架空: タグ計測（同意前も含む）\", \"visitors\": 9800, \"ctaClicks\": 1300, \"conversions\": 1300 }\n      ]\n    }\n  ]\n}\n" };
+__mods.util = (() => {
+// 共通ユーティリティ。ブラウザと Node の両方で動く（依存なし）。
+
+const HTML_ESCAPES = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' };
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"'`]/g, (c) => HTML_ESCAPES[c]);
+}
+
+// 制御文字（改行・タブ以外）を除去
+function stripControl(value) {
+  return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u2028\u2029]/g, '');
+}
+
+const ALLOWED_SCHEMES = new Set(['https:', 'mailto:', 'tel:']);
+
+/**
+ * URL を正規化して allowlist で判定する。許可しないものは null。
+ * 許可: https: / mailto: / tel: / ページ内アンカー #id
+ */
+function safeUrl(input) {
+  if (typeof input !== 'string') return null;
+  const raw = input.trim();
+  if (!raw || raw.length > 2048) return null;
+  // 制御文字・空白を含むものは正規化前に拒否（"java\tscript:" 等）
+  if (/[\u0000-\u0020\u007F-\u009F\u2028\u2029]/.test(raw)) return null;
+  if (raw.startsWith('#')) return /^#[A-Za-z][\w-]{0,63}$/.test(raw) ? raw : null;
+  if (raw.startsWith('//') || raw.startsWith('\\')) return null;
+  let url;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null; // 相対パスは許可しない
+  }
+  if (!ALLOWED_SCHEMES.has(url.protocol)) return null;
+  if (url.protocol === 'https:' && (!url.hostname || url.username || url.password)) return null;
+  return url.href;
+}
+
+function safeColor(input) {
+  return typeof input === 'string' && /^#[0-9a-fA-F]{6}$/.test(input) ? input.toLowerCase() : null;
+}
+
+function channel(c) {
+  const s = c / 255;
+  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
+}
+
+function luminance(hex) {
+  const h = safeColor(hex);
+  if (!h) return null;
+  const r = parseInt(h.slice(1, 3), 16);
+  const g = parseInt(h.slice(3, 5), 16);
+  const b = parseInt(h.slice(5, 7), 16);
+  return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
+}
+
+function contrastRatio(a, b) {
+  const la = luminance(a);
+  const lb = luminance(b);
+  if (la == null || lb == null) return 0;
+  const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+  return Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100;
+}
+
+// 背景色に対して読める文字色（白 or 黒系）
+function readableOn(bg) {
+  return contrastRatio(bg, '#ffffff') >= contrastRatio(bg, '#111111') ? '#ffffff' : '#111111';
+}
+
+function clone(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+let idCounter = 0;
+function makeId(prefix = 'id') {
+  idCounter = (idCounter + 1) % 1e6;
+  const rand = Math.floor(Math.random() * 1e9).toString(36);
+  return `${prefix}-${rand}${idCounter.toString(36)}`.slice(0, 40);
+}
+
+// ---- sha256（CSP の script hash 用。同期で使うため自前実装） ----
+const K = new Uint32Array([
+  0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+  0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+  0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+  0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+  0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+  0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+  0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+  0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2,
+]);
+
+function sha256Bytes(bytes) {
+  const len = bytes.length;
+  const bitLenHi = Math.floor((len * 8) / 0x100000000);
+  const bitLenLo = (len * 8) >>> 0;
+  const padded = new Uint8Array((((len + 9 + 63) >> 6) << 6));
+  padded.set(bytes);
+  padded[len] = 0x80;
+  const dv = new DataView(padded.buffer);
+  dv.setUint32(padded.length - 8, bitLenHi);
+  dv.setUint32(padded.length - 4, bitLenLo);
+  const H = new Uint32Array([0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]);
+  const W = new Uint32Array(64);
+  const rotr = (x, n) => (x >>> n) | (x << (32 - n));
+  for (let off = 0; off < padded.length; off += 64) {
+    for (let i = 0; i < 16; i++) W[i] = dv.getUint32(off + i * 4);
+    for (let i = 16; i < 64; i++) {
+      const s0 = rotr(W[i - 15], 7) ^ rotr(W[i - 15], 18) ^ (W[i - 15] >>> 3);
+      const s1 = rotr(W[i - 2], 17) ^ rotr(W[i - 2], 19) ^ (W[i - 2] >>> 10);
+      W[i] = (W[i - 16] + s0 + W[i - 7] + s1) >>> 0;
+    }
+    let [a, b, c, d, e, f, g, h] = H;
+    for (let i = 0; i < 64; i++) {
+      const S1 = rotr(e, 6) ^ rotr(e, 11) ^ rotr(e, 25);
+      const ch = (e & f) ^ (~e & g);
+      const t1 = (h + S1 + ch + K[i] + W[i]) >>> 0;
+      const S0 = rotr(a, 2) ^ rotr(a, 13) ^ rotr(a, 22);
+      const maj = (a & b) ^ (a & c) ^ (b & c);
+      const t2 = (S0 + maj) >>> 0;
+      h = g; g = f; f = e; e = (d + t1) >>> 0; d = c; c = b; b = a; a = (t1 + t2) >>> 0;
+    }
+    H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+  }
+  const out = new Uint8Array(32);
+  const odv = new DataView(out.buffer);
+  for (let i = 0; i < 8; i++) odv.setUint32(i * 4, H[i]);
+  return out;
+}
+
+function sha256Base64(text) {
+  const bytes = new TextEncoder().encode(text);
+  const digest = sha256Bytes(bytes);
+  let bin = '';
+  for (const b of digest) bin += String.fromCharCode(b);
+  return typeof btoa === 'function' ? btoa(bin) : Buffer.from(bin, 'binary').toString('base64');
+}
+
+// fg を bg に対して minRatio 以上になるまで黒方向へ寄せる（ブランド色の文字用）
+function inkFor(fg, bg, minRatio = 4.5) {
+  let c = safeColor(fg);
+  if (!c) return '#111111';
+  const rgb = [1, 3, 5].map((i) => parseInt(c.slice(i, i + 2), 16));
+  for (let step = 0; step <= 20; step++) {
+    const k = 1 - step * 0.05;
+    const hex = '#' + rgb.map((v) => Math.round(v * k).toString(16).padStart(2, '0')).join('');
+    if (contrastRatio(hex, bg) >= minRatio) return hex;
+  }
+  return '#111111';
+}
+
+return { escapeHtml, stripControl, safeUrl, safeColor, luminance, contrastRatio, readableOn, clone, makeId, sha256Bytes, sha256Base64, inkFor };
+})();
+
+__mods.sections = (() => {
+// セクションカタログと、参考構成に基づくセクション計画。
+// 参考: startdash.potex.jp/intro_ut の観察済みの流れ（依頼文の記述に基づく。元の文言は持ち込まない）
+// FV → 任意のコンセプト動画 → 共感 → リフレーム/比較 → 解決策の起源/差別化 → ステップ → 提供範囲
+// → 再コミット → 根拠 → 価格の理由 → 適合条件 → 未来のクロージング → フッター
+
+const BRIEF_KEYS = [
+  'product', 'audience', 'problem', 'promise', 'offer', 'price', 'ctaLabel', 'ctaUrl', 'tone', 'operator',
+];
+
+const BRIEF_LABELS = {
+  product: '商材',
+  audience: '対象者',
+  problem: '課題',
+  promise: '約束する価値',
+  offer: 'オファー（条件）',
+  price: '価格',
+  ctaLabel: 'CTA文言',
+  ctaUrl: 'CTAリンク先',
+  tone: 'トーン',
+  operator: '運営者表記',
+};
+
+const SECTION_CATALOG = {
+  fv: {
+    label: 'FV（ファーストビュー）',
+    role: '誰の・どんな状態を・どう変えるかを3秒で伝え、最初のCTAを置く',
+    rationale: '参考構成の起点。FV直下で離脱するかが全体の分母を決める',
+    required: true,
+    needs: ['audience', 'promise', 'ctaLabel', 'ctaUrl'],
+    claimProne: true,
+  },
+  concept_video: {
+    label: 'コンセプト動画（任意）',
+    role: '世界観を短時間で伝える。素材がある場合だけ置く',
+    rationale: '参考構成ではFV直後に任意で置かれている。素材が無いなら置かない',
+    required: false,
+    needs: [],
+    claimProne: false,
+  },
+  empathy: {
+    label: '共感',
+    role: '対象者の現状の痛みを本人の言葉で言語化する',
+    rationale: '「自分のことだ」と思わせる段。課題の解像度が低いと以降が他人事になる',
+    required: true,
+    needs: ['audience', 'problem'],
+    claimProne: false,
+  },
+  reframe: {
+    label: 'リフレーム / 比較',
+    role: 'うまくいかない理由を捉え直し、従来の方法と比較する',
+    rationale: '共感の直後に「原因の置き場所」を変えると、解決策を聞く理由が生まれる',
+    required: true,
+    needs: ['problem'],
+    claimProne: true,
+  },
+  origin: {
+    label: '解決策の起源 / 差別化',
+    role: 'なぜこの解決策が生まれたか、何が違うかを示す',
+    rationale: 'リフレームで生まれた問いに、この商材ならではの答えを出す段',
+    required: true,
+    needs: ['product', 'promise'],
+    claimProne: true,
+  },
+  steps: {
+    label: 'ステップ',
+    role: '申込後に何が起きるかを手順で見せ、不安を減らす',
+    rationale: '行動のハードルを下げる。参考構成でも提供範囲の前に置かれる',
+    required: true,
+    needs: ['product'],
+    claimProne: false,
+  },
+  scope: {
+    label: '提供範囲',
+    role: '含むもの / 含まないものを明示する',
+    rationale: '期待値を揃え、誤認を防ぐ（有利誤認の予防にもなる）',
+    required: true,
+    needs: ['product', 'offer'],
+    claimProne: true,
+  },
+  recommit: {
+    label: '再コミット（中間CTA）',
+    role: 'ここまでの要点を一文で束ね、もう一度行動を促す',
+    rationale: '長いLPの中間で決めた人を取りこぼさない',
+    required: false,
+    needs: ['promise', 'ctaLabel'],
+    claimProne: true,
+  },
+  proof: {
+    label: '根拠',
+    role: '検証済みの事実・出典だけで主張を支える',
+    rationale: '参考の品質目標（実績カード/図解）。ただし検証済みevidenceのみ公開する',
+    required: true,
+    needs: [],
+    needsEvidence: true,
+    claimProne: true,
+  },
+  price_reason: {
+    label: '価格 / 条件の理由',
+    role: '価格やオファー条件がなぜその設定なのかを説明する',
+    rationale: '価格への疑問を先回りして解く。比較価格は根拠が無ければ出さない',
+    required: false,
+    needs: ['offer', 'price'],
+    claimProne: true,
+  },
+  fit: {
+    label: '適合条件',
+    role: '向いている人 / 向いていない人を明示する',
+    rationale: '合わない人を先に外すことで、申込後のミスマッチと不信を減らす',
+    required: true,
+    needs: ['audience'],
+    claimProne: true,
+  },
+  closing: {
+    label: '未来のクロージング',
+    role: '行動した後の状態を描き、最後のCTAを置く',
+    rationale: '参考構成の終盤。約束する価値と同じ言葉で閉じる',
+    required: true,
+    needs: ['promise', 'ctaLabel', 'ctaUrl'],
+    claimProne: true,
+  },
+  footer: {
+    label: 'フッター',
+    role: '運営者表記・注記',
+    rationale: '運営者表記が確定していないページは公開しない',
+    required: true,
+    needs: ['operator'],
+    claimProne: false,
+  },
+};
+
+const SECTION_TYPES = Object.keys(SECTION_CATALOG);
+const DEFAULT_ORDER = SECTION_TYPES.filter((t) => t !== 'concept_video');
+const SECTION_FIELDS = ['heading', 'lead', 'body', 'items', 'itemsAlt', 'note'];
+
+/**
+ * セクション計画: 各セクションの役割・根拠・不足情報を返す。
+ */
+function planSections(project) {
+  const brief = project.brief || {};
+  const evidence = project.evidence || [];
+  const verified = evidence.filter((e) => e.status === 'verified');
+  return (project.sections || []).map((s, index) => {
+    const meta = SECTION_CATALOG[s.type];
+    const missing = [];
+    for (const key of meta.needs) {
+      const f = brief[key];
+      if (!f || f.status === 'missing' || !String(f.value || '').trim()) {
+        missing.push({ key, label: BRIEF_LABELS[key], level: 'missing' });
+      } else if (f.status !== 'confirmed') {
+        missing.push({ key, label: BRIEF_LABELS[key], level: 'unconfirmed' });
+      }
+    }
+    if (meta.needsEvidence && verified.length === 0) {
+      missing.push({ key: 'evidence', label: '検証済みの根拠', level: 'missing' });
+    }
+    if (s.type === 'concept_video' && !s.fields?.body) {
+      missing.push({ key: 'video', label: '動画素材（未設定なら外す）', level: 'missing' });
+    }
+    return {
+      index,
+      id: s.id,
+      type: s.type,
+      label: meta.label,
+      role: meta.role,
+      rationale: meta.rationale,
+      required: meta.required,
+      approved: !!s.approved,
+      needsReview: !!s.needsReview,
+      origin: s.origin,
+      missing,
+    };
+  });
+}
+
+return { planSections, BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, SECTION_FIELDS };
+})();
+
+__mods.schema = (() => {
+// project JSON の schema / version / validation / migration。
+// 方針: 既知のキーだけを新しいオブジェクトへコピーする（未知キーは警告して削除）。
+// HTML は文字列として保持するだけで、描画時に必ず escape する。HTML import は存在しない。
+
+const { SECTION_TYPES, BRIEF_KEYS } = __mods.sections;
+const { safeUrl, safeColor, stripControl } = __mods.util;
+const SCHEMA_VERSION = 1;
+const MAX_JSON_BYTES = 2 * 1024 * 1024;
+const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+const BRIEF_STATUS = ['confirmed', 'unconfirmed', 'missing'];
+const CATEGORIES = ['general', 'education', 'health', 'beauty', 'finance', 'employment'];
+const EVIDENCE_STATUS = ['verified', 'unverified'];
+const SOURCE_TYPES = ['document', 'url', 'internal-data', 'customer-consent', 'policy', 'other'];
+const PROVENANCE = ['human', 'template', 'claude-code', 'seed'];
+const ORIGINS = ['template', 'claude-code', 'manual'];
+const CTA_TIMINGS = ['spec', 'always', 'after-half'];
+const FONTS = ['sans', 'serif', 'rounded'];
+
+const str = (max, extra = {}) => ({ t: 'string', max, ...extra });
+const briefField = { t: 'object', fields: { value: str(600), status: { t: 'string', enum: BRIEF_STATUS } }, required: ['value', 'status'] };
+
+const variantSpec = {
+  t: 'object',
+  fields: {
+    id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+    name: str(80),
+    expectedShare: { t: 'number', min: 0, max: 1 },
+    unit: { t: 'string', enum: ['users', 'sessions', 'pageviews'] },
+    conversionDefinition: str(200),
+    measurement: str(200),
+    visitors: { t: 'number', min: 0, int: true, nullable: true },
+    ctaClicks: { t: 'number', min: 0, int: true, nullable: true },
+    conversions: { t: 'number', min: 0, int: true, nullable: true },
+  },
+  required: ['id', 'name', 'unit', 'conversionDefinition', 'measurement', 'visitors', 'conversions'],
+};
+
+const experimentSpec = {
+  t: 'object',
+  fields: {
+    id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+    name: str(120),
+    page: str(120),
+    timezone: str(64, { pattern: /^[A-Za-z_]+(\/[A-Za-z0-9_+-]+)*$/ }),
+    start: str(10, { pattern: /^\d{4}-\d{2}-\d{2}$/ }),
+    end: str(10, { pattern: /^\d{4}-\d{2}-\d{2}$/ }),
+    plannedEnd: str(10, { pattern: /^\d{4}-\d{2}-\d{2}$/ }),
+    missingDays: { t: 'number', min: 0, int: true },
+    variants: { t: 'array', of: variantSpec, max: 8, min: 1 },
+    notes: str(400),
+  },
+  required: ['id', 'name', 'timezone', 'start', 'end', 'plannedEnd', 'variants'],
+};
+
+const DATASET_SPEC = {
+  t: 'object',
+  fields: {
+    fictional: { t: 'bool' },
+    name: str(120),
+    experiments: { t: 'array', of: experimentSpec, max: 20 },
+  },
+  required: ['fictional', 'name', 'experiments'],
+};
+
+const PROJECT_SPEC = {
+  t: 'object',
+  fields: {
+    schemaVersion: { t: 'number', int: true },
+    id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+    name: str(120),
+    updatedAt: str(40),
+    brief: {
+      t: 'object',
+      fields: {
+        ...Object.fromEntries(BRIEF_KEYS.map((k) => [k, briefField])),
+        category: { t: 'string', enum: CATEGORIES },
+      },
+      required: [...BRIEF_KEYS, 'category'],
+    },
+    brand: {
+      t: 'object',
+      fields: {
+        primary: str(7), accent: str(7), ink: str(7), paper: str(7),
+        font: { t: 'string', enum: FONTS },
+      },
+      required: ['primary', 'accent', 'ink', 'paper', 'font'],
+    },
+    evidence: {
+      t: 'array', max: 100,
+      of: {
+        t: 'object',
+        fields: {
+          id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+          claim: str(300),
+          sourceType: { t: 'string', enum: SOURCE_TYPES },
+          source: str(300),
+          status: { t: 'string', enum: EVIDENCE_STATUS },
+          verifiedBy: str(80),
+          verifiedAt: str(10),
+          provenance: { t: 'string', enum: PROVENANCE },
+          metricValue: { t: 'number', nullable: true },
+          metricUnit: str(12),
+          note: str(300),
+        },
+        required: ['id', 'claim', 'sourceType', 'source', 'status', 'provenance'],
+      },
+    },
+    sections: {
+      t: 'array', max: 40,
+      of: {
+        t: 'object',
+        fields: {
+          id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+          type: { t: 'string', enum: SECTION_TYPES },
+          approved: { t: 'bool' },
+          needsReview: { t: 'bool' },
+          origin: { t: 'string', enum: ORIGINS },
+          fields: {
+            t: 'object',
+            fields: {
+              heading: str(200), lead: str(400), body: str(2000), note: str(400),
+              items: { t: 'array', of: str(300), max: 12 },
+              itemsAlt: { t: 'array', of: str(300), max: 12 },
+            },
+            required: [],
+          },
+          claimRefs: { t: 'array', of: str(40), max: 20 },
+        },
+        required: ['id', 'type', 'fields'],
+      },
+    },
+    cta: {
+      t: 'object',
+      fields: {
+        activeVariant: str(40),
+        variants: {
+          t: 'array', max: 4, min: 1,
+          of: {
+            t: 'object',
+            fields: {
+              id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
+              label: str(40),
+              color: str(7),
+              timing: { t: 'string', enum: CTA_TIMINGS },
+            },
+            required: ['id', 'label', 'color', 'timing'],
+          },
+        },
+      },
+      required: ['activeVariant', 'variants'],
+    },
+    lpo: { t: 'object', fields: { dataset: { ...DATASET_SPEC, nullable: true } }, required: [] },
+  },
+  required: ['schemaVersion', 'id', 'name', 'brief', 'brand', 'evidence', 'sections', 'cta'],
+};
+
+function walk(spec, value, path, ctx) {
+  if (value === null && spec.nullable) return null;
+  switch (spec.t) {
+    case 'string': {
+      if (typeof value !== 'string') { ctx.errors.push(`${path}: 文字列ではありません`); return undefined; }
+      let v = stripControl(value);
+      if (v.length > spec.max) { ctx.errors.push(`${path}: ${spec.max}文字を超えています`); return undefined; }
+      if (spec.enum && !spec.enum.includes(v)) { ctx.errors.push(`${path}: 許可されない値 "${v.slice(0, 40)}"`); return undefined; }
+      if (spec.pattern && !spec.pattern.test(v)) { ctx.errors.push(`${path}: 形式が不正です`); return undefined; }
+      if (/<\s*\/?\s*[a-z!]|javascript:/i.test(v)) ctx.warnings.push(`${path}: HTML/スクリプトらしき文字列があります（テキストとして扱い、実行しません）`);
+      return v;
+    }
+    case 'number': {
+      if (typeof value !== 'number' || !Number.isFinite(value)) { ctx.errors.push(`${path}: 数値ではありません`); return undefined; }
+      if (spec.int && !Number.isInteger(value)) { ctx.errors.push(`${path}: 整数ではありません`); return undefined; }
+      if (spec.min != null && value < spec.min) { ctx.errors.push(`${path}: ${spec.min}未満です`); return undefined; }
+      if (spec.max != null && value > spec.max) { ctx.errors.push(`${path}: ${spec.max}を超えています`); return undefined; }
+      return value;
+    }
+    case 'bool':
+      if (typeof value !== 'boolean') { ctx.errors.push(`${path}: true/false ではありません`); return undefined; }
+      return value;
+    case 'array': {
+      if (!Array.isArray(value)) { ctx.errors.push(`${path}: 配列ではありません`); return undefined; }
+      if (spec.max != null && value.length > spec.max) { ctx.errors.push(`${path}: 要素が${spec.max}件を超えています`); return undefined; }
+      if (spec.min != null && value.length < spec.min) { ctx.errors.push(`${path}: 要素が${spec.min}件未満です`); return undefined; }
+      const out = [];
+      value.forEach((item, i) => {
+        const v = walk(spec.of, item, `${path}[${i}]`, ctx);
+        if (v !== undefined) out.push(v);
+      });
+      return out;
+    }
+    case 'object': {
+      if (typeof value !== 'object' || value === null || Array.isArray(value)) { ctx.errors.push(`${path}: オブジェクトではありません`); return undefined; }
+      const out = {};
+      for (const key of Object.keys(value)) {
+        if (DANGEROUS_KEYS.has(key)) { ctx.errors.push(`${path}.${key}: 禁止キーです`); continue; }
+        if (!Object.prototype.hasOwnProperty.call(spec.fields, key)) { ctx.warnings.push(`${path}.${key}: 未知のキーを削除しました`); continue; }
+        const v = walk(spec.fields[key], value[key], `${path}.${key}`, ctx);
+        if (v !== undefined) out[key] = v;
+      }
+      for (const key of spec.required || []) {
+        if (!(key in value)) ctx.errors.push(`${path}.${key}: 必須項目がありません`);
+      }
+      return out;
+    }
+    default:
+      ctx.errors.push(`${path}: schema 定義エラー`);
+      return undefined;
+  }
+}
+
+function validateShape(spec, value, path = '$') {
+  const ctx = { errors: [], warnings: [] };
+  const out = walk(spec, value, path, ctx);
+  return { value: out, errors: ctx.errors, warnings: ctx.warnings };
+}
+
+/** schemaVersion 欠落（v0: brief の値が素の文字列）→ v1 */
+function migrate(input) {
+  if (typeof input !== 'object' || input === null || Array.isArray(input)) {
+    return { value: input, notes: [] };
+  }
+  const notes = [];
+  let p = input;
+  if (p.schemaVersion === undefined) {
+    p = { ...p, schemaVersion: 1 };
+    if (p.brief && typeof p.brief === 'object') {
+      const brief = {};
+      for (const [k, v] of Object.entries(p.brief)) {
+        if (DANGEROUS_KEYS.has(k)) continue;
+        brief[k] = typeof v === 'string' && k !== 'category' ? { value: v, status: v.trim() ? 'unconfirmed' : 'missing' } : v;
+      }
+      p.brief = brief;
+    }
+    notes.push('v0 → v1 に移行しました（ブリーフ値はすべて「未確認」扱い）');
+  }
+  return { value: p, notes };
+}
+
+/**
+ * 形の検証に加えて意味の検証（ID一意・参照・URL・色・verified の要件）。
+ * 返り値の project は安全に使える正規化済みのコピー。
+ */
+function validateProject(input) {
+  const migrated = migrate(input);
+  const warnings = [...migrated.notes];
+  const raw = migrated.value;
+  if (typeof raw !== 'object' || raw === null || Array.isArray(raw)) {
+    return { ok: false, errors: ['$: project はオブジェクトである必要があります'], warnings, project: null };
+  }
+  if (raw.schemaVersion !== SCHEMA_VERSION) {
+    return { ok: false, errors: [`$.schemaVersion: 未対応の版です（${String(raw.schemaVersion).slice(0, 10)}）。対応: ${SCHEMA_VERSION}`], warnings, project: null };
+  }
+  const shape = validateShape(PROJECT_SPEC, raw);
+  const errors = [...shape.errors];
+  warnings.push(...shape.warnings);
+  const p = shape.value;
+  if (errors.length || !p) return { ok: false, errors, warnings, project: null };
+
+  // CTA URL
+  if (p.brief.ctaUrl.value && !safeUrl(p.brief.ctaUrl.value)) {
+    warnings.push('$.brief.ctaUrl: 許可されないURLのため除去しました（https / mailto / tel / #id のみ）');
+    p.brief.ctaUrl = { value: '', status: 'missing' };
+  }
+  // 色
+  for (const k of ['primary', 'accent', 'ink', 'paper']) {
+    if (!safeColor(p.brand[k])) errors.push(`$.brand.${k}: 色は #RRGGBB 形式のみ`);
+    else p.brand[k] = safeColor(p.brand[k]);
+  }
+  for (const [i, v] of p.cta.variants.entries()) {
+    if (!safeColor(v.color)) errors.push(`$.cta.variants[${i}].color: 色は #RRGGBB 形式のみ`);
+    else v.color = safeColor(v.color);
+  }
+  if (!p.cta.variants.some((v) => v.id === p.cta.activeVariant)) {
+    warnings.push('$.cta.activeVariant: 存在しないため先頭に戻しました');
+    p.cta.activeVariant = p.cta.variants[0].id;
+  }
+  // ID一意
+  const uniq = (list, label) => {
+    const seen = new Set();
+    for (const item of list) {
+      if (seen.has(item.id)) errors.push(`${label}: ID "${item.id}" が重複しています`);
+      seen.add(item.id);
+    }
+    return seen;
+  };
+  const evIds = uniq(p.evidence, '$.evidence');
+  uniq(p.sections, '$.sections');
+  uniq(p.cta.variants, '$.cta.variants');
+  // verified の要件（確認者・確認日が無ければ降格）
+  for (const e of p.evidence) {
+    if (e.status === 'verified' && (!e.verifiedBy?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(e.verifiedAt || ''))) {
+      e.status = 'unverified';
+      warnings.push(`$.evidence.${e.id}: 確認者・確認日が無いため unverified に降格しました`);
+    }
+  }
+  for (const s of p.sections) {
+    s.approved = !!s.approved;
+    s.needsReview = !!s.needsReview;
+    s.origin = s.origin || 'manual';
+    s.fields = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [], ...s.fields };
+    s.claimRefs = (s.claimRefs || []).filter((r) => {
+      if (!evIds.has(r)) { warnings.push(`$.sections.${s.id}.claimRefs: 存在しない根拠 "${r}" を外しました`); return false; }
+      return true;
+    });
+  }
+  if (!p.lpo) p.lpo = { dataset: null };
+  if (p.lpo.dataset === undefined) p.lpo.dataset = null;
+  if (p.lpo.dataset && p.lpo.dataset.fictional !== true) {
+    errors.push('$.lpo.dataset.fictional: このツールは架空データのみ扱います（fictional: true が必要）');
+  }
+  return { ok: errors.length === 0, errors, warnings, project: errors.length ? null : p };
+}
+
+/** 文字列 → project。HTML は受け付けない。 */
+function parseProjectJson(text) {
+  if (typeof text !== 'string') return { ok: false, errors: ['入力が文字列ではありません'], warnings: [], project: null };
+  const bytes = new TextEncoder().encode(text).length;
+  if (bytes > MAX_JSON_BYTES) return { ok: false, errors: [`JSONが大きすぎます（${bytes} bytes > ${MAX_JSON_BYTES}）`], warnings: [], project: null };
+  const trimmed = text.trim();
+  if (/^</.test(trimmed)) return { ok: false, errors: ['HTMLは読み込めません。project JSON だけを受け付けます'], warnings: [], project: null };
+  let data;
+  try {
+    data = JSON.parse(trimmed, (key, value) => {
+      if (DANGEROUS_KEYS.has(key)) throw new Error(`禁止キー "${key}" を含んでいます`);
+      return value;
+    });
+  } catch (e) {
+    return { ok: false, errors: [`JSONとして読めません: ${String(e.message).slice(0, 120)}`], warnings: [], project: null };
+  }
+  return validateProject(data);
+}
+
+function serializeProject(project) {
+  return JSON.stringify(project, null, 2);
+}
+
+return { validateShape, migrate, validateProject, parseProjectJson, serializeProject, SCHEMA_VERSION, MAX_JSON_BYTES, BRIEF_STATUS, CATEGORIES, EVIDENCE_STATUS, SOURCE_TYPES, PROVENANCE, ORIGINS, CTA_TIMINGS, FONTS, DATASET_SPEC, PROJECT_SPEC };
+})();
+
+__mods.claims = (() => {
+// エビデンス / claim validation。
+// fail-closed の補助: 検出された主張は、そのセクションが claimRefs で指す verified evidence に
+// 同じ数値・語が含まれていなければ「未解決」。safe export は未解決フィールドを出さない。
+
+const { BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG } = __mods.sections;
+// 参考LP固有のオファー・実績値。別ブランドへの転用を止める。
+const REFERENCE_DENYLIST = [
+  '3日間', '三日間', '月100人', '100人限定', '先着100', '受講生1140', '1140人', '1,140人', '1140名', '1,140名',
+];
+
+const PATTERNS = [
+  { category: 'number', label: '数値の主張', re: /[0-9０-９][0-9０-９,，.．]*\s*(?:万|億)?\s*(?:人|名|社|件|%|％|倍|円|年|ヶ月|か月|カ月|日間|日|時間|分|位|回|点|校|店舗|都道府県)/g },
+  { category: 'superlative', label: '最上級・比較', re: /(No\.?\s?1|ナンバーワン|日本一|業界初|業界最|世界初|最高|最強|最安|唯一|圧倒的|他社より|どこよりも)/gi },
+  { category: 'guarantee', label: '保証・断定', re: /(保証|絶対|必ず|確実に|100%|１００％|誰でも|リスクなし|ノーリスク|失敗しない|返金)/g },
+  { category: 'urgency', label: '煽り・限定', re: /(今だけ|残りわずか|期間限定|限定|先着|締切間近|急いで|最後のチャンス|今すぐ)/g },
+  { category: 'authority', label: '権威', re: /(医師|専門家|教授|監修|推奨|認定|受賞|公式|メディア掲載|特許)/g },
+  { category: 'testimonial', label: '推薦・お客様の声', re: /(お客様の声|受講生の声|体験談|口コミ|満足度|推薦|喜びの声)/g },
+  { category: 'offer', label: 'オファー・価格', re: /(無料|0円|０円|割引|半額|特典|通常価格|定価|キャンペーン|オフ\b|OFF)/gi },
+];
+
+const PHARMA = { category: 'pharma', label: '薬機法（効能効果）', re: /(治る|治す|治療|改善する|痩せる|やせる|効く|効果がある|若返|シミが消え|アンチエイジング|デトックス|免疫)/g };
+
+function normalize(text) {
+  return String(text ?? '').normalize('NFKC').replace(/[\s,，]/g, '');
+}
+
+function detectClaims(text, category = 'general') {
+  const s = String(text ?? '');
+  const found = [];
+  const pats = ['health', 'beauty'].includes(category) ? [...PATTERNS, PHARMA] : PATTERNS;
+  for (const p of pats) {
+    for (const m of s.matchAll(p.re)) {
+      found.push({ category: p.category, label: p.label, match: m[0], severity: p.category === 'pharma' ? 'block' : 'needs-evidence' });
+    }
+  }
+  const norm = normalize(s);
+  for (const d of REFERENCE_DENYLIST) {
+    if (norm.includes(normalize(d))) {
+      found.push({ category: 'reference', label: '参考LP固有の値', match: d, severity: 'block' });
+    }
+  }
+  return found;
+}
+
+const PLACEHOLDER_RE = /【(?:要記入|未入力|不明な差込)[^】]*】/;
+
+const TOKEN_RE = /\{\{\s*([a-zA-Z]+)\s*\}\}/g;
+
+/**
+ * {{key}} をブリーフ値に置換。confirmed 以外は未解決として返す。
+ * mode: 'draft' は値を入れて未確認を記録 / 'wf' はプレースホルダ表示 / 'safe' は未確認を記録（呼び出し側で除外）
+ */
+function resolveTokens(text, brief) {
+  const unresolved = [];
+  const out = String(text ?? '').replace(TOKEN_RE, (all, key) => {
+    if (!BRIEF_KEYS.includes(key)) { unresolved.push({ key, reason: 'unknown' }); return `【不明な差込: ${key}】`; }
+    const f = brief[key];
+    if (!f || f.status === 'missing' || !String(f.value).trim()) {
+      unresolved.push({ key, reason: 'missing' });
+      return `【未入力: ${BRIEF_LABELS[key]}】`;
+    }
+    if (f.status !== 'confirmed') unresolved.push({ key, reason: 'unconfirmed' });
+    return f.value;
+  });
+  return { text: out, unresolved };
+}
+
+function evidenceCovers(ev, claim) {
+  const evNorm = normalize(ev.claim);
+  return evNorm.includes(normalize(claim.match));
+}
+
+/**
+ * 1フィールドを評価する。
+ * 返り値: { text, claims:[{..., resolved, evidenceId}], unresolvedTokens, publishable }
+ */
+function assessText(project, section, rawText) {
+  const { text, unresolved } = resolveTokens(rawText, project.brief);
+  const refs = new Set(section.claimRefs || []);
+  const verifiedRefs = (project.evidence || []).filter((e) => refs.has(e.id) && e.status === 'verified');
+  const claims = detectClaims(text, project.brief.category).map((c) => {
+    if (c.severity === 'block') return { ...c, resolved: false, evidenceId: null };
+    const ev = verifiedRefs.find((e) => evidenceCovers(e, c));
+    return { ...c, resolved: !!ev, evidenceId: ev ? ev.id : null };
+  });
+  const placeholder = PLACEHOLDER_RE.test(text);
+  const publishable = !placeholder && unresolved.length === 0 && claims.every((c) => c.resolved);
+  return { text, claims, unresolvedTokens: unresolved, placeholder, publishable };
+}
+
+/** プロジェクト全体の監査。UI の警告一覧と export レポートの元。 */
+function auditProject(project) {
+  const issues = [];
+  const brief = project.brief;
+  const category = brief.category;
+  // ブリーフ
+  for (const key of BRIEF_KEYS) {
+    const f = brief[key];
+    if (f.status === 'missing' || !f.value.trim()) issues.push({ scope: 'brief', key, level: 'missing', message: `${BRIEF_LABELS[key]} が未入力` });
+    else if (f.status === 'unconfirmed') issues.push({ scope: 'brief', key, level: 'unconfirmed', message: `${BRIEF_LABELS[key]} が未確定（公開HTMLには出しません）` });
+    for (const c of detectClaims(f.value, category)) {
+      if (c.category === 'reference') issues.push({ scope: 'brief', key, level: 'block', message: `${BRIEF_LABELS[key]}: 参考LP固有の値「${c.match}」。この事業で実際に決まった条件か確認してください` });
+    }
+  }
+  // 根拠
+  for (const e of project.evidence) {
+    if (e.status !== 'verified') issues.push({ scope: 'evidence', key: e.id, level: 'unverified', message: `根拠「${e.claim.slice(0, 40)}」は未検証（公開HTMLには出しません）` });
+  }
+  // セクション
+  for (const s of project.sections) {
+    const meta = SECTION_CATALOG[s.type];
+    if (!s.approved) issues.push({ scope: 'section', key: s.id, level: 'unapproved', message: `${meta.label}: 未承認（safe export に出ません）` });
+    if (s.needsReview) issues.push({ scope: 'section', key: s.id, level: 'review', message: `${meta.label}: 訴求変更後の整合を要確認` });
+    for (const [field, value] of fieldEntries(s)) {
+      const a = assessText(project, s, value);
+      for (const c of a.claims.filter((x) => !x.resolved)) {
+        issues.push({ scope: 'section', key: s.id, field, level: c.severity === 'block' ? 'block' : 'claim', message: `${meta.label}/${field}: ${c.label}「${c.match}」に検証済みの根拠がありません` });
+      }
+      if (a.placeholder && !a.unresolvedTokens.length) issues.push({ scope: 'section', key: s.id, field, level: 'placeholder', message: `${meta.label}/${field}: 【要記入】が残っています` });
+      for (const t of a.unresolvedTokens) {
+        issues.push({ scope: 'section', key: s.id, field, level: 'token', message: `${meta.label}/${field}: ${BRIEF_LABELS[t.key] || t.key} が${t.reason === 'unconfirmed' ? '未確定' : '未入力'}` });
+      }
+    }
+  }
+  return issues;
+}
+
+function fieldEntries(section) {
+  const f = section.fields || {};
+  const out = [];
+  for (const k of ['heading', 'lead', 'body', 'note']) if (f[k]) out.push([k, f[k]]);
+  for (const k of ['items', 'itemsAlt']) (f[k] || []).forEach((v, i) => out.push([`${k}[${i}]`, v]));
+  return out;
+}
+
+return { normalize, detectClaims, resolveTokens, assessText, auditProject, fieldEntries, REFERENCE_DENYLIST, PLACEHOLDER_RE };
+})();
+
+__mods.generate = (() => {
+// 生成アダプタ。
+// - template: ブリーフ値を決まった型に差し込む「決定的テンプレート」。AI生成ではない。
+// - claude-code: 生成指示（prompt）を出力 → Claude Code セッションが JSON を書く → ingest で検証して取り込む。
+//   ブラウザからは推論APIを呼ばない（未接続）。新規APIキー・外部連携はしない。
+// どちらの経路でも、生成物は approved:false、根拠は unverified に強制する（昇格は人の操作だけ）。
+
+const { SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, BRIEF_KEYS, BRIEF_LABELS } = __mods.sections;
+const { validateShape } = __mods.schema;
+const { detectClaims, REFERENCE_DENYLIST, normalize } = __mods.claims;
+const { clone, makeId } = __mods.util;
+const ADAPTERS = {
+  template: { id: 'template', label: 'テンプレート下書き（AI生成ではない）', connected: true },
+  'claude-code': { id: 'claude-code', label: 'Claude Code 生成（prompt→JSON受け渡し）', connected: false },
+};
+
+const TODO = (what) => `【要記入: ${what}】`;
+
+const TEMPLATES = {
+  fv: () => ({ heading: '{{promise}}', lead: '{{audience}}のための{{product}}', body: '', items: [], itemsAlt: [], note: '' }),
+  concept_video: () => ({ heading: 'コンセプト', lead: '', body: TODO('動画の説明。素材が無ければこのセクションを外す'), items: [], itemsAlt: [], note: '' }),
+  empathy: () => ({ heading: 'こんな状態が続いていませんか', lead: '', body: '{{problem}}', items: [TODO('対象者が実際に口にした悩み（ヒアリングの言葉で）')], itemsAlt: [], note: '' }),
+  reframe: () => ({ heading: 'うまくいかない理由は、別のところにあるかもしれません', lead: '', body: TODO('従来のやり方と、その限界（事実ベースで）'), items: [`これまで: ${TODO('従来の方法')}`], itemsAlt: [`{{product}}: ${TODO('違い')}`], note: '' }),
+  origin: () => ({ heading: '{{product}}が生まれた理由', lead: '', body: TODO('開発の経緯と差別化（確認できる事実のみ）'), items: [], itemsAlt: [], note: '' }),
+  steps: () => ({ heading: '申込後の流れ', lead: '', body: '', items: ['{{ctaLabel}}から申し込む', TODO('次に何が起きるか'), TODO('その後の流れ')], itemsAlt: [], note: '' }),
+  scope: () => ({ heading: '提供範囲', lead: '', body: '', items: ['{{offer}}'], itemsAlt: [TODO('含まないもの')], note: '' }),
+  recommit: () => ({ heading: '{{promise}}', lead: 'ここまで読んで、自分に当てはまると感じたら。', body: '', items: [], itemsAlt: [], note: '' }),
+  proof: () => ({ heading: '根拠', lead: '確認できた事実と出典だけを載せています。', body: '', items: [], itemsAlt: [], note: '' }),
+  price_reason: () => ({ heading: '価格・条件について', lead: '{{price}}', body: TODO('この価格・条件にしている理由'), items: [], itemsAlt: [], note: '' }),
+  fit: () => ({ heading: '向いている人 / 向いていない人', lead: '', body: '', items: ['{{audience}}'], itemsAlt: [TODO('向いていない人')], note: '' }),
+  closing: () => ({ heading: '{{promise}}', lead: '', body: TODO('行動した後の状態（約束できる範囲で）'), items: [], itemsAlt: [], note: '' }),
+  footer: () => ({ heading: '', lead: '', body: '運営: {{operator}}', items: [], itemsAlt: [], note: '' }),
+};
+
+const ANGLE_TYPES = ['fv', 'recommit', 'closing'];
+
+function templateSection(type, project) {
+  return {
+    id: makeId(type.replace('_', '')),
+    type,
+    approved: false,
+    needsReview: false,
+    origin: 'template',
+    fields: TEMPLATES[type](),
+    claimRefs: type === 'proof' ? project.evidence.map((e) => e.id) : [],
+  };
+}
+
+/** モード1: LP全体作成（template） */
+function generateAllTemplate(project, { includeVideo = false } = {}) {
+  const p = clone(project);
+  const order = includeVideo ? ['fv', 'concept_video', ...DEFAULT_ORDER.slice(1)] : DEFAULT_ORDER;
+  p.sections = order.map((t) => templateSection(t, p));
+  return p;
+}
+
+/** モード2: 訴求変更。約束する価値を差し替え、訴求系だけ作り直し、残りに要確認を立てる */
+function reangleTemplate(project, newPromise) {
+  const p = clone(project);
+  p.brief.promise = { value: String(newPromise).slice(0, 600), status: 'unconfirmed' };
+  p.sections = p.sections.map((s) => {
+    if (ANGLE_TYPES.includes(s.type)) {
+      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false };
+    }
+    if (s.type === 'footer') return s;
+    return { ...s, needsReview: true, approved: false };
+  });
+  return p;
+}
+
+/** モード3: セクション単体の再生成（template） */
+function regenerateSectionTemplate(project, sectionId) {
+  const p = clone(project);
+  const i = p.sections.findIndex((s) => s.id === sectionId);
+  if (i < 0) throw new Error('セクションが見つかりません');
+  const s = p.sections[i];
+  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false,
+    claimRefs: s.type === 'proof' ? p.evidence.map((e) => e.id) : s.claimRefs };
+  return p;
+}
+
+// ---------------- claude-code アダプタ ----------------
+
+const GENERATED_SECTION_SPEC = {
+  t: 'object',
+  fields: {
+    type: { t: 'string', enum: SECTION_TYPES },
+    fields: {
+      t: 'object',
+      fields: {
+        heading: { t: 'string', max: 200 }, lead: { t: 'string', max: 400 }, body: { t: 'string', max: 2000 }, note: { t: 'string', max: 400 },
+        items: { t: 'array', of: { t: 'string', max: 300 }, max: 12 },
+        itemsAlt: { t: 'array', of: { t: 'string', max: 300 }, max: 12 },
+      },
+      required: [],
+    },
+    claimRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 },
+  },
+  required: ['type', 'fields'],
+};
+
+const RESPONSE_SPEC = {
+  t: 'object',
+  fields: {
+    generator: { t: 'string', enum: ['claude-code'] },
+    mode: { t: 'string', enum: ['full', 'reangle', 'section'] },
+    promise: { t: 'string', max: 600 },
+    sections: { t: 'array', of: GENERATED_SECTION_SPEC, max: 20, min: 1 },
+    evidenceCandidates: {
+      t: 'array', max: 20,
+      of: { t: 'object', fields: { claim: { t: 'string', max: 300 }, source: { t: 'string', max: 300 } }, required: ['claim', 'source'] },
+    },
+  },
+  required: ['generator', 'mode', 'sections'],
+};
+
+/** Claude Code に渡す生成指示（Markdown）。JSON の契約と禁止事項を含む。 */
+function buildPrompt(project, mode = 'full', target = {}) {
+  const lines = [];
+  lines.push('# LP Studio 生成指示（Claude Code 用）', '');
+  lines.push('あなたは LP の構成・コピーの**下書き**を書く。出力は下記 JSON 契約に従う JSON のみ（```json フェンス可）。');
+  lines.push('この出力はツール側で schema 検証され、すべて「未承認」「根拠未検証」として取り込まれる。人が確認するまで公開されない。', '');
+  lines.push('## 禁止事項（違反したフィールドは取り込み時に拒否・除外される）');
+  lines.push('- ブリーフや根拠に無い数値・実績・受講者数・満足度・ランキング・受賞・メディア掲載を書かない');
+  lines.push('- 推薦文・お客様の声・専門家/医師の権威づけを創作しない');
+  lines.push('- 保証・断定（必ず/絶対/誰でも）、煽り（今だけ/残りわずか/限定）を書かない');
+  lines.push('- 効能効果（治る/痩せる/効く 等）を書かない');
+  lines.push(`- 参考LP固有の値を使わない: ${REFERENCE_DENYLIST.join(' / ')}`);
+  lines.push('- ブリーフ値は {{key}} 差込で参照する（例: {{offer}}）。値を書き写さない。使えるキー: ' + BRIEF_KEYS.join(', '));
+  lines.push('- 分からないこと・ヒアリングが要ることは 【要記入: 何が必要か】 と書く。埋め合わせない');
+  lines.push('- HTML タグ・スクリプト・URL を書かない（プレーンテキストのみ）', '');
+  lines.push('## ブリーフ（status: confirmed=確定 / unconfirmed=未確定 / missing=未入力）');
+  for (const k of BRIEF_KEYS) {
+    const f = project.brief[k];
+    lines.push(`- ${k}（${BRIEF_LABELS[k]}）[${f.status}]: ${f.value || '（なし）'}`);
+  }
+  lines.push(`- category: ${project.brief.category}`, '');
+  lines.push('## 根拠（id / status / 内容）。claimRefs には verified のものだけを入れる');
+  if (!project.evidence.length) lines.push('- （なし）');
+  for (const e of project.evidence) lines.push(`- ${e.id} [${e.status}] ${e.claim}（出典: ${e.source}）`);
+  lines.push('');
+  lines.push('## セクションの役割（参考構成の流れ）');
+  for (const t of SECTION_TYPES) {
+    const m = SECTION_CATALOG[t];
+    lines.push(`- ${t}: ${m.label} — ${m.role}${m.required ? '（必須）' : '（任意）'}`);
+  }
+  lines.push('');
+  lines.push('## 依頼');
+  if (mode === 'full') {
+    lines.push('LP全体の sections を上の順で書く（concept_video は素材が無いので不要）。');
+  } else if (mode === 'reangle') {
+    lines.push(`訴求を「${String(target.promise || '').slice(0, 200)}」に変える。promise と、fv / recommit / closing の 3 セクションだけを書く。`);
+  } else {
+    const s = project.sections.find((x) => x.id === target.sectionId);
+    lines.push(`セクション ${s ? s.type : '(未指定)'} を 1 つだけ書き直す。現在の内容: ${s ? JSON.stringify(s.fields) : '-'}`);
+  }
+  lines.push('');
+  lines.push('## JSON 契約');
+  lines.push('```json');
+  lines.push(JSON.stringify({
+    generator: 'claude-code',
+    mode,
+    ...(mode === 'reangle' ? { promise: '新しい約束（プレーンテキスト）' } : {}),
+    sections: [{ type: 'fv', fields: { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] }, claimRefs: [] }],
+    evidenceCandidates: [{ claim: '確認が必要な事実の候補', source: 'どこで確認できるか' }],
+  }, null, 2));
+  lines.push('```');
+  return lines.join('\n');
+}
+
+function extractJson(text) {
+  const s = String(text ?? '').trim();
+  const fence = s.match(/```(?:json)?\s*([\s\S]*?)```/);
+  return fence ? fence[1] : s;
+}
+
+/** brief に confirmed で入っていない denylist 値・HTML を含むフィールドを除外 */
+function screenFields(fields, project, report, label) {
+  const confirmedNorm = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => normalize(project.brief[k].value)).join('|');
+  const bad = (v) => {
+    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\//i.test(v)) return 'HTML/URL を含む';
+    const ref = detectClaims(v).find((c) => c.category === 'reference' && !confirmedNorm.includes(normalize(c.match)));
+    return ref ? `参考LP固有の値「${ref.match}」` : null;
+  };
+  const out = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] };
+  for (const k of ['heading', 'lead', 'body', 'note']) {
+    const v = fields[k] || '';
+    const why = v && bad(v);
+    if (why) report.rejected.push(`${label}.${k}: ${why}のため拒否`);
+    else out[k] = v;
+  }
+  for (const k of ['items', 'itemsAlt']) {
+    for (const v of fields[k] || []) {
+      const why = bad(v);
+      if (why) report.rejected.push(`${label}.${k}: ${why}のため拒否`);
+      else out[k].push(v);
+    }
+  }
+  return out;
+}
+
+/**
+ * Claude Code の出力（JSON 文字列）を検証して project に取り込む。
+ * 返り値: { ok, project, report: { errors, warnings, rejected, added } }
+ */
+function ingestGenerated(project, responseText, { mode, sectionId } = {}) {
+  const report = { errors: [], warnings: [], rejected: [], added: [] };
+  let data;
+  try {
+    data = JSON.parse(extractJson(responseText), (k, v) => {
+      if (k === '__proto__' || k === 'constructor' || k === 'prototype') throw new Error(`禁止キー "${k}"`);
+      return v;
+    });
+  } catch (e) {
+    report.errors.push(`JSONとして読めません: ${String(e.message).slice(0, 120)}`);
+    return { ok: false, project, report };
+  }
+  const shape = validateShape(RESPONSE_SPEC, data, '$response');
+  report.errors.push(...shape.errors);
+  report.warnings.push(...shape.warnings);
+  if (shape.errors.length) return { ok: false, project, report };
+  const r = shape.value;
+  if (mode && r.mode !== mode) {
+    report.errors.push(`mode が一致しません（期待: ${mode} / 応答: ${r.mode}）`);
+    return { ok: false, project, report };
+  }
+  const p = clone(project);
+  const evIds = new Set(p.evidence.map((e) => e.id));
+  const toSection = (g, keep) => {
+    const refs = (g.claimRefs || []).filter((id) => {
+      if (!evIds.has(id)) { report.warnings.push(`claimRefs "${id}" は存在しないため外しました`); return false; }
+      return true;
+    });
+    return {
+      id: keep?.id || makeId(g.type.replace('_', '')),
+      type: g.type,
+      approved: false, // 強制
+      needsReview: false,
+      origin: 'claude-code',
+      fields: screenFields(g.fields, p, report, g.type),
+      claimRefs: refs,
+    };
+  };
+
+  if (r.mode === 'full') {
+    const seen = new Set();
+    p.sections = [];
+    for (const g of r.sections) {
+      if (seen.has(g.type)) { report.warnings.push(`${g.type} が重複しているため2つ目以降を無視しました`); continue; }
+      seen.add(g.type);
+      p.sections.push(toSection(g));
+    }
+    for (const t of SECTION_TYPES.filter((t) => SECTION_CATALOG[t].required && !seen.has(t))) {
+      p.sections.push(templateSection(t, p));
+      report.warnings.push(`必須セクション ${t} が無いためテンプレートで補いました（AI生成ではありません）`);
+    }
+    report.added.push(`${p.sections.length} セクション`);
+  } else if (r.mode === 'reangle') {
+    if (r.promise) p.brief.promise = { value: r.promise, status: 'unconfirmed' };
+    const byType = new Map(r.sections.filter((g) => ANGLE_TYPES.includes(g.type)).map((g) => [g.type, g]));
+    for (const g of r.sections) if (!ANGLE_TYPES.includes(g.type)) report.warnings.push(`訴求変更では ${g.type} は対象外のため無視しました`);
+    p.sections = p.sections.map((s) => {
+      if (byType.has(s.type)) return toSection(byType.get(s.type), s);
+      if (s.type === 'footer') return s;
+      return { ...s, needsReview: true, approved: false };
+    });
+    report.added.push(`${byType.size} セクションを差し替え`);
+  } else {
+    const i = p.sections.findIndex((s) => s.id === sectionId);
+    if (i < 0) { report.errors.push('対象セクションが見つかりません'); return { ok: false, project, report }; }
+    const g = r.sections.find((x) => x.type === p.sections[i].type);
+    if (!g) { report.errors.push(`応答に ${p.sections[i].type} がありません`); return { ok: false, project, report }; }
+    p.sections[i] = toSection(g, p.sections[i]);
+    report.added.push('1 セクションを差し替え');
+  }
+  for (const c of r.evidenceCandidates || []) {
+    const id = makeId('ev');
+    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
+    report.added.push(`根拠候補（未検証）: ${c.claim.slice(0, 30)}`);
+  }
+  return { ok: true, project: p, report };
+}
+
+
+return { templateSection, generateAllTemplate, reangleTemplate, regenerateSectionTemplate, buildPrompt, ingestGenerated, ADAPTERS };
+})();
+
+__mods.model = (() => {
+// 共通データモデルへの編集操作。すべて純関数（入力を変更せず新しい project を返す）。
+// WF / PC / SP / export は同じ project から描画されるので、ここを通せば全ビューが同期する。
+
+const { SCHEMA_VERSION, BRIEF_STATUS, SOURCE_TYPES, CTA_TIMINGS, FONTS, CATEGORIES, validateProject } = __mods.schema;
+const { SECTION_CATALOG, BRIEF_KEYS } = __mods.sections;
+const { templateSection } = __mods.generate;
+const { clone, makeId, safeColor, safeUrl } = __mods.util;
+function emptyProject(name = '新しいLP') {
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    id: makeId('lp'),
+    name,
+    updatedAt: '',
+    brief: { ...Object.fromEntries(BRIEF_KEYS.map((k) => [k, { value: '', status: 'missing' }])), category: 'general' },
+    brand: { primary: '#2f3cbe', accent: '#e0567a', ink: '#1d2230', paper: '#fbf8f2', font: 'sans' },
+    evidence: [],
+    sections: [],
+    cta: { activeVariant: 'a', variants: [{ id: 'a', label: '', color: '#d93d63', timing: 'spec' }] },
+    lpo: { dataset: null },
+  };
+}
+
+function findSection(p, id) {
+  const i = p.sections.findIndex((s) => s.id === id);
+  if (i < 0) throw new Error(`セクション ${id} が見つかりません`);
+  return i;
+}
+
+const TEXT_FIELDS = ['heading', 'lead', 'body', 'note'];
+const LIST_FIELDS = ['items', 'itemsAlt'];
+
+/**
+ * op: { type, ... }
+ * 失敗時は Error を投げる（UI はメッセージを表示し、project は変わらない）。
+ */
+function applyEdit(project, op) {
+  const p = clone(project);
+  switch (op.type) {
+    case 'setName':
+      p.name = String(op.value).slice(0, 120);
+      break;
+    case 'setBrief': {
+      if (!BRIEF_KEYS.includes(op.key)) throw new Error('不明なブリーフ項目');
+      const cur = p.brief[op.key];
+      let value = op.value !== undefined ? String(op.value).slice(0, 600) : cur.value;
+      let status = op.status !== undefined ? op.status : cur.status;
+      if (!BRIEF_STATUS.includes(status)) throw new Error('不明なステータス');
+      if (op.key === 'ctaUrl' && value && !safeUrl(value)) throw new Error('リンク先は https: / mailto: / tel: / #id のみ使えます');
+      if (!value.trim()) status = 'missing';
+      else if (status === 'missing') status = 'unconfirmed';
+      p.brief[op.key] = { value, status };
+      break;
+    }
+    case 'setCategory':
+      if (!CATEGORIES.includes(op.value)) throw new Error('不明なカテゴリ');
+      p.brief.category = op.value;
+      break;
+    case 'setBrand': {
+      if (op.key === 'font') {
+        if (!FONTS.includes(op.value)) throw new Error('不明なフォント');
+        p.brand.font = op.value;
+      } else {
+        if (!['primary', 'accent', 'ink', 'paper'].includes(op.key)) throw new Error('不明なtoken');
+        const c = safeColor(op.value);
+        if (!c) throw new Error('色は #RRGGBB で指定してください');
+        p.brand[op.key] = c;
+      }
+      break;
+    }
+    case 'setField': {
+      const i = findSection(p, op.id);
+      if (TEXT_FIELDS.includes(op.field)) p.sections[i].fields[op.field] = String(op.value).slice(0, op.field === 'body' ? 2000 : 400);
+      else if (LIST_FIELDS.includes(op.field)) {
+        const list = Array.isArray(op.value) ? op.value : String(op.value).split('\n');
+        p.sections[i].fields[op.field] = list.map((v) => String(v).slice(0, 300)).filter((v) => v.trim()).slice(0, 12);
+      } else throw new Error('不明なフィールド');
+      p.sections[i].origin = 'manual';
+      p.sections[i].approved = false; // 編集したら承認し直し
+      break;
+    }
+    case 'addSection': {
+      const meta = SECTION_CATALOG[op.sectionType];
+      if (!meta) throw new Error('不明なセクション種別');
+      if (p.sections.some((s) => s.type === op.sectionType)) throw new Error(`${meta.label} はすでにあります`);
+      const s = templateSection(op.sectionType, p);
+      const at = Number.isInteger(op.at) ? Math.max(0, Math.min(op.at, p.sections.length)) : p.sections.length;
+      p.sections.splice(at, 0, s);
+      break;
+    }
+    case 'removeSection': {
+      const i = findSection(p, op.id);
+      if (SECTION_CATALOG[p.sections[i].type].required) throw new Error('必須セクションは削除できません（並べ替えは可能）');
+      p.sections.splice(i, 1);
+      break;
+    }
+    case 'moveSection': {
+      const i = findSection(p, op.id);
+      const j = i + (op.delta || 0);
+      if (j < 0 || j >= p.sections.length) throw new Error('これ以上移動できません');
+      const [s] = p.sections.splice(i, 1);
+      p.sections.splice(j, 0, s);
+      break;
+    }
+    case 'approveSection': {
+      const i = findSection(p, op.id);
+      p.sections[i].approved = !!op.value;
+      if (op.value) p.sections[i].needsReview = false;
+      break;
+    }
+    case 'setClaimRefs': {
+      const i = findSection(p, op.id);
+      const ids = new Set(p.evidence.map((e) => e.id));
+      p.sections[i].claimRefs = (op.value || []).filter((r) => ids.has(r));
+      p.sections[i].approved = false;
+      break;
+    }
+    case 'addEvidence': {
+      if (!SOURCE_TYPES.includes(op.sourceType || 'other')) throw new Error('不明な出典種別');
+      p.evidence.push({
+        id: makeId('ev'), claim: String(op.claim || '').slice(0, 300), source: String(op.source || '').slice(0, 300),
+        sourceType: op.sourceType || 'other', status: 'unverified', provenance: 'human', verifiedBy: '', verifiedAt: '',
+        metricValue: Number.isFinite(op.metricValue) ? op.metricValue : null, metricUnit: String(op.metricUnit || '').slice(0, 12), note: '',
+      });
+      break;
+    }
+    case 'verifyEvidence': {
+      // 昇格は人の操作だけ。確認者と確認日が必須
+      const e = p.evidence.find((x) => x.id === op.id);
+      if (!e) throw new Error('根拠が見つかりません');
+      if (op.value) {
+        if (!String(op.verifiedBy || '').trim()) throw new Error('確認者を入力してください');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(op.verifiedAt || '')) throw new Error('確認日は YYYY-MM-DD');
+        if (!e.source.trim()) throw new Error('出典が空の根拠は検証済みにできません');
+        e.status = 'verified';
+        e.verifiedBy = String(op.verifiedBy).slice(0, 80);
+        e.verifiedAt = op.verifiedAt;
+      } else {
+        e.status = 'unverified';
+        e.verifiedBy = '';
+        e.verifiedAt = '';
+      }
+      break;
+    }
+    case 'removeEvidence': {
+      p.evidence = p.evidence.filter((e) => e.id !== op.id);
+      for (const s of p.sections) s.claimRefs = s.claimRefs.filter((r) => r !== op.id);
+      break;
+    }
+    case 'setCtaVariant': {
+      const v = p.cta.variants.find((x) => x.id === op.id);
+      if (!v) throw new Error('CTA案が見つかりません');
+      if (op.label !== undefined) v.label = String(op.label).slice(0, 40);
+      if (op.color !== undefined) {
+        const c = safeColor(op.color);
+        if (!c) throw new Error('色は #RRGGBB で指定してください');
+        v.color = c;
+      }
+      if (op.timing !== undefined) {
+        if (!CTA_TIMINGS.includes(op.timing)) throw new Error('不明な表示タイミング');
+        v.timing = op.timing;
+      }
+      break;
+    }
+    case 'addCtaVariant': {
+      if (p.cta.variants.length >= 4) throw new Error('CTA案は4つまで');
+      const used = new Set(p.cta.variants.map((v) => v.id));
+      const id = ['a', 'b', 'c', 'd'].find((x) => !used.has(x));
+      p.cta.variants.push({ id, label: '', color: '#1f6f5c', timing: 'spec' });
+      break;
+    }
+    case 'removeCtaVariant': {
+      if (p.cta.variants.length <= 1) throw new Error('CTA案は最低1つ必要です');
+      p.cta.variants = p.cta.variants.filter((v) => v.id !== op.id);
+      if (!p.cta.variants.some((v) => v.id === p.cta.activeVariant)) p.cta.activeVariant = p.cta.variants[0].id;
+      break;
+    }
+    case 'setActiveCta':
+      if (!p.cta.variants.some((v) => v.id === op.id)) throw new Error('CTA案が見つかりません');
+      p.cta.activeVariant = op.id;
+      break;
+    case 'setDataset': {
+      const check = validateProject({ ...p, lpo: { dataset: op.value } });
+      if (!check.ok) throw new Error(check.errors.join(' / '));
+      p.lpo = { dataset: check.project.lpo.dataset };
+      break;
+    }
+    default:
+      throw new Error(`不明な操作: ${op.type}`);
+  }
+  return p;
+}
+
+function activeCta(project) {
+  const v = project.cta.variants.find((x) => x.id === project.cta.activeVariant) || project.cta.variants[0];
+  return { ...v, label: v.label || project.brief.ctaLabel.value };
+}
+
+return { emptyProject, applyEdit, activeCta };
+})();
+
+__mods.render = (() => {
+// 同じ project から WF / デザイン（PC・SP は同一のレスポンシブHTML）/ draft / safe を描画する。
+// すべての文字列は escapeHtml を通す。URL は safeUrl、色は safeColor を通した値だけを使う。
+// script はツールが持つ固定文字列だけ（ユーザー入力を含まない）で、CSP の sha256 hash を付ける。
+
+const { escapeHtml: e, safeUrl, safeColor, contrastRatio, readableOn, inkFor, sha256Base64 } = __mods.util;
+const { SECTION_CATALOG, BRIEF_LABELS } = __mods.sections;
+const { assessText, detectClaims } = __mods.claims;
+const { activeCta } = __mods.model;
+const RUNTIME_SCRIPT = `(function(){var d=document.documentElement,b=document.body;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);var io='IntersectionObserver' in window;if(!rm&&io)d.classList.add('js');
+function fmt(v,dec){return Number(v).toLocaleString('ja-JP',{minimumFractionDigits:dec,maximumFractionDigits:dec})}
+var els=document.querySelectorAll('.reveal');if(rm||!io){for(var i=0;i<els.length;i++)els[i].classList.add('in')}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
+var cs=document.querySelectorAll('[data-count]');Array.prototype.forEach.call(cs,function(el){var raw=el.getAttribute('data-count');var to=parseFloat(raw);var dec=(raw.split('.')[1]||'').length;if(rm||!io||!isFinite(to)){el.textContent=fmt(to,dec);return}el.textContent=fmt(0,dec);var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();function step(t){var k=Math.min(1,(t-t0)/900);el.textContent=fmt(to*(1-Math.pow(1-k,3)),dec);if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)});o.observe(el)});
+var bar=document.querySelector('.cta-sticky');if(!bar)return;var timing=b.getAttribute('data-cta-timing')||'spec';var fvVis=true,half=false,inl=document.querySelectorAll('.cta-inline'),vis=[];
+function upd(){var anyInline=vis.some(function(v){return v});var show=timing==='always'?true:timing==='after-half'?(half&&!anyInline):(!fvVis&&!anyInline);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
+if(io){var fv=document.querySelector('.fv');if(fv)new IntersectionObserver(function(es){fvVis=es[0].isIntersecting;upd()}).observe(fv);else fvVis=false;var io2=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(inl,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(inl,function(x,i){vis[i]=false;io2.observe(x)})}else{fvVis=false}
+function onScroll(){var h=document.documentElement;half=(h.scrollTop+window.innerHeight)/Math.max(1,h.scrollHeight)>0.5;upd()}addEventListener('scroll',onScroll,{passive:true});onScroll()})();`;
+
+const FONT_STACK = {
+  sans: '"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif',
+  serif: '"Hiragino Mincho ProN","Noto Serif JP","Yu Mincho",serif',
+  rounded: '"Hiragino Maru Gothic ProN","M PLUS Rounded 1c","Noto Sans JP",system-ui,sans-serif',
+};
+
+function baseCss(project, cta) {
+  const b = project.brand;
+  const primary = safeColor(b.primary) || '#2f3cbe';
+  const accent = safeColor(b.accent) || '#e0567a';
+  const ink = safeColor(b.ink) || '#1d2230';
+  const paper = safeColor(b.paper) || '#fbf8f2';
+  const ctaColor = safeColor(cta.color) || '#d93d63';
+  const ctaText = readableOn(ctaColor);
+  const fvText = readableOn(primary);
+  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);font-size:17.5px;line-height:34.1px;overflow-wrap:anywhere;padding-bottom:110px}
+img,video{max-width:100%}
+.wrap{max-width:720px;margin:0 auto;padding:0 24px}
+.wide{max-width:1040px;margin:0 auto;padding:0 24px}
+section{padding:88px 0;position:relative}
+h1,h2,h3{line-height:1.35;margin:0 0 20px;letter-spacing:.01em}
+h2{font-size:36px;font-weight:800}
+h3{font-size:21px}
+p{margin:0 0 18px}
+.eyebrow{display:inline-block;font-size:13px;letter-spacing:.14em;font-weight:700;text-transform:uppercase;line-height:1.6;padding:4px 12px;border-radius:999px;border:1.5px solid currentColor;margin-bottom:18px}
+.lead{font-size:20px;line-height:1.8;font-weight:600}
+.bg-paper{background:color-mix(in srgb,var(--accent) 5%,var(--paper));background-image:radial-gradient(color-mix(in srgb,var(--ink) 7%,transparent) 1px,transparent 1.2px);background-size:22px 22px}
+.bg-grid{background-color:color-mix(in srgb,var(--accent) 3%,#fff);background-image:linear-gradient(color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px);background-size:30px 30px}
+.fv{padding:0;overflow:hidden;background:var(--paper)}
+.fv-top{background:linear-gradient(90deg,var(--primary),var(--accent));color:var(--fv-text);text-align:center;font-weight:800;font-size:22px;line-height:1.5;padding:12px 0;letter-spacing:.04em}
+.fv-hero{position:relative;background:linear-gradient(180deg,#fafafa,#f1f1f3);overflow:hidden}
+.fv-hero::before{content:"";position:absolute;top:0;bottom:0;right:0;width:36%;background:color-mix(in srgb,var(--ink) 9%,#ececef);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
+.hero-grid{position:relative;display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:center;padding-top:34px;padding-bottom:30px}
+.kicker{color:var(--accent-ink);font-weight:900;font-size:28px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em}
+.fv h1{font-size:52px;font-weight:900;line-height:1.22;margin:0 0 16px;color:var(--ink);letter-spacing:.01em}
+.fv .sub{font-weight:800;font-size:20px;line-height:1.75;color:var(--ink)}
+.fv .sub p{margin:0 0 4px}
+.fv-visual{position:relative;min-height:280px}
+.bp-card{position:absolute;width:44%;aspect-ratio:3/4;border-radius:10px;background:linear-gradient(160deg,#fff 0 58%,color-mix(in srgb,var(--primary) 18%,#fff) 58%);box-shadow:0 14px 28px rgba(0,0,0,.18);border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
+.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary);line-height:1}
+.bp-card i{display:block;height:7px;border-radius:4px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
+.bp-card i:nth-of-type(2){width:72%}.bp-card i:nth-of-type(3){width:84%;background:color-mix(in srgb,var(--accent) 40%,transparent)}
+.bp-card.c1{left:0;bottom:6%;transform:rotate(-6deg)}.bp-card.c2{left:28%;bottom:12%;transform:rotate(2deg);z-index:1}.bp-card.c3{left:56%;bottom:4%;transform:rotate(7deg)}
+.bp-chip{position:absolute;left:6%;bottom:-2%;z-index:2;background:var(--ink);color:#fff;font-weight:800;font-size:15px;line-height:1.5;padding:6px 14px;border-radius:8px;max-width:90%}
+.badge{text-decoration:none;position:absolute;right:16px;top:18px;z-index:3;width:138px;height:138px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,#fff 0 56%,transparent 57%),repeating-conic-gradient(var(--accent) 0 10deg,color-mix(in srgb,var(--accent) 70%,#fff) 10deg 20deg);box-shadow:0 8px 20px rgba(0,0,0,.18);color:var(--ink);font-weight:900;line-height:1.15;font-size:13px}
+.badge strong{display:block;font-size:30px;color:var(--accent-ink)}
+.fv-offer{position:relative;background:linear-gradient(90deg,var(--primary),var(--accent));color:var(--fv-text);padding:20px 0 14px;text-align:center}
+.fv-offer::before,.fv-offer::after{content:"✦";position:absolute;font-size:14px;opacity:.6}.fv-offer::before{left:6%;top:38%}.fv-offer::after{right:9%;top:60%}
+.offer-row{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+.offer-tag{display:inline-block;background:color-mix(in srgb,var(--ink) 75%,#5a0f0f);color:#fff;font-weight:800;font-size:15px;line-height:1.5;padding:10px 26px;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%)}
+.offer-big{font-size:44px;font-weight:900;line-height:1.25;letter-spacing:.02em}
+.fv-offer .cta-inline{margin:16px auto 4px}
+.scroll-hint{display:block;font-size:22px;line-height:1;opacity:.75}
+.cta-inline{display:flex;align-items:center;justify-content:center;gap:14px;min-height:76px;width:100%;max-width:600px;padding:12px 28px;border-radius:999px;background:#fff;color:var(--cta-ink);font-weight:900;font-size:24px;line-height:1.35;text-decoration:none;box-shadow:0 12px 26px rgba(0,0,0,.18);margin:28px 0 8px}
+.cta-ico{flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--cta),color-mix(in srgb,var(--cta) 55%,var(--accent)));position:relative}
+.cta-ico::after{content:"";position:absolute;left:15px;top:12px;border-left:13px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent}
+.on-light .cta-inline{background:var(--cta);color:var(--cta-text)}
+.on-light .cta-ico{background:#fff}.on-light .cta-ico::after{border-left-color:var(--cta)}
+.cta-inline:focus-visible,.cta-sticky a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
+.cta-inline::after{content:"›";font-weight:900;font-size:1.3em;line-height:1}
+.cta-note{font-size:13px;line-height:1.7;opacity:.85}
+.cta-sticky{position:fixed;right:24px;bottom:24px;width:340px;height:66px;z-index:50;visibility:hidden;opacity:0;transform:translateY(12px);transition:opacity .35s,transform .35s,visibility .35s}
+.cta-sticky.show{visibility:visible;opacity:1;transform:none}
+.cta-sticky a{display:flex;align-items:center;justify-content:center;gap:12px;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cta),color-mix(in srgb,var(--cta) 70%,var(--accent)));color:var(--cta-text);font-weight:800;font-size:18px;line-height:1.3;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:0 20px;text-align:center}
+.cta-sticky .cta-ico{width:30px;height:30px;background:#fff}.cta-sticky .cta-ico::after{left:11px;top:8px;border-left:10px solid var(--cta);border-top:7px solid transparent;border-bottom:7px solid transparent}
+.cta-sticky a::after{content:"›";font-size:1.3em;line-height:1}
+.cards{display:grid;gap:16px}
+.card{background:#fff;border-radius:18px;padding:22px 24px;box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 10%,transparent),0 8px 24px color-mix(in srgb,var(--ink) 7%,transparent);border:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
+.bubble{position:relative;font-weight:600}
+.bubble::before{content:"“";color:var(--accent);font-size:34px;line-height:0;vertical-align:-12px;margin-right:6px;font-weight:900}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.compare .col{border-radius:18px;padding:22px}
+.compare .before{background:color-mix(in srgb,var(--ink) 6%,#fff)}
+.compare .after{background:color-mix(in srgb,var(--primary) 12%,#fff);border:2px solid var(--primary)}
+.compare h3{font-size:16px;letter-spacing:.1em}
+ul.plain{list-style:none;padding:0;margin:0}
+ul.plain li{padding:10px 0;border-bottom:1px dashed color-mix(in srgb,var(--ink) 18%,transparent)}
+ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28px}
+.ncard{counter-increment:s;position:relative;overflow:hidden;background:#fff;border-radius:6px;padding:34px 36px 30px;box-shadow:0 18px 40px color-mix(in srgb,var(--accent) 16%,rgba(0,0,0,.08))}
+.ncard::before{content:counter(s,decimal-leading-zero);position:absolute;right:18px;top:-14px;font-size:96px;font-weight:900;line-height:1;color:color-mix(in srgb,var(--accent) 12%,#fff);z-index:0}
+.ncard h3{position:relative;z-index:1;display:flex;gap:10px;align-items:flex-start;font-size:22px;line-height:1.5;margin:0;padding-bottom:16px;border-bottom:2px dotted color-mix(in srgb,var(--ink) 18%,transparent)}
+.ncard h3::before{content:"✓";flex:none;width:28px;height:28px;margin-top:3px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:15px;line-height:1}
+.ncard h3:only-child{border-bottom:0;padding-bottom:0}
+.ncard .nbody{position:relative;z-index:1;padding-top:14px}
+.yes li::before{content:"✓ ";color:var(--primary);font-weight:900}
+.no li::before{content:"— ";color:color-mix(in srgb,var(--ink) 55%,transparent);font-weight:900}
+.band{background:linear-gradient(120deg,color-mix(in srgb,var(--primary) 92%,#000),var(--accent));color:var(--fv-text)}
+.proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
+.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary);display:block;margin-bottom:6px}
+.metric small{font-size:18px;margin-left:4px}
+.src{font-size:13px;line-height:1.6;opacity:.75;display:block;margin-top:8px}
+.closing{text-align:left}
+footer{padding:40px 0 30px;font-size:13px;line-height:1.8;background:color-mix(in srgb,var(--ink) 92%,#000);color:#f4f4f4}
+.reveal{transition:opacity .7s ease,transform .7s ease}
+.js .reveal{opacity:0;transform:translateY(18px)}
+.js .reveal.in{opacity:1;transform:none}
+.js .fv .stage{opacity:0;animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
+.js .fv .s1{animation-delay:.05s}.js .fv .s2{animation-delay:.2s;animation-duration:.6s}.js .fv .s3{animation-delay:.35s;animation-duration:.7s}.js .fv .s4{animation-delay:.5s;animation-duration:.9s}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.js .reveal,.js .fv .stage{opacity:1!important;transform:none!important}}
+.flag{background:repeating-linear-gradient(45deg,#fff3b0,#fff3b0 6px,#ffe58a 6px,#ffe58a 12px);color:#3b2f00;border-radius:4px;padding:0 3px}
+.flag-tag{display:inline-block;font-size:11px;line-height:1.5;font-weight:800;background:#7a1f00;color:#fff;border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:2px}
+.draft-banner{position:sticky;top:0;z-index:60;background:#7a1f00;color:#fff;font-size:13px;line-height:1.6;padding:8px 16px;text-align:center}
+@media (max-width:600px){
+body{font-size:16px;line-height:31.2px}
+.wrap,.wide{padding:0 18px}
+section{padding:64px 0}
+h2{font-size:30px}
+.fv-top{font-size:15px;padding:9px 12px}
+.fv-hero::before{width:44%;top:auto;height:58%}
+.hero-grid{display:block;padding-top:22px;padding-bottom:18px}
+.kicker{font-size:24px;margin-bottom:4px;padding-right:96px}
+.fv h1{font-size:44px;line-height:1.18;margin-bottom:12px;padding-right:0}
+.fv .sub{font-size:17px;line-height:1.7}
+.fv-visual{min-height:170px;margin-top:10px}
+.bp-card{width:30%;padding:9px 8px;gap:6px}.bp-card b{font-size:10px}.bp-card i{height:5px}
+.bp-card.c1{left:0}.bp-card.c2{left:22%}.bp-card.c3{left:44%}
+.bp-chip{left:auto;right:0;bottom:6%;font-size:13px;max-width:48%}
+.badge{text-decoration:none;position:absolute;right:12px;top:14px;width:96px;height:96px;font-size:10px}.badge strong{font-size:21px}
+.hero-grid{position:static}.fv-hero{position:relative}
+.fv-offer{padding:16px 0 12px}
+.offer-row{gap:10px;flex-direction:column}
+.offer-tag{display:block;width:100%;font-size:14px;padding:7px 14px;clip-path:polygon(2% 0,100% 0,98% 100%,0 100%)}
+.offer-big{font-size:30px}
+.cta-inline{font-size:19px;min-height:62px;margin-top:12px;padding:10px 18px;gap:10px}.cta-ico{width:34px;height:34px}.cta-ico::after{left:13px;top:10px;border-left-width:11px;border-top-width:7px;border-bottom-width:7px}.ncard{padding:26px 20px 22px}.ncard h3{font-size:20px}.ncard::before{font-size:76px}
+.compare{grid-template-columns:1fr}
+.metric{font-size:38px}
+.cta-sticky{left:12px;right:12px;bottom:10px;width:auto;height:54px}
+.cta-sticky a{font-size:16px}
+body{padding-bottom:84px}
+}`;
+}
+
+function wfCss() {
+  return `*,*::before,*::after{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans JP",sans-serif;background:#eef0f3;color:#222;font-size:15px;line-height:1.7;overflow-wrap:anywhere;padding:16px 0 40px}
+.wf{max-width:760px;margin:0 auto;padding:0 12px;display:grid;gap:12px}
+.box{background:#fff;border:2px dashed #9aa3b2;border-radius:10px;padding:14px 16px}
+.box.req{border-style:solid}
+.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px}
+.tag{background:#e3e7ee;border-radius:4px;padding:1px 6px;font-weight:700}
+.tag.req{background:#2f3cbe;color:#fff}.tag.ok{background:#1f6f5c;color:#fff}.tag.warn{background:#7a1f00;color:#fff}
+.role{font-size:12px;color:#555;margin:0 0 8px}
+.h{font-weight:800;font-size:18px;margin:4px 0}
+.ph{background:#dfe3ea;border-radius:6px;padding:6px 8px;color:#444;font-size:13px;margin:6px 0}
+.cta{display:inline-block;border:2px solid #222;border-radius:999px;padding:6px 16px;font-weight:700;margin-top:6px}
+.miss{font-size:12px;color:#7a1f00;margin:6px 0 0;padding-left:18px}
+.flag{background:#fff3b0;border-radius:3px}
+ul{margin:4px 0;padding-left:20px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media (max-width:600px){.two{grid-template-columns:1fr}}`;
+}
+
+// ---------------- テキスト評価と描画 ----------------
+
+function renderInline(project, section, raw, kind, ctx) {
+  const a = assessText(project, section, raw);
+  if (kind === 'safe') {
+    if (!a.publishable) {
+      ctx.removed.push({ section: SECTION_CATALOG[section.type].label, text: a.text.slice(0, 60), reasons: reasonsOf(a) });
+      return null;
+    }
+    return e(a.text);
+  }
+  if (a.publishable) return e(a.text);
+  const why = reasonsOf(a).join(' / ');
+  return `<span class="flag" title="${e(why)}">${e(a.text)}</span><span class="flag-tag">未確認</span>`;
+}
+
+function reasonsOf(a) {
+  const r = [];
+  if (a.placeholder) r.push('要記入が残っている');
+  for (const t of a.unresolvedTokens) r.push(`${BRIEF_LABELS[t.key] || t.key}が${t.reason === 'unconfirmed' ? '未確定' : '未入力'}`);
+  for (const c of a.claims.filter((x) => !x.resolved)) r.push(`${c.label}「${c.match}」の根拠なし`);
+  return r;
+}
+
+function paragraphs(html) {
+  if (html == null) return '';
+  return html.split(/\n+/).filter(Boolean).map((p) => `<p>${p}</p>`).join('');
+}
+
+function list(project, s, key, kind, ctx) {
+  return (s.fields[key] || []).map((v) => renderInline(project, s, v, kind, ctx)).filter((x) => x != null);
+}
+
+function ctaInline(ctaInfo, note = '') {
+  return `<a class="cta-inline" href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a>${note}`;
+}
+
+// FVのバッジ: 根拠セクションが参照する verified かつ数値付きの evidence がある場合だけ出す（未検証の実績は出さない）
+function fvBadge(project, kind) {
+  const proof = project.sections.find((x) => x.type === 'proof' && (kind !== 'safe' || x.approved));
+  if (!proof) return '';
+  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && x.status === 'verified' && Number.isFinite(x.metricValue));
+  if (!ev) return '';
+  return `<a class="badge stage s4" href="#s-${e(proof.id)}" aria-label="${e(ev.claim)}（根拠へ）"><span><strong>${e(ev.metricValue.toLocaleString('ja-JP'))}</strong>${e(ev.metricUnit)}<br>根拠あり</span></a>`;
+}
+
+function sectionHtml(project, s, kind, ctx, ctaInfo, bgIndex) {
+  const t = s.type;
+  const F = (k) => (s.fields[k] ? renderInline(project, s, s.fields[k], kind, ctx) : null);
+  const heading = F('heading');
+  const lead = F('lead');
+  const body = F('body');
+  const note = F('note');
+  const items = list(project, s, 'items', kind, ctx);
+  const alt = list(project, s, 'itemsAlt', kind, ctx);
+  const bg = bgIndex % 2 === 0 ? 'bg-paper' : 'bg-grid';
+  const h2 = heading ? `<h2>${heading}</h2>` : '';
+  const leadP = lead ? `<p class="lead">${lead}</p>` : '';
+  const noteP = note ? `<p class="src">${note}</p>` : '';
+  const anchor = `id="s-${e(s.id)}"`;
+  let content = '';
+  switch (t) {
+    case 'fv': {
+      const top = project.brief.audience.value ? renderInline(project, s, '{{audience}}へ', kind, ctx) : null;
+      const product = project.brief.product.value ? renderInline(project, s, '{{product}}', kind, ctx) : null;
+      const offer = project.brief.offer.value ? renderInline(project, s, '{{offer}}', kind, ctx) : null;
+      const badge = fvBadge(project, kind);
+      return `<header class="fv" ${anchor}>
+${top ? `<div class="fv-top stage s1"><div class="wide">${top}</div></div>` : ''}
+<div class="fv-hero"><div class="wide hero-grid"><div class="copy">
+${lead ? `<p class="kicker stage s1">${lead}</p>` : ''}
+${heading ? `<h1 class="stage s2">${heading}</h1>` : ''}
+${body ? `<div class="sub stage s3">${paragraphs(body)}</div>` : ''}
+</div><div class="fv-visual stage s3" aria-hidden="true">
+<div class="bp-card c1"><b>01</b><i></i><i></i><i></i></div><div class="bp-card c2"><b>02</b><i></i><i></i><i></i></div><div class="bp-card c3"><b>03</b><i></i><i></i><i></i></div>
+${product ? `<span class="bp-chip">${product}</span>` : ''}</div>${badge}</div></div>
+<div class="fv-offer stage s4"><div class="wide"><div class="offer-row"><span class="offer-tag">今回のご案内</span>${offer ? `<span class="offer-big">${offer}</span>` : ''}</div>
+${ctaInline(ctaInfo)}<span class="scroll-hint" aria-hidden="true">⌄</span></div></div></header>`;
+    }
+    case 'concept_video':
+      content = `${h2}${leadP}<div class="card" role="note">${body ? paragraphs(body) : ''}</div>`;
+      break;
+    case 'empathy':
+      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="cards">${items.map((i) => `<div class="card bubble reveal">${i}</div>`).join('')}</div>`;
+      break;
+    case 'reframe':
+      content = `${h2}${leadP}${body ? paragraphs(body) : ''}${items.length || alt.length ? `<div class="compare reveal"><div class="col before"><h3>これまで</h3><ul class="plain">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div><div class="col after"><h3>これから</h3><ul class="plain">${alt.map((i) => `<li>${i}</li>`).join('')}</ul></div></div>` : ''}`;
+      break;
+    case 'steps':
+      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<ol class="steps">${items.map((i) => `<li class="ncard reveal"><h3>${i}</h3></li>`).join('')}</ol>`;
+      break;
+    case 'scope':
+    case 'fit': {
+      const [a, b] = t === 'scope' ? ['含まれるもの', '含まれないもの'] : ['向いている人', '向いていない人'];
+      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="compare reveal"><div class="col after"><h3>${a}</h3><ul class="plain yes">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div><div class="col before"><h3>${b}</h3><ul class="plain no">${alt.map((i) => `<li>${i}</li>`).join('')}</ul></div></div>`;
+      break;
+    }
+    case 'recommit':
+      return `<section class="band" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo)}</div></section>`;
+    case 'proof': {
+      const refs = new Set(s.claimRefs);
+      const evs = project.evidence.filter((x) => refs.has(x.id) && (kind !== 'safe' || x.status === 'verified'));
+      const cards = evs.map((ev) => {
+        const unverified = ev.status !== 'verified';
+        const metric = Number.isFinite(ev.metricValue)
+          ? (unverified ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
+            : `<span class="metric"><span data-count="${e(String(ev.metricValue))}">${e(String(ev.metricValue))}</span><small>${e(ev.metricUnit)}</small></span>`)
+          : '';
+        const claimHtml = unverified ? `<span class="flag">${e(ev.claim)}</span><span class="flag-tag">未検証</span>` : e(ev.claim);
+        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${unverified ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
+      });
+      ctx.proofCount = evs.length;
+      for (const ev of project.evidence.filter((x) => refs.has(x.id) && x.status !== 'verified')) {
+        if (kind === 'safe') ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: ['未検証の根拠'] });
+      }
+      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="proof-grid">${cards.join('')}</div>`;
+      break;
+    }
+    case 'closing':
+      return `<section class="band closing" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo, noteP)}</div></section>`;
+    case 'footer':
+      return `<footer ${anchor}><div class="wrap">${body ? paragraphs(body) : ''}${noteP}</div></footer>`;
+    default:
+      content = `${h2}${leadP}${body ? `<div class="reveal">${paragraphs(body)}</div>` : ''}`;
+  }
+  return `<section class="${bg}" ${anchor}><div class="wrap">${content}${t === 'concept_video' ? '' : noteP}</div></section>`;
+}
+
+function sectionHasContent(s, html) {
+  if (s.type === 'proof') return /class="card/.test(html);
+  return /<(h1|h2|p|li|div class="card)/.test(html.replace(/<span class="eyebrow[^]*?<\/span>/, ''));
+}
+
+function resolveCta(project, kind, ctx, variantId) {
+  const base = variantId ? project.cta.variants.find((v) => v.id === variantId) : null;
+  const v = base ? { ...base, label: base.label || project.brief.ctaLabel.value } : activeCta(project);
+  const url = safeUrl(project.brief.ctaUrl.value);
+  const urlOk = url && project.brief.ctaUrl.status === 'confirmed';
+  const labelFromBrief = !(base ? base.label : project.cta.variants.find((x) => x.id === project.cta.activeVariant)?.label);
+  const labelOk = v.label && (!labelFromBrief || project.brief.ctaLabel.status === 'confirmed');
+  const verified = project.evidence.filter((x) => x.status === 'verified');
+  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => ev.claim.normalize('NFKC').includes(c.match.normalize('NFKC'))));
+  if (kind === 'safe') {
+    if (!urlOk) ctx.blockers.push('CTAリンク先が確定していない、または許可されないURLです');
+    if (!labelOk) ctx.blockers.push('CTA文言が確定していません');
+    if (labelClaims.length) ctx.blockers.push(`CTA文言に根拠の無い主張: ${labelClaims.map((c) => c.match).join(', ')}`);
+  }
+  const ok = urlOk && labelOk && !labelClaims.length;
+  const labelHtml = ok || kind === 'safe' ? e(v.label || 'CTA') : `<span class="flag">${e(v.label || '【CTA文言 未入力】')}</span><span class="flag-tag">未確認</span>`;
+  return { href: url || '#', external: !!url && url.startsWith('https:'), labelHtml, variant: v };
+}
+
+function mixHex(a, b, t) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return '#' + pa.map((v, i) => Math.round(v * (1 - t) + pb[i] * t).toString(16).padStart(2, '0')).join('');
+}
+
+function contrastChecks(project, variant) {
+  const b = project.brand;
+  const fvText = readableOn(b.primary);
+  const ctaText = readableOn(variant.color);
+  return [
+    { name: '本文（ink / paper）', ratio: contrastRatio(b.ink, b.paper) },
+    { name: '本文（ink / 白カード）', ratio: contrastRatio(b.ink, '#ffffff') },
+    { name: 'FV見出し（ink / 淡色面）', ratio: contrastRatio(b.ink, '#f1f1f3') },
+    { name: `CTA「${variant.id}」固定バー 文字 / 背景`, ratio: contrastRatio(ctaText, variant.color) },
+    { name: `CTA「${variant.id}」固定バー 文字 / グラデーション終端`, ratio: contrastRatio(ctaText, mixHex(variant.color, b.accent, 0.3)) },
+    { name: `CTA「${variant.id}」白ピル 文字`, ratio: contrastRatio(inkFor(variant.color, '#ffffff'), '#ffffff') },
+    { name: '上部帯・オファー帯の文字', ratio: Math.min(contrastRatio(fvText, b.primary), contrastRatio(fvText, b.accent)) },
+  ].map((c) => ({ ...c, ok: c.ratio >= 4.5 }));
+}
+
+/**
+ * kind: 'preview'（編集中の確認。未確認は旗付き）/ 'draft'（レビュー用export。バナー+noindex）/ 'safe'（公開可能なものだけ）
+ * view: 'design' | 'wf'
+ */
+function renderPage(project, { kind = 'preview', view = 'design', ctaVariantId = null } = {}) {
+  const ctx = { removed: [], blockers: [], warnings: [], proofCount: 0 };
+  if (view === 'wf') return { html: renderWireframe(project), report: ctx };
+  const ctaInfo = resolveCta(project, kind, ctx, ctaVariantId);
+  const variant = ctaInfo.variant;
+  const contrast = contrastChecks(project, variant);
+  for (const c of contrast.filter((x) => !x.ok)) {
+    (kind === 'safe' ? ctx.blockers : ctx.warnings).push(`コントラスト不足: ${c.name} ${c.ratio}:1（4.5:1 以上が必要）`);
+  }
+  const parts = [];
+  let bgIndex = 0;
+  for (const s of project.sections) {
+    const meta = SECTION_CATALOG[s.type];
+    if (kind === 'safe' && !s.approved) {
+      if (meta.required) ctx.blockers.push(`必須セクション「${meta.label}」が未承認です`);
+      else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['未承認'] });
+      continue;
+    }
+    const html = sectionHtml(project, s, kind, ctx, ctaInfo, s.type === 'fv' ? 0 : bgIndex++);
+    if (kind === 'safe' && !sectionHasContent(s, html)) {
+      if (meta.required) ctx.blockers.push(`必須セクション「${meta.label}」に公開できる内容がありません`);
+      else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['公開できる内容なし'] });
+      continue;
+    }
+    parts.push(html);
+  }
+  if (kind === 'safe') {
+    for (const t of Object.keys(SECTION_CATALOG).filter((t) => SECTION_CATALOG[t].required)) {
+      if (!project.sections.some((s) => s.type === t)) ctx.blockers.push(`必須セクション「${SECTION_CATALOG[t].label}」がありません`);
+    }
+    if (project.brief.operator.status !== 'confirmed') ctx.blockers.push('運営者表記が確定していません');
+  }
+  const scriptHash = sha256Base64(RUNTIME_SCRIPT);
+  const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-${scriptHash}'; img-src data:; base-uri 'none'; form-action 'none'`;
+  const banner = kind === 'draft' ? '<div class="draft-banner" role="note">レビュー用ドラフト — 未確認の内容（旗付き）を含みます。公開しないでください。</div>' : '';
+  const robots = kind === 'safe' ? '' : '<meta name="robots" content="noindex,nofollow">';
+  const timing = variant.timing || 'spec';
+  const html = `<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="${csp}">${robots}
+<meta name="generator" content="lp-studio (${kind})">
+<title>${e(project.name)}</title><style>${baseCss(project, variant)}<\/style></head>
+<body data-cta-timing="${e(timing)}" data-kind="${e(kind)}">${banner}
+<main>${parts.join('\n')}</main>
+<div class="cta-sticky" aria-hidden="true" inert><a href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a></div>
+<script>${RUNTIME_SCRIPT}<\/script>
+</body></html>`;
+  return { html, report: { ...ctx, contrast, publishable: kind === 'safe' ? ctx.blockers.length === 0 : false } };
+}
+
+/** export。safe はブロッカーがあれば HTML を返さない（fail-closed）。 */
+function exportHtml(project, kind) {
+  if (!['draft', 'safe'].includes(kind)) throw new Error('kind は draft か safe');
+  const { html, report } = renderPage(project, { kind });
+  if (kind === 'safe' && !report.publishable) return { html: null, report };
+  return { html, report };
+}
+
+// ---------------- WF ----------------
+
+function renderWireframe(project) {
+  const cta = activeCta(project);
+  const boxes = project.sections.map((s) => {
+    const meta = SECTION_CATALOG[s.type];
+    const fieldHtml = (raw) => {
+      const a = assessText(project, s, raw);
+      return a.publishable ? e(a.text) : `<span class="flag" title="${e(reasonsOf(a).join(' / '))}">${e(a.text)}</span>`;
+    };
+    const f = s.fields;
+    const listHtml = (arr) => (arr.length ? `<ul>${arr.map((v) => `<li>${fieldHtml(v)}</li>`).join('')}</ul>` : '');
+    const missing = [];
+    for (const k of meta.needs) {
+      const b = project.brief[k];
+      if (b.status !== 'confirmed') missing.push(`${BRIEF_LABELS[k]}（${b.status === 'missing' ? '未入力' : '未確定'}）`);
+    }
+    const tags = [
+      `<span class="tag">${e(meta.label)}</span>`,
+      meta.required ? '<span class="tag req">必須</span>' : '<span class="tag">任意</span>',
+      s.approved ? '<span class="tag ok">承認済</span>' : '<span class="tag warn">未承認</span>',
+      s.needsReview ? '<span class="tag warn">要再確認</span>' : '',
+      `<span class="tag">${e(s.origin)}</span>`,
+    ].join('');
+    const visual = s.type === 'fv' ? '<div class="ph">［ビジュアル枠］PC: 右カラム / SP: 見出しの下にチップ列で再配置</div>' : '';
+    const ctaBox = ['fv', 'recommit', 'closing'].includes(s.type) ? `<div class="cta">CTA: ${e(cta.label || '未入力')}</div>` : '';
+    const proof = s.type === 'proof'
+      ? `<div class="ph">根拠カード: 参照 ${s.claimRefs.length} 件 / うち検証済み ${project.evidence.filter((x) => s.claimRefs.includes(x.id) && x.status === 'verified').length} 件</div>` : '';
+    return `<div class="box${meta.required ? ' req' : ''}" data-section-id="${e(s.id)}"><div class="meta">${tags}</div><p class="role">役割: ${e(meta.role)}</p>
+${f.heading ? `<div class="h">${fieldHtml(f.heading)}</div>` : ''}${f.lead ? `<div>${fieldHtml(f.lead)}</div>` : ''}${f.body ? `<div>${fieldHtml(f.body)}</div>` : ''}
+${f.items.length || f.itemsAlt.length ? `<div class="two"><div>${listHtml(f.items)}</div><div>${listHtml(f.itemsAlt)}</div></div>` : ''}
+${visual}${proof}${ctaBox}${missing.length ? `<ul class="miss">${missing.map((m) => `<li>不足: ${e(m)}</li>`).join('')}</ul>` : ''}</div>`;
+  });
+  return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><meta name="robots" content="noindex,nofollow">
+<title>WF: ${e(project.name)}</title><style>${wfCss()}<\/style></head><body><div class="wf">${boxes.join('\n')}</div></body></html>`;
+}
+
+return { contrastChecks, renderPage, exportHtml, RUNTIME_SCRIPT };
+})();
+
+__mods.lpo = (() => {
+// LPO 分析。架空の集計データのみを扱う（dataset.fictional === true が前提）。
+// 観測（数値そのもの）と推測（仮説）を分け、欠損・不足・定義違いでは判定しない。
+// ヒートマップ・メール・外部分析サービスは未接続。
+
+const LPO_RULES = Object.freeze({
+  alpha: 0.05, // 両側
+  power: 0.8,
+  mdeRelative: 0.2, // 相対20%の差を検出できるサンプル
+  minVisitorsPerArm: 1000,
+  minConversionsPerArm: 30,
+  srmP: 0.001,
+  maxDurationDays: 28,
+});
+
+const CONNECTIONS = Object.freeze({
+  heatmap: { connected: false, label: 'ヒートマップ' },
+  email: { connected: false, label: 'メール配信' },
+  analytics: { connected: false, label: '外部アクセス解析サービス' },
+  adPlatform: { connected: false, label: '広告配信' },
+});
+
+// ---- 統計関数 ----
+function erf(x) {
+  const s = Math.sign(x); x = Math.abs(x);
+  const t = 1 / (1 + 0.3275911 * x);
+  const y = 1 - (((((1.061405429 * t - 1.453152027) * t) + 1.421413741) * t - 0.284496736) * t + 0.254829592) * t * Math.exp(-x * x);
+  return s * y;
+}
+const normCdf = (z) => 0.5 * (1 + erf(z / Math.SQRT2));
+function normInv(p) {
+  // Acklam の近似
+  const a = [-39.69683028665376, 220.9460984245205, -275.9285104469687, 138.357751867269, -30.66479806614716, 2.506628277459239];
+  const b = [-54.47609879822406, 161.5858368580409, -155.6989798598866, 66.80131188771972, -13.28068155288572];
+  const c = [-0.007784894002430293, -0.3223964580411365, -2.400758277161838, -2.549732539343734, 4.374664141464968, 2.938163982698783];
+  const d = [0.007784695709041462, 0.3224671290700398, 2.445134137142996, 3.754408661907416];
+  const pl = 0.02425;
+  let q, r;
+  if (p < pl) { q = Math.sqrt(-2 * Math.log(p)); return (((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  if (p > 1 - pl) { q = Math.sqrt(-2 * Math.log(1 - p)); return -(((((c[0] * q + c[1]) * q + c[2]) * q + c[3]) * q + c[4]) * q + c[5]) / ((((d[0] * q + d[1]) * q + d[2]) * q + d[3]) * q + 1); }
+  q = p - 0.5; r = q * q;
+  return (((((a[0] * r + a[1]) * r + a[2]) * r + a[3]) * r + a[4]) * r + a[5]) * q / (((((b[0] * r + b[1]) * r + b[2]) * r + b[3]) * r + b[4]) * r + 1);
+}
+function gammaln(x) {
+  const cof = [76.18009172947146, -86.50532032941677, 24.01409824083091, -1.231739572450155, 0.1208650973866179e-2, -0.5395239384953e-5];
+  let y = x; const tmp = x + 5.5 - (x + 0.5) * Math.log(x + 5.5);
+  let ser = 1.000000000190015;
+  for (const c of cof) ser += c / ++y;
+  return -tmp + Math.log(2.5066282746310005 * ser / x);
+}
+function gammaQ(a, x) {
+  if (x <= 0) return 1;
+  if (x < a + 1) {
+    let sum = 1 / a, del = sum, ap = a;
+    for (let n = 0; n < 200; n++) { ap += 1; del *= x / ap; sum += del; if (Math.abs(del) < Math.abs(sum) * 1e-12) break; }
+    return 1 - sum * Math.exp(-x + a * Math.log(x) - gammaln(a));
+  }
+  let b = x + 1 - a, c = 1e300, d = 1 / b, h = d;
+  for (let i = 1; i < 200; i++) {
+    const an = -i * (i - a); b += 2;
+    d = an * d + b; if (Math.abs(d) < 1e-300) d = 1e-300;
+    c = b + an / c; if (Math.abs(c) < 1e-300) c = 1e-300;
+    d = 1 / d; const del = d * c; h *= del; if (Math.abs(del - 1) < 1e-12) break;
+  }
+  return Math.exp(-x + a * Math.log(x) - gammaln(a)) * h;
+}
+const chiSquareP = (stat, df) => gammaQ(df / 2, stat / 2);
+
+function wilson(conv, n, z = 1.959964) {
+  if (!n) return [0, 0];
+  const p = conv / n;
+  const den = 1 + (z * z) / n;
+  const center = (p + (z * z) / (2 * n)) / den;
+  const half = (z * Math.sqrt((p * (1 - p)) / n + (z * z) / (4 * n * n))) / den;
+  return [Math.max(0, center - half), Math.min(1, center + half)];
+}
+
+function twoProportionP(c1, n1, c2, n2) {
+  const p = (c1 + c2) / (n1 + n2);
+  const se = Math.sqrt(p * (1 - p) * (1 / n1 + 1 / n2));
+  if (!se) return 1;
+  const z = (c2 / n2 - c1 / n1) / se;
+  return 2 * (1 - normCdf(Math.abs(z)));
+}
+
+function requiredSamplePerArm(baseRate, { alpha = LPO_RULES.alpha, power = LPO_RULES.power, mdeRelative = LPO_RULES.mdeRelative } = {}) {
+  if (!(baseRate > 0 && baseRate < 1)) return null;
+  const p1 = baseRate;
+  const p2 = Math.min(0.999, baseRate * (1 + mdeRelative));
+  const za = normInv(1 - alpha / 2);
+  const zb = normInv(power);
+  return Math.ceil(((za + zb) ** 2 * (p1 * (1 - p1) + p2 * (1 - p2))) / (p2 - p1) ** 2);
+}
+
+const pct = (x) => (x == null ? '—' : `${(x * 100).toFixed(2)}%`);
+const daysBetween = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 86400000) + 1;
+
+// ---- 実験単位の分析 ----
+function analyzeExperiment(exp) {
+  const notes = []; // 判定不可の理由
+  const observations = [];
+  const control = exp.variants[0];
+
+  // 定義の一致
+  const defs = ['unit', 'conversionDefinition', 'measurement'];
+  for (const k of defs) {
+    const vals = new Set(exp.variants.map((v) => v[k]));
+    if (vals.size > 1) notes.push(`バリアント間で ${k} が異なるため比較しません（${[...vals].join(' / ')}）`);
+  }
+  // 欠損
+  const missingVars = exp.variants.filter((v) => v.visitors == null || v.conversions == null);
+  if (missingVars.length) notes.push(`集計の欠損: ${missingVars.map((v) => v.name).join(', ')}`);
+  if (exp.missingDays > 0) notes.push(`計測欠損日が ${exp.missingDays} 日あります`);
+  // データ矛盾
+  for (const v of exp.variants) {
+    if (v.visitors != null && v.conversions != null && v.conversions > v.visitors) notes.push(`${v.name}: CV数が分母を超えています（定義の不一致の疑い）`);
+  }
+  // 期間
+  const plannedDone = Date.parse(exp.end) >= Date.parse(exp.plannedEnd);
+  if (!plannedDone) notes.push(`予定期間（〜${exp.plannedEnd}）が未了です。途中で判定しません`);
+  const days = daysBetween(exp.start, exp.end);
+
+  // 観測値（欠損以外）
+  const rows = exp.variants.map((v) => {
+    const ok = v.visitors != null && v.conversions != null && v.visitors > 0;
+    const rate = ok ? v.conversions / v.visitors : null;
+    const ci = ok ? wilson(v.conversions, v.visitors) : null;
+    const clickRate = ok && v.ctaClicks != null ? v.ctaClicks / v.visitors : null;
+    return { id: v.id, name: v.name, visitors: v.visitors, conversions: v.conversions, ctaClicks: v.ctaClicks ?? null, rate, ci, clickRate };
+  });
+  for (const r of rows) {
+    if (r.rate == null) observations.push({ id: `${exp.id}-${r.id}-na`, text: `${r.name}: 集計が欠損しているため率を出しません` });
+    else observations.push({ id: `${exp.id}-${r.id}`, text: `${r.name}: CV ${r.conversions} / ${control.unit} ${r.visitors} = ${pct(r.rate)}（95%CI ${pct(r.ci[0])}〜${pct(r.ci[1])}）${r.clickRate != null ? `、CTAクリック率 ${pct(r.clickRate)}` : ''}` });
+  }
+
+  // SRM
+  let srm = null;
+  if (!missingVars.length) {
+    const total = exp.variants.reduce((a, v) => a + v.visitors, 0);
+    const shares = exp.variants.map((v) => v.expectedShare ?? 1 / exp.variants.length);
+    const sumShares = shares.reduce((a, b) => a + b, 0);
+    const stat = exp.variants.reduce((a, v, i) => {
+      const expected = (total * shares[i]) / sumShares;
+      return a + (expected ? (v.visitors - expected) ** 2 / expected : 0);
+    }, 0);
+    const p = chiSquareP(stat, exp.variants.length - 1);
+    srm = { stat: Math.round(stat * 100) / 100, p, detected: p < LPO_RULES.srmP };
+    if (srm.detected) notes.push(`割付比のずれ（SRM）を検出しました（p=${p.toExponential(2)}）。割付か計測に問題がある可能性があり、比較しません`);
+  }
+
+  // 比較（対照 vs 各案）。Bonferroni
+  const k = Math.max(1, exp.variants.length - 1);
+  const alphaAdj = LPO_RULES.alpha / k;
+  const base = rows[0];
+  const required = base.rate ? requiredSamplePerArm(base.rate) : null;
+  const comparisons = rows.slice(1).map((r) => {
+    const reasons = [...notes];
+    if (base.rate == null || r.rate == null) reasons.push('率が計算できません');
+    const small = [base, r].filter((x) => x.visitors != null && x.conversions != null && (x.visitors < LPO_RULES.minVisitorsPerArm || x.conversions < LPO_RULES.minConversionsPerArm));
+    if (small.length) reasons.push(`サンプル不足: ${small.map((x) => `${x.name}（${x.visitors}${control.unit === 'users' ? '人' : '件'} / CV ${x.conversions}）`).join(', ')}。各群 ${LPO_RULES.minVisitorsPerArm} 以上かつ CV ${LPO_RULES.minConversionsPerArm} 以上が必要`);
+    if (required && [base, r].some((x) => x.visitors != null && x.visitors < required)) reasons.push(`相対${LPO_RULES.mdeRelative * 100}%の差を検出力${LPO_RULES.power * 100}%で見るには各群 約${required} が必要`);
+    if (reasons.length) {
+      return { variant: r.name, verdict: 'not-evaluable', label: '判定しない', reasons, diff: base.rate != null && r.rate != null ? r.rate - base.rate : null, p: null };
+    }
+    const p = twoProportionP(base.conversions, base.visitors, r.conversions, r.visitors);
+    const diff = r.rate - base.rate;
+    const sig = p < alphaAdj;
+    return {
+      variant: r.name,
+      verdict: sig ? 'difference-observed' : 'no-detectable-difference',
+      label: sig ? '差が観測された（この期間・この定義の範囲で）' : '検出できる差は観測されなかった',
+      reasons: sig ? ['統計的に有意でも、因果の経路と他期間への汎化は未確認'] : ['差が無いことの証明ではない'],
+      diff, relativeLift: diff / base.rate, p, alphaAdjusted: alphaAdj,
+    };
+  });
+
+  return {
+    id: exp.id, name: exp.name, page: exp.page || '', timezone: exp.timezone, period: `${exp.start}〜${exp.end}（${days}日, ${exp.timezone}）`,
+    plannedEnd: exp.plannedEnd, unit: control.unit, conversionDefinition: control.conversionDefinition, measurement: control.measurement,
+    rows, srm, comparisons, notes, observations, requiredPerArm: required, days,
+  };
+}
+
+/** 期間をまたいだ比較は、TZ・分母・CV定義・計測条件・ページが全部一致するときだけ */
+function comparability(a, b) {
+  const reasons = [];
+  const va = a.variants[0];
+  const vb = b.variants[0];
+  if (a.timezone !== b.timezone) reasons.push(`タイムゾーンが異なる（${a.timezone} / ${b.timezone}）`);
+  if (va.unit !== vb.unit) reasons.push(`分母が異なる（${va.unit} / ${vb.unit}）`);
+  if (va.conversionDefinition !== vb.conversionDefinition) reasons.push('コンバージョン定義が異なる');
+  if (va.measurement !== vb.measurement) reasons.push('計測条件が異なる');
+  if ((a.page || '') !== (b.page || '')) reasons.push('対象ページが異なる');
+  return { comparable: reasons.length === 0, reasons };
+}
+
+// ---- 仮説 ----
+function priority(impact, confidence, effort) {
+  const score = Math.round(((impact * confidence) / effort) * 10) / 10;
+  return { score, impact, confidence, effort, level: score >= 4 ? '高' : score >= 2 ? '中' : '低' };
+}
+
+/**
+ * 仮説と検証計画。evidenceType: observed-fictional（架空集計の観測）/ project-audit（このLPの監査結果）/ heuristic（一般論・未検証）
+ */
+function buildHypotheses(project, analyses) {
+  const H = [];
+  const main = analyses.find((a) => a.comparisons.length) || analyses[0];
+  const unit = main ? main.unit : 'users';
+  const cvDef = main ? main.conversionDefinition : '（データセット未設定）';
+  const required = main?.requiredPerArm;
+  const dailyPerArm = main && main.rows[0].visitors ? Math.round(main.rows[0].visitors / main.days) : null;
+  const estDays = required && dailyPerArm ? Math.ceil(required / dailyPerArm) : null;
+  const stopBase = [
+    required ? `各群 ${required}（${unit}）に到達したら停止して判定` : '基準CV率が無いため必要サンプルを計算できない。まず基準期間を計測する',
+    `最長 ${LPO_RULES.maxDurationDays} 日で打ち切り（到達しなければ「判定しない」で終える）`,
+    `SRM（p<${LPO_RULES.srmP}）を検出したら即停止し、割付・計測を点検`,
+    'guardrail のいずれかが対照より悪化し、その95%CIが0をまたがなければ停止',
+  ];
+  const guardBase = [`主要CVの定義を途中で変えない（${cvDef}）`, '直帰率・ページ滞在の極端な悪化（計測できる範囲で）'];
+
+  const proof = project.sections.find((s) => s.type === 'proof');
+  const verifiedInProof = proof ? project.evidence.filter((e) => proof.claimRefs.includes(e.id) && e.status === 'verified').length : 0;
+  if (!proof || verifiedInProof === 0) {
+    H.push({
+      id: 'h-proof', title: '根拠セクションを検証済みの事実で埋める', evidenceType: 'project-audit',
+      basis: ['LP監査: 根拠セクションに検証済みの根拠が 0 件（safe export では根拠セクションが出せない）'],
+      hypothesis: '申込を迷う人が判断材料を見つけられず、離脱しているかもしれない。検証済みの事実を足すと申込率が上がる可能性がある',
+      metric: `主要: ${cvDef}（分母 ${unit}）`, guardrails: [...guardBase, '問い合わせ内容の質（申込後の不一致が増えていないか）'],
+      stopConditions: stopBase, priority: priority(3, 2, 2),
+      caution: 'テストの前に、出典を人が確認すること。未検証の数字を出して改善しても、それは改善ではない',
+    });
+  }
+  const unconfirmed = ['promise', 'offer', 'ctaLabel'].filter((k) => project.brief[k].status !== 'confirmed');
+  if (unconfirmed.length) {
+    H.push({
+      id: 'h-brief', title: '約束・オファー・CTAの確定（テスト前の前提づくり）', evidenceType: 'project-audit',
+      basis: [`ブリーフ未確定: ${unconfirmed.join(', ')}`],
+      hypothesis: '訴求の中身が決まっていない状態でABを回しても、何を比べたのか後から説明できない。先に確定させる',
+      metric: '（テストではない。確定作業）', guardrails: [], stopConditions: ['3項目が confirmed になったら完了'], priority: priority(2, 3, 1),
+      caution: 'これは検証計画の前提。結果指標は無い',
+    });
+  }
+  if (main && main.rows.every((r) => r.rate != null)) {
+    const cr = main.rows[0];
+    if (cr.ctaClicks != null && cr.conversions != null && cr.ctaClicks > 0) {
+      const after = cr.conversions / cr.ctaClicks;
+      H.push({
+        id: 'h-after-click', title: 'CTAクリック後の遷移先を点検する', evidenceType: 'observed-fictional',
+        basis: [`${main.name} の対照: CTAクリック ${cr.ctaClicks} に対しCV ${cr.conversions}（クリック後のCV ${pct(after)}）`, '遷移先（LP外）の行動は未計測'],
+        hypothesis: 'クリック後に離脱している割合が大きいなら、LP本文より遷移先の摩擦が効いているかもしれない。LP側の変更より先に確認する価値がある',
+        metric: `クリック後CV率 = CV / CTAクリック（同一定義・同一期間）`, guardrails: guardBase,
+        stopConditions: ['遷移先の計測が無いうちは結論を出さない', ...stopBase.slice(1, 3)], priority: priority(2, after < 0.3 ? 2 : 1, 2),
+        caution: '遷移先は計測範囲外。外部分析サービスとは未接続のため、ここでは仮説の提示まで',
+      });
+    }
+  }
+  if (project.cta.variants.length > 1) {
+    const vs = project.cta.variants.map((v) => `${v.id}: 「${v.label || project.brief.ctaLabel.value}」/ ${v.color} / ${v.timing}`);
+    H.push({
+      id: 'h-cta', title: 'CTAの文言・色・表示タイミングの比較', evidenceType: 'heuristic',
+      basis: ['プレビュー上のCTA案（実配信はしていない）', ...vs],
+      hypothesis: '固定CTAの出し方を変えると、本文を読み終える前の誤クリックや見落としが変わるかもしれない',
+      metric: `主要: ${cvDef}（分母 ${unit}）。補助: CTAクリック率`, guardrails: [...guardBase, 'クリック率だけ上がりCVが下がっていないか'],
+      stopConditions: stopBase, priority: priority(2, 1, 1),
+      caution: '一般論からの仮説で、このLPでの観測はまだない。実配信は別途の承認が必要（このツールは配信しない）',
+    });
+  }
+  if (main) {
+    const notEval = main.comparisons.filter((c) => c.verdict === 'not-evaluable');
+    if (notEval.length) {
+      H.push({
+        id: 'h-continue', title: `「${main.name}」は判定せず、条件を満たすまで継続または設計し直す`, evidenceType: 'observed-fictional',
+        basis: notEval.flatMap((c) => c.reasons).slice(0, 4),
+        hypothesis: '現時点のデータから案の優劣は言えない。必要サンプルに届く見込みがあれば継続、なければMDEを見直す',
+        metric: `主要: ${cvDef}（分母 ${unit}）`, guardrails: guardBase,
+        stopConditions: [estDays ? `現在の流入なら約 ${estDays} 日で必要サンプルに到達（最長 ${LPO_RULES.maxDurationDays} 日を超えるなら設計を見直す）` : '到達見込みは計算できない', ...stopBase],
+        priority: priority(2, 3, 1),
+        caution: '途中経過の差を根拠に打ち切らない',
+      });
+    }
+  }
+  return H.sort((a, b) => b.priority.score - a.priority.score);
+}
+
+function analyzeLpo(project) {
+  const ds = project.lpo?.dataset;
+  if (!ds) return { ok: false, message: 'LPOデータセットが未設定です（架空データを読み込んでください）', connections: CONNECTIONS };
+  if (ds.fictional !== true) return { ok: false, message: '実データは扱いません（fictional: true の架空データのみ）', connections: CONNECTIONS };
+  const analyses = ds.experiments.map(analyzeExperiment);
+  const pairs = [];
+  for (let i = 0; i < ds.experiments.length; i++) {
+    for (let j = i + 1; j < ds.experiments.length; j++) {
+      const c = comparability(ds.experiments[i], ds.experiments[j]);
+      pairs.push({ a: ds.experiments[i].name, b: ds.experiments[j].name, ...c });
+    }
+  }
+  return {
+    ok: true, fictional: true, banner: `架空データ「${ds.name}」による分析です。実在の実績・計測結果ではありません。`,
+    rules: LPO_RULES, connections: CONNECTIONS, analyses, crossPeriod: pairs, hypotheses: buildHypotheses(project, analyses),
+  };
+}
+
+return { normInv, wilson, twoProportionP, requiredSamplePerArm, analyzeExperiment, comparability, buildHypotheses, analyzeLpo, LPO_RULES, CONNECTIONS, normCdf, chiSquareP };
+})();
+
+__mods.app = (() => {
+// LP Studio UI。core の純関数だけで状態を変える。DOM は h() で作り、文字列は textContent で入れる（innerHTML 不使用）。
+// プレビューは sandbox="allow-scripts"（allow-same-origin なし）の iframe srcdoc。
+const { parseProjectJson, serializeProject, SCHEMA_VERSION, CATEGORIES, SOURCE_TYPES, CTA_TIMINGS, FONTS } = __mods.schema;
+const { BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG, SECTION_TYPES, planSections } = __mods.sections;
+const { applyEdit, emptyProject } = __mods.model;
+const { generateAllTemplate, reangleTemplate, regenerateSectionTemplate, buildPrompt, ingestGenerated, ADAPTERS } = __mods.generate;
+const { auditProject } = __mods.claims;
+const { renderPage, exportHtml, contrastChecks } = __mods.render;
+const { analyzeLpo } = __mods.lpo;
+const AUTOSAVE_KEY = 'lp-studio:autosave:v1';
+const UI_KEY = 'lp-studio:ui:v1';
+const TABS = ['brief', 'plan', 'design', 'cta', 'export', 'lpo', 'gen'];
+const STATUS_LABEL = { confirmed: '確定', unconfirmed: '未確定', missing: '未入力' };
+const TIMING_LABEL = { spec: 'FV後に表示・インラインCTA表示中は隠す', always: '常に表示', 'after-half': 'ページの半分を過ぎてから' };
+const CATEGORY_LABEL = { general: '一般', education: '教育・学習', health: '健康', beauty: '美容', finance: '金融', employment: '就職・転職' };
+const MODE_LABEL = { full: 'LP全体作成', reangle: '訴求変更', section: 'セクション編集' };
+
+const state = {
+  project: null,
+  undo: [],
+  redo: [],
+  tab: 'brief',
+  mode: 'section',
+  selected: null,
+  previewKind: 'preview',
+  genMode: 'full',
+  lastIngest: null,
+};
+
+// ---------------- DOM helper ----------------
+function h(tag, attrs = {}, ...children) {
+  const el = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (v == null || v === false) continue;
+    if (k === 'class') el.className = v;
+    else if (k === 'text') el.textContent = v;
+    else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
+    else if (k === 'value') el.value = v;
+    else if (k === 'checked') el.checked = !!v;
+    else el.setAttribute(k, v === true ? '' : String(v));
+  }
+  for (const c of children.flat(Infinity)) {
+    if (c == null || c === false) continue;
+    el.append(c instanceof Node ? c : document.createTextNode(String(c)));
+  }
+  return el;
+}
+const $ = (s) => document.querySelector(s);
+
+function toast(msg, kind = 'info') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.dataset.kind = kind;
+  t.classList.add('show');
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => t.classList.remove('show'), 4200);
+}
+
+function storageGet(key) { try { return localStorage.getItem(key); } catch { return null; } }
+function storageSet(key, v) { try { localStorage.setItem(key, v); } catch { /* 保存できない環境でも動く */ } }
+
+// ---------------- 状態更新 ----------------
+function commit(next, { record = true } = {}) {
+  if (record && state.project) {
+    state.undo.push(serializeProject(state.project));
+    if (state.undo.length > 100) state.undo.shift();
+    state.redo = [];
+  }
+  state.project = { ...next, updatedAt: new Date().toISOString() };
+  storageSet(AUTOSAVE_KEY, serializeProject(state.project));
+  render();
+}
+
+function edit(op) {
+  try {
+    commit(applyEdit(state.project, op));
+    return true;
+  } catch (e) {
+    toast(e.message, 'error');
+    render();
+    return false;
+  }
+}
+
+function restoreFrom(json) {
+  const r = parseProjectJson(json);
+  return r.ok ? r.project : null;
+}
+
+function undo() {
+  if (!state.undo.length) return toast('これ以上戻せません');
+  state.redo.push(serializeProject(state.project));
+  state.project = restoreFrom(state.undo.pop());
+  storageSet(AUTOSAVE_KEY, serializeProject(state.project));
+  render();
+  toast('元に戻しました');
+}
+function redo() {
+  if (!state.redo.length) return toast('やり直す操作がありません');
+  state.undo.push(serializeProject(state.project));
+  state.project = restoreFrom(state.redo.pop());
+  storageSet(AUTOSAVE_KEY, serializeProject(state.project));
+  render();
+  toast('やり直しました');
+}
+
+// 自己完結版（build-standalone.mjs）では seed が埋め込まれている
+async function seedText(kind) {
+  const embed = window.__LP_STUDIO_EMBED__;
+  if (embed) return kind === 'dataset' ? embed.dataset : embed.seed;
+  const res = await fetch(kind === 'dataset' ? '../../seed/lpo-dataset.fictional.json' : '../../seed/project.fictional.json', { cache: 'no-store' });
+  return res.text();
+}
+
+async function loadSeed() {
+  const r = parseProjectJson(await seedText('project'));
+  if (!r.ok) throw new Error(r.errors.join(' / '));
+  return r.project;
+}
+
+function loadJsonText(text, filename = '') {
+  if (/\.html?$/i.test(filename)) return toast('HTMLは読み込めません。project JSON だけを受け付けます', 'error');
+  const r = parseProjectJson(text);
+  if (!r.ok) {
+    toast(`読み込めません: ${r.errors.slice(0, 3).join(' / ')}`, 'error');
+    return false;
+  }
+  state.selected = null;
+  commit(r.project);
+  toast(`読み込みました${r.warnings.length ? `（警告 ${r.warnings.length} 件: ${r.warnings[0]}）` : ''}`);
+  return true;
+}
+
+// ---------------- タブとルーティング（戻る/進むでタブ移動） ----------------
+function setTab(tab, push = true) {
+  if (!TABS.includes(tab)) tab = 'brief';
+  state.tab = tab;
+  if (push && location.hash !== `#${tab}`) history.pushState({ tab }, '', `#${tab}`);
+  storageSet(UI_KEY, JSON.stringify({ tab, selected: state.selected, mode: state.mode }));
+  render();
+}
+window.addEventListener('popstate', () => setTab(location.hash.slice(1) || 'brief', false));
+
+// ---------------- 共通パーツ ----------------
+function statusSelect(id, value, onchange) {
+  return h('select', { id, onchange, 'aria-label': 'ステータス' },
+    ...['confirmed', 'unconfirmed', 'missing'].map((s) => h('option', { value: s, selected: s === value ? 'selected' : null, text: STATUS_LABEL[s] })));
+}
+
+function previewFrame(html, { width, height, title, id }) {
+  const wrap = h('div', { class: 'frame-wrap', 'data-width': width, style: `--fw:${width}px;--fh:${height}px` });
+  const iframe = h('iframe', { title, id, sandbox: 'allow-scripts', referrerpolicy: 'no-referrer', loading: 'lazy', width, height });
+  iframe.srcdoc = html;
+  wrap.append(iframe);
+  requestAnimationFrame(() => fitFrame(wrap));
+  return wrap;
+}
+function fitFrame(wrap) {
+  const w = Number(wrap.dataset.width);
+  const parent = wrap.parentElement;
+  if (!parent) return;
+  const cs = getComputedStyle(parent);
+  const avail = parent.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+  const scale = Math.min(1, avail / w);
+  wrap.style.setProperty('--scale', scale);
+}
+window.addEventListener('resize', () => document.querySelectorAll('.frame-wrap').forEach(fitFrame));
+
+function issueBadge(level) {
+  const map = { missing: '未入力', unconfirmed: '未確定', unverified: '未検証', unapproved: '未承認', review: '要再確認', claim: '根拠なし', token: '差込未確定', block: '公開不可', placeholder: '要記入' };
+  return h('span', { class: `badge lv-${level}`, text: map[level] || level });
+}
+
+// ---------------- 1 ブリーフ ----------------
+function renderBrief(p) {
+  const issues = auditProject(p).filter((i) => i.scope === 'brief');
+  const rows = BRIEF_KEYS.map((k) => {
+    const f = p.brief[k];
+    const long = ['problem', 'promise', 'offer', 'tone'].includes(k);
+    const input = long
+      ? h('textarea', { id: `brief-${k}`, rows: 2, maxlength: 600, value: f.value, onchange: (e) => edit({ type: 'setBrief', key: k, value: e.target.value }) })
+      : h('input', { id: `brief-${k}`, type: k === 'ctaUrl' ? 'url' : 'text', maxlength: 600, value: f.value, onchange: (e) => edit({ type: 'setBrief', key: k, value: e.target.value }) });
+    const msgs = issues.filter((i) => i.key === k);
+    return h('div', { class: `field st-${f.status}` },
+      h('label', { for: `brief-${k}`, text: BRIEF_LABELS[k] }),
+      input,
+      h('div', { class: 'row' },
+        statusSelect(`brief-${k}-status`, f.status, (e) => edit({ type: 'setBrief', key: k, status: e.target.value })),
+        ...msgs.map((m) => h('span', { class: `hint lv-${m.level}`, text: m.message }))));
+  });
+  const b = p.brand;
+  const tokens = ['primary', 'accent', 'ink', 'paper'].map((k) => h('div', { class: 'token' },
+    h('label', { for: `brand-${k}`, text: { primary: 'メイン', accent: 'アクセント', ink: '文字', paper: '紙面' }[k] }),
+    h('input', { type: 'color', id: `brand-${k}`, value: b[k], onchange: (e) => edit({ type: 'setBrand', key: k, value: e.target.value }) }),
+    h('input', { type: 'text', id: `brand-${k}-hex`, value: b[k], maxlength: 7, 'aria-label': `${k} の16進`, onchange: (e) => edit({ type: 'setBrand', key: k, value: e.target.value }) })));
+  const contrast = contrastChecks(p, p.cta.variants.find((v) => v.id === p.cta.activeVariant));
+  return h('div', { class: 'grid-2' },
+    h('section', { class: 'card' },
+      h('h2', { text: 'ブリーフ（ヒアリングの整理）' }),
+      h('p', { class: 'muted', text: '未確定・未入力の項目は公開用HTML（safe export）に出ません。埋め合わせの実績・推薦・保証はツールが作りません。' }),
+      h('div', { class: 'field' }, h('label', { for: 'brief-category', text: '商材カテゴリ（健康・美容では薬機法の語彙を公開不可にします）' }),
+        h('select', { id: 'brief-category', onchange: (e) => edit({ type: 'setCategory', value: e.target.value }) },
+          ...CATEGORIES.map((c) => h('option', { value: c, selected: c === p.brief.category ? 'selected' : null, text: CATEGORY_LABEL[c] })))),
+      ...rows),
+    h('section', { class: 'card' },
+      h('h2', { text: 'ブランドtoken' }),
+      h('div', { class: 'tokens' }, ...tokens),
+      h('div', { class: 'field' }, h('label', { for: 'brand-font', text: '書体' }),
+        h('select', { id: 'brand-font', onchange: (e) => edit({ type: 'setBrand', key: 'font', value: e.target.value }) },
+          ...FONTS.map((f) => h('option', { value: f, selected: f === b.font ? 'selected' : null, text: { sans: 'ゴシック', serif: '明朝', rounded: '丸ゴシック' }[f] })))),
+      h('h3', { text: 'コントラスト（4.5:1 未満は safe export を止めます）' }),
+      h('ul', { class: 'plain' }, ...contrast.map((c) => h('li', { class: c.ok ? 'ok' : 'ng', text: `${c.ok ? '✓' : '✕'} ${c.name}: ${c.ratio}:1` })))));
+}
+
+// ---------------- 2 構成・WF（3モード） ----------------
+function renderPlan(p) {
+  const plan = planSections(p);
+  if (!state.selected || !p.sections.some((s) => s.id === state.selected)) state.selected = p.sections[0]?.id || null;
+  const modeBar = h('div', { class: 'modes', role: 'radiogroup', 'aria-label': '作業モード' },
+    ...Object.entries(MODE_LABEL).map(([m, label]) => h('label', { class: `mode${state.mode === m ? ' on' : ''}` },
+      h('input', { type: 'radio', name: 'mode', value: m, id: `mode-${m}`, checked: state.mode === m, onchange: () => { state.mode = m; render(); } }), label)));
+
+  let modeBody;
+  if (state.mode === 'full') {
+    modeBody = h('div', { class: 'mode-body' },
+      h('p', { text: '参考構成（FV→共感→リフレーム→起源→ステップ→提供範囲→再コミット→根拠→価格の理由→適合条件→クロージング→フッター）で全体を作り直します。今のセクションは置き換わります（戻すで復元可）。' }),
+      h('label', { class: 'inline' }, h('input', { type: 'checkbox', id: 'opt-video' }), 'コンセプト動画セクションを含める（素材がある場合のみ）'),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', id: 'btn-template-all', class: 'primary', onclick: () => { commit(generateAllTemplate(state.project, { includeVideo: $('#opt-video').checked })); toast('テンプレートで下書きしました（AI生成ではありません）'); } }, 'テンプレートで全体を下書き'),
+        h('button', { type: 'button', onclick: () => { state.genMode = 'full'; setTab('gen'); } }, 'Claude Code 生成の指示を作る →')));
+  } else if (state.mode === 'reangle') {
+    modeBody = h('div', { class: 'mode-body' },
+      h('p', { text: '約束する価値（訴求）を差し替えます。FV・再コミット・クロージングを作り直し、残りのセクションには「要再確認」を立てます。新しい訴求は「未確定」になります。' }),
+      h('div', { class: 'field' }, h('label', { for: 'reangle-input', text: '新しい約束する価値' }), h('textarea', { id: 'reangle-input', rows: 2, maxlength: 600, value: p.brief.promise.value })),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', id: 'btn-reangle', class: 'primary', onclick: () => {
+          const v = $('#reangle-input').value.trim();
+          if (!v) return toast('新しい訴求を入力してください', 'error');
+          commit(reangleTemplate(state.project, v));
+          toast('訴求を変更しました。要再確認のセクションを見直してください');
+        } }, 'テンプレートで訴求を変更'),
+        h('button', { type: 'button', onclick: () => { state.genMode = 'reangle'; setTab('gen'); } }, 'Claude Code で訴求変更の指示を作る →')));
+  } else {
+    modeBody = h('div', { class: 'mode-body' }, h('p', { text: '左の一覧からセクションを選んで編集します。追加・削除（任意セクションのみ）・並べ替えができます。編集すると承認は外れます。' }));
+  }
+
+  const list = h('ol', { class: 'plan', 'aria-label': 'セクション計画' }, ...plan.map((s, i) => {
+    const sel = s.id === state.selected;
+    return h('li', { class: `plan-item${sel ? ' sel' : ''}${s.required ? ' req' : ''}`, 'data-section-id': s.id },
+      h('button', { type: 'button', class: 'pick', 'aria-pressed': sel ? 'true' : 'false', id: `pick-${s.id}`, onclick: () => { state.selected = s.id; state.mode = 'section'; render(); } },
+        h('strong', { text: `${i + 1}. ${s.label}` }),
+        h('span', { class: 'role', text: s.role })),
+      h('div', { class: 'tags' },
+        s.required ? h('span', { class: 'badge', text: '必須' }) : h('span', { class: 'badge soft', text: '任意' }),
+        s.approved ? h('span', { class: 'badge ok', text: '承認済' }) : issueBadge('unapproved'),
+        s.needsReview ? issueBadge('review') : null,
+        h('span', { class: 'badge soft', text: s.origin === 'claude-code' ? 'Claude Code生成' : s.origin === 'template' ? 'テンプレート' : '手入力' }),
+        ...s.missing.map((m) => h('span', { class: `badge lv-${m.level}`, text: `${m.label}${m.level === 'missing' ? 'なし' : '未確定'}` }))),
+      h('div', { class: 'row tiny' },
+        h('button', { type: 'button', 'aria-label': `${s.label}を上へ`, id: `up-${s.id}`, disabled: i === 0, onclick: () => edit({ type: 'moveSection', id: s.id, delta: -1 }) }, '↑'),
+        h('button', { type: 'button', 'aria-label': `${s.label}を下へ`, id: `down-${s.id}`, disabled: i === plan.length - 1, onclick: () => edit({ type: 'moveSection', id: s.id, delta: 1 }) }, '↓'),
+        s.required ? null : h('button', { type: 'button', class: 'danger', id: `del-${s.id}`, 'aria-label': `${s.label}を削除`, onclick: () => edit({ type: 'removeSection', id: s.id }) }, '削除')));
+  }));
+  const missingTypes = SECTION_TYPES.filter((t) => !p.sections.some((s) => s.type === t));
+  const adder = missingTypes.length ? h('div', { class: 'row' },
+    h('label', { for: 'add-type', class: 'sr', text: '追加するセクション' }),
+    h('select', { id: 'add-type' }, ...missingTypes.map((t) => h('option', { value: t, text: SECTION_CATALOG[t].label }))),
+    h('button', { type: 'button', id: 'btn-add-section', onclick: () => {
+      const t = $('#add-type').value;
+      const idx = p.sections.findIndex((s) => s.id === state.selected);
+      if (edit({ type: 'addSection', sectionType: t, at: idx + 1 })) state.selected = state.project.sections[idx + 1]?.id;
+      render();
+    } }, '選択中の下に追加')) : null;
+
+  const sel = p.sections.find((s) => s.id === state.selected);
+  const editor = sel ? sectionEditor(p, sel, plan.find((x) => x.id === sel.id)) : h('p', { text: 'セクションがありません。「LP全体作成」で下書きしてください。' });
+  const wf = renderPage(p, { view: 'wf' }).html;
+  return h('div', { class: 'plan-layout' },
+    h('section', { class: 'card span-all' }, h('h2', { text: '作業モード' }), modeBar, modeBody),
+    h('section', { class: 'card' }, h('h2', { text: 'セクション計画' }), list, adder),
+    h('section', { class: 'card' }, h('h2', { text: 'セクション編集' }), editor),
+    h('section', { class: 'card' }, h('h2', { text: 'ワイヤーフレーム（同じデータから描画）' }), previewFrame(wf, { width: 760, height: 1100, title: 'ワイヤーフレーム', id: 'wf-frame' })));
+}
+
+function sectionEditor(p, s, planRow) {
+  const meta = SECTION_CATALOG[s.type];
+  const text = (field, label, rows = 1) => h('div', { class: 'field' },
+    h('label', { for: `f-${field}`, text: label }),
+    rows > 1
+      ? h('textarea', { id: `f-${field}`, rows, value: s.fields[field], onchange: (e) => edit({ type: 'setField', id: s.id, field, value: e.target.value }) })
+      : h('input', { id: `f-${field}`, type: 'text', value: s.fields[field], onchange: (e) => edit({ type: 'setField', id: s.id, field, value: e.target.value }) }));
+  const listField = (field, label) => h('div', { class: 'field' },
+    h('label', { for: `f-${field}`, text: `${label}（1行に1項目）` }),
+    h('textarea', { id: `f-${field}`, rows: 4, value: s.fields[field].join('\n'), onchange: (e) => edit({ type: 'setField', id: s.id, field, value: e.target.value }) }));
+  const [l1, l2] = s.type === 'scope' ? ['含まれるもの', '含まれないもの'] : s.type === 'fit' ? ['向いている人', '向いていない人'] : s.type === 'reframe' ? ['これまで', 'これから'] : ['項目', '項目（右列）'];
+  const issues = auditProject(p).filter((i) => i.scope === 'section' && i.key === s.id);
+  return h('div', { class: 'editor' },
+    h('p', { class: 'muted' }, h('strong', { text: meta.label }), ` — ${meta.role}`),
+    h('p', { class: 'muted small', text: `根拠（参考構成での位置づけ）: ${meta.rationale}` }),
+    planRow.missing.length ? h('p', { class: 'warn small', text: `不足情報: ${planRow.missing.map((m) => `${m.label}（${m.level === 'missing' ? '未入力' : '未確定'}）`).join('、')}` }) : null,
+    h('p', { class: 'muted small', text: '差込: {{product}} {{audience}} {{problem}} {{promise}} {{offer}} {{price}} {{ctaLabel}} {{operator}}（ブリーフを直すと全ビューに反映）' }),
+    text('heading', '見出し'), text('lead', 'リード', 2), text('body', '本文', 4),
+    listField('items', l1), listField('itemsAlt', l2), text('note', '注記'),
+    h('fieldset', { class: 'refs' }, h('legend', { text: 'このセクションの主張を支える根拠（claimRefs）' }),
+      p.evidence.length ? p.evidence.map((ev) => h('label', { class: 'inline' },
+        h('input', { type: 'checkbox', id: `ref-${s.id}-${ev.id}`, checked: s.claimRefs.includes(ev.id), onchange: (e) => {
+          const next = new Set(s.claimRefs);
+          if (e.target.checked) next.add(ev.id); else next.delete(ev.id);
+          edit({ type: 'setClaimRefs', id: s.id, value: [...next] });
+        } }), `${ev.claim.slice(0, 50)}（${ev.status === 'verified' ? '検証済' : '未検証'}）`)) : h('p', { class: 'small', text: '根拠がまだありません（5 のタブで追加）' })),
+    issues.length ? h('ul', { class: 'issues' }, ...issues.map((i) => h('li', {}, issueBadge(i.level), ` ${i.message}`))) : h('p', { class: 'ok small', text: '✓ このセクションに未解決の主張・差込はありません' }),
+    h('div', { class: 'row' },
+      h('button', { type: 'button', id: 'btn-approve', class: s.approved ? '' : 'primary', onclick: () => edit({ type: 'approveSection', id: s.id, value: !s.approved }) }, s.approved ? '承認を取り消す' : '内容を確認して承認'),
+      h('button', { type: 'button', id: 'btn-regen-section', onclick: () => { commit(regenerateSectionTemplate(state.project, s.id)); toast('テンプレートで作り直しました（AI生成ではありません）'); } }, 'テンプレートで作り直す'),
+      h('button', { type: 'button', onclick: () => { state.genMode = 'section'; setTab('gen'); } }, 'Claude Code で書き直す指示 →')));
+}
+
+// ---------------- 3 デザイン ----------------
+function previewKindBar() {
+  return h('div', { class: 'row', role: 'radiogroup', 'aria-label': 'プレビューの種類' },
+    ...[['preview', '編集中（未確認に旗）'], ['safe', '公開用（safe）で見る']].map(([k, label]) => h('label', { class: `mode${state.previewKind === k ? ' on' : ''}` },
+      h('input', { type: 'radio', name: 'pkind', id: `pkind-${k}`, checked: state.previewKind === k, onchange: () => { state.previewKind = k; render(); } }), label)));
+}
+function renderDesign(p) {
+  const { html, report } = renderPage(p, { kind: state.previewKind });
+  const notes = state.previewKind === 'safe'
+    ? h('div', { class: report.blockers.length ? 'alert' : 'okbox' }, report.blockers.length ? [h('strong', { text: 'このままでは公開できません: ' }), report.blockers.join(' / ')] : '公開可能（safe）。除外された要素は 5 のタブで確認できます。')
+    : h('p', { class: 'muted small', text: '黄色の旗は未確認・根拠なしの箇所です。公開用（safe）では出ません。' });
+  return h('div', { class: 'design' },
+    h('section', { class: 'card span-all' }, h('h2', { text: 'デザインプレビュー（PC 1280px / SP 400px）' }), previewKindBar(), notes),
+    h('section', { class: 'card pc' }, h('h3', { text: 'PC（1280 × 800）' }), previewFrame(html, { width: 1280, height: 800, title: 'PCプレビュー', id: 'pc-frame' })),
+    h('section', { class: 'card sp' }, h('h3', { text: 'SP（400 × 760）' }), previewFrame(html, { width: 400, height: 760, title: 'SPプレビュー', id: 'sp-frame' })));
+}
+
+// ---------------- 4 CTA比較 ----------------
+function renderCta(p) {
+  const cards = p.cta.variants.map((v) => {
+    const { html } = renderPage(p, { kind: 'preview', ctaVariantId: v.id });
+    const contrast = contrastChecks(p, v).filter((c) => c.name.includes('CTA'));
+    return h('section', { class: `card cta-card${p.cta.activeVariant === v.id ? ' active' : ''}`, 'data-variant': v.id },
+      h('h3', { text: `案 ${v.id.toUpperCase()}${p.cta.activeVariant === v.id ? '（採用中）' : ''}` }),
+      h('div', { class: 'field' }, h('label', { for: `cta-${v.id}-label`, text: '文言（空ならブリーフのCTA文言）' }),
+        h('input', { id: `cta-${v.id}-label`, type: 'text', maxlength: 40, value: v.label, placeholder: p.brief.ctaLabel.value, onchange: (e) => edit({ type: 'setCtaVariant', id: v.id, label: e.target.value }) })),
+      h('div', { class: 'row' },
+        h('label', { for: `cta-${v.id}-color`, text: '色' }),
+        h('input', { id: `cta-${v.id}-color`, type: 'color', value: v.color, onchange: (e) => edit({ type: 'setCtaVariant', id: v.id, color: e.target.value }) }),
+        h('label', { for: `cta-${v.id}-timing`, text: '固定CTA' }),
+        h('select', { id: `cta-${v.id}-timing`, onchange: (e) => edit({ type: 'setCtaVariant', id: v.id, timing: e.target.value }) },
+          ...CTA_TIMINGS.map((t) => h('option', { value: t, selected: t === v.timing ? 'selected' : null, text: TIMING_LABEL[t] })))),
+      h('ul', { class: 'plain small' }, ...contrast.map((c) => h('li', { class: c.ok ? 'ok' : 'ng', text: `${c.ok ? '✓' : '✕'} ${c.name}: ${c.ratio}:1` }))),
+      h('div', { class: 'row' },
+        h('button', { type: 'button', id: `cta-${v.id}-use`, disabled: p.cta.activeVariant === v.id, onclick: () => edit({ type: 'setActiveCta', id: v.id }) }, 'この案を採用'),
+        p.cta.variants.length > 1 ? h('button', { type: 'button', class: 'danger', onclick: () => edit({ type: 'removeCtaVariant', id: v.id }) }, '削除') : null),
+      previewFrame(html, { width: 400, height: 700, title: `CTA案${v.id}のSPプレビュー`, id: `cta-frame-${v.id}` }));
+  });
+  return h('div', {},
+    h('section', { class: 'card' }, h('h2', { text: 'CTAの文言・色・表示タイミングをプレビューで比較' }),
+      h('p', { class: 'muted', text: 'プレビュー上の比較だけです。実サイトのAB配信・広告設定は行いません（未接続）。プレビュー内をスクロールすると固定CTAの出方を確認できます。' }),
+      p.cta.variants.length < 4 ? h('button', { type: 'button', id: 'btn-add-cta', onclick: () => edit({ type: 'addCtaVariant' }) }, '案を追加') : null),
+    h('div', { class: 'cta-grid' }, ...cards));
+}
+
+// ---------------- 5 根拠・検証・Export ----------------
+function download(name, text, type) {
+  const blob = new Blob([text], { type });
+  const a = h('a', { href: URL.createObjectURL(blob), download: name });
+  document.body.append(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+// ファイル名は ASCII（ブラウザによって非ASCIIの download 名が無視されるため）
+const safeName = (p) => String(p.id || 'lp').replace(/[^\w-]+/g, '_').slice(0, 60);
+
+function renderExport(p) {
+  const issues = auditProject(p);
+  const safe = exportHtml(p, 'safe');
+  const evRows = p.evidence.map((ev) => h('tr', { 'data-ev': ev.id },
+    h('td', {}, ev.claim), h('td', {}, `${ev.source}（${ev.sourceType}）`), h('td', {}, ev.provenance),
+    h('td', {}, ev.status === 'verified' ? h('span', { class: 'badge ok', text: `検証済 ${ev.verifiedBy} ${ev.verifiedAt}` }) : issueBadge('unverified')),
+    h('td', {}, ev.status === 'verified'
+      ? h('button', { type: 'button', id: `unverify-${ev.id}`, onclick: () => edit({ type: 'verifyEvidence', id: ev.id, value: false }) }, '検証を取り消す')
+      : h('div', { class: 'row tiny' },
+        h('input', { type: 'text', id: `vby-${ev.id}`, placeholder: '確認者', 'aria-label': '確認者', maxlength: 80 }),
+        h('input', { type: 'date', id: `vat-${ev.id}`, 'aria-label': '確認日' }),
+        h('button', { type: 'button', id: `verify-${ev.id}`, onclick: () => edit({ type: 'verifyEvidence', id: ev.id, value: true, verifiedBy: $(`#vby-${ev.id}`).value, verifiedAt: $(`#vat-${ev.id}`).value }) }, '出典を確認した')),
+      h('button', { type: 'button', class: 'danger', onclick: () => edit({ type: 'removeEvidence', id: ev.id }) }, '削除'))));
+  return h('div', { class: 'grid-2' },
+    h('section', { class: 'card span-all' }, h('h2', { text: '根拠（evidence）' }),
+      h('p', { class: 'muted', text: '検証済みにできるのは人の操作だけです（確認者・確認日・出典が必須）。生成された根拠候補は常に未検証で入ります。' }),
+      h('div', { class: 'table-wrap' }, h('table', {}, h('thead', {}, h('tr', {}, ...['主張', '出典', '由来', '状態', '操作'].map((t) => h('th', { text: t })))), h('tbody', {}, ...evRows))),
+      h('div', { class: 'row' },
+        h('input', { type: 'text', id: 'ev-claim', placeholder: '主張（例: 面談は1回60分）', 'aria-label': '根拠の主張', maxlength: 300 }),
+        h('input', { type: 'text', id: 'ev-source', placeholder: '出典（資料名・URL）', 'aria-label': '出典', maxlength: 300 }),
+        h('select', { id: 'ev-type', 'aria-label': '出典の種類' }, ...SOURCE_TYPES.map((t) => h('option', { value: t, text: t }))),
+        h('input', { type: 'number', id: 'ev-metric', placeholder: '数値（任意）', 'aria-label': '数値', step: 'any' }),
+        h('input', { type: 'text', id: 'ev-unit', placeholder: '単位', 'aria-label': '単位', maxlength: 12 }),
+        h('button', { type: 'button', id: 'btn-add-ev', onclick: () => {
+          const claim = $('#ev-claim').value.trim();
+          if (!claim) return toast('主張を入力してください', 'error');
+          const m = $('#ev-metric').value;
+          edit({ type: 'addEvidence', claim, source: $('#ev-source').value, sourceType: $('#ev-type').value, metricValue: m === '' ? null : Number(m), metricUnit: $('#ev-unit').value });
+        } }, '根拠を追加'))),
+    h('section', { class: 'card' }, h('h2', { text: `検証結果（${issues.length} 件）` }),
+      h('ul', { class: 'issues', id: 'issue-list' }, ...issues.map((i) => h('li', {}, issueBadge(i.level), ` ${i.message}`)))),
+    h('section', { class: 'card' }, h('h2', { text: 'Export' }),
+      h('h3', { text: 'レビュー用ドラフト' }),
+      h('p', { class: 'small', text: '未確認の箇所を旗付きで含みます。noindex・「公開しないでください」バナー付き。社内レビュー専用。' }),
+      h('button', { type: 'button', id: 'btn-export-draft', onclick: () => { download(`${safeName(p)}_draft.html`, exportHtml(state.project, 'draft').html, 'text/html'); toast('ドラフトを書き出しました（公開不可）'); } }, 'draft HTML を書き出す'),
+      h('h3', { text: '公開用（safe export）' }),
+      safe.report.blockers.length
+        ? h('div', { class: 'alert', id: 'safe-blockers' }, h('strong', { text: '公開用に書き出せません:' }), h('ul', {}, ...safe.report.blockers.map((b) => h('li', { text: b }))))
+        : h('div', { class: 'okbox', id: 'safe-ok', text: '承認済み・確定・検証済みの内容だけで書き出せます。' }),
+      h('button', { type: 'button', id: 'btn-export-safe', class: 'primary', disabled: !safe.html, onclick: () => { const r = exportHtml(state.project, 'safe'); if (r.html) { download(`${safeName(p)}.html`, r.html, 'text/html'); toast('safe HTML を書き出しました'); } } }, 'safe HTML を書き出す'),
+      safe.report.removed.length ? h('details', { open: true }, h('summary', { text: `safe export で除外される箇所（${safe.report.removed.length}）` }),
+        h('ul', { class: 'small', id: 'safe-removed' }, ...safe.report.removed.map((r) => h('li', { text: `[${r.section}] ${r.text} — ${r.reasons.join(' / ')}` })))) : null));
+}
+
+// ---------------- 6 LPO ----------------
+const pct = (x) => (x == null ? '—' : `${(x * 100).toFixed(2)}%`);
+function renderLpo(p) {
+  const a = analyzeLpo(p);
+  const loader = h('div', { class: 'row' },
+    h('button', { type: 'button', id: 'btn-lpo-seed', onclick: async () => {
+      try { if (edit({ type: 'setDataset', value: JSON.parse(await seedText('dataset')) })) toast('架空データを読み込みました'); } catch (e) { toast(e.message, 'error'); }
+    } }, '架空データを読み込む'),
+    h('details', {}, h('summary', { text: 'データセットJSONを貼り付け' }),
+      h('textarea', { id: 'lpo-json', rows: 6, 'aria-label': 'データセットJSON' }),
+      h('button', { type: 'button', id: 'btn-lpo-apply', onclick: () => {
+        try { if (edit({ type: 'setDataset', value: JSON.parse($('#lpo-json').value) })) toast('データセットを適用しました'); } catch (e) { toast(`JSONとして読めません: ${e.message}`, 'error'); }
+      } }, '適用')));
+  const conn = h('p', { class: 'small', id: 'lpo-connections' }, h('strong', { text: '未接続: ' }), Object.values(a.connections).map((c) => c.label).join(' / '), '（ヒートマップ・メール・外部分析・広告配信の数値は取り込んでいません）');
+  if (!a.ok) return h('section', { class: 'card' }, h('h2', { text: 'LPO' }), conn, h('p', { text: a.message }), loader);
+  const exps = a.analyses.map((an) => h('section', { class: 'card exp' },
+    h('h3', { text: an.name }),
+    h('p', { class: 'small', text: `期間 ${an.period} / 分母 ${an.unit} / CV定義: ${an.conversionDefinition} / 計測: ${an.measurement}` }),
+    h('div', { class: 'table-wrap' }, h('table', {}, h('thead', {}, h('tr', {}, ...['案', '分母', 'CTAクリック', 'CV', 'CV率', '95%CI'].map((t) => h('th', { text: t })))),
+      h('tbody', {}, ...an.rows.map((r) => h('tr', {}, h('td', { text: r.name }), h('td', { text: r.visitors ?? '欠損' }), h('td', { text: r.ctaClicks ?? '—' }), h('td', { text: r.conversions ?? '欠損' }), h('td', { text: pct(r.rate) }), h('td', { text: r.ci ? `${pct(r.ci[0])}〜${pct(r.ci[1])}` : '—' })))))),
+    an.srm ? h('p', { class: 'small', text: `割付比チェック（SRM）: p=${an.srm.p.toFixed(4)} ${an.srm.detected ? '→ ずれを検出' : '→ 問題なし'}` }) : null,
+    an.comparisons.length ? h('ul', { class: 'verdicts' }, ...an.comparisons.map((c) => h('li', { class: `v-${c.verdict}` },
+      h('strong', { text: `${c.variant}: ${c.label}` }), c.p != null ? ` (p=${c.p.toExponential(2)}, 補正後α=${c.alphaAdjusted.toFixed(3)})` : '',
+      h('ul', {}, ...c.reasons.map((r) => h('li', { text: r })))))) : h('p', { class: 'small', text: '比較対象の案がありません（単一群の参考集計）。' })));
+  const cross = h('ul', { class: 'small' }, ...a.crossPeriod.map((c) => h('li', { class: c.comparable ? '' : 'ng', text: `${c.a} × ${c.b}: ${c.comparable ? '定義が一致（比較の前提を満たす）' : `比較しない — ${c.reasons.join(' / ')}`}` })));
+  const hyps = a.hypotheses.map((x) => h('article', { class: 'card hyp', 'data-h': x.id },
+    h('h3', {}, h('span', { class: `prio p-${x.priority.level}`, text: `優先度 ${x.priority.level}` }), ` ${x.title}`),
+    h('p', { class: 'small', text: `根拠種別: ${{ 'observed-fictional': '架空集計の観測', 'project-audit': 'このLPの監査結果', heuristic: '一般論（未検証）' }[x.evidenceType]} / スコア ${x.priority.score}（影響${x.priority.impact}×確度${x.priority.confidence}÷工数${x.priority.effort}）` }),
+    h('h4', { text: '観測・理由' }), h('ul', {}, ...x.basis.map((b) => h('li', { text: b }))),
+    h('h4', { text: '仮説（推測）' }), h('p', { text: x.hypothesis }),
+    h('h4', { text: '評価指標' }), h('p', { text: x.metric }),
+    x.guardrails.length ? [h('h4', { text: 'guardrail' }), h('ul', {}, ...x.guardrails.map((g) => h('li', { text: g })))] : null,
+    h('h4', { text: '停止条件' }), h('ul', {}, ...x.stopConditions.map((g) => h('li', { text: g }))),
+    h('p', { class: 'warn small', text: x.caution })));
+  return h('div', {},
+    h('div', { class: 'fiction-banner', role: 'note', id: 'lpo-banner', text: `⚠ ${a.banner}` }),
+    h('section', { class: 'card' }, h('h2', { text: 'LPO（観測と推測を分けて表示）' }), conn,
+      h('p', { class: 'small', text: `判定ルール（固定）: α=${a.rules.alpha}（両側・多重比較はBonferroni）/ 検出力 ${a.rules.power} / MDE 相対${a.rules.mdeRelative * 100}% / 各群 ${a.rules.minVisitorsPerArm} 以上かつ CV ${a.rules.minConversionsPerArm} 以上 / SRM p<${a.rules.srmP} / 欠損日・期間未了は判定しない` }),
+      loader),
+    h('h2', { class: 'sec-title', text: '観測（架空集計）' }), ...exps,
+    h('section', { class: 'card' }, h('h3', { text: '期間をまたぐ比較の前提チェック' }), cross),
+    h('h2', { class: 'sec-title', text: '仮説と検証計画（推測・優先順）' }), ...hyps);
+}
+
+// ---------------- 7 生成（Claude Code） ----------------
+function renderGen(p) {
+  const sel = p.sections.find((s) => s.id === state.selected) || p.sections[0];
+  const prompt = buildPrompt(p, state.genMode, { promise: $('#reangle-input')?.value || p.brief.promise.value, sectionId: sel?.id });
+  const r = state.lastIngest;
+  return h('div', { class: 'grid-2' },
+    h('section', { class: 'card span-all' }, h('h2', { text: '生成アダプタ' }),
+      h('ul', { class: 'plain' },
+        h('li', {}, h('strong', { text: ADAPTERS.template.label }), ' — 利用可。ブリーフ値を決まった型に差し込むだけで、文章は生成しません。'),
+        h('li', {}, h('strong', { text: ADAPTERS['claude-code'].label }), ' — ブラウザからは未接続。下の指示を Claude Code に渡し、返ってきた JSON を貼り付けて取り込みます（CLI: node cli.mjs prompt / ingest）。新規APIキー・外部APIは使いません。'))),
+    h('section', { class: 'card' }, h('h2', { text: '① 指示を作る' }),
+      h('div', { class: 'row', role: 'radiogroup', 'aria-label': '生成モード' }, ...['full', 'reangle', 'section'].map((m) => h('label', { class: `mode${state.genMode === m ? ' on' : ''}` },
+        h('input', { type: 'radio', name: 'gmode', id: `gmode-${m}`, checked: state.genMode === m, onchange: () => { state.genMode = m; render(); } }), MODE_LABEL[m]))),
+      state.genMode === 'section' ? h('p', { class: 'small', text: `対象: ${sel ? SECTION_CATALOG[sel.type].label : '-'}（2 のタブで選択）` }) : null,
+      h('textarea', { id: 'gen-prompt', rows: 16, readonly: true, value: prompt, 'aria-label': '生成指示' }),
+      h('button', { type: 'button', id: 'btn-copy-prompt', onclick: async () => { try { await navigator.clipboard.writeText(prompt); toast('コピーしました'); } catch { $('#gen-prompt').select(); toast('選択しました。Ctrl+C でコピーしてください'); } } }, '指示をコピー')),
+    h('section', { class: 'card' }, h('h2', { text: '② Claude Code の出力 JSON を取り込む' }),
+      h('p', { class: 'small', text: '取り込んだセクションは「未承認」、根拠候補は「未検証」になります。HTML・URL・参考LP固有値を含むフィールドは拒否します。' }),
+      h('textarea', { id: 'gen-response', rows: 12, 'aria-label': '生成JSON' }),
+      h('button', { type: 'button', id: 'btn-ingest', class: 'primary', onclick: () => {
+        const res = ingestGenerated(state.project, $('#gen-response').value, { mode: state.genMode, sectionId: sel?.id });
+        state.lastIngest = res.report;
+        if (res.ok) { commit(res.project); toast('取り込みました（未承認）'); } else { toast(`取り込めません: ${res.report.errors[0]}`, 'error'); render(); }
+      } }, '検証して取り込む'),
+      r ? h('div', { class: 'small', id: 'ingest-report' }, ...['errors', 'rejected', 'warnings', 'added'].flatMap((k) => r[k].map((m) => h('div', { class: `rep-${k}`, text: `${{ errors: 'エラー', rejected: '拒否', warnings: '警告', added: '追加' }[k]}: ${m}` })))) : null));
+}
+
+// ---------------- render ----------------
+function render() {
+  const p = state.project;
+  if (!p) return;
+  const active = document.activeElement;
+  const focusId = active && active.id ? active.id : null;
+  const scrollY = window.scrollY;
+  $('#project-name').value = p.name;
+  $('#btn-undo').disabled = !state.undo.length;
+  $('#btn-redo').disabled = !state.redo.length;
+  $('#ai-status').textContent = 'AI生成: ブラウザからは未接続。テンプレート下書き（AI生成ではない）と、Claude Code との prompt→JSON 受け渡しのみ動作します。';
+  document.querySelectorAll('[role=tab]').forEach((t) => {
+    const on = t.dataset.tab === state.tab;
+    t.setAttribute('aria-selected', on ? 'true' : 'false');
+    t.tabIndex = on ? 0 : -1;
+  });
+  const panel = $('#panel');
+  panel.setAttribute('aria-labelledby', `tab-${state.tab}`);
+  const view = { brief: renderBrief, plan: renderPlan, design: renderDesign, cta: renderCta, export: renderExport, lpo: renderLpo, gen: renderGen }[state.tab](p);
+  panel.replaceChildren(view);
+  if (focusId) {
+    const el = document.getElementById(focusId);
+    if (el && el !== document.activeElement) el.focus({ preventScroll: true });
+  }
+  window.scrollTo(0, scrollY);
+  storageSet(UI_KEY, JSON.stringify({ tab: state.tab, selected: state.selected, mode: state.mode }));
+}
+
+// ---------------- 起動 ----------------
+function bindChrome() {
+  $('#btn-undo').addEventListener('click', undo);
+  $('#btn-redo').addEventListener('click', redo);
+  $('#btn-save').addEventListener('click', () => {
+    download(`${safeName(state.project)}.lpstudio.json`, serializeProject({ ...state.project, schemaVersion: SCHEMA_VERSION }), 'application/json');
+    toast('project JSON を保存しました');
+  });
+  $('#file-load').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (!f) return;
+    if (f.size > 2 * 1024 * 1024) { toast('ファイルが大きすぎます（2MBまで）', 'error'); return; }
+    loadJsonText(await f.text(), f.name);
+    e.target.value = '';
+  });
+  $('#btn-load').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#file-load').click(); } });
+  $('#btn-seed').addEventListener('click', async () => { try { state.selected = null; commit(await loadSeed()); toast('架空seedを読み込みました'); } catch (e) { toast(e.message, 'error'); } });
+  $('#btn-new').addEventListener('click', () => { state.selected = null; commit(emptyProject()); toast('新規プロジェクト（ブリーフから入力してください）'); setTab('brief'); });
+  $('#project-name').addEventListener('change', (e) => edit({ type: 'setName', value: e.target.value }));
+  const tabs = [...document.querySelectorAll('[role=tab]')];
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => setTab(t.dataset.tab));
+    t.addEventListener('keydown', (e) => {
+      let j = null;
+      if (e.key === 'ArrowRight') j = (i + 1) % tabs.length;
+      if (e.key === 'ArrowLeft') j = (i - 1 + tabs.length) % tabs.length;
+      if (e.key === 'Home') j = 0;
+      if (e.key === 'End') j = tabs.length - 1;
+      if (j != null) { e.preventDefault(); setTab(tabs[j].dataset.tab); tabs[j].focus(); }
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName);
+    if (typing) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); }
+  });
+}
+
+async function boot() {
+  bindChrome();
+  const ui = (() => { try { return JSON.parse(storageGet(UI_KEY) || '{}'); } catch { return {}; } })();
+  if (ui.mode && MODE_LABEL[ui.mode]) state.mode = ui.mode;
+  if (ui.selected) state.selected = ui.selected;
+  const saved = storageGet(AUTOSAVE_KEY);
+  const restored = saved ? parseProjectJson(saved) : null;
+  if (restored && restored.ok) {
+    state.project = restored.project;
+    toast('前回の編集を復元しました（再開）');
+  } else {
+    try { state.project = await loadSeed(); } catch { state.project = emptyProject(); }
+    if (saved) toast('前回の保存データが読めなかったため架空seedで開きました', 'error');
+  }
+  const hashTab = location.hash.slice(1);
+  state.tab = TABS.includes(hashTab) ? hashTab : (TABS.includes(ui.tab) ? ui.tab : 'brief');
+  history.replaceState({ tab: state.tab }, '', `#${state.tab}`);
+  render();
+  document.body.dataset.ready = '1';
+}
+boot();
+
+return {  };
+})();
+
+})();</script>
+</body>
+</html>

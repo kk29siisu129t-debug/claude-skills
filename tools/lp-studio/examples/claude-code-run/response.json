@@ -1,0 +1,163 @@
+{
+  "generator": "claude-code",
+  "mode": "full",
+  "sections": [
+    {
+      "type": "fv",
+      "fields": {
+        "heading": "今夜やることは、もう決まっている。",
+        "lead": "{{audience}}へ。{{product}}",
+        "body": "{{promise}}。机に向かってから考える時間を、手を動かす時間に変えます。",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": ["ev-plan"]
+    },
+    {
+      "type": "empathy",
+      "fields": {
+        "heading": "テキストを開いたまま、手が止まっていませんか",
+        "lead": "",
+        "body": "{{problem}}",
+        "note": "",
+        "items": [
+          "帰宅後、前回どこまで進んだかを思い出すところから始まる",
+          "平日に遅れた分を週末に取り返そうとして、週末ごと崩れる",
+          "このペースで間に合うのか、自分では判断がつかない"
+        ],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "reframe",
+      "fields": {
+        "heading": "止まる理由は、意志の弱さより「段取りの空白」にあるのかもしれません",
+        "lead": "",
+        "body": "疲れている夜ほど、何をやるかを決めること自体が重い負担になります。決める作業を先に済ませておけば、夜は手を動かすだけで済みます。",
+        "note": "",
+        "items": ["その日の気分で範囲を決める", "遅れたら週末にまとめて取り返す", "計画は最初に一度だけ立てる"],
+        "itemsAlt": ["毎晩15分で終わる単位に分けておく", "遅れは翌週の計画で吸収する", "週ごとに計画そのものを見直す"]
+      },
+      "claimRefs": ["ev-plan"]
+    },
+    {
+      "type": "origin",
+      "fields": {
+        "heading": "教材ではなく「次の一手」を渡す理由",
+        "lead": "",
+        "body": "{{product}}は、教える内容を増やすのではなく、続けるための段取りを一緒に組むことに絞っています。\n【要記入: このサービスを始めた経緯（事実として確認できるもの）】",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "steps",
+      "fields": {
+        "heading": "申し込んでから、最初の夜まで",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": [
+          "「{{ctaLabel}}」から都合のよい日時を選ぶ",
+          "面談で、いまの進み具合と平日に使える時間を一緒に確かめる",
+          "毎晩15分の単位に分けた計画を受け取る",
+          "週ごとに計画を見直し、遅れや変化を次の週に織り込む"
+        ],
+        "itemsAlt": []
+      },
+      "claimRefs": ["ev-plan"]
+    },
+    {
+      "type": "scope",
+      "fields": {
+        "heading": "お手伝いできること・できないこと",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": ["{{offer}}", "週ごとの計画の見直し"],
+        "itemsAlt": ["教材の販売", "試験結果の約束", "【要記入: 対象外にしている相談内容】"]
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "recommit",
+      "fields": {
+        "heading": "決めるのは面談で。夜は、進めるだけに。",
+        "lead": "当てはまるところがあれば、まずはいまの状況を聞かせてください。",
+        "body": "",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "proof",
+      "fields": {
+        "heading": "確認できている事実",
+        "lead": "出典を確認できたものだけを載せています。",
+        "body": "",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": ["ev-hours", "ev-plan"]
+    },
+    {
+      "type": "price_reason",
+      "fields": {
+        "heading": "料金について",
+        "lead": "{{price}}",
+        "body": "【要記入: この料金・条件にしている理由】",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "fit",
+      "fields": {
+        "heading": "合う人・合わない人",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": ["{{audience}}", "毎晩15分なら確保できる人", "計画を人と一緒に見直すことに抵抗がない人"],
+        "itemsAlt": ["短期間で結果だけを求める人", "教材選びの相談だけをしたい人"]
+      },
+      "claimRefs": ["ev-plan"]
+    },
+    {
+      "type": "closing",
+      "fields": {
+        "heading": "机に向かったら、迷わず手が動く夜へ",
+        "lead": "",
+        "body": "何をやるかは面談で一緒に決めます。まずは、いまの状況を聞かせてください。",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "type": "footer",
+      "fields": {
+        "heading": "",
+        "lead": "",
+        "body": "運営: {{operator}}",
+        "note": "このページはデモ用の架空事業です。",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    }
+  ],
+  "evidenceCandidates": [
+    { "claim": "面談の所要時間と実施方法", "source": "サービス仕様書で確認する" },
+    { "claim": "計画の見直しの頻度と方法（週ごと）", "source": "サービス仕様書の該当箇所で確認する" }
+  ]
+}

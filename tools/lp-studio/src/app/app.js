@@ -105,9 +105,16 @@ function redo() {
   toast('やり直しました');
 }
 
+// 自己完結版（build-standalone.mjs）では seed が埋め込まれている
+async function seedText(kind) {
+  const embed = window.__LP_STUDIO_EMBED__;
+  if (embed) return kind === 'dataset' ? embed.dataset : embed.seed;
+  const res = await fetch(kind === 'dataset' ? '../../seed/lpo-dataset.fictional.json' : '../../seed/project.fictional.json', { cache: 'no-store' });
+  return res.text();
+}
+
 async function loadSeed() {
-  const res = await fetch('../../seed/project.fictional.json', { cache: 'no-store' });
-  const r = parseProjectJson(await res.text());
+  const r = parseProjectJson(await seedText('project'));
   if (!r.ok) throw new Error(r.errors.join(' / '));
   return r.project;
 }
@@ -415,8 +422,7 @@ function renderLpo(p) {
   const a = analyzeLpo(p);
   const loader = h('div', { class: 'row' },
     h('button', { type: 'button', id: 'btn-lpo-seed', onclick: async () => {
-      const res = await fetch('../../seed/lpo-dataset.fictional.json', { cache: 'no-store' });
-      try { if (edit({ type: 'setDataset', value: JSON.parse(await res.text()) })) toast('架空データを読み込みました'); } catch (e) { toast(e.message, 'error'); }
+      try { if (edit({ type: 'setDataset', value: JSON.parse(await seedText('dataset')) })) toast('架空データを読み込みました'); } catch (e) { toast(e.message, 'error'); }
     } }, '架空データを読み込む'),
     h('details', {}, h('summary', { text: 'データセットJSONを貼り付け' }),
       h('textarea', { id: 'lpo-json', rows: 6, 'aria-label': 'データセットJSON' }),

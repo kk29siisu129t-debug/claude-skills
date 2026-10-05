@@ -1,0 +1,472 @@
+{
+  "schemaVersion": 1,
+  "id": "seed-michishirube",
+  "name": "ミチシルベ簿記（架空デモ）",
+  "updatedAt": "2026-10-05T22:31:30.088Z",
+  "brief": {
+    "product": {
+      "value": "ミチシルベ簿記（オンライン学習伴走・架空）",
+      "status": "confirmed"
+    },
+    "audience": {
+      "value": "仕事と両立しながら簿記2級を目指す社会人",
+      "status": "confirmed"
+    },
+    "problem": {
+      "value": "教材は買ったが、平日の夜に何から手をつけるか決められず、週末にまとめてやろうとして崩れる",
+      "status": "confirmed"
+    },
+    "promise": {
+      "value": "毎晩15分の「次にやること」が決まっている状態をつくる",
+      "status": "confirmed"
+    },
+    "offer": {
+      "value": "初回の学習設計面談（オンライン）",
+      "status": "unconfirmed"
+    },
+    "price": {
+      "value": "",
+      "status": "missing"
+    },
+    "ctaLabel": {
+      "value": "学習設計面談を予約する",
+      "status": "confirmed"
+    },
+    "ctaUrl": {
+      "value": "https://example.com/apply?utm_content=demo01",
+      "status": "confirmed"
+    },
+    "tone": {
+      "value": "落ち着いて具体的。煽らない。",
+      "status": "confirmed"
+    },
+    "operator": {
+      "value": "架空株式会社ミチシルベ（デモ用の架空事業者）",
+      "status": "confirmed"
+    },
+    "category": "education"
+  },
+  "brand": {
+    "primary": "#2741b8",
+    "accent": "#c42f57",
+    "ink": "#1b1f2b",
+    "paper": "#fbf8f3",
+    "font": "sans"
+  },
+  "evidence": [
+    {
+      "id": "ev-hours",
+      "claim": "【架空】面談後4週間の平均学習日数は週4.2日",
+      "sourceType": "internal-data",
+      "source": "架空の社内集計（デモ用・2026年8月）",
+      "status": "verified",
+      "verifiedBy": "デモ確認者（架空）",
+      "verifiedAt": "2026-09-20",
+      "provenance": "seed",
+      "metricValue": 4.2,
+      "metricUnit": "日/週",
+      "note": "デモ用の架空値"
+    },
+    {
+      "id": "ev-plan",
+      "claim": "学習計画は面談で一緒に作り、毎晩15分の単位に分けて、週ごとに見直す",
+      "sourceType": "policy",
+      "source": "架空のサービス仕様書 v1（デモ用）",
+      "status": "verified",
+      "verifiedBy": "デモ確認者（架空）",
+      "verifiedAt": "2026-09-20",
+      "provenance": "seed",
+      "metricValue": null,
+      "metricUnit": "",
+      "note": ""
+    },
+    {
+      "id": "ev-voice",
+      "claim": "【架空・未確認】受講者アンケートで満足度92%",
+      "sourceType": "other",
+      "source": "出典未確認",
+      "status": "unverified",
+      "verifiedBy": "",
+      "verifiedAt": "",
+      "provenance": "seed",
+      "metricValue": 92,
+      "metricUnit": "%",
+      "note": "未検証の例。safe export には出ない"
+    }
+  ],
+  "sections": [
+    {
+      "id": "fv",
+      "type": "fv",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "{{promise}}",
+        "lead": "{{audience}}のための学習伴走",
+        "body": "教材を増やすのではなく、毎日の「次の一手」を先に決めておく。",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "empathy",
+      "type": "empathy",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "こんな夜が続いていませんか",
+        "lead": "",
+        "body": "{{problem}}",
+        "note": "",
+        "items": [
+          "帰宅して机に向かっても、どこから再開するかを考えるうちに時間が過ぎる",
+          "週末に取り返そうとして、結局どちらも中途半端になる",
+          "進んでいるのか遅れているのか、自分では判断がつかない"
+        ],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "id": "reframe",
+      "type": "reframe",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "足りないのは、やる気ではなく「次の一手」の設計かもしれません",
+        "lead": "",
+        "body": "時間が取れない日ほど、何をやるかを考える負担が重くなります。",
+        "note": "",
+        "items": [
+          "その日の気分で範囲を決める",
+          "遅れたら週末にまとめて取り返す"
+        ],
+        "itemsAlt": [
+          "15分で終わる単位に分けておく",
+          "週ごとに計画そのものを見直す"
+        ]
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "origin",
+      "type": "origin",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "なぜ「伴走」なのか",
+        "lead": "",
+        "body": "教材の良し悪しより、続ける段取りでつまずく人が多い、という問題意識から設計しました。\n内容は講座ではなく、学習計画を一緒に作り、週ごとに見直す仕組みです。",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "steps",
+      "type": "steps",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "申込後の流れ",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": [
+          "「{{ctaLabel}}」から日時を選ぶ",
+          "面談で、今の進み具合と使える時間を一緒に確認する",
+          "1週間分の「毎晩15分」の計画を受け取る",
+          "週に一度、計画を見直す"
+        ],
+        "itemsAlt": []
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "scope",
+      "type": "scope",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "提供範囲",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": [
+          "{{offer}}",
+          "週ごとの計画の見直し"
+        ],
+        "itemsAlt": [
+          "教材の販売",
+          "試験の合格の約束"
+        ]
+      },
+      "claimRefs": []
+    },
+    {
+      "id": "recommit",
+      "type": "recommit",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "次にやることが決まっていれば、15分でも前に進める",
+        "lead": "当てはまると感じたら、まず今の状況を一緒に整理しましょう。",
+        "body": "",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "proof",
+      "type": "proof",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "根拠",
+        "lead": "確認できた事実と出典だけを載せています。",
+        "body": "",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": [
+        "ev-hours",
+        "ev-plan",
+        "ev-voice"
+      ]
+    },
+    {
+      "id": "fit",
+      "type": "fit",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "向いている人 / 向いていない人",
+        "lead": "",
+        "body": "",
+        "note": "",
+        "items": [
+          "{{audience}}",
+          "毎晩15分なら確保できる人"
+        ],
+        "itemsAlt": [
+          "短期間での一発合格だけを求める人",
+          "教材選びの相談だけをしたい人"
+        ]
+      },
+      "claimRefs": [
+        "ev-plan"
+      ]
+    },
+    {
+      "id": "closing",
+      "type": "closing",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "机に向かったら、すぐ手が動く毎日へ",
+        "lead": "",
+        "body": "計画は面談で一緒に作ります。まずは今の状況を聞かせてください。",
+        "note": "",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    },
+    {
+      "id": "footer",
+      "type": "footer",
+      "approved": true,
+      "needsReview": false,
+      "origin": "manual",
+      "fields": {
+        "heading": "",
+        "lead": "",
+        "body": "運営: {{operator}}",
+        "note": "このページはデモ用の架空事業です。",
+        "items": [],
+        "itemsAlt": []
+      },
+      "claimRefs": []
+    }
+  ],
+  "cta": {
+    "activeVariant": "a",
+    "variants": [
+      {
+        "id": "a",
+        "label": "",
+        "color": "#d6335d",
+        "timing": "spec"
+      },
+      {
+        "id": "b",
+        "label": "まず15分の相談を予約する",
+        "color": "#1f6f5c",
+        "timing": "after-half"
+      }
+    ]
+  },
+  "lpo": {
+    "dataset": {
+      "fictional": true,
+      "name": "【架空】ミチシルベ簿記 デモ集計 2026年8〜9月",
+      "experiments": [
+        {
+          "id": "exp-fv-aug",
+          "name": "FV訴求 A/B（8月前半・小規模）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-08-01",
+          "end": "2026-08-14",
+          "plannedEnd": "2026-08-14",
+          "missingDays": 0,
+          "notes": "架空データ。各群の分母が必要サンプルに届いていない例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 現行FV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 4200,
+              "ctaClicks": 520,
+              "conversions": 126
+            },
+            {
+              "id": "b",
+              "name": "B: 約束先出しFV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 4150,
+              "ctaClicks": 610,
+              "conversions": 168
+            }
+          ]
+        },
+        {
+          "id": "exp-fv-full",
+          "name": "FV訴求 A/B（8〜9月・本計測）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-08-15",
+          "end": "2026-09-11",
+          "plannedEnd": "2026-09-11",
+          "missingDays": 0,
+          "notes": "架空データ。必要サンプルに到達した例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 現行FV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 16020,
+              "ctaClicks": 1990,
+              "conversions": 481
+            },
+            {
+              "id": "b",
+              "name": "B: 約束先出しFV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 15980,
+              "ctaClicks": 2240,
+              "conversions": 607
+            }
+          ]
+        },
+        {
+          "id": "exp-cta-sep",
+          "name": "固定CTA 表示タイミング（実施中）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-09-15",
+          "end": "2026-09-30",
+          "plannedEnd": "2026-10-12",
+          "missingDays": 2,
+          "notes": "架空データ。期間未了・計測欠損日ありの例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: FV後に表示",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 6100,
+              "ctaClicks": 810,
+              "conversions": 170
+            },
+            {
+              "id": "b",
+              "name": "B: 常時表示",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 5400,
+              "ctaClicks": null,
+              "conversions": null
+            }
+          ]
+        },
+        {
+          "id": "exp-ad-sessions",
+          "name": "広告流入別の参考集計（定義が異なる）",
+          "page": "/lp/boki-ad",
+          "timezone": "UTC",
+          "start": "2026-09-01",
+          "end": "2026-09-30",
+          "plannedEnd": "2026-09-30",
+          "missingDays": 0,
+          "notes": "架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 広告LP",
+              "expectedShare": 1,
+              "unit": "sessions",
+              "conversionDefinition": "CTAボタンのクリック",
+              "measurement": "架空: タグ計測（同意前も含む）",
+              "visitors": 9800,
+              "ctaClicks": 1300,
+              "conversions": 1300
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
