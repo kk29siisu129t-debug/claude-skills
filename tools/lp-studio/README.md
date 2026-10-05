@@ -6,47 +6,70 @@
 
 - 依存パッケージはありません（Node 22 と、テスト用にプリインストールの Playwright/Chromium を使います）。
 - `tools/lp-studio/` の中で完結しています。既存の hub / crew / skills のファイルは変更していません。
-- 設計判断と監査役との壁打ちの記録は `docs/DESIGN.md`、実装監査の記録は `docs/AUDIT.md` にあります。
+- 設計判断と監査役との壁打ちの記録は `docs/DESIGN.md`、実装監査（差し戻し→修正→再検証）の記録は `docs/AUDIT.md` にあります。
+- 実スクリーンショットは `docs/screenshots/` にあります。撮り直すときは `node docs/take-screenshots.mjs` と `LP_STUDIO_SHOTS=$PWD/docs/screenshots npm run test:e2e` を実行します。
 
 ## すぐ使う
+
+### A. ダブルクリックで開く（推奨・インストール不要）
+
+`dist/lp-studio-standalone.html` をブラウザで開くだけで使えます。
+
+- Chrome / Edge / Safari / Firefox の現行版で動きます。
+- 1ファイルで自己完結しています（外部通信なし、seed 埋め込み、CSP 付き）。
+- 編集内容はブラウザの localStorage に自動保存されます。
+- 作り直すときは `node build-standalone.mjs` を実行します。
+
+### B. ローカルサーバーで開く（開発用）
 
 ```bash
 cd tools/lp-studio
 npm start                 # http://127.0.0.1:4173/ （127.0.0.1 のみ。公開・デプロイ用ではない）
-npm test                  # unit（core / schema / claim / LPO / render / export）
-npm run test:e2e          # ブラウザ統合テスト（Chromium）
+npm test                  # unit 69件（core / schema / claim / LPO / render / export / 監査の回帰）
+npm run test:e2e          # ブラウザ統合 14件（Chromium。Playwright が必要）
 ```
 
-初めて開くと架空seed「ミチシルベ簿記（架空デモ）」が読み込まれます。
-編集内容はブラウザの localStorage に自動保存され、再読込すると続きから再開できます。
+Node 22 以上が必要です。依存パッケージはありません。
 
 ## AI生成について（動く範囲を正確に）
 
-| 経路 | 状態 | 何をするか |
-|---|---|---|
-| テンプレート下書き | **動く** | ブリーフ値を決まった型に `{{offer}}` などで差し込むだけです。**AI生成ではありません**（UIにもそう表示します） |
-| Claude Code 生成 | **prompt → JSON の受け渡しとして動く** | ツールが生成指示（禁止事項・JSON契約つき）を出力します。Claude Code セッションが JSON を書き、ツールが schema 検証して取り込みます |
-| ブラウザ → 推論API | **未接続** | 新規APIキー・OAuth・外部API連携は追加していません |
+| 経路 | 新しい secret | 実際に動くか | 中身 |
+|---|---|---|---|
+| **テンプレート下書き**（ブラウザ / CLI `template`） | 不要 | 動く | **ルールベース**です。ブリーフ値を `{{promise}}` 等で決まった型に差し込み、分からない所は `【要記入】` にします。文章は生成せず、AI推論もしません |
+| **seed** | 不要 | 動く | 人が書いた架空のデモ原稿です。AI生成ではありません |
+| **Claude Code 生成**（CLI `prompt` → Claude Code → `ingest`） | 不要 | **動く（Claude Code セッションが推論する）** | ツールは指示と JSON 契約を出し、検証・取り込みをするだけです。文章と構成を考えるのは Claude Code セッションのモデルです |
+| **ブラウザから推論APIを直接呼ぶ** | 必要になる | **未接続** | APIキー・OAuth・外部連携は追加していません |
 
-Claude Code で回す手順は次のとおりです。
+### Claude Code 生成で、ブリーフから文章と構成を作る
 
 ```bash
-node cli.mjs seed --out /tmp/p.json
-node cli.mjs prompt --project /tmp/p.json --mode full > /tmp/prompt.md      # reangle --promise "…" / section --section <id>
-#   → Claude Code が prompt.md を読み、JSON を /tmp/r.json に書く
+node cli.mjs seed --out /tmp/p.json                                          # またはブリーフを入れた自分の project JSON
+node cli.mjs prompt --project /tmp/p.json --mode full > /tmp/prompt.md        # reangle --promise "…" / section --section <id>
+#   ↓ Claude Code に「/tmp/prompt.md を読んで JSON 契約どおりの JSON を /tmp/r.json に書いて」と頼む
 node cli.mjs ingest --project /tmp/p.json --response /tmp/r.json --mode full --out /tmp/p2.json
-node cli.mjs audit  --project /tmp/p2.json
-node cli.mjs export --project /tmp/p2.json --kind draft --out /tmp/draft.html
-node cli.mjs export --project /tmp/p2.json --kind safe  --out /tmp/page.html  # ブロッカーがあれば終了コード3で出力しない
-node cli.mjs lpo    --project /tmp/p2.json
+node cli.mjs export --project /tmp/p2.json --kind draft --out /tmp/draft.html # レビュー用
+#   ↓ UI（JSON読込）で内容を確認して各セクションを承認し、根拠を検証する
+node cli.mjs export --project /tmp/p3.json --kind safe --out /tmp/page.html   # ブロッカーがあれば終了コード3で出力しない
 ```
 
-UIでは「7 生成（Claude Code）」タブで、指示のコピーと応答JSONの貼り付け・取り込みができます。
+**実地例**: `examples/claude-code-run/` に、このリポジトリの作業セッションで実際に行った一連の記録があります。
 
-取り込んだものの扱いは次のとおりです。
+1. `prompt.md`（ツールの出力）
+2. `response.json`（Claude Code が書いた JSON）
+3. `ingest-report.txt`
+4. `project.after.json`（全セクション未承認・根拠候補は未検証）
+5. `draft.html`
+6. `approve-demo.mjs`（**デモの確認者による承認を模したスクリプト**です。実運用では人が UI で承認します）
+7. `project.reviewed.json`
+8. `safe.html` と `safe-report.txt`
 
-- 取り込んだセクションは常に **未承認**、根拠候補は常に **未検証** になります。
-- HTML・URL、または参考LP固有の値（3日間・月100人・受講生1140人 など）を含むフィールドは拒否します。
+取り込みでは、生成物はすべて未承認、根拠候補は未検証になります。さらに次のものを含むフィールドを拒否します。
+
+- HTML・URL
+- 参考LP固有値・薬機法の語彙・推薦文・権威
+- 確定ブリーフにも verified 根拠にも無い数値・保証・煽り
+
+ブラウザUIでは「7 生成（Claude Code）」タブで、同じことをコピーと貼り付けで行えます。
 
 ## 画面と工程
 
@@ -160,6 +183,9 @@ FV右上のバッジには、**検証済みかつ数値付き** の根拠があ�
 ```
 tools/lp-studio/
   cli.mjs            Claude Code から使う CLI
+  build-standalone.mjs  自己完結版のビルド → dist/lp-studio-standalone.html
+  sync-csp.mjs       プレビュー用スクリプトの CSP hash をアプリに反映
+  examples/          Claude Code 生成の実地例
   serve.mjs          ローカル確認用の静的サーバー（127.0.0.1）
   src/core/          schema / sections / model / claims / generate / render / lpo / util（UI と CLI で共通）
   src/app/           ブラウザUI（index.html / app.js / styles.css）

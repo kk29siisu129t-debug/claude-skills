@@ -115,26 +115,40 @@ export function analyzeExperiment(exp) {
     if (v.visitors != null && v.conversions != null && v.conversions > v.visitors) notes.push(`${v.name}: CV数が分母を超えています（定義の不一致の疑い）`);
   }
   // 期間
+  const days = daysBetween(exp.start, exp.end);
+  if (!(days >= 1)) notes.push(`期間が不正です（開始 ${exp.start} > 終了 ${exp.end}）`);
+  if (Date.parse(exp.plannedEnd) < Date.parse(exp.start)) notes.push(`予定終了日（${exp.plannedEnd}）が開始日より前です`);
+  if (days > LPO_RULES.maxDurationDays) notes.push(`期間が ${days} 日で、上限 ${LPO_RULES.maxDurationDays} 日を超えています（季節性・外部要因が混ざるため判定しない）`);
   const plannedDone = Date.parse(exp.end) >= Date.parse(exp.plannedEnd);
   if (!plannedDone) notes.push(`予定期間（〜${exp.plannedEnd}）が未了です。途中で判定しません`);
-  const days = daysBetween(exp.start, exp.end);
+  // 割付比の指定: 全案に指定するか、全く指定しないか。指定するなら合計 1
+  const shareSpecified = exp.variants.filter((v) => v.expectedShare != null).length;
+  if (shareSpecified && shareSpecified !== exp.variants.length) notes.push('予定割付比（expectedShare）が一部の案にしかありません');
+  else if (shareSpecified && Math.abs(exp.variants.reduce((a, v) => a + v.expectedShare, 0) - 1) > 0.001) notes.push('予定割付比（expectedShare）の合計が 1 ではありません（入力ミスの可能性。SRM を正しく検査できない）');
+  // 集計の矛盾
+  for (const v of exp.variants) {
+    if (v.ctaClicks != null && v.visitors != null && v.ctaClicks > v.visitors) notes.push(`${v.name}: CTAクリック数が分母を超えています（定義・集計単位の不一致の疑い）`);
+  }
 
   // 観測値（欠損以外）
   const rows = exp.variants.map((v) => {
     const ok = v.visitors != null && v.conversions != null && v.visitors > 0;
     const rate = ok ? v.conversions / v.visitors : null;
     const ci = ok ? wilson(v.conversions, v.visitors) : null;
-    const clickRate = ok && v.ctaClicks != null ? v.ctaClicks / v.visitors : null;
-    return { id: v.id, name: v.name, visitors: v.visitors, conversions: v.conversions, ctaClicks: v.ctaClicks ?? null, rate, ci, clickRate };
+    const clickOk = ok && v.ctaClicks != null && v.ctaClicks <= v.visitors;
+    const clickRate = clickOk ? v.ctaClicks / v.visitors : null;
+    const afterClickOk = clickOk && v.ctaClicks > 0 && v.conversions <= v.ctaClicks; // CV>クリックなら CV がクリック以外の経路も含む定義
+    return { id: v.id, name: v.name, visitors: v.visitors, conversions: v.conversions, ctaClicks: v.ctaClicks ?? null, rate, ci, clickRate, afterClickOk };
   });
   for (const r of rows) {
     if (r.rate == null) observations.push({ id: `${exp.id}-${r.id}-na`, text: `${r.name}: 集計が欠損しているため率を出しません` });
-    else observations.push({ id: `${exp.id}-${r.id}`, text: `${r.name}: CV ${r.conversions} / ${control.unit} ${r.visitors} = ${pct(r.rate)}（95%CI ${pct(r.ci[0])}〜${pct(r.ci[1])}）${r.clickRate != null ? `、CTAクリック率 ${pct(r.clickRate)}` : ''}` });
+    else if (r.clickRate != null && !r.afterClickOk && r.ctaClicks > 0) observations.push({ id: `${exp.id}-${r.id}-note`, text: `注記: ${r.name} は CV（${r.conversions}）が CTAクリック（${r.ctaClicks}）を上回るため、クリック後CV率は出さない（CV がクリック以外の経路を含む定義の疑い）` });
+    if (r.rate != null) observations.push({ id: `${exp.id}-${r.id}`, text: `${r.name}: CV ${r.conversions} / ${control.unit} ${r.visitors} = ${pct(r.rate)}（95%CI ${pct(r.ci[0])}〜${pct(r.ci[1])}）${r.clickRate != null ? `、CTAクリック率 ${pct(r.clickRate)}` : ''}` });
   }
 
   // SRM
   let srm = null;
-  if (!missingVars.length) {
+  if (!missingVars.length && !(shareSpecified && shareSpecified !== exp.variants.length)) {
     const total = exp.variants.reduce((a, v) => a + v.visitors, 0);
     const shares = exp.variants.map((v) => v.expectedShare ?? 1 / exp.variants.length);
     const sumShares = shares.reduce((a, b) => a + b, 0);
@@ -180,17 +194,31 @@ export function analyzeExperiment(exp) {
   };
 }
 
-/** 期間をまたいだ比較は、TZ・分母・CV定義・計測条件・ページが全部一致するときだけ */
+/**
+ * 実験をまたいだ比較の前提。TZ・分母・CV定義・計測条件・ページが全案で一致し、期間が重ならないときだけ comparable。
+ * comparable でも、期間の長さ・曜日構成・季節性は調整していない（cautions に出す）。
+ */
 export function comparability(a, b) {
   const reasons = [];
-  const va = a.variants[0];
-  const vb = b.variants[0];
+  const cautions = [];
+  const uniq = (x, k) => [...new Set(x.variants.map((v) => v[k]))];
   if (a.timezone !== b.timezone) reasons.push(`タイムゾーンが異なる（${a.timezone} / ${b.timezone}）`);
-  if (va.unit !== vb.unit) reasons.push(`分母が異なる（${va.unit} / ${vb.unit}）`);
-  if (va.conversionDefinition !== vb.conversionDefinition) reasons.push('コンバージョン定義が異なる');
-  if (va.measurement !== vb.measurement) reasons.push('計測条件が異なる');
+  const labels = { unit: '分母', conversionDefinition: 'コンバージョン定義', measurement: '計測条件' };
+  for (const k of Object.keys(labels)) {
+    const ua = uniq(a, k);
+    const ub = uniq(b, k);
+    if (ua.length > 1 || ub.length > 1) reasons.push(`${labels[k]}が実験内の案ごとに異なる`);
+    else if (ua[0] !== ub[0]) reasons.push(k === 'unit' ? `分母が異なる（${ua[0]} / ${ub[0]}）` : `${labels[k]}が異なる`);
+  }
   if ((a.page || '') !== (b.page || '')) reasons.push('対象ページが異なる');
-  return { comparable: reasons.length === 0, reasons };
+  const overlap = Date.parse(a.start) <= Date.parse(b.end) && Date.parse(b.start) <= Date.parse(a.end);
+  if (overlap) reasons.push('期間が重複している（同じ訪問者が両方に入る）');
+  const da = daysBetween(a.start, a.end);
+  const db = daysBetween(b.start, b.end);
+  if (da !== db) cautions.push(`期間の長さが異なる（${da}日 / ${db}日）`);
+  if (da % 7 || db % 7) cautions.push('曜日構成がそろっていない（7日単位でない）');
+  cautions.push('季節性・流入構成の変化は未調整');
+  return { comparable: reasons.length === 0, reasons, cautions };
 }
 
 // ---- 仮説 ----
@@ -242,7 +270,7 @@ export function buildHypotheses(project, analyses) {
   }
   if (main && main.rows.every((r) => r.rate != null)) {
     const cr = main.rows[0];
-    if (cr.ctaClicks != null && cr.conversions != null && cr.ctaClicks > 0) {
+    if (cr.afterClickOk) {
       const after = cr.conversions / cr.ctaClicks;
       H.push({
         id: 'h-after-click', title: 'CTAクリック後の遷移先を点検する', evidenceType: 'observed-fictional',
@@ -263,6 +291,29 @@ export function buildHypotheses(project, analyses) {
       metric: `主要: ${cvDef}（分母 ${unit}）。補助: CTAクリック率`, guardrails: [...guardBase, 'クリック率だけ上がりCVが下がっていないか'],
       stopConditions: stopBase, priority: priority(2, 1, 1),
       caution: '一般論からの仮説で、このLPでの観測はまだない。実配信は別途の承認が必要（このツールは配信しない）',
+    });
+  }
+  for (const a of analyses) {
+    a.comparisons.forEach((c, idx) => {
+      if (c.verdict !== 'difference-observed') return;
+      const up = c.relativeLift > 0;
+      const variantId = a.rows[idx + 1]?.id || String(idx + 1);
+      H.push({
+        id: `h-replicate-${a.id}-${variantId}`,
+        title: up ? `「${a.name}」の ${c.variant}: 改善の再現確認と段階展開` : `「${a.name}」の ${c.variant}: 悪化の再現確認と配分停止`,
+        evidenceType: 'observed-fictional',
+        basis: [`${a.period} / 分母 ${a.unit} で対照より${up ? '高い' : '低い'}差が観測された（相対 ${(c.relativeLift * 100).toFixed(1)}%、p=${c.p.toExponential(2)}）`, '一度の観測で、因果の経路と他期間・他流入への汎化は未確認'],
+        hypothesis: up
+          ? `${c.variant} の変更が申込を増やしたのかもしれない。別期間で同じ定義のまま再現するかを確かめ、再現すれば段階的に配分を上げる`
+          : `${c.variant} の変更が申込を減らしたのかもしれない。この案への配分は止め、悪化が再現するかは必要な場合だけ小さく確かめる`,
+        metric: `主要: ${a.conversionDefinition}（分母 ${a.unit}）。前回と同じ定義・同じ計測条件で`,
+        guardrails: [...guardBase, '申込後の不一致（キャンセル・問い合わせ内容）が増えていないか'],
+        stopConditions: up
+          ? [`再現テストも各群 ${a.requiredPerArm ?? '必要数'} に到達で判定`, `最長 ${LPO_RULES.maxDurationDays} 日`, `SRM（p<${LPO_RULES.srmP}）で停止`, '再現しなければ展開しない（元に戻す）']
+          : ['この案への配分は直ちに 0 にする（再開しない）', `再確認する場合も最長 ${LPO_RULES.maxDurationDays} 日・小配分`, `SRM（p<${LPO_RULES.srmP}）で停止`],
+        priority: priority(3, 2, 1),
+        caution: 'このツールは配信しない。配分の変更は実配信の承認を別途取ってから',
+      });
     });
   }
   if (main) {

@@ -8,7 +8,7 @@ export function escapeHtml(value) {
 
 // 制御文字（改行・タブ以外）を除去
 export function stripControl(value) {
-  return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u2028\u2029]/g, '');
+  return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u2028\u2029\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\u00AD]/g, '');
 }
 
 const ALLOWED_SCHEMES = new Set(['https:', 'mailto:', 'tel:']);
@@ -147,4 +147,21 @@ export function inkFor(fg, bg, minRatio = 4.5) {
     if (contrastRatio(hex, bg) >= minRatio) return hex;
   }
   return '#111111';
+}
+
+export function isRealDate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+
+/** 承認と内容を対応づける hash（type・fields・claimRefs） */
+export function sectionHash(s) {
+  const f = s.fields || {};
+  return sha256Base64(JSON.stringify([s.type, f.heading || '', f.lead || '', f.body || '', f.note || '', f.items || [], f.itemsAlt || [], s.claimRefs || []]));
+}
+
+/** 根拠の検証と内容を対応づける hash（主張・出典・数値） */
+export function evidenceHash(e) {
+  return sha256Base64(JSON.stringify([e.claim || '', e.source || '', e.sourceType || '', e.metricValue ?? null, e.metricUnit || '']));
 }

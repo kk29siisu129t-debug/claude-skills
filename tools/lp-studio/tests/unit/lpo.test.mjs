@@ -42,10 +42,15 @@ test('サンプル不足・欠損・期間未了・欠損日・定義違い・SR
 });
 
 test('期間・分母・TZ・定義が異なる実験は比較しない', () => {
-  assert.equal(comparability(E({}), E({})).comparable, true);
+  const later = E({ start: '2026-02-01', end: '2026-02-28', plannedEnd: '2026-02-28' });
+  const ok = comparability(E({}), later);
+  assert.equal(ok.comparable, true);
+  assert.ok(ok.cautions.some((c) => /季節性/.test(c)));
+  assert.equal(comparability(E({}), E({})).comparable, false); // 期間重複
   const r = comparability(E({}), E({ timezone: 'UTC', variants: [V({ unit: 'sessions', conversionDefinition: 'click' })] }));
   assert.equal(r.comparable, false);
-  assert.equal(r.reasons.length, 3);
+  assert.equal(r.reasons.length, 4); // TZ・分母・CV定義・期間重複
+  assert.ok(r.reasons.some((x) => /重複/.test(x)));
 });
 
 test('seed の LPO: 架空バナー・未接続表示・観測と推測の分離・仮説の必須項目', () => {

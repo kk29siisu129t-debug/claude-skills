@@ -15,6 +15,9 @@ test('数値・最上級・保証・煽り・権威・推薦・オファーを�
   assert.ok(cats('お客様の声').includes('testimonial'));
   assert.ok(cats('初回無料').includes('offer'));
   assert.deepEqual(cats('落ち着いて学べる'), []);
+  // 過検出しない: 差込トークンや英単語の一部
+  assert.deepEqual(cats('{{offer}} / office / Coffee'), []);
+  assert.ok(cats('全品20%OFF').includes('offer'));
 });
 
 test('参考LP固有の値（denylist）と薬機法語彙', () => {

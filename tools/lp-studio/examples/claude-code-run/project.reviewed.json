@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "id": "seed-michishirube",
-  "name": "ミチシルベ簿記（架空デモ）",
+  "name": "ミチシルベ簿記（架空デモ・Claude Code生成）",
   "updatedAt": "2026-10-05T22:52:35.775Z",
   "brief": {
     "product": {
@@ -128,8 +128,8 @@
     {
       "id": "fv-2msoi1",
       "type": "fv",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "KykDrE/uMixKO2kOmjdmZ5dUOTz9PdvvAHHgV20gZdI=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -147,8 +147,8 @@
     {
       "id": "empathy-6jy33q2",
       "type": "empathy",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "gdnYDJZ9su/+X45pW0DMO9hn7/JaMSy6XTcAtBSGkbA=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -168,8 +168,8 @@
     {
       "id": "reframe-5arjt23",
       "type": "reframe",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "yR90MiT4r+CmuicVc3hrwN9IZj0AdjPLiMuTvEAX4cg=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -195,8 +195,8 @@
     {
       "id": "origin-b81hme4",
       "type": "origin",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "m4GPvGvcLDnZi89o4OTH1BKsQDdsg2eU+ocv2JqBafI=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -212,8 +212,8 @@
     {
       "id": "steps-ayez0x5",
       "type": "steps",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "jUNdzJcJTQhpBw8cRsM68tVK0N0TvBTxTa54DV0xc74=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -236,8 +236,8 @@
     {
       "id": "scope-5rn3i86",
       "type": "scope",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "AQvBXt+puJJtnTw5AsXEKg73tveH2FANhRfPJlkeM2g=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -260,8 +260,8 @@
     {
       "id": "recommit-d09xol7",
       "type": "recommit",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "Yuj9k6XGENVAdDg5jwIjMm4BBd87+EYNjWBBMSrOXdM=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -277,8 +277,8 @@
     {
       "id": "proof-19rx18",
       "type": "proof",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "yA49rwchMSO6DoA7xi34W5Xtz8sFkKFCmIIhyyDYJgc=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -295,27 +295,10 @@
       ]
     },
     {
-      "id": "pricereason-ejaxj49",
-      "type": "price_reason",
-      "approved": false,
-      "approvedHash": "",
-      "needsReview": false,
-      "origin": "claude-code",
-      "fields": {
-        "heading": "料金について",
-        "lead": "{{price}}",
-        "body": "【要記入: この料金・条件にしている理由】",
-        "note": "",
-        "items": [],
-        "itemsAlt": []
-      },
-      "claimRefs": []
-    },
-    {
       "id": "fit-bfor55a",
       "type": "fit",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "0I65eocsx8qrK4VPPgBIsqknbYnuKNnyZj8htkRYJvU=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -340,8 +323,8 @@
     {
       "id": "closing-fahi1mb",
       "type": "closing",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "7TYcOhF+sYU4rzgZJxzGwLAXHmsfzvTYLafHa2wL+8o=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {
@@ -357,8 +340,8 @@
     {
       "id": "footer-861kquc",
       "type": "footer",
-      "approved": false,
-      "approvedHash": "",
+      "approved": true,
+      "approvedHash": "PQA9h+fAOnXsnpjEdbaP7vYWm/bnOvB5QBfsqlbgtDc=",
       "needsReview": false,
       "origin": "claude-code",
       "fields": {

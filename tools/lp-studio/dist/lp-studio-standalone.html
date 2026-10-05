@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-ncryGUi052b6Wfdx1L9avxfQgsVgMcYnKLhHbNk5EjI=' 'sha256-bkSaI7brBYa8QEfmP5/oHVkW+4oDSKlgGnSJ8I2/h4o='; style-src 'unsafe-inline'; img-src data:; frame-src 'self' about:; child-src 'self' about: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'sha256-U90ZFZLL3r1pSf442nco3aH7qdjIIL8tDPBgLOvxsZg=' 'sha256-FxCFpUaTOz6ZgNEZUfS/AR1kT6RZVFdJ87Bg12F5xkg='; style-src 'unsafe-inline'; img-src data:; frame-src 'self' about:; child-src 'self' about: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>LP Studio（自己完結版）</title>
 <style>:root{--bg:#f4f5f8;--card:#fff;--ink:#1b1f2b;--muted:#5a6172;--line:#d9dde6;--pri:#2741b8;--ok:#1f6f5c;--ng:#a3271b;--warn:#7a4b00;--focus:#ffbf00}
 *,*::before,*::after{box-sizing:border-box}
@@ -135,7 +135,7 @@ details summary{cursor:pointer;font-size:14px;margin:6px 0}
 <script>(() => {
 "use strict";
 const __mods = {};
-window.__LP_STUDIO_EMBED__ = { seed: "{\n  \"schemaVersion\": 1,\n  \"id\": \"seed-michishirube\",\n  \"name\": \"ミチシルベ簿記（架空デモ）\",\n  \"updatedAt\": \"2026-10-05T00:00:00.000Z\",\n  \"brief\": {\n    \"product\": {\n      \"value\": \"ミチシルベ簿記（オンライン学習伴走・架空）\",\n      \"status\": \"confirmed\"\n    },\n    \"audience\": {\n      \"value\": \"仕事と両立しながら簿記2級を目指す社会人\",\n      \"status\": \"confirmed\"\n    },\n    \"problem\": {\n      \"value\": \"教材は買ったが、平日の夜に何から手をつけるか決められず、週末にまとめてやろうとして崩れる\",\n      \"status\": \"confirmed\"\n    },\n    \"promise\": {\n      \"value\": \"毎晩15分の「次にやること」が決まっている状態をつくる\",\n      \"status\": \"confirmed\"\n    },\n    \"offer\": {\n      \"value\": \"初回の学習設計面談（オンライン）\",\n      \"status\": \"unconfirmed\"\n    },\n    \"price\": {\n      \"value\": \"\",\n      \"status\": \"missing\"\n    },\n    \"ctaLabel\": {\n      \"value\": \"学習設計面談を予約する\",\n      \"status\": \"confirmed\"\n    },\n    \"ctaUrl\": {\n      \"value\": \"https://example.com/apply?utm_content=demo01\",\n      \"status\": \"confirmed\"\n    },\n    \"tone\": {\n      \"value\": \"落ち着いて具体的。煽らない。\",\n      \"status\": \"confirmed\"\n    },\n    \"operator\": {\n      \"value\": \"架空株式会社ミチシルベ（デモ用の架空事業者）\",\n      \"status\": \"confirmed\"\n    },\n    \"category\": \"education\"\n  },\n  \"brand\": {\n    \"primary\": \"#2741b8\",\n    \"accent\": \"#c42f57\",\n    \"ink\": \"#1b1f2b\",\n    \"paper\": \"#fbf8f3\",\n    \"font\": \"sans\"\n  },\n  \"evidence\": [\n    {\n      \"id\": \"ev-hours\",\n      \"claim\": \"【架空】面談後4週間の平均学習日数は週4.2日\",\n      \"sourceType\": \"internal-data\",\n      \"source\": \"架空の社内集計（デモ用・2026年8月）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 4.2,\n      \"metricUnit\": \"日/週\",\n      \"note\": \"デモ用の架空値\"\n    },\n    {\n      \"id\": \"ev-plan\",\n      \"claim\": \"学習計画は面談で一緒に作り、毎晩15分の単位に分けて、週ごとに見直す\",\n      \"sourceType\": \"policy\",\n      \"source\": \"架空のサービス仕様書 v1（デモ用）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": null,\n      \"metricUnit\": \"\",\n      \"note\": \"\"\n    },\n    {\n      \"id\": \"ev-voice\",\n      \"claim\": \"【架空・未確認】受講者アンケートで満足度92%\",\n      \"sourceType\": \"other\",\n      \"source\": \"出典未確認\",\n      \"status\": \"unverified\",\n      \"verifiedBy\": \"\",\n      \"verifiedAt\": \"\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 92,\n      \"metricUnit\": \"%\",\n      \"note\": \"未検証の例。safe export には出ない\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"id\": \"fv\",\n      \"type\": \"fv\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"{{promise}}\",\n        \"lead\": \"{{audience}}のための学習伴走\",\n        \"body\": \"教材を増やすのではなく、毎日の「次の一手」を先に決めておく。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"empathy\",\n      \"type\": \"empathy\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"こんな夜が続いていませんか\",\n        \"lead\": \"\",\n        \"body\": \"{{problem}}\",\n        \"note\": \"\",\n        \"items\": [\n          \"帰宅して机に向かっても、どこから再開するかを考えるうちに時間が過ぎる\",\n          \"週末に取り返そうとして、結局どちらも中途半端になる\",\n          \"進んでいるのか遅れているのか、自分では判断がつかない\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"reframe\",\n      \"type\": \"reframe\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"足りないのは、やる気ではなく「次の一手」の設計かもしれません\",\n        \"lead\": \"\",\n        \"body\": \"時間が取れない日ほど、何をやるかを考える負担が重くなります。\",\n        \"note\": \"\",\n        \"items\": [\n          \"その日の気分で範囲を決める\",\n          \"遅れたら週末にまとめて取り返す\"\n        ],\n        \"itemsAlt\": [\n          \"15分で終わる単位に分けておく\",\n          \"週ごとに計画そのものを見直す\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"origin\",\n      \"type\": \"origin\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"なぜ「伴走」なのか\",\n        \"lead\": \"\",\n        \"body\": \"教材の良し悪しより、続ける段取りでつまずく人が多い、という問題意識から設計しました。\\n内容は講座ではなく、学習計画を一緒に作り、週ごとに見直す仕組みです。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"steps\",\n      \"type\": \"steps\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"申込後の流れ\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"「{{ctaLabel}}」から日時を選ぶ\",\n          \"面談で、今の進み具合と使える時間を一緒に確認する\",\n          \"1週間分の「毎晩15分」の計画を受け取る\",\n          \"週に一度、計画を見直す\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"scope\",\n      \"type\": \"scope\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"提供範囲\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{offer}}\",\n          \"週ごとの計画の見直し\"\n        ],\n        \"itemsAlt\": [\n          \"教材の販売\",\n          \"試験の合格の約束\"\n        ]\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"recommit\",\n      \"type\": \"recommit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"次にやることが決まっていれば、15分でも前に進める\",\n        \"lead\": \"当てはまると感じたら、まず今の状況を一緒に整理しましょう。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"proof\",\n      \"type\": \"proof\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"根拠\",\n        \"lead\": \"確認できた事実と出典だけを載せています。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-hours\",\n        \"ev-plan\",\n        \"ev-voice\"\n      ]\n    },\n    {\n      \"id\": \"fit\",\n      \"type\": \"fit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"向いている人 / 向いていない人\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{audience}}\",\n          \"毎晩15分なら確保できる人\"\n        ],\n        \"itemsAlt\": [\n          \"短期間での一発合格だけを求める人\",\n          \"教材選びの相談だけをしたい人\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ]\n    },\n    {\n      \"id\": \"closing\",\n      \"type\": \"closing\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"机に向かったら、すぐ手が動く毎日へ\",\n        \"lead\": \"\",\n        \"body\": \"計画は面談で一緒に作ります。まずは今の状況を聞かせてください。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    },\n    {\n      \"id\": \"footer\",\n      \"type\": \"footer\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"\",\n        \"lead\": \"\",\n        \"body\": \"運営: {{operator}}\",\n        \"note\": \"このページはデモ用の架空事業です。\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": []\n    }\n  ],\n  \"cta\": {\n    \"activeVariant\": \"a\",\n    \"variants\": [\n      {\n        \"id\": \"a\",\n        \"label\": \"\",\n        \"color\": \"#d6335d\",\n        \"timing\": \"spec\"\n      },\n      {\n        \"id\": \"b\",\n        \"label\": \"まず15分の相談を予約する\",\n        \"color\": \"#1f6f5c\",\n        \"timing\": \"after-half\"\n      }\n    ]\n  },\n  \"lpo\": {\n    \"dataset\": {\n      \"fictional\": true,\n      \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n      \"experiments\": [\n        {\n          \"id\": \"exp-fv-aug\",\n          \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-01\",\n          \"end\": \"2026-08-14\",\n          \"plannedEnd\": \"2026-08-14\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4200,\n              \"ctaClicks\": 520,\n              \"conversions\": 126\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4150,\n              \"ctaClicks\": 610,\n              \"conversions\": 168\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-fv-full\",\n          \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-15\",\n          \"end\": \"2026-09-11\",\n          \"plannedEnd\": \"2026-09-11\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。必要サンプルに到達した例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 16020,\n              \"ctaClicks\": 1990,\n              \"conversions\": 481\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 15980,\n              \"ctaClicks\": 2240,\n              \"conversions\": 607\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-cta-sep\",\n          \"name\": \"固定CTA 表示タイミング（実施中）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-09-15\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-10-12\",\n          \"missingDays\": 2,\n          \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: FV後に表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 6100,\n              \"ctaClicks\": 810,\n              \"conversions\": 170\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 常時表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 5400,\n              \"ctaClicks\": null,\n              \"conversions\": null\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-ad-sessions\",\n          \"name\": \"広告流入別の参考集計（定義が異なる）\",\n          \"page\": \"/lp/boki-ad\",\n          \"timezone\": \"UTC\",\n          \"start\": \"2026-09-01\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-09-30\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 広告LP\",\n              \"expectedShare\": 1,\n              \"unit\": \"sessions\",\n              \"conversionDefinition\": \"CTAボタンのクリック\",\n              \"measurement\": \"架空: タグ計測（同意前も含む）\",\n              \"visitors\": 9800,\n              \"ctaClicks\": 1300,\n              \"conversions\": 1300\n            }\n          ]\n        }\n      ]\n    }\n  }\n}\n", dataset: "{\n  \"fictional\": true,\n  \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n  \"experiments\": [\n    {\n      \"id\": \"exp-fv-aug\",\n      \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-01\",\n      \"end\": \"2026-08-14\",\n      \"plannedEnd\": \"2026-08-14\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4200, \"ctaClicks\": 520, \"conversions\": 126 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4150, \"ctaClicks\": 610, \"conversions\": 168 }\n      ]\n    },\n    {\n      \"id\": \"exp-fv-full\",\n      \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-15\",\n      \"end\": \"2026-09-11\",\n      \"plannedEnd\": \"2026-09-11\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。必要サンプルに到達した例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 16020, \"ctaClicks\": 1990, \"conversions\": 481 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 15980, \"ctaClicks\": 2240, \"conversions\": 607 }\n      ]\n    },\n    {\n      \"id\": \"exp-cta-sep\",\n      \"name\": \"固定CTA 表示タイミング（実施中）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-09-15\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-10-12\",\n      \"missingDays\": 2,\n      \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: FV後に表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 6100, \"ctaClicks\": 810, \"conversions\": 170 },\n        { \"id\": \"b\", \"name\": \"B: 常時表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 5400, \"ctaClicks\": null, \"conversions\": null }\n      ]\n    },\n    {\n      \"id\": \"exp-ad-sessions\",\n      \"name\": \"広告流入別の参考集計（定義が異なる）\",\n      \"page\": \"/lp/boki-ad\",\n      \"timezone\": \"UTC\",\n      \"start\": \"2026-09-01\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-09-30\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 広告LP\", \"expectedShare\": 1, \"unit\": \"sessions\", \"conversionDefinition\": \"CTAボタンのクリック\", \"measurement\": \"架空: タグ計測（同意前も含む）\", \"visitors\": 9800, \"ctaClicks\": 1300, \"conversions\": 1300 }\n      ]\n    }\n  ]\n}\n" };
+window.__LP_STUDIO_EMBED__ = { seed: "{\n  \"schemaVersion\": 1,\n  \"id\": \"seed-michishirube\",\n  \"name\": \"ミチシルベ簿記（架空デモ）\",\n  \"updatedAt\": \"2026-10-05T00:00:00.000Z\",\n  \"brief\": {\n    \"product\": {\n      \"value\": \"ミチシルベ簿記（オンライン学習伴走・架空）\",\n      \"status\": \"confirmed\"\n    },\n    \"audience\": {\n      \"value\": \"仕事と両立しながら簿記2級を目指す社会人\",\n      \"status\": \"confirmed\"\n    },\n    \"problem\": {\n      \"value\": \"教材は買ったが、平日の夜に何から手をつけるか決められず、週末にまとめてやろうとして崩れる\",\n      \"status\": \"confirmed\"\n    },\n    \"promise\": {\n      \"value\": \"毎晩15分の「次にやること」が決まっている状態をつくる\",\n      \"status\": \"confirmed\"\n    },\n    \"offer\": {\n      \"value\": \"初回の学習設計面談（オンライン）\",\n      \"status\": \"unconfirmed\"\n    },\n    \"price\": {\n      \"value\": \"\",\n      \"status\": \"missing\"\n    },\n    \"ctaLabel\": {\n      \"value\": \"学習設計面談を予約する\",\n      \"status\": \"confirmed\"\n    },\n    \"ctaUrl\": {\n      \"value\": \"https://example.com/apply?utm_content=demo01\",\n      \"status\": \"confirmed\"\n    },\n    \"tone\": {\n      \"value\": \"落ち着いて具体的。煽らない。\",\n      \"status\": \"confirmed\"\n    },\n    \"operator\": {\n      \"value\": \"架空株式会社ミチシルベ（デモ用の架空事業者）\",\n      \"status\": \"confirmed\"\n    },\n    \"category\": \"education\"\n  },\n  \"brand\": {\n    \"primary\": \"#2741b8\",\n    \"accent\": \"#c42f57\",\n    \"ink\": \"#1b1f2b\",\n    \"paper\": \"#fbf8f3\",\n    \"font\": \"sans\"\n  },\n  \"evidence\": [\n    {\n      \"id\": \"ev-hours\",\n      \"claim\": \"【架空】面談後4週間の平均学習日数は週4.2日\",\n      \"sourceType\": \"internal-data\",\n      \"source\": \"架空の社内集計（デモ用・2026年8月）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 4.2,\n      \"metricUnit\": \"日/週\",\n      \"note\": \"デモ用の架空値\",\n      \"verifiedHash\": \"PsLI1fg0hrkyh38BTXOHuYJyR6YwnxBwNbBj9QWaDgQ=\"\n    },\n    {\n      \"id\": \"ev-plan\",\n      \"claim\": \"学習計画は面談で一緒に作り、毎晩15分の単位に分けて、週ごとに見直す\",\n      \"sourceType\": \"policy\",\n      \"source\": \"架空のサービス仕様書 v1（デモ用）\",\n      \"status\": \"verified\",\n      \"verifiedBy\": \"デモ確認者（架空）\",\n      \"verifiedAt\": \"2026-09-20\",\n      \"provenance\": \"seed\",\n      \"metricValue\": null,\n      \"metricUnit\": \"\",\n      \"note\": \"\",\n      \"verifiedHash\": \"FzOuyQMUXb8x7TqDPBmvCflHNYlQgKzdNKxQ103yE4Q=\"\n    },\n    {\n      \"id\": \"ev-voice\",\n      \"claim\": \"【架空・未確認】受講者アンケートで満足度92%\",\n      \"sourceType\": \"other\",\n      \"source\": \"出典未確認\",\n      \"status\": \"unverified\",\n      \"verifiedBy\": \"\",\n      \"verifiedAt\": \"\",\n      \"provenance\": \"seed\",\n      \"metricValue\": 92,\n      \"metricUnit\": \"%\",\n      \"note\": \"未検証の例。safe export には出ない\"\n    }\n  ],\n  \"sections\": [\n    {\n      \"id\": \"fv\",\n      \"type\": \"fv\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"{{promise}}\",\n        \"lead\": \"{{audience}}のための学習伴走\",\n        \"body\": \"教材を増やすのではなく、毎日の「次の一手」を先に決めておく。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"fwPV7QS1vi7HWCQqH0mazseibUZGlFTK+XXFPXSB1Hc=\"\n    },\n    {\n      \"id\": \"empathy\",\n      \"type\": \"empathy\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"こんな夜が続いていませんか\",\n        \"lead\": \"\",\n        \"body\": \"{{problem}}\",\n        \"note\": \"\",\n        \"items\": [\n          \"帰宅して机に向かっても、どこから再開するかを考えるうちに時間が過ぎる\",\n          \"週末に取り返そうとして、結局どちらも中途半端になる\",\n          \"進んでいるのか遅れているのか、自分では判断がつかない\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [],\n      \"approvedHash\": \"XeaeVu1CzbptKyH+ZNtfsMUrJAjyPS/kbOKQNuxpE/s=\"\n    },\n    {\n      \"id\": \"reframe\",\n      \"type\": \"reframe\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"足りないのは、やる気ではなく「次の一手」の設計かもしれません\",\n        \"lead\": \"\",\n        \"body\": \"時間が取れない日ほど、何をやるかを考える負担が重くなります。\",\n        \"note\": \"\",\n        \"items\": [\n          \"その日の気分で範囲を決める\",\n          \"遅れたら週末にまとめて取り返す\"\n        ],\n        \"itemsAlt\": [\n          \"15分で終わる単位に分けておく\",\n          \"週ごとに計画そのものを見直す\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"zIgM9xzvjSmzg9vjW3WS3vgVqykxVPMpEC86RAMRRkM=\"\n    },\n    {\n      \"id\": \"origin\",\n      \"type\": \"origin\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"なぜ「伴走」なのか\",\n        \"lead\": \"\",\n        \"body\": \"教材の良し悪しより、続ける段取りでつまずく人が多い、という問題意識から設計しました。\\n内容は講座ではなく、学習計画を一緒に作り、週ごとに見直す仕組みです。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"T2P+T4YHAWxqm7mjEv2nlw33VKYnnXyxVch0+jENKf0=\"\n    },\n    {\n      \"id\": \"steps\",\n      \"type\": \"steps\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"申込後の流れ\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"「{{ctaLabel}}」から日時を選ぶ\",\n          \"面談で、今の進み具合と使える時間を一緒に確認する\",\n          \"1週間分の「毎晩15分」の計画を受け取る\",\n          \"週に一度、計画を見直す\"\n        ],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"M4ElfVwXXg85WhNixMx9WNjmAJin28PJnY44PU8KgLA=\"\n    },\n    {\n      \"id\": \"scope\",\n      \"type\": \"scope\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"提供範囲\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{offer}}\",\n          \"週ごとの計画の見直し\"\n        ],\n        \"itemsAlt\": [\n          \"教材の販売\",\n          \"試験の合格の約束\"\n        ]\n      },\n      \"claimRefs\": [],\n      \"approvedHash\": \"uFtvh4sHPJuifHi2PfY4IujECZPf0YbLutad6okdvEg=\"\n    },\n    {\n      \"id\": \"recommit\",\n      \"type\": \"recommit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"次にやることが決まっていれば、15分でも前に進める\",\n        \"lead\": \"当てはまると感じたら、まず今の状況を一緒に整理しましょう。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"65pzzDC9r+RFEedoj4YyxMKvC97hLshhQCA2ev4gWZc=\"\n    },\n    {\n      \"id\": \"proof\",\n      \"type\": \"proof\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"根拠\",\n        \"lead\": \"確認できた事実と出典だけを載せています。\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [\n        \"ev-hours\",\n        \"ev-plan\",\n        \"ev-voice\"\n      ],\n      \"approvedHash\": \"KyDdIWzsLLAV2UXfqML4aeGCTV4S8bT+8i2Sd3UW82c=\"\n    },\n    {\n      \"id\": \"fit\",\n      \"type\": \"fit\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"向いている人 / 向いていない人\",\n        \"lead\": \"\",\n        \"body\": \"\",\n        \"note\": \"\",\n        \"items\": [\n          \"{{audience}}\",\n          \"毎晩15分なら確保できる人\"\n        ],\n        \"itemsAlt\": [\n          \"短期間での一発合格だけを求める人\",\n          \"教材選びの相談だけをしたい人\"\n        ]\n      },\n      \"claimRefs\": [\n        \"ev-plan\"\n      ],\n      \"approvedHash\": \"KbW4za2QAIUTYzyWzCQnhopbFfQkgSKMSUoCQNIb4zM=\"\n    },\n    {\n      \"id\": \"closing\",\n      \"type\": \"closing\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"机に向かったら、すぐ手が動く毎日へ\",\n        \"lead\": \"\",\n        \"body\": \"計画は面談で一緒に作ります。まずは今の状況を聞かせてください。\",\n        \"note\": \"\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [],\n      \"approvedHash\": \"O9ED+DKyDmlVBCJXiHixU+uF8dphDSHltghflwY6VpU=\"\n    },\n    {\n      \"id\": \"footer\",\n      \"type\": \"footer\",\n      \"approved\": true,\n      \"needsReview\": false,\n      \"origin\": \"manual\",\n      \"fields\": {\n        \"heading\": \"\",\n        \"lead\": \"\",\n        \"body\": \"運営: {{operator}}\",\n        \"note\": \"このページはデモ用の架空事業です。\",\n        \"items\": [],\n        \"itemsAlt\": []\n      },\n      \"claimRefs\": [],\n      \"approvedHash\": \"PQA9h+fAOnXsnpjEdbaP7vYWm/bnOvB5QBfsqlbgtDc=\"\n    }\n  ],\n  \"cta\": {\n    \"activeVariant\": \"a\",\n    \"variants\": [\n      {\n        \"id\": \"a\",\n        \"label\": \"\",\n        \"color\": \"#d6335d\",\n        \"timing\": \"spec\"\n      },\n      {\n        \"id\": \"b\",\n        \"label\": \"まず15分の相談を予約する\",\n        \"color\": \"#1f6f5c\",\n        \"timing\": \"after-half\"\n      }\n    ]\n  },\n  \"lpo\": {\n    \"dataset\": {\n      \"fictional\": true,\n      \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n      \"experiments\": [\n        {\n          \"id\": \"exp-fv-aug\",\n          \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-01\",\n          \"end\": \"2026-08-14\",\n          \"plannedEnd\": \"2026-08-14\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4200,\n              \"ctaClicks\": 520,\n              \"conversions\": 126\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 4150,\n              \"ctaClicks\": 610,\n              \"conversions\": 168\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-fv-full\",\n          \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-08-15\",\n          \"end\": \"2026-09-11\",\n          \"plannedEnd\": \"2026-09-11\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。必要サンプルに到達した例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 現行FV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 16020,\n              \"ctaClicks\": 1990,\n              \"conversions\": 481\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 約束先出しFV\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 15980,\n              \"ctaClicks\": 2240,\n              \"conversions\": 607\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-cta-sep\",\n          \"name\": \"固定CTA 表示タイミング（実施中）\",\n          \"page\": \"/lp/boki\",\n          \"timezone\": \"Asia/Tokyo\",\n          \"start\": \"2026-09-15\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-10-12\",\n          \"missingDays\": 2,\n          \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: FV後に表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 6100,\n              \"ctaClicks\": 810,\n              \"conversions\": 170\n            },\n            {\n              \"id\": \"b\",\n              \"name\": \"B: 常時表示\",\n              \"expectedShare\": 0.5,\n              \"unit\": \"users\",\n              \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\",\n              \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\",\n              \"visitors\": 5400,\n              \"ctaClicks\": null,\n              \"conversions\": null\n            }\n          ]\n        },\n        {\n          \"id\": \"exp-ad-sessions\",\n          \"name\": \"広告流入別の参考集計（定義が異なる）\",\n          \"page\": \"/lp/boki-ad\",\n          \"timezone\": \"UTC\",\n          \"start\": \"2026-09-01\",\n          \"end\": \"2026-09-30\",\n          \"plannedEnd\": \"2026-09-30\",\n          \"missingDays\": 0,\n          \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n          \"variants\": [\n            {\n              \"id\": \"a\",\n              \"name\": \"A: 広告LP\",\n              \"expectedShare\": 1,\n              \"unit\": \"sessions\",\n              \"conversionDefinition\": \"CTAボタンのクリック\",\n              \"measurement\": \"架空: タグ計測（同意前も含む）\",\n              \"visitors\": 9800,\n              \"ctaClicks\": 1300,\n              \"conversions\": 1300\n            }\n          ]\n        }\n      ]\n    }\n  }\n}\n", dataset: "{\n  \"fictional\": true,\n  \"name\": \"【架空】ミチシルベ簿記 デモ集計 2026年8〜9月\",\n  \"experiments\": [\n    {\n      \"id\": \"exp-fv-aug\",\n      \"name\": \"FV訴求 A/B（8月前半・小規模）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-01\",\n      \"end\": \"2026-08-14\",\n      \"plannedEnd\": \"2026-08-14\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。各群の分母が必要サンプルに届いていない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4200, \"ctaClicks\": 520, \"conversions\": 126 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 4150, \"ctaClicks\": 610, \"conversions\": 168 }\n      ]\n    },\n    {\n      \"id\": \"exp-fv-full\",\n      \"name\": \"FV訴求 A/B（8〜9月・本計測）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-08-15\",\n      \"end\": \"2026-09-11\",\n      \"plannedEnd\": \"2026-09-11\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。必要サンプルに到達した例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 現行FV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 16020, \"ctaClicks\": 1990, \"conversions\": 481 },\n        { \"id\": \"b\", \"name\": \"B: 約束先出しFV\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 15980, \"ctaClicks\": 2240, \"conversions\": 607 }\n      ]\n    },\n    {\n      \"id\": \"exp-cta-sep\",\n      \"name\": \"固定CTA 表示タイミング（実施中）\",\n      \"page\": \"/lp/boki\",\n      \"timezone\": \"Asia/Tokyo\",\n      \"start\": \"2026-09-15\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-10-12\",\n      \"missingDays\": 2,\n      \"notes\": \"架空データ。期間未了・計測欠損日ありの例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: FV後に表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 6100, \"ctaClicks\": 810, \"conversions\": 170 },\n        { \"id\": \"b\", \"name\": \"B: 常時表示\", \"expectedShare\": 0.5, \"unit\": \"users\", \"conversionDefinition\": \"無料相談フォームの送信完了（完了ページ到達）\", \"measurement\": \"架空: 同意済みユーザーのみ・サーバー側集計\", \"visitors\": 5400, \"ctaClicks\": null, \"conversions\": null }\n      ]\n    },\n    {\n      \"id\": \"exp-ad-sessions\",\n      \"name\": \"広告流入別の参考集計（定義が異なる）\",\n      \"page\": \"/lp/boki-ad\",\n      \"timezone\": \"UTC\",\n      \"start\": \"2026-09-01\",\n      \"end\": \"2026-09-30\",\n      \"plannedEnd\": \"2026-09-30\",\n      \"missingDays\": 0,\n      \"notes\": \"架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例\",\n      \"variants\": [\n        { \"id\": \"a\", \"name\": \"A: 広告LP\", \"expectedShare\": 1, \"unit\": \"sessions\", \"conversionDefinition\": \"CTAボタンのクリック\", \"measurement\": \"架空: タグ計測（同意前も含む）\", \"visitors\": 9800, \"ctaClicks\": 1300, \"conversions\": 1300 }\n      ]\n    }\n  ]\n}\n" };
 __mods.util = (() => {
 // 共通ユーティリティ。ブラウザと Node の両方で動く（依存なし）。
 
@@ -147,7 +147,7 @@ function escapeHtml(value) {
 
 // 制御文字（改行・タブ以外）を除去
 function stripControl(value) {
-  return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u2028\u2029]/g, '');
+  return String(value ?? '').replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F\u2028\u2029\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\u00AD]/g, '');
 }
 
 const ALLOWED_SCHEMES = new Set(['https:', 'mailto:', 'tel:']);
@@ -288,7 +288,24 @@ function inkFor(fg, bg, minRatio = 4.5) {
   return '#111111';
 }
 
-return { escapeHtml, stripControl, safeUrl, safeColor, luminance, contrastRatio, readableOn, clone, makeId, sha256Bytes, sha256Base64, inkFor };
+function isRealDate(s) {
+  if (typeof s !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const d = new Date(`${s}T00:00:00Z`);
+  return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+}
+
+/** 承認と内容を対応づける hash（type・fields・claimRefs） */
+function sectionHash(s) {
+  const f = s.fields || {};
+  return sha256Base64(JSON.stringify([s.type, f.heading || '', f.lead || '', f.body || '', f.note || '', f.items || [], f.itemsAlt || [], s.claimRefs || []]));
+}
+
+/** 根拠の検証と内容を対応づける hash（主張・出典・数値） */
+function evidenceHash(e) {
+  return sha256Base64(JSON.stringify([e.claim || '', e.source || '', e.sourceType || '', e.metricValue ?? null, e.metricUnit || '']));
+}
+
+return { escapeHtml, stripControl, safeUrl, safeColor, luminance, contrastRatio, readableOn, clone, makeId, sha256Bytes, sha256Base64, inkFor, isRealDate, sectionHash, evidenceHash };
 })();
 
 __mods.sections = (() => {
@@ -469,13 +486,208 @@ function planSections(project) {
 return { planSections, BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, SECTION_FIELDS };
 })();
 
+__mods.claims = (() => {
+// エビデンス / claim validation。
+// fail-closed の補助: 検出された主張は、そのセクションが claimRefs で指す verified evidence に
+// 同じ数値・語が含まれていなければ「未解決」。safe export は未解決フィールドを出さない。
+
+const { BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG } = __mods.sections;
+// 参考LP固有のオファー・実績値。別ブランドへの転用を止める。
+const REFERENCE_DENYLIST = [
+  '3日間', '三日間', '月100人', '100人限定', '先着100', '受講生1140', '1140人', '1,140人', '1140名', '1,140名',
+];
+
+// 判定は canon()（NFKC・ゼロ幅/書式文字と空白を除去）した文字列に対して行う。
+// 「3​日間」「保 証」「Ｎｏ．１」のような言い換え・混入ですり抜けないため。
+const KANJI_NUM = '〇零一二三四五六七八九十百千万億壱弐参';
+const UNITS = '(?:万|億)?(?:人|名|社|件|%|％|割|倍|円|年|ヶ月|か月|カ月|日間|日|時間|分|位|回|点|校|店舗|都道府県|キロ|kg|cm)';
+const PATTERNS = [
+  { category: 'number', label: '数値の主張', re: new RegExp(`[0-9][0-9.]*${UNITS}`, 'g') },
+  { category: 'number', label: '数値の主張（漢数字）', re: new RegExp(`[${KANJI_NUM}]+${UNITS}`, 'g') },
+  { category: 'superlative', label: '最上級・比較', re: /((?<![A-Za-z])No\.?1|ナンバーワン|ナンバー1|日本一|世界一|業界初|業界最|世界初|国内初|最高|最強|最安|最大級|唯一|圧倒的|他社より|どこよりも|トップクラス|1位)/gi },
+  { category: 'guarantee', label: '保証・断定', re: /(保証|絶対|必ず|確実に|確実な|100%|誰でも|リスクなし|ノーリスク|失敗しない|返金|間違いなく|約束します)/g },
+  { category: 'urgency', label: '煽り・限定', re: /(今だけ|いまだけ|残りわずか|期間限定|限定|先着|締切間近|締め切り|〆切|本日[0-9:時]*まで|今日中|今日まで|今週まで|[0-9]+:[0-9]+まで|急いで|最後のチャンス|今すぐ|お見逃しなく)/g },
+  { category: 'authority', label: '権威', re: /(医師|専門家|教授|博士|弁護士|税理士|会計士|監修|推奨|認定|受賞|公式|メディア掲載|特許|著名|有名人|芸能人|インフルエンサー|大学(?:の研究|と共同|発|教員|講師)|(?:テレビ|TV|雑誌|新聞|番組|ラジオ|メディア)(?:で|に)?(?:出演|紹介|掲載|特集|放送|話題))/g },
+  { category: 'testimonial', label: '推薦・お客様の声', re: /(お客様の声|受講生の声|利用者の声|体験談|口コミ|クチコミ|満足度|推薦|喜びの声|[0-9]0代|[0-9]+歳|[A-Za-z一-龥ぁ-んァ-ヶー]{1,8}(?:さん|様|氏)[(（「]|人生が変わ)/g },
+  { category: 'offer', label: 'オファー・価格', re: /(無料|無償|タダ|0円|ゼロ円|(?:費|料|代)(?:は)?ゼロ|割引|半額|特典|通常価格|定価|キャンペーン|プレゼント|(?<![A-Za-z{])OFF(?![A-Za-z]))/g },
+];
+
+const PHARMA = { category: 'pharma', label: '薬機法（効能効果）', re: /(治る|治す|治療|改善する|改善します|痩せる|やせる|効く|効きます|効果がある|若返|シミが消え|アンチエイジング|デトックス|免疫|副作用なし)/g };
+
+// 書式文字（ゼロ幅・ソフトハイフン等）
+const FORMAT_CHARS = /[\u00AD\u034F\u061C\u115F\u1160\u17B4\u17B5\u180B-\u180F\u200B-\u200F\u202A-\u202E\u2060-\u206F\u3164\uFE00-\uFE0F\uFEFF\uFFA0]/g;
+
+/** 判定用の正規形: NFKC → 書式文字・空白・桁区切りを除去 */
+function canon(text) {
+  return String(text ?? '').normalize('NFKC').replace(FORMAT_CHARS, '').replace(/\p{M}/gu, '').replace(/[\s,]/g, '');
+}
+const normalize = canon;
+
+// 参考LP固有値。canon 後に照合する
+const REFERENCE_PATTERNS = [
+  /3日間|三日間|3日で|三日で/, /月100人|100人限定|先着100|100名限定/, /1140(?:人|名)|千百四十(?:人|名)|受講(?:生|者)1140/,
+];
+
+// 数の主張ではない漢数字の熟語（過検出を防ぐ）
+const KANJI_IDIOMS = /(?<!たった|わずか|約|およそ|最短|最低|毎日|毎晩)十分(?=な|に|だ|です|では|すぎ|過ぎ|とは|か)|充分|一人で|一人ひとり|一人一人|一人前|二人三脚|三日坊主|一度|一緒|一番|一日中|一年中|一回り|一方|一部|一人ずつ|百人力|千差万別|一石二鳥|三々五々|四六時中|十人十色|一生懸命|一歩|一言|一目|一気|一通り|一時|一旦|一応|一切/g;
+
+function detectClaims(text, category = 'general') {
+  const s = canon(text).replace(KANJI_IDIOMS, (m) => '・'.repeat(m.length));
+  const found = [];
+  const pats = ['health', 'beauty'].includes(category) ? [...PATTERNS, PHARMA] : PATTERNS;
+  for (const p of pats) {
+    for (const m of s.matchAll(p.re)) {
+      found.push({ category: p.category, label: p.label, match: m[0], severity: p.category === 'pharma' ? 'block' : 'needs-evidence' });
+    }
+  }
+  for (const re of REFERENCE_PATTERNS) {
+    const m = s.match(re);
+    if (m) found.push({ category: 'reference', label: '参考LP固有の値', match: m[0], severity: 'block' });
+  }
+  for (const d of REFERENCE_DENYLIST) {
+    if (s.includes(canon(d)) && !found.some((f) => f.category === 'reference')) {
+      found.push({ category: 'reference', label: '参考LP固有の値', match: d, severity: 'block' });
+    }
+  }
+  return found;
+}
+
+/**
+ * 根拠の数値（と単位）が主張文に組で含まれるか。単位 'X/Y' は先頭 X で照合（例: 日/週 → 「4.2日」）。
+ */
+function metricMatches(claim, value, unit = '') {
+  if (value == null) return true;
+  const [x, per] = String(unit || '').split('/');
+  if (!per) return containsToken(claim, `${value}${x}`);
+  // 「/Y」付きの単位は、同じ数値の直前に「Y」「毎Y」「1Yあたり」「Yに」等があること（例: 週4.2日、1日あたり30分）
+  const P = per === '週' ? ['週', '毎週', '1週あたり', '1週間あたり', '週に', '1週間に', '週平均', '週あたり'] : ['日', '毎日', '1日あたり', '1日に', '日に', '日平均', '日あたり'];
+  return P.some((p) => containsToken(claim, `${p}${value}${x}`)) || containsToken(claim, `${value}${x}/${per}`);
+}
+
+/**
+ * hay の中に needle がトークンとして含まれるか。数値で始まる needle は、直前が数字・小数点なら不一致
+ * （「91%」が「1%」を裏付けない）。
+ */
+function containsToken(hay, needle) {
+  const h = canon(hay);
+  const n = canon(needle);
+  if (!n) return false;
+  let i = h.indexOf(n);
+  while (i >= 0) {
+    const prev = h[i - 1];
+    const next = h[i + n.length];
+    const NUM = /[0-9.〇零一二三四五六七八九十百千万億]/;
+    const startsNumeric = NUM.test(n[0]);
+    const endsNumeric = NUM.test(n[n.length - 1]);
+    const prevOk = !startsNumeric || !prev || !NUM.test(prev);
+    const nextOk = !endsNumeric || !next || !NUM.test(next);
+    if (prevOk && nextOk) return true;
+    i = h.indexOf(n, i + 1);
+  }
+  return false;
+}
+
+const PLACEHOLDER_RE = /【(?:要記入|未入力|不明な差込)[^】]*】/;
+
+const TOKEN_RE = /\{\{\s*([a-zA-Z]+)\s*\}\}/g;
+
+/**
+ * {{key}} をブリーフ値に置換。confirmed 以外は未解決として返す。
+ * mode: 'draft' は値を入れて未確認を記録 / 'wf' はプレースホルダ表示 / 'safe' は未確認を記録（呼び出し側で除外）
+ */
+function resolveTokens(text, brief) {
+  const unresolved = [];
+  const out = String(text ?? '').replace(TOKEN_RE, (all, key) => {
+    if (!BRIEF_KEYS.includes(key)) { unresolved.push({ key, reason: 'unknown' }); return `【不明な差込: ${key}】`; }
+    const f = brief[key];
+    if (!f || f.status === 'missing' || !String(f.value).trim()) {
+      unresolved.push({ key, reason: 'missing' });
+      return `【未入力: ${BRIEF_LABELS[key]}】`;
+    }
+    if (f.status !== 'confirmed') unresolved.push({ key, reason: 'unconfirmed' });
+    return f.value;
+  });
+  return { text: out, unresolved };
+}
+
+function evidenceCovers(ev, claim) {
+  return containsToken(ev.claim, claim.match);
+}
+
+/**
+ * 1フィールドを評価する。
+ * 返り値: { text, claims:[{..., resolved, evidenceId}], unresolvedTokens, publishable }
+ */
+function assessText(project, section, rawText) {
+  const { text, unresolved } = resolveTokens(rawText, project.brief);
+  const refs = new Set(section.claimRefs || []);
+  const verifiedRefs = (project.evidence || []).filter((e) => refs.has(e.id) && e.status === 'verified');
+  const claims = detectClaims(text, project.brief.category).map((c) => {
+    if (c.severity === 'block') return { ...c, resolved: false, evidenceId: null };
+    const ev = verifiedRefs.find((e) => evidenceCovers(e, c));
+    return { ...c, resolved: !!ev, evidenceId: ev ? ev.id : null };
+  });
+  const placeholder = PLACEHOLDER_RE.test(text);
+  const publishable = !placeholder && unresolved.length === 0 && claims.every((c) => c.resolved);
+  return { text, claims, unresolvedTokens: unresolved, placeholder, publishable };
+}
+
+/** プロジェクト全体の監査。UI の警告一覧と export レポートの元。 */
+function auditProject(project) {
+  const issues = [];
+  const brief = project.brief;
+  const category = brief.category;
+  // ブリーフ
+  for (const key of BRIEF_KEYS) {
+    const f = brief[key];
+    if (f.status === 'missing' || !f.value.trim()) issues.push({ scope: 'brief', key, level: 'missing', message: `${BRIEF_LABELS[key]} が未入力` });
+    else if (f.status === 'unconfirmed') issues.push({ scope: 'brief', key, level: 'unconfirmed', message: `${BRIEF_LABELS[key]} が未確定（公開HTMLには出しません）` });
+    for (const c of detectClaims(f.value, category)) {
+      if (c.category === 'reference') issues.push({ scope: 'brief', key, level: 'block', message: `${BRIEF_LABELS[key]}: 参考LP固有の値「${c.match}」。この事業で実際に決まった条件か確認してください` });
+    }
+  }
+  // 根拠
+  for (const e of project.evidence) {
+    if (e.status !== 'verified') issues.push({ scope: 'evidence', key: e.id, level: 'unverified', message: `根拠「${e.claim.slice(0, 40)}」は未検証（公開HTMLには出しません）` });
+  }
+  // セクション
+  for (const s of project.sections) {
+    const meta = SECTION_CATALOG[s.type];
+    if (!s.approved) issues.push({ scope: 'section', key: s.id, level: 'unapproved', message: `${meta.label}: 未承認（safe export に出ません）` });
+    if (s.needsReview) issues.push({ scope: 'section', key: s.id, level: 'review', message: `${meta.label}: 訴求変更後の整合を要確認` });
+    for (const [field, value] of fieldEntries(s)) {
+      const a = assessText(project, s, value);
+      for (const c of a.claims.filter((x) => !x.resolved)) {
+        issues.push({ scope: 'section', key: s.id, field, level: c.severity === 'block' ? 'block' : 'claim', message: `${meta.label}/${field}: ${c.label}「${c.match}」に検証済みの根拠がありません` });
+      }
+      if (a.placeholder && !a.unresolvedTokens.length) issues.push({ scope: 'section', key: s.id, field, level: 'placeholder', message: `${meta.label}/${field}: 【要記入】が残っています` });
+      for (const t of a.unresolvedTokens) {
+        issues.push({ scope: 'section', key: s.id, field, level: 'token', message: `${meta.label}/${field}: ${BRIEF_LABELS[t.key] || t.key} が${t.reason === 'unconfirmed' ? '未確定' : '未入力'}` });
+      }
+    }
+  }
+  return issues;
+}
+
+function fieldEntries(section) {
+  const f = section.fields || {};
+  const out = [];
+  for (const k of ['heading', 'lead', 'body', 'note']) if (f[k]) out.push([k, f[k]]);
+  for (const k of ['items', 'itemsAlt']) (f[k] || []).forEach((v, i) => out.push([`${k}[${i}]`, v]));
+  return out;
+}
+
+return { canon, detectClaims, metricMatches, containsToken, resolveTokens, assessText, auditProject, fieldEntries, REFERENCE_DENYLIST, normalize, PLACEHOLDER_RE };
+})();
+
 __mods.schema = (() => {
 // project JSON の schema / version / validation / migration。
 // 方針: 既知のキーだけを新しいオブジェクトへコピーする（未知キーは警告して削除）。
 // HTML は文字列として保持するだけで、描画時に必ず escape する。HTML import は存在しない。
 
 const { SECTION_TYPES, BRIEF_KEYS } = __mods.sections;
-const { safeUrl, safeColor, stripControl } = __mods.util;
+const { safeUrl, safeColor, stripControl, sectionHash, evidenceHash, isRealDate } = __mods.util;
+const { metricMatches } = __mods.claims;
 const SCHEMA_VERSION = 1;
 const MAX_JSON_BYTES = 2 * 1024 * 1024;
 const DANGEROUS_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
@@ -486,7 +698,10 @@ const EVIDENCE_STATUS = ['verified', 'unverified'];
 const SOURCE_TYPES = ['document', 'url', 'internal-data', 'customer-consent', 'policy', 'other'];
 const PROVENANCE = ['human', 'template', 'claude-code', 'seed'];
 const ORIGINS = ['template', 'claude-code', 'manual'];
-const CTA_TIMINGS = ['spec', 'always', 'after-half'];
+// 'always' は v1 初期の値。読込時に 'spec' へ置き換える（FV中・インラインCTA可視中も出てしまうため）
+const CTA_TIMINGS = ['spec', 'after-half'];
+const CTA_TIMINGS_ACCEPTED = [...CTA_TIMINGS, 'always'];
+const METRIC_UNITS = ['', '人', '名', '社', '件', '%', '割', '倍', '円', '日', '日/週', '回/週', '分/日', '時間', '時間/週', '分', '回', '点', '年', 'か月', '位', '校', '店舗'];
 const FONTS = ['sans', 'serif', 'rounded'];
 
 const str = (max, extra = {}) => ({ t: 'string', max, ...extra });
@@ -570,9 +785,10 @@ const PROJECT_SPEC = {
           status: { t: 'string', enum: EVIDENCE_STATUS },
           verifiedBy: str(80),
           verifiedAt: str(10),
+          verifiedHash: str(64),
           provenance: { t: 'string', enum: PROVENANCE },
           metricValue: { t: 'number', nullable: true },
-          metricUnit: str(12),
+          metricUnit: { t: 'string', enum: METRIC_UNITS },
           note: str(300),
         },
         required: ['id', 'claim', 'sourceType', 'source', 'status', 'provenance'],
@@ -586,6 +802,7 @@ const PROJECT_SPEC = {
           id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
           type: { t: 'string', enum: SECTION_TYPES },
           approved: { t: 'bool' },
+          approvedHash: str(64),
           needsReview: { t: 'bool' },
           origin: { t: 'string', enum: ORIGINS },
           fields: {
@@ -614,7 +831,7 @@ const PROJECT_SPEC = {
               id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
               label: str(40),
               color: str(7),
-              timing: { t: 'string', enum: CTA_TIMINGS },
+              timing: { t: 'string', enum: CTA_TIMINGS_ACCEPTED },
             },
             required: ['id', 'label', 'color', 'timing'],
           },
@@ -758,15 +975,40 @@ function validateProject(input) {
   const evIds = uniq(p.evidence, '$.evidence');
   uniq(p.sections, '$.sections');
   uniq(p.cta.variants, '$.cta.variants');
-  // verified の要件（確認者・確認日が無ければ降格）
+  // 数値は主張文に含まれていなければ使わない（バッジ・カウンターの捏造防止）
   for (const e of p.evidence) {
-    if (e.status === 'verified' && (!e.verifiedBy?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(e.verifiedAt || ''))) {
+    if (e.metricValue == null) continue;
+    if (!metricMatches(e.claim, e.metricValue, e.metricUnit)) {
+      warnings.push(`$.evidence.${e.id}.metricValue: 主張文に「${e.metricValue}${e.metricUnit.split('/')[0]}」が無いため数値を外しました`);
+      e.metricValue = null;
+    }
+  }
+  // verified の要件（確認者・実在する過去の確認日・人の由来。満たさなければ降格）
+  const today = new Date().toISOString().slice(0, 10);
+  for (const e of p.evidence) {
+    if (e.status !== 'verified') continue;
+    let why = null;
+    if (!e.verifiedBy?.trim()) why = '確認者が無い';
+    else if (!isRealDate(e.verifiedAt || '') || e.verifiedAt > today) why = '確認日が実在しないか未来';
+    else if (e.provenance === 'template' || e.provenance === 'claude-code') why = '生成由来の根拠は人が検証し直す必要がある';
+    else if (e.verifiedHash !== evidenceHash(e)) why = '検証後に内容（主張・出典・数値）が変わっている';
+    if (why) {
       e.status = 'unverified';
-      warnings.push(`$.evidence.${e.id}: 確認者・確認日が無いため unverified に降格しました`);
+      e.verifiedBy = '';
+      e.verifiedAt = '';
+      e.verifiedHash = '';
+      warnings.push(`$.evidence.${e.id}: ${why}ため unverified に降格しました`);
+    }
+  }
+  for (const v of p.cta.variants) {
+    if (v.timing === 'always') {
+      v.timing = 'spec';
+      warnings.push(`$.cta.variants.${v.id}.timing: "always" は廃止。仕様どおり（FV後・インラインCTA表示中は隠す）に置き換えました`);
     }
   }
   for (const s of p.sections) {
     s.approved = !!s.approved;
+    s.approvedHash = s.approvedHash || '';
     s.needsReview = !!s.needsReview;
     s.origin = s.origin || 'manual';
     s.fields = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [], ...s.fields };
@@ -774,9 +1016,18 @@ function validateProject(input) {
       if (!evIds.has(r)) { warnings.push(`$.sections.${s.id}.claimRefs: 存在しない根拠 "${r}" を外しました`); return false; }
       return true;
     });
+    // 承認後に内容が書き換わっていたら承認を外す（改ざん防止の署名ではなく、承認と内容の対応づけ）
+    if (s.approved && s.approvedHash !== sectionHash(s)) {
+      s.approved = false;
+      s.approvedHash = '';
+      warnings.push(`$.sections.${s.id}: 承認後に内容が変わっているため承認を外しました`);
+    }
   }
   if (!p.lpo) p.lpo = { dataset: null };
   if (p.lpo.dataset === undefined) p.lpo.dataset = null;
+  for (const [i, x] of (p.lpo.dataset?.experiments || []).entries()) {
+    for (const k of ['start', 'end', 'plannedEnd']) if (!isRealDate(x[k])) errors.push(`$.lpo.dataset.experiments[${i}].${k}: 実在しない日付です`);
+  }
   if (p.lpo.dataset && p.lpo.dataset.fictional !== true) {
     errors.push('$.lpo.dataset.fictional: このツールは架空データのみ扱います（fictional: true が必要）');
   }
@@ -806,146 +1057,7 @@ function serializeProject(project) {
   return JSON.stringify(project, null, 2);
 }
 
-return { validateShape, migrate, validateProject, parseProjectJson, serializeProject, SCHEMA_VERSION, MAX_JSON_BYTES, BRIEF_STATUS, CATEGORIES, EVIDENCE_STATUS, SOURCE_TYPES, PROVENANCE, ORIGINS, CTA_TIMINGS, FONTS, DATASET_SPEC, PROJECT_SPEC };
-})();
-
-__mods.claims = (() => {
-// エビデンス / claim validation。
-// fail-closed の補助: 検出された主張は、そのセクションが claimRefs で指す verified evidence に
-// 同じ数値・語が含まれていなければ「未解決」。safe export は未解決フィールドを出さない。
-
-const { BRIEF_KEYS, BRIEF_LABELS, SECTION_CATALOG } = __mods.sections;
-// 参考LP固有のオファー・実績値。別ブランドへの転用を止める。
-const REFERENCE_DENYLIST = [
-  '3日間', '三日間', '月100人', '100人限定', '先着100', '受講生1140', '1140人', '1,140人', '1140名', '1,140名',
-];
-
-const PATTERNS = [
-  { category: 'number', label: '数値の主張', re: /[0-9０-９][0-9０-９,，.．]*\s*(?:万|億)?\s*(?:人|名|社|件|%|％|倍|円|年|ヶ月|か月|カ月|日間|日|時間|分|位|回|点|校|店舗|都道府県)/g },
-  { category: 'superlative', label: '最上級・比較', re: /(No\.?\s?1|ナンバーワン|日本一|業界初|業界最|世界初|最高|最強|最安|唯一|圧倒的|他社より|どこよりも)/gi },
-  { category: 'guarantee', label: '保証・断定', re: /(保証|絶対|必ず|確実に|100%|１００％|誰でも|リスクなし|ノーリスク|失敗しない|返金)/g },
-  { category: 'urgency', label: '煽り・限定', re: /(今だけ|残りわずか|期間限定|限定|先着|締切間近|急いで|最後のチャンス|今すぐ)/g },
-  { category: 'authority', label: '権威', re: /(医師|専門家|教授|監修|推奨|認定|受賞|公式|メディア掲載|特許)/g },
-  { category: 'testimonial', label: '推薦・お客様の声', re: /(お客様の声|受講生の声|体験談|口コミ|満足度|推薦|喜びの声)/g },
-  { category: 'offer', label: 'オファー・価格', re: /(無料|0円|０円|割引|半額|特典|通常価格|定価|キャンペーン|オフ\b|OFF)/gi },
-];
-
-const PHARMA = { category: 'pharma', label: '薬機法（効能効果）', re: /(治る|治す|治療|改善する|痩せる|やせる|効く|効果がある|若返|シミが消え|アンチエイジング|デトックス|免疫)/g };
-
-function normalize(text) {
-  return String(text ?? '').normalize('NFKC').replace(/[\s,，]/g, '');
-}
-
-function detectClaims(text, category = 'general') {
-  const s = String(text ?? '');
-  const found = [];
-  const pats = ['health', 'beauty'].includes(category) ? [...PATTERNS, PHARMA] : PATTERNS;
-  for (const p of pats) {
-    for (const m of s.matchAll(p.re)) {
-      found.push({ category: p.category, label: p.label, match: m[0], severity: p.category === 'pharma' ? 'block' : 'needs-evidence' });
-    }
-  }
-  const norm = normalize(s);
-  for (const d of REFERENCE_DENYLIST) {
-    if (norm.includes(normalize(d))) {
-      found.push({ category: 'reference', label: '参考LP固有の値', match: d, severity: 'block' });
-    }
-  }
-  return found;
-}
-
-const PLACEHOLDER_RE = /【(?:要記入|未入力|不明な差込)[^】]*】/;
-
-const TOKEN_RE = /\{\{\s*([a-zA-Z]+)\s*\}\}/g;
-
-/**
- * {{key}} をブリーフ値に置換。confirmed 以外は未解決として返す。
- * mode: 'draft' は値を入れて未確認を記録 / 'wf' はプレースホルダ表示 / 'safe' は未確認を記録（呼び出し側で除外）
- */
-function resolveTokens(text, brief) {
-  const unresolved = [];
-  const out = String(text ?? '').replace(TOKEN_RE, (all, key) => {
-    if (!BRIEF_KEYS.includes(key)) { unresolved.push({ key, reason: 'unknown' }); return `【不明な差込: ${key}】`; }
-    const f = brief[key];
-    if (!f || f.status === 'missing' || !String(f.value).trim()) {
-      unresolved.push({ key, reason: 'missing' });
-      return `【未入力: ${BRIEF_LABELS[key]}】`;
-    }
-    if (f.status !== 'confirmed') unresolved.push({ key, reason: 'unconfirmed' });
-    return f.value;
-  });
-  return { text: out, unresolved };
-}
-
-function evidenceCovers(ev, claim) {
-  const evNorm = normalize(ev.claim);
-  return evNorm.includes(normalize(claim.match));
-}
-
-/**
- * 1フィールドを評価する。
- * 返り値: { text, claims:[{..., resolved, evidenceId}], unresolvedTokens, publishable }
- */
-function assessText(project, section, rawText) {
-  const { text, unresolved } = resolveTokens(rawText, project.brief);
-  const refs = new Set(section.claimRefs || []);
-  const verifiedRefs = (project.evidence || []).filter((e) => refs.has(e.id) && e.status === 'verified');
-  const claims = detectClaims(text, project.brief.category).map((c) => {
-    if (c.severity === 'block') return { ...c, resolved: false, evidenceId: null };
-    const ev = verifiedRefs.find((e) => evidenceCovers(e, c));
-    return { ...c, resolved: !!ev, evidenceId: ev ? ev.id : null };
-  });
-  const placeholder = PLACEHOLDER_RE.test(text);
-  const publishable = !placeholder && unresolved.length === 0 && claims.every((c) => c.resolved);
-  return { text, claims, unresolvedTokens: unresolved, placeholder, publishable };
-}
-
-/** プロジェクト全体の監査。UI の警告一覧と export レポートの元。 */
-function auditProject(project) {
-  const issues = [];
-  const brief = project.brief;
-  const category = brief.category;
-  // ブリーフ
-  for (const key of BRIEF_KEYS) {
-    const f = brief[key];
-    if (f.status === 'missing' || !f.value.trim()) issues.push({ scope: 'brief', key, level: 'missing', message: `${BRIEF_LABELS[key]} が未入力` });
-    else if (f.status === 'unconfirmed') issues.push({ scope: 'brief', key, level: 'unconfirmed', message: `${BRIEF_LABELS[key]} が未確定（公開HTMLには出しません）` });
-    for (const c of detectClaims(f.value, category)) {
-      if (c.category === 'reference') issues.push({ scope: 'brief', key, level: 'block', message: `${BRIEF_LABELS[key]}: 参考LP固有の値「${c.match}」。この事業で実際に決まった条件か確認してください` });
-    }
-  }
-  // 根拠
-  for (const e of project.evidence) {
-    if (e.status !== 'verified') issues.push({ scope: 'evidence', key: e.id, level: 'unverified', message: `根拠「${e.claim.slice(0, 40)}」は未検証（公開HTMLには出しません）` });
-  }
-  // セクション
-  for (const s of project.sections) {
-    const meta = SECTION_CATALOG[s.type];
-    if (!s.approved) issues.push({ scope: 'section', key: s.id, level: 'unapproved', message: `${meta.label}: 未承認（safe export に出ません）` });
-    if (s.needsReview) issues.push({ scope: 'section', key: s.id, level: 'review', message: `${meta.label}: 訴求変更後の整合を要確認` });
-    for (const [field, value] of fieldEntries(s)) {
-      const a = assessText(project, s, value);
-      for (const c of a.claims.filter((x) => !x.resolved)) {
-        issues.push({ scope: 'section', key: s.id, field, level: c.severity === 'block' ? 'block' : 'claim', message: `${meta.label}/${field}: ${c.label}「${c.match}」に検証済みの根拠がありません` });
-      }
-      if (a.placeholder && !a.unresolvedTokens.length) issues.push({ scope: 'section', key: s.id, field, level: 'placeholder', message: `${meta.label}/${field}: 【要記入】が残っています` });
-      for (const t of a.unresolvedTokens) {
-        issues.push({ scope: 'section', key: s.id, field, level: 'token', message: `${meta.label}/${field}: ${BRIEF_LABELS[t.key] || t.key} が${t.reason === 'unconfirmed' ? '未確定' : '未入力'}` });
-      }
-    }
-  }
-  return issues;
-}
-
-function fieldEntries(section) {
-  const f = section.fields || {};
-  const out = [];
-  for (const k of ['heading', 'lead', 'body', 'note']) if (f[k]) out.push([k, f[k]]);
-  for (const k of ['items', 'itemsAlt']) (f[k] || []).forEach((v, i) => out.push([`${k}[${i}]`, v]));
-  return out;
-}
-
-return { normalize, detectClaims, resolveTokens, assessText, auditProject, fieldEntries, REFERENCE_DENYLIST, PLACEHOLDER_RE };
+return { validateShape, migrate, validateProject, parseProjectJson, serializeProject, SCHEMA_VERSION, MAX_JSON_BYTES, BRIEF_STATUS, CATEGORIES, EVIDENCE_STATUS, SOURCE_TYPES, PROVENANCE, ORIGINS, CTA_TIMINGS, METRIC_UNITS, FONTS, DATASET_SPEC, PROJECT_SPEC };
 })();
 
 __mods.generate = (() => {
@@ -957,7 +1069,7 @@ __mods.generate = (() => {
 
 const { SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, BRIEF_KEYS, BRIEF_LABELS } = __mods.sections;
 const { validateShape } = __mods.schema;
-const { detectClaims, REFERENCE_DENYLIST, normalize } = __mods.claims;
+const { detectClaims, containsToken, REFERENCE_DENYLIST } = __mods.claims;
 const { clone, makeId } = __mods.util;
 const ADAPTERS = {
   template: { id: 'template', label: 'テンプレート下書き（AI生成ではない）', connected: true },
@@ -989,6 +1101,7 @@ function templateSection(type, project) {
     id: makeId(type.replace('_', '')),
     type,
     approved: false,
+    approvedHash: '',
     needsReview: false,
     origin: 'template',
     fields: TEMPLATES[type](),
@@ -1010,10 +1123,10 @@ function reangleTemplate(project, newPromise) {
   p.brief.promise = { value: String(newPromise).slice(0, 600), status: 'unconfirmed' };
   p.sections = p.sections.map((s) => {
     if (ANGLE_TYPES.includes(s.type)) {
-      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false };
+      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false };
     }
     if (s.type === 'footer') return s;
-    return { ...s, needsReview: true, approved: false };
+    return { ...s, needsReview: true, approved: false, approvedHash: '' };
   });
   return p;
 }
@@ -1024,7 +1137,7 @@ function regenerateSectionTemplate(project, sectionId) {
   const i = p.sections.findIndex((s) => s.id === sectionId);
   if (i < 0) throw new Error('セクションが見つかりません');
   const s = p.sections[i];
-  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false,
+  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false,
     claimRefs: s.type === 'proof' ? p.evidence.map((e) => e.id) : s.claimRefs };
   return p;
 }
@@ -1124,13 +1237,21 @@ function extractJson(text) {
   return fence ? fence[1] : s;
 }
 
-/** brief に confirmed で入っていない denylist 値・HTML を含むフィールドを除外 */
+/**
+ * 生成物のフィールドを検査する。次を含むフィールドは取り込まない:
+ * HTML/URL、参考LP固有値・薬機法語彙・推薦文・権威（創作禁止）、
+ * 確定ブリーフにも verified 根拠にも無い数値・最上級・保証・煽り・オファー表現。
+ */
 function screenFields(fields, project, report, label) {
-  const confirmedNorm = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => normalize(project.brief[k].value)).join('|');
+  const confirmed = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => project.brief[k].value).join('\n');
+  const verified = project.evidence.filter((e) => e.status === 'verified').map((e) => e.claim).join('\n');
   const bad = (v) => {
-    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\//i.test(v)) return 'HTML/URL を含む';
-    const ref = detectClaims(v).find((c) => c.category === 'reference' && !confirmedNorm.includes(normalize(c.match)));
-    return ref ? `参考LP固有の値「${ref.match}」` : null;
+    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\/|www\./i.test(v)) return 'HTML/URL を含む';
+    for (const c of detectClaims(v, project.brief.category)) {
+      if (['reference', 'pharma', 'testimonial', 'authority'].includes(c.category)) return `${c.label}「${c.match}」`;
+      if (!containsToken(confirmed, c.match) && !containsToken(verified, c.match)) return `根拠の無い${c.label}「${c.match}」`;
+    }
+    return null;
   };
   const out = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] };
   for (const k of ['heading', 'lead', 'body', 'note']) {
@@ -1185,6 +1306,7 @@ function ingestGenerated(project, responseText, { mode, sectionId } = {}) {
       id: keep?.id || makeId(g.type.replace('_', '')),
       type: g.type,
       approved: false, // 強制
+      approvedHash: '',
       needsReview: false,
       origin: 'claude-code',
       fields: screenFields(g.fields, p, report, g.type),
@@ -1212,7 +1334,7 @@ function ingestGenerated(project, responseText, { mode, sectionId } = {}) {
     p.sections = p.sections.map((s) => {
       if (byType.has(s.type)) return toSection(byType.get(s.type), s);
       if (s.type === 'footer') return s;
-      return { ...s, needsReview: true, approved: false };
+      return { ...s, needsReview: true, approved: false, approvedHash: '' };
     });
     report.added.push(`${byType.size} セクションを差し替え`);
   } else {
@@ -1224,8 +1346,13 @@ function ingestGenerated(project, responseText, { mode, sectionId } = {}) {
     report.added.push('1 セクションを差し替え');
   }
   for (const c of r.evidenceCandidates || []) {
+    const blocked = [...detectClaims(c.claim, p.brief.category), ...detectClaims(c.source, p.brief.category)].find((x) => x.severity === 'block');
+    if (blocked || /<\s*\/?\s*[a-z!]|javascript:/i.test(c.claim + c.source)) {
+      report.rejected.push(`根拠候補「${c.claim.slice(0, 30)}」: ${blocked ? blocked.label : 'HTML/スクリプト'}のため拒否`);
+      continue;
+    }
     const id = makeId('ev');
-    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
+    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', verifiedHash: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
     report.added.push(`根拠候補（未検証）: ${c.claim.slice(0, 30)}`);
   }
   return { ok: true, project: p, report };
@@ -1239,10 +1366,13 @@ __mods.model = (() => {
 // 共通データモデルへの編集操作。すべて純関数（入力を変更せず新しい project を返す）。
 // WF / PC / SP / export は同じ project から描画されるので、ここを通せば全ビューが同期する。
 
-const { SCHEMA_VERSION, BRIEF_STATUS, SOURCE_TYPES, CTA_TIMINGS, FONTS, CATEGORIES, validateProject } = __mods.schema;
+const { SCHEMA_VERSION, BRIEF_STATUS, SOURCE_TYPES, CTA_TIMINGS, FONTS, CATEGORIES, METRIC_UNITS, validateProject } = __mods.schema;
+const { metricMatches } = __mods.claims;
 const { SECTION_CATALOG, BRIEF_KEYS } = __mods.sections;
 const { templateSection } = __mods.generate;
-const { clone, makeId, safeColor, safeUrl } = __mods.util;
+const { clone, makeId, safeColor, safeUrl, stripControl, sectionHash, evidenceHash, isRealDate } = __mods.util;
+const txt = (v, max) => stripControl(String(v ?? '')).slice(0, max);
+
 function emptyProject(name = '新しいLP') {
   return {
     schemaVersion: SCHEMA_VERSION,
@@ -1275,12 +1405,12 @@ function applyEdit(project, op) {
   const p = clone(project);
   switch (op.type) {
     case 'setName':
-      p.name = String(op.value).slice(0, 120);
+      p.name = txt(op.value, 120);
       break;
     case 'setBrief': {
       if (!BRIEF_KEYS.includes(op.key)) throw new Error('不明なブリーフ項目');
       const cur = p.brief[op.key];
-      let value = op.value !== undefined ? String(op.value).slice(0, 600) : cur.value;
+      let value = op.value !== undefined ? txt(op.value, 600) : cur.value;
       let status = op.status !== undefined ? op.status : cur.status;
       if (!BRIEF_STATUS.includes(status)) throw new Error('不明なステータス');
       if (op.key === 'ctaUrl' && value && !safeUrl(value)) throw new Error('リンク先は https: / mailto: / tel: / #id のみ使えます');
@@ -1307,13 +1437,14 @@ function applyEdit(project, op) {
     }
     case 'setField': {
       const i = findSection(p, op.id);
-      if (TEXT_FIELDS.includes(op.field)) p.sections[i].fields[op.field] = String(op.value).slice(0, op.field === 'body' ? 2000 : 400);
+      if (TEXT_FIELDS.includes(op.field)) p.sections[i].fields[op.field] = txt(op.value, op.field === 'body' ? 2000 : op.field === 'heading' ? 200 : 400);
       else if (LIST_FIELDS.includes(op.field)) {
         const list = Array.isArray(op.value) ? op.value : String(op.value).split('\n');
-        p.sections[i].fields[op.field] = list.map((v) => String(v).slice(0, 300)).filter((v) => v.trim()).slice(0, 12);
+        p.sections[i].fields[op.field] = list.map((v) => txt(v, 300)).filter((v) => v.trim()).slice(0, 12);
       } else throw new Error('不明なフィールド');
       p.sections[i].origin = 'manual';
       p.sections[i].approved = false; // 編集したら承認し直し
+      p.sections[i].approvedHash = '';
       break;
     }
     case 'addSection': {
@@ -1342,6 +1473,7 @@ function applyEdit(project, op) {
     case 'approveSection': {
       const i = findSection(p, op.id);
       p.sections[i].approved = !!op.value;
+      p.sections[i].approvedHash = op.value ? sectionHash(p.sections[i]) : '';
       if (op.value) p.sections[i].needsReview = false;
       break;
     }
@@ -1350,14 +1482,20 @@ function applyEdit(project, op) {
       const ids = new Set(p.evidence.map((e) => e.id));
       p.sections[i].claimRefs = (op.value || []).filter((r) => ids.has(r));
       p.sections[i].approved = false;
+      p.sections[i].approvedHash = '';
       break;
     }
     case 'addEvidence': {
       if (!SOURCE_TYPES.includes(op.sourceType || 'other')) throw new Error('不明な出典種別');
+      const claim = txt(op.claim, 300);
+      const metricValue = Number.isFinite(op.metricValue) ? op.metricValue : null;
+      const metricUnit = String(op.metricUnit || '');
+      if (!METRIC_UNITS.includes(metricUnit)) throw new Error(`単位は次から選んでください: ${METRIC_UNITS.filter(Boolean).join(' ')}`);
+      if (metricValue != null && !metricMatches(claim, metricValue, metricUnit)) throw new Error('数値と単位は、主張文に含まれている組（例: 4.2日）だけを使えます');
       p.evidence.push({
-        id: makeId('ev'), claim: String(op.claim || '').slice(0, 300), source: String(op.source || '').slice(0, 300),
-        sourceType: op.sourceType || 'other', status: 'unverified', provenance: 'human', verifiedBy: '', verifiedAt: '',
-        metricValue: Number.isFinite(op.metricValue) ? op.metricValue : null, metricUnit: String(op.metricUnit || '').slice(0, 12), note: '',
+        id: makeId('ev'), claim, source: txt(op.source, 300),
+        sourceType: op.sourceType || 'other', status: 'unverified', provenance: 'human', verifiedBy: '', verifiedAt: '', verifiedHash: '',
+        metricValue, metricUnit, note: '',
       });
       break;
     }
@@ -1367,15 +1505,18 @@ function applyEdit(project, op) {
       if (!e) throw new Error('根拠が見つかりません');
       if (op.value) {
         if (!String(op.verifiedBy || '').trim()) throw new Error('確認者を入力してください');
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(op.verifiedAt || '')) throw new Error('確認日は YYYY-MM-DD');
+        if (!isRealDate(op.verifiedAt || '') || op.verifiedAt > new Date().toISOString().slice(0, 10)) throw new Error('確認日は実在する今日以前の日付（YYYY-MM-DD）');
         if (!e.source.trim()) throw new Error('出典が空の根拠は検証済みにできません');
         e.status = 'verified';
-        e.verifiedBy = String(op.verifiedBy).slice(0, 80);
+        e.verifiedBy = txt(op.verifiedBy, 80);
+        e.provenance = 'human';
+        e.verifiedHash = evidenceHash(e);
         e.verifiedAt = op.verifiedAt;
       } else {
         e.status = 'unverified';
         e.verifiedBy = '';
         e.verifiedAt = '';
+        e.verifiedHash = '';
       }
       break;
     }
@@ -1387,7 +1528,7 @@ function applyEdit(project, op) {
     case 'setCtaVariant': {
       const v = p.cta.variants.find((x) => x.id === op.id);
       if (!v) throw new Error('CTA案が見つかりません');
-      if (op.label !== undefined) v.label = String(op.label).slice(0, 40);
+      if (op.label !== undefined) v.label = txt(op.label, 40);
       if (op.color !== undefined) {
         const c = safeColor(op.color);
         if (!c) throw new Error('色は #RRGGBB で指定してください');
@@ -1443,14 +1584,14 @@ __mods.render = (() => {
 
 const { escapeHtml: e, safeUrl, safeColor, contrastRatio, readableOn, inkFor, sha256Base64 } = __mods.util;
 const { SECTION_CATALOG, BRIEF_LABELS } = __mods.sections;
-const { assessText, detectClaims } = __mods.claims;
+const { assessText, detectClaims, containsToken, metricMatches } = __mods.claims;
 const { activeCta } = __mods.model;
 const RUNTIME_SCRIPT = `(function(){var d=document.documentElement,b=document.body;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);var io='IntersectionObserver' in window;if(!rm&&io)d.classList.add('js');
 function fmt(v,dec){return Number(v).toLocaleString('ja-JP',{minimumFractionDigits:dec,maximumFractionDigits:dec})}
 var els=document.querySelectorAll('.reveal');if(rm||!io){for(var i=0;i<els.length;i++)els[i].classList.add('in')}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
 var cs=document.querySelectorAll('[data-count]');Array.prototype.forEach.call(cs,function(el){var raw=el.getAttribute('data-count');var to=parseFloat(raw);var dec=(raw.split('.')[1]||'').length;if(rm||!io||!isFinite(to)){el.textContent=fmt(to,dec);return}el.textContent=fmt(0,dec);var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();function step(t){var k=Math.min(1,(t-t0)/900);el.textContent=fmt(to*(1-Math.pow(1-k,3)),dec);if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)});o.observe(el)});
 var bar=document.querySelector('.cta-sticky');if(!bar)return;var timing=b.getAttribute('data-cta-timing')||'spec';var fvVis=true,half=false,inl=document.querySelectorAll('.cta-inline'),vis=[];
-function upd(){var anyInline=vis.some(function(v){return v});var show=timing==='always'?true:timing==='after-half'?(half&&!anyInline):(!fvVis&&!anyInline);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
+function upd(){var anyInline=vis.some(function(v){return v});var show=!fvVis&&!anyInline&&(timing!=='after-half'||half);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
 if(io){var fv=document.querySelector('.fv');if(fv)new IntersectionObserver(function(es){fvVis=es[0].isIntersecting;upd()}).observe(fv);else fvVis=false;var io2=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(inl,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(inl,function(x,i){vis[i]=false;io2.observe(x)})}else{fvVis=false}
 function onScroll(){var h=document.documentElement;half=(h.scrollTop+window.innerHeight)/Math.max(1,h.scrollHeight)>0.5;upd()}addEventListener('scroll',onScroll,{passive:true});onScroll()})();`;
 
@@ -1469,7 +1610,7 @@ function baseCss(project, cta) {
   const ctaColor = safeColor(cta.color) || '#d93d63';
   const ctaText = readableOn(ctaColor);
   const fvText = readableOn(primary);
-  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
+  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--primary-ink:${inkFor(primary, '#ffffff')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);font-size:17.5px;line-height:34.1px;overflow-wrap:anywhere;padding-bottom:110px}
@@ -1491,12 +1632,13 @@ p{margin:0 0 18px}
 .fv-hero::before{content:"";position:absolute;top:0;bottom:0;right:0;width:36%;background:color-mix(in srgb,var(--ink) 9%,#ececef);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
 .hero-grid{position:relative;display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:center;padding-top:34px;padding-bottom:30px}
 .kicker{color:var(--accent-ink);font-weight:900;font-size:28px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em}
+.kicker.long{font-size:22px}
 .fv h1{font-size:52px;font-weight:900;line-height:1.22;margin:0 0 16px;color:var(--ink);letter-spacing:.01em}
 .fv .sub{font-weight:800;font-size:20px;line-height:1.75;color:var(--ink)}
 .fv .sub p{margin:0 0 4px}
 .fv-visual{position:relative;min-height:280px}
 .bp-card{position:absolute;width:44%;aspect-ratio:3/4;border-radius:10px;background:linear-gradient(160deg,#fff 0 58%,color-mix(in srgb,var(--primary) 18%,#fff) 58%);box-shadow:0 14px 28px rgba(0,0,0,.18);border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
-.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary);line-height:1}
+.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary-ink);line-height:1}
 .bp-card i{display:block;height:7px;border-radius:4px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
 .bp-card i:nth-of-type(2){width:72%}.bp-card i:nth-of-type(3){width:84%;background:color-mix(in srgb,var(--accent) 40%,transparent)}
 .bp-card.c1{left:0;bottom:6%;transform:rotate(-6deg)}.bp-card.c2{left:28%;bottom:12%;transform:rotate(2deg);z-index:1}.bp-card.c3{left:56%;bottom:4%;transform:rotate(7deg)}
@@ -1517,7 +1659,7 @@ p{margin:0 0 18px}
 .on-light .cta-ico{background:#fff}.on-light .cta-ico::after{border-left-color:var(--cta)}
 .cta-inline:focus-visible,.cta-sticky a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
 .cta-inline::after{content:"›";font-weight:900;font-size:1.3em;line-height:1}
-.cta-note{font-size:13px;line-height:1.7;opacity:.85}
+.cta-note{font-size:13px;line-height:1.7}
 .cta-sticky{position:fixed;right:24px;bottom:24px;width:340px;height:66px;z-index:50;visibility:hidden;opacity:0;transform:translateY(12px);transition:opacity .35s,transform .35s,visibility .35s}
 .cta-sticky.show{visibility:visible;opacity:1;transform:none}
 .cta-sticky a{display:flex;align-items:center;justify-content:center;gap:12px;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cta),color-mix(in srgb,var(--cta) 70%,var(--accent)));color:var(--cta-text);font-weight:800;font-size:18px;line-height:1.3;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:0 20px;text-align:center}
@@ -1531,7 +1673,7 @@ p{margin:0 0 18px}
 .compare .col{border-radius:18px;padding:22px}
 .compare .before{background:color-mix(in srgb,var(--ink) 6%,#fff)}
 .compare .after{background:color-mix(in srgb,var(--primary) 12%,#fff);border:2px solid var(--primary)}
-.compare h3{font-size:16px;letter-spacing:.1em}
+.compare h3{font-size:16px;letter-spacing:.1em;color:var(--ink)}
 ul.plain{list-style:none;padding:0;margin:0}
 ul.plain li{padding:10px 0;border-bottom:1px dashed color-mix(in srgb,var(--ink) 18%,transparent)}
 ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28px}
@@ -1541,13 +1683,13 @@ ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28p
 .ncard h3::before{content:"✓";flex:none;width:28px;height:28px;margin-top:3px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:15px;line-height:1}
 .ncard h3:only-child{border-bottom:0;padding-bottom:0}
 .ncard .nbody{position:relative;z-index:1;padding-top:14px}
-.yes li::before{content:"✓ ";color:var(--primary);font-weight:900}
-.no li::before{content:"— ";color:color-mix(in srgb,var(--ink) 55%,transparent);font-weight:900}
+.yes li::before{content:"✓ ";color:var(--primary-ink);font-weight:900}
+.no li::before{content:"— ";color:var(--ink);font-weight:900}
 .band{background:linear-gradient(120deg,color-mix(in srgb,var(--primary) 92%,#000),var(--accent));color:var(--fv-text)}
 .proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary);display:block;margin-bottom:6px}
+.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary-ink);display:block;margin-bottom:6px}
 .metric small{font-size:18px;margin-left:4px}
-.src{font-size:13px;line-height:1.6;opacity:.75;display:block;margin-top:8px}
+.src{font-size:13px;line-height:1.6;display:block;margin-top:8px}
 .closing{text-align:left}
 footer{padding:40px 0 30px;font-size:13px;line-height:1.8;background:color-mix(in srgb,var(--ink) 92%,#000);color:#f4f4f4}
 .reveal{transition:opacity .7s ease,transform .7s ease}
@@ -1568,12 +1710,13 @@ h2{font-size:30px}
 .fv-top{font-size:15px;padding:9px 12px}
 .fv-hero::before{width:44%;top:auto;height:58%}
 .hero-grid{display:block;padding-top:22px;padding-bottom:18px}
-.kicker{font-size:24px;margin-bottom:4px;padding-right:96px}
-.fv h1{font-size:44px;line-height:1.18;margin-bottom:12px;padding-right:0}
-.fv .sub{font-size:17px;line-height:1.7}
-.fv-visual{min-height:170px;margin-top:10px}
-.bp-card{width:30%;padding:9px 8px;gap:6px}.bp-card b{font-size:10px}.bp-card i{height:5px}
-.bp-card.c1{left:0}.bp-card.c2{left:22%}.bp-card.c3{left:44%}
+.kicker{font-size:21px;margin-bottom:6px;padding-right:100px}
+.kicker.long{font-size:17px;line-height:1.5}
+.fv h1{font-size:38px;line-height:1.2;margin-bottom:10px;padding-right:0}
+.fv .sub{font-size:16px;line-height:1.7}
+.fv-visual{min-height:118px;margin-top:16px}
+.bp-card{width:24%;padding:8px 7px;gap:5px}.bp-card b{font-size:10px}.bp-card i{height:5px}
+.bp-card.c1{left:0;bottom:4%}.bp-card.c2{left:17%;bottom:10%}.bp-card.c3{left:34%;bottom:2%}
 .bp-chip{left:auto;right:0;bottom:6%;font-size:13px;max-width:48%}
 .badge{text-decoration:none;position:absolute;right:12px;top:14px;width:96px;height:96px;font-size:10px}.badge strong{font-size:21px}
 .hero-grid{position:static}.fv-hero{position:relative}
@@ -1645,11 +1788,22 @@ function ctaInline(ctaInfo, note = '') {
   return `<a class="cta-inline" href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a>${note}`;
 }
 
+// 検証済みでも、参考LP固有値・薬機法語彙を含む根拠や、同意の無い推薦は公開しない
+function evidencePublishable(project, ev) {
+  if (ev.status !== 'verified') return { ok: false, reason: '未検証の根拠' };
+  const claims = [ev.claim, ev.source, ev.metricUnit].flatMap((t) => detectClaims(t, project.brief.category));
+  const block = claims.find((c) => c.severity === 'block');
+  if (block) return { ok: false, reason: `${block.label}「${block.match}」を含む` };
+  if (claims.some((c) => c.category === 'testimonial') && ev.sourceType !== 'customer-consent') return { ok: false, reason: '推薦・声は本人同意（customer-consent）の出典が必要' };
+  if (ev.metricValue != null && !metricMatches(ev.claim, ev.metricValue, ev.metricUnit)) return { ok: false, reason: '数値・単位が主張文と一致しない' };
+  return { ok: true };
+}
+
 // FVのバッジ: 根拠セクションが参照する verified かつ数値付きの evidence がある場合だけ出す（未検証の実績は出さない）
 function fvBadge(project, kind) {
   const proof = project.sections.find((x) => x.type === 'proof' && (kind !== 'safe' || x.approved));
   if (!proof) return '';
-  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && x.status === 'verified' && Number.isFinite(x.metricValue));
+  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && Number.isFinite(x.metricValue) && evidencePublishable(project, x).ok);
   if (!ev) return '';
   return `<a class="badge stage s4" href="#s-${e(proof.id)}" aria-label="${e(ev.claim)}（根拠へ）"><span><strong>${e(ev.metricValue.toLocaleString('ja-JP'))}</strong>${e(ev.metricUnit)}<br>根拠あり</span></a>`;
 }
@@ -1678,7 +1832,7 @@ function sectionHtml(project, s, kind, ctx, ctaInfo, bgIndex) {
       return `<header class="fv" ${anchor}>
 ${top ? `<div class="fv-top stage s1"><div class="wide">${top}</div></div>` : ''}
 <div class="fv-hero"><div class="wide hero-grid"><div class="copy">
-${lead ? `<p class="kicker stage s1">${lead}</p>` : ''}
+${lead ? `<p class="kicker stage s1${lead.replace(/<[^>]+>/g, '').length > 26 ? ' long' : ''}">${lead}</p>` : ''}
 ${heading ? `<h1 class="stage s2">${heading}</h1>` : ''}
 ${body ? `<div class="sub stage s3">${paragraphs(body)}</div>` : ''}
 </div><div class="fv-visual stage s3" aria-hidden="true">
@@ -1709,19 +1863,21 @@ ${ctaInline(ctaInfo)}<span class="scroll-hint" aria-hidden="true">⌄</span></di
       return `<section class="band" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo)}</div></section>`;
     case 'proof': {
       const refs = new Set(s.claimRefs);
-      const evs = project.evidence.filter((x) => refs.has(x.id) && (kind !== 'safe' || x.status === 'verified'));
+      const all = project.evidence.filter((x) => refs.has(x.id));
+      const evs = all.filter((x) => kind !== 'safe' || evidencePublishable(project, x).ok);
       const cards = evs.map((ev) => {
-        const unverified = ev.status !== 'verified';
+        const pub = evidencePublishable(project, ev);
+        const flagged = !pub.ok;
         const metric = Number.isFinite(ev.metricValue)
-          ? (unverified ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
+          ? (flagged ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
             : `<span class="metric"><span data-count="${e(String(ev.metricValue))}">${e(String(ev.metricValue))}</span><small>${e(ev.metricUnit)}</small></span>`)
           : '';
-        const claimHtml = unverified ? `<span class="flag">${e(ev.claim)}</span><span class="flag-tag">未検証</span>` : e(ev.claim);
-        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${unverified ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
+        const claimHtml = flagged ? `<span class="flag" title="${e(pub.reason)}">${e(ev.claim)}</span><span class="flag-tag">${ev.status === 'verified' ? '公開不可' : '未検証'}</span>` : e(ev.claim);
+        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${flagged ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
       });
       ctx.proofCount = evs.length;
-      for (const ev of project.evidence.filter((x) => refs.has(x.id) && x.status !== 'verified')) {
-        if (kind === 'safe') ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: ['未検証の根拠'] });
+      if (kind === 'safe') {
+        for (const ev of all.filter((x) => !evidencePublishable(project, x).ok)) ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: [evidencePublishable(project, ev).reason] });
       }
       content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="proof-grid">${cards.join('')}</div>`;
       break;
@@ -1748,9 +1904,12 @@ function resolveCta(project, kind, ctx, variantId) {
   const urlOk = url && project.brief.ctaUrl.status === 'confirmed';
   const labelFromBrief = !(base ? base.label : project.cta.variants.find((x) => x.id === project.cta.activeVariant)?.label);
   const labelOk = v.label && (!labelFromBrief || project.brief.ctaLabel.status === 'confirmed');
-  const verified = project.evidence.filter((x) => x.status === 'verified');
-  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => ev.claim.normalize('NFKC').includes(c.match.normalize('NFKC'))));
+  // CTA を置くセクション（FV・再コミット・クロージング）が参照する verified 根拠だけで照合
+  const ctaRefs = new Set(project.sections.filter((s) => ['fv', 'recommit', 'closing'].includes(s.type)).flatMap((s) => s.claimRefs));
+  const verified = project.evidence.filter((x) => x.status === 'verified' && ctaRefs.has(x.id));
+  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => containsToken(ev.claim, c.match)));
   if (kind === 'safe') {
+    if ((v.timing || 'spec') !== 'spec') ctx.blockers.push('固定CTAの表示タイミングが仕様（FV後に表示）ではありません。比較用の案は公開用に使えません');
     if (!urlOk) ctx.blockers.push('CTAリンク先が確定していない、または許可されないURLです');
     if (!labelOk) ctx.blockers.push('CTA文言が確定していません');
     if (labelClaims.length) ctx.blockers.push(`CTA文言に根拠の無い主張: ${labelClaims.map((c) => c.match).join(', ')}`);
@@ -1777,6 +1936,9 @@ function contrastChecks(project, variant) {
     { name: `CTA「${variant.id}」固定バー 文字 / 背景`, ratio: contrastRatio(ctaText, variant.color) },
     { name: `CTA「${variant.id}」固定バー 文字 / グラデーション終端`, ratio: contrastRatio(ctaText, mixHex(variant.color, b.accent, 0.3)) },
     { name: `CTA「${variant.id}」白ピル 文字`, ratio: contrastRatio(inkFor(variant.color, '#ffffff'), '#ffffff') },
+    { name: '数値・強調（primary系 / 白）', ratio: contrastRatio(inkFor(b.primary, '#ffffff'), '#ffffff') },
+    { name: '小見出し（accent系 / 淡色面）', ratio: contrastRatio(inkFor(b.accent, '#f1f1f3'), '#f1f1f3') },
+    { name: '比較カード（ink / primary淡色）', ratio: contrastRatio(b.ink, mixHex(b.primary, '#ffffff', 0.88)) },
     { name: '上部帯・オファー帯の文字', ratio: Math.min(contrastRatio(fvText, b.primary), contrastRatio(fvText, b.accent)) },
   ].map((c) => ({ ...c, ok: c.ratio >= 4.5 }));
 }
@@ -1809,6 +1971,9 @@ function renderPage(project, { kind = 'preview', view = 'design', ctaVariantId =
       else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['公開できる内容なし'] });
       continue;
     }
+    if (kind === 'safe' && !['fv', 'footer', 'proof'].includes(s.type) && !/<(p|li|div class="card)/.test(html.replace(/<h2>[^]*?<\/h2>/, ''))) {
+      ctx.warnings.push(`「${meta.label}」は見出しだけが公開されます（本文が除外されたか未入力）`);
+    }
     parts.push(html);
   }
   if (kind === 'safe') {
@@ -1816,6 +1981,8 @@ function renderPage(project, { kind = 'preview', view = 'design', ctaVariantId =
       if (!project.sections.some((s) => s.type === t)) ctx.blockers.push(`必須セクション「${SECTION_CATALOG[t].label}」がありません`);
     }
     if (project.brief.operator.status !== 'confirmed') ctx.blockers.push('運営者表記が確定していません');
+    const nameCheck = assessText(project, { claimRefs: [] }, project.name);
+    if (!nameCheck.publishable) ctx.blockers.push(`ページタイトル（プロジェクト名）に根拠の無い主張・未確定の値があります: ${reasonsOf(nameCheck).join(' / ')}`);
   }
   const scriptHash = sha256Base64(RUNTIME_SCRIPT);
   const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-${scriptHash}'; img-src data:; base-uri 'none'; form-action 'none'`;
@@ -1881,7 +2048,7 @@ ${visual}${proof}${ctaBox}${missing.length ? `<ul class="miss">${missing.map((m)
 <title>WF: ${e(project.name)}</title><style>${wfCss()}<\/style></head><body><div class="wf">${boxes.join('\n')}</div></body></html>`;
 }
 
-return { contrastChecks, renderPage, exportHtml, RUNTIME_SCRIPT };
+return { evidencePublishable, contrastChecks, renderPage, exportHtml, RUNTIME_SCRIPT };
 })();
 
 __mods.lpo = (() => {
@@ -2002,26 +2169,40 @@ function analyzeExperiment(exp) {
     if (v.visitors != null && v.conversions != null && v.conversions > v.visitors) notes.push(`${v.name}: CV数が分母を超えています（定義の不一致の疑い）`);
   }
   // 期間
+  const days = daysBetween(exp.start, exp.end);
+  if (!(days >= 1)) notes.push(`期間が不正です（開始 ${exp.start} > 終了 ${exp.end}）`);
+  if (Date.parse(exp.plannedEnd) < Date.parse(exp.start)) notes.push(`予定終了日（${exp.plannedEnd}）が開始日より前です`);
+  if (days > LPO_RULES.maxDurationDays) notes.push(`期間が ${days} 日で、上限 ${LPO_RULES.maxDurationDays} 日を超えています（季節性・外部要因が混ざるため判定しない）`);
   const plannedDone = Date.parse(exp.end) >= Date.parse(exp.plannedEnd);
   if (!plannedDone) notes.push(`予定期間（〜${exp.plannedEnd}）が未了です。途中で判定しません`);
-  const days = daysBetween(exp.start, exp.end);
+  // 割付比の指定: 全案に指定するか、全く指定しないか。指定するなら合計 1
+  const shareSpecified = exp.variants.filter((v) => v.expectedShare != null).length;
+  if (shareSpecified && shareSpecified !== exp.variants.length) notes.push('予定割付比（expectedShare）が一部の案にしかありません');
+  else if (shareSpecified && Math.abs(exp.variants.reduce((a, v) => a + v.expectedShare, 0) - 1) > 0.001) notes.push('予定割付比（expectedShare）の合計が 1 ではありません（入力ミスの可能性。SRM を正しく検査できない）');
+  // 集計の矛盾
+  for (const v of exp.variants) {
+    if (v.ctaClicks != null && v.visitors != null && v.ctaClicks > v.visitors) notes.push(`${v.name}: CTAクリック数が分母を超えています（定義・集計単位の不一致の疑い）`);
+  }
 
   // 観測値（欠損以外）
   const rows = exp.variants.map((v) => {
     const ok = v.visitors != null && v.conversions != null && v.visitors > 0;
     const rate = ok ? v.conversions / v.visitors : null;
     const ci = ok ? wilson(v.conversions, v.visitors) : null;
-    const clickRate = ok && v.ctaClicks != null ? v.ctaClicks / v.visitors : null;
-    return { id: v.id, name: v.name, visitors: v.visitors, conversions: v.conversions, ctaClicks: v.ctaClicks ?? null, rate, ci, clickRate };
+    const clickOk = ok && v.ctaClicks != null && v.ctaClicks <= v.visitors;
+    const clickRate = clickOk ? v.ctaClicks / v.visitors : null;
+    const afterClickOk = clickOk && v.ctaClicks > 0 && v.conversions <= v.ctaClicks; // CV>クリックなら CV がクリック以外の経路も含む定義
+    return { id: v.id, name: v.name, visitors: v.visitors, conversions: v.conversions, ctaClicks: v.ctaClicks ?? null, rate, ci, clickRate, afterClickOk };
   });
   for (const r of rows) {
     if (r.rate == null) observations.push({ id: `${exp.id}-${r.id}-na`, text: `${r.name}: 集計が欠損しているため率を出しません` });
-    else observations.push({ id: `${exp.id}-${r.id}`, text: `${r.name}: CV ${r.conversions} / ${control.unit} ${r.visitors} = ${pct(r.rate)}（95%CI ${pct(r.ci[0])}〜${pct(r.ci[1])}）${r.clickRate != null ? `、CTAクリック率 ${pct(r.clickRate)}` : ''}` });
+    else if (r.clickRate != null && !r.afterClickOk && r.ctaClicks > 0) observations.push({ id: `${exp.id}-${r.id}-note`, text: `注記: ${r.name} は CV（${r.conversions}）が CTAクリック（${r.ctaClicks}）を上回るため、クリック後CV率は出さない（CV がクリック以外の経路を含む定義の疑い）` });
+    if (r.rate != null) observations.push({ id: `${exp.id}-${r.id}`, text: `${r.name}: CV ${r.conversions} / ${control.unit} ${r.visitors} = ${pct(r.rate)}（95%CI ${pct(r.ci[0])}〜${pct(r.ci[1])}）${r.clickRate != null ? `、CTAクリック率 ${pct(r.clickRate)}` : ''}` });
   }
 
   // SRM
   let srm = null;
-  if (!missingVars.length) {
+  if (!missingVars.length && !(shareSpecified && shareSpecified !== exp.variants.length)) {
     const total = exp.variants.reduce((a, v) => a + v.visitors, 0);
     const shares = exp.variants.map((v) => v.expectedShare ?? 1 / exp.variants.length);
     const sumShares = shares.reduce((a, b) => a + b, 0);
@@ -2067,17 +2248,31 @@ function analyzeExperiment(exp) {
   };
 }
 
-/** 期間をまたいだ比較は、TZ・分母・CV定義・計測条件・ページが全部一致するときだけ */
+/**
+ * 実験をまたいだ比較の前提。TZ・分母・CV定義・計測条件・ページが全案で一致し、期間が重ならないときだけ comparable。
+ * comparable でも、期間の長さ・曜日構成・季節性は調整していない（cautions に出す）。
+ */
 function comparability(a, b) {
   const reasons = [];
-  const va = a.variants[0];
-  const vb = b.variants[0];
+  const cautions = [];
+  const uniq = (x, k) => [...new Set(x.variants.map((v) => v[k]))];
   if (a.timezone !== b.timezone) reasons.push(`タイムゾーンが異なる（${a.timezone} / ${b.timezone}）`);
-  if (va.unit !== vb.unit) reasons.push(`分母が異なる（${va.unit} / ${vb.unit}）`);
-  if (va.conversionDefinition !== vb.conversionDefinition) reasons.push('コンバージョン定義が異なる');
-  if (va.measurement !== vb.measurement) reasons.push('計測条件が異なる');
+  const labels = { unit: '分母', conversionDefinition: 'コンバージョン定義', measurement: '計測条件' };
+  for (const k of Object.keys(labels)) {
+    const ua = uniq(a, k);
+    const ub = uniq(b, k);
+    if (ua.length > 1 || ub.length > 1) reasons.push(`${labels[k]}が実験内の案ごとに異なる`);
+    else if (ua[0] !== ub[0]) reasons.push(k === 'unit' ? `分母が異なる（${ua[0]} / ${ub[0]}）` : `${labels[k]}が異なる`);
+  }
   if ((a.page || '') !== (b.page || '')) reasons.push('対象ページが異なる');
-  return { comparable: reasons.length === 0, reasons };
+  const overlap = Date.parse(a.start) <= Date.parse(b.end) && Date.parse(b.start) <= Date.parse(a.end);
+  if (overlap) reasons.push('期間が重複している（同じ訪問者が両方に入る）');
+  const da = daysBetween(a.start, a.end);
+  const db = daysBetween(b.start, b.end);
+  if (da !== db) cautions.push(`期間の長さが異なる（${da}日 / ${db}日）`);
+  if (da % 7 || db % 7) cautions.push('曜日構成がそろっていない（7日単位でない）');
+  cautions.push('季節性・流入構成の変化は未調整');
+  return { comparable: reasons.length === 0, reasons, cautions };
 }
 
 // ---- 仮説 ----
@@ -2129,7 +2324,7 @@ function buildHypotheses(project, analyses) {
   }
   if (main && main.rows.every((r) => r.rate != null)) {
     const cr = main.rows[0];
-    if (cr.ctaClicks != null && cr.conversions != null && cr.ctaClicks > 0) {
+    if (cr.afterClickOk) {
       const after = cr.conversions / cr.ctaClicks;
       H.push({
         id: 'h-after-click', title: 'CTAクリック後の遷移先を点検する', evidenceType: 'observed-fictional',
@@ -2150,6 +2345,29 @@ function buildHypotheses(project, analyses) {
       metric: `主要: ${cvDef}（分母 ${unit}）。補助: CTAクリック率`, guardrails: [...guardBase, 'クリック率だけ上がりCVが下がっていないか'],
       stopConditions: stopBase, priority: priority(2, 1, 1),
       caution: '一般論からの仮説で、このLPでの観測はまだない。実配信は別途の承認が必要（このツールは配信しない）',
+    });
+  }
+  for (const a of analyses) {
+    a.comparisons.forEach((c, idx) => {
+      if (c.verdict !== 'difference-observed') return;
+      const up = c.relativeLift > 0;
+      const variantId = a.rows[idx + 1]?.id || String(idx + 1);
+      H.push({
+        id: `h-replicate-${a.id}-${variantId}`,
+        title: up ? `「${a.name}」の ${c.variant}: 改善の再現確認と段階展開` : `「${a.name}」の ${c.variant}: 悪化の再現確認と配分停止`,
+        evidenceType: 'observed-fictional',
+        basis: [`${a.period} / 分母 ${a.unit} で対照より${up ? '高い' : '低い'}差が観測された（相対 ${(c.relativeLift * 100).toFixed(1)}%、p=${c.p.toExponential(2)}）`, '一度の観測で、因果の経路と他期間・他流入への汎化は未確認'],
+        hypothesis: up
+          ? `${c.variant} の変更が申込を増やしたのかもしれない。別期間で同じ定義のまま再現するかを確かめ、再現すれば段階的に配分を上げる`
+          : `${c.variant} の変更が申込を減らしたのかもしれない。この案への配分は止め、悪化が再現するかは必要な場合だけ小さく確かめる`,
+        metric: `主要: ${a.conversionDefinition}（分母 ${a.unit}）。前回と同じ定義・同じ計測条件で`,
+        guardrails: [...guardBase, '申込後の不一致（キャンセル・問い合わせ内容）が増えていないか'],
+        stopConditions: up
+          ? [`再現テストも各群 ${a.requiredPerArm ?? '必要数'} に到達で判定`, `最長 ${LPO_RULES.maxDurationDays} 日`, `SRM（p<${LPO_RULES.srmP}）で停止`, '再現しなければ展開しない（元に戻す）']
+          : ['この案への配分は直ちに 0 にする（再開しない）', `再確認する場合も最長 ${LPO_RULES.maxDurationDays} 日・小配分`, `SRM（p<${LPO_RULES.srmP}）で停止`],
+        priority: priority(3, 2, 1),
+        caution: 'このツールは配信しない。配分の変更は実配信の承認を別途取ってから',
+      });
     });
   }
   if (main) {
@@ -2204,7 +2422,7 @@ const AUTOSAVE_KEY = 'lp-studio:autosave:v1';
 const UI_KEY = 'lp-studio:ui:v1';
 const TABS = ['brief', 'plan', 'design', 'cta', 'export', 'lpo', 'gen'];
 const STATUS_LABEL = { confirmed: '確定', unconfirmed: '未確定', missing: '未入力' };
-const TIMING_LABEL = { spec: 'FV後に表示・インラインCTA表示中は隠す', always: '常に表示', 'after-half': 'ページの半分を過ぎてから' };
+const TIMING_LABEL = { spec: '仕様: FV後に表示（公開用）', 'after-half': '比較用: ページの半分を過ぎてから' };
 const CATEGORY_LABEL = { general: '一般', education: '教育・学習', health: '健康', beauty: '美容', finance: '金融', employment: '就職・転職' };
 const MODE_LABEL = { full: 'LP全体作成', reangle: '訴求変更', section: 'セクション編集' };
 
@@ -2604,6 +2822,7 @@ function renderExport(p) {
         ? h('div', { class: 'alert', id: 'safe-blockers' }, h('strong', { text: '公開用に書き出せません:' }), h('ul', {}, ...safe.report.blockers.map((b) => h('li', { text: b }))))
         : h('div', { class: 'okbox', id: 'safe-ok', text: '承認済み・確定・検証済みの内容だけで書き出せます。' }),
       h('button', { type: 'button', id: 'btn-export-safe', class: 'primary', disabled: !safe.html, onclick: () => { const r = exportHtml(state.project, 'safe'); if (r.html) { download(`${safeName(p)}.html`, r.html, 'text/html'); toast('safe HTML を書き出しました'); } } }, 'safe HTML を書き出す'),
+      safe.report.warnings.length ? h('ul', { class: 'small warn', id: 'safe-warnings' }, ...safe.report.warnings.map((w) => h('li', { text: w }))) : null,
       safe.report.removed.length ? h('details', { open: true }, h('summary', { text: `safe export で除外される箇所（${safe.report.removed.length}）` }),
         h('ul', { class: 'small', id: 'safe-removed' }, ...safe.report.removed.map((r) => h('li', { text: `[${r.section}] ${r.text} — ${r.reasons.join(' / ')}` })))) : null));
 }
@@ -2632,7 +2851,7 @@ function renderLpo(p) {
     an.comparisons.length ? h('ul', { class: 'verdicts' }, ...an.comparisons.map((c) => h('li', { class: `v-${c.verdict}` },
       h('strong', { text: `${c.variant}: ${c.label}` }), c.p != null ? ` (p=${c.p.toExponential(2)}, 補正後α=${c.alphaAdjusted.toFixed(3)})` : '',
       h('ul', {}, ...c.reasons.map((r) => h('li', { text: r })))))) : h('p', { class: 'small', text: '比較対象の案がありません（単一群の参考集計）。' })));
-  const cross = h('ul', { class: 'small' }, ...a.crossPeriod.map((c) => h('li', { class: c.comparable ? '' : 'ng', text: `${c.a} × ${c.b}: ${c.comparable ? '定義が一致（比較の前提を満たす）' : `比較しない — ${c.reasons.join(' / ')}`}` })));
+  const cross = h('ul', { class: 'small' }, ...a.crossPeriod.map((c) => h('li', { class: c.comparable ? '' : 'ng', text: `${c.a} × ${c.b}: ${c.comparable ? `定義一致・期間重複なし（比較の前提を満たす。注意: ${c.cautions.join(' / ')}）` : `比較しない — ${c.reasons.join(' / ')}`}` })));
   const hyps = a.hypotheses.map((x) => h('article', { class: 'card hyp', 'data-h': x.id },
     h('h3', {}, h('span', { class: `prio p-${x.priority.level}`, text: `優先度 ${x.priority.level}` }), ` ${x.title}`),
     h('p', { class: 'small', text: `根拠種別: ${{ 'observed-fictional': '架空集計の観測', 'project-audit': 'このLPの監査結果', heuristic: '一般論（未検証）' }[x.evidenceType]} / スコア ${x.priority.score}（影響${x.priority.impact}×確度${x.priority.confidence}÷工数${x.priority.effort}）` }),

@@ -6,7 +6,7 @@
 
 import { SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, BRIEF_KEYS, BRIEF_LABELS } from './sections.js';
 import { validateShape } from './schema.js';
-import { detectClaims, REFERENCE_DENYLIST, normalize } from './claims.js';
+import { detectClaims, containsToken, REFERENCE_DENYLIST } from './claims.js';
 import { clone, makeId } from './util.js';
 
 export const ADAPTERS = {
@@ -39,6 +39,7 @@ export function templateSection(type, project) {
     id: makeId(type.replace('_', '')),
     type,
     approved: false,
+    approvedHash: '',
     needsReview: false,
     origin: 'template',
     fields: TEMPLATES[type](),
@@ -60,10 +61,10 @@ export function reangleTemplate(project, newPromise) {
   p.brief.promise = { value: String(newPromise).slice(0, 600), status: 'unconfirmed' };
   p.sections = p.sections.map((s) => {
     if (ANGLE_TYPES.includes(s.type)) {
-      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false };
+      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false };
     }
     if (s.type === 'footer') return s;
-    return { ...s, needsReview: true, approved: false };
+    return { ...s, needsReview: true, approved: false, approvedHash: '' };
   });
   return p;
 }
@@ -74,7 +75,7 @@ export function regenerateSectionTemplate(project, sectionId) {
   const i = p.sections.findIndex((s) => s.id === sectionId);
   if (i < 0) throw new Error('セクションが見つかりません');
   const s = p.sections[i];
-  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, needsReview: false,
+  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false,
     claimRefs: s.type === 'proof' ? p.evidence.map((e) => e.id) : s.claimRefs };
   return p;
 }
@@ -174,13 +175,21 @@ function extractJson(text) {
   return fence ? fence[1] : s;
 }
 
-/** brief に confirmed で入っていない denylist 値・HTML を含むフィールドを除外 */
+/**
+ * 生成物のフィールドを検査する。次を含むフィールドは取り込まない:
+ * HTML/URL、参考LP固有値・薬機法語彙・推薦文・権威（創作禁止）、
+ * 確定ブリーフにも verified 根拠にも無い数値・最上級・保証・煽り・オファー表現。
+ */
 function screenFields(fields, project, report, label) {
-  const confirmedNorm = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => normalize(project.brief[k].value)).join('|');
+  const confirmed = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => project.brief[k].value).join('\n');
+  const verified = project.evidence.filter((e) => e.status === 'verified').map((e) => e.claim).join('\n');
   const bad = (v) => {
-    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\//i.test(v)) return 'HTML/URL を含む';
-    const ref = detectClaims(v).find((c) => c.category === 'reference' && !confirmedNorm.includes(normalize(c.match)));
-    return ref ? `参考LP固有の値「${ref.match}」` : null;
+    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\/|www\./i.test(v)) return 'HTML/URL を含む';
+    for (const c of detectClaims(v, project.brief.category)) {
+      if (['reference', 'pharma', 'testimonial', 'authority'].includes(c.category)) return `${c.label}「${c.match}」`;
+      if (!containsToken(confirmed, c.match) && !containsToken(verified, c.match)) return `根拠の無い${c.label}「${c.match}」`;
+    }
+    return null;
   };
   const out = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] };
   for (const k of ['heading', 'lead', 'body', 'note']) {
@@ -235,6 +244,7 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
       id: keep?.id || makeId(g.type.replace('_', '')),
       type: g.type,
       approved: false, // 強制
+      approvedHash: '',
       needsReview: false,
       origin: 'claude-code',
       fields: screenFields(g.fields, p, report, g.type),
@@ -262,7 +272,7 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
     p.sections = p.sections.map((s) => {
       if (byType.has(s.type)) return toSection(byType.get(s.type), s);
       if (s.type === 'footer') return s;
-      return { ...s, needsReview: true, approved: false };
+      return { ...s, needsReview: true, approved: false, approvedHash: '' };
     });
     report.added.push(`${byType.size} セクションを差し替え`);
   } else {
@@ -274,8 +284,13 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
     report.added.push('1 セクションを差し替え');
   }
   for (const c of r.evidenceCandidates || []) {
+    const blocked = [...detectClaims(c.claim, p.brief.category), ...detectClaims(c.source, p.brief.category)].find((x) => x.severity === 'block');
+    if (blocked || /<\s*\/?\s*[a-z!]|javascript:/i.test(c.claim + c.source)) {
+      report.rejected.push(`根拠候補「${c.claim.slice(0, 30)}」: ${blocked ? blocked.label : 'HTML/スクリプト'}のため拒否`);
+      continue;
+    }
     const id = makeId('ev');
-    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
+    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', verifiedHash: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
     report.added.push(`根拠候補（未検証）: ${c.claim.slice(0, 30)}`);
   }
   return { ok: true, project: p, report };

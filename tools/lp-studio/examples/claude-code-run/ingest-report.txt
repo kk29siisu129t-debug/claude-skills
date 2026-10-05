@@ -1,0 +1,4 @@
+added: 12 セクション
+added: 根拠候補（未検証）: 面談の所要時間と実施方法
+added: 根拠候補（未検証）: 計画の見直しの頻度と方法（週ごと）
+wrote project.after.json

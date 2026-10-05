@@ -235,7 +235,7 @@ test('Claude Code 生成JSONの取り込み（未承認・未検証・denylist�
   await context.close();
 });
 
-test('根拠の検証は人の操作（確認者・日付）で、検証すると safe に出る', async () => {
+test('根拠の検証は人の操作（確認者・日付）。推薦・声は検証済みでも同意の出典が要る', async () => {
   const context = await browser.newContext();
   const { page, errors } = await openApp(context);
   await tab(page, 'export');
@@ -246,7 +246,8 @@ test('根拠の検証は人の操作（確認者・日付）で、検証する�
   await page.fill('#vat-ev-voice', '2026-10-05');
   await page.click('#verify-ev-voice');
   await page.waitForSelector('#unverify-ev-voice');
-  assert.ok(!(await page.locator('#safe-removed').innerText()).includes('満足度92'));
+  // 満足度は「推薦・声」に当たるため、検証済みでも本人同意（customer-consent）の出典が無ければ公開しない
+  assert.match(await page.locator('#safe-removed').innerText(), /満足度92[^\n]*本人同意/);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -273,8 +274,8 @@ test('CTA比較: 文言・色・タイミングがプレビューに反映（配
   await page.fill('#cta-b-label', 'E2E比較用の文言');
   await page.locator('#cta-b-label').press('Tab');
   await page.waitForFunction(() => document.querySelector('#cta-frame-b')?.srcdoc.includes('E2E比較用の文言'));
-  await page.selectOption('#cta-b-timing', 'always');
-  await page.waitForFunction(() => document.querySelector('#cta-frame-b')?.srcdoc.includes('data-cta-timing="always"'));
+  await page.selectOption('#cta-b-timing', 'spec');
+  await page.waitForFunction(() => document.querySelector('#cta-frame-b')?.srcdoc.includes('data-cta-timing="spec"'));
   await page.click('#cta-b-use');
   await page.waitForSelector('[data-variant="b"].active');
   assert.match(await page.locator('#panel').innerText(), /AB配信・広告設定は行いません/);
@@ -309,7 +310,6 @@ test('アプリ: 320/375/400/1280px で横スクロールなし', async () => {
       await page.waitForTimeout(50);
       const [sw, cw] = await page.evaluate(() => [document.documentElement.scrollWidth, document.documentElement.clientWidth]);
       assert.ok(sw <= cw, `app ${width}px ${t}: scrollWidth ${sw} > ${cw}`);
-      if (SHOTS && (width === 375 || width === 1280) && ['plan', 'design', 'lpo', 'export'].includes(t)) await page.screenshot({ path: join(SHOTS, `app-${t}-${width}.png`) });
     }
     assert.deepEqual(errors, []);
     await context.close();
@@ -422,5 +422,29 @@ test('export LP: JS 無効でも本文が見える（progressive enhancement）'
   assert.equal(visible, true);
   const op = await page.locator('.reveal').first().evaluate((e) => getComputedStyle(e).opacity);
   assert.equal(op, '1');
+  await context.close();
+});
+
+test('自己完結版（dist/lp-studio-standalone.html）を file:// で開いて操作できる', async () => {
+  const built = spawn(process.execPath, ['build-standalone.mjs'], { cwd: ROOT });
+  await new Promise((r) => built.on('exit', r));
+  const context = await browser.newContext({ acceptDownloads: true });
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', (e) => errors.push(e.message));
+  page.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await page.goto(`file://${join(ROOT, 'dist/lp-studio-standalone.html')}`);
+  await page.waitForSelector('body[data-ready="1"]');
+  await tab(page, 'design');
+  await page.waitForTimeout(600);
+  assert.equal(await page.frameLocator('#pc-frame').locator('html').getAttribute('class'), 'js'); // プレビュー内スクリプトが動く
+  await tab(page, 'lpo');
+  assert.match(await page.locator('#lpo-banner').innerText(), /架空/);
+  await tab(page, 'export');
+  const safe = await downloadText(page, '#btn-export-safe');
+  assert.match(safe.text, /Content-Security-Policy/);
+  const saved = await downloadText(page, '#btn-save');
+  assert.equal(JSON.parse(saved.text).schemaVersion, 1);
+  assert.deepEqual(errors, []);
   await context.close();
 });

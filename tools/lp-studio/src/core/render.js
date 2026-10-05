@@ -4,7 +4,7 @@
 
 import { escapeHtml as e, safeUrl, safeColor, contrastRatio, readableOn, inkFor, sha256Base64 } from './util.js';
 import { SECTION_CATALOG, BRIEF_LABELS } from './sections.js';
-import { assessText, detectClaims } from './claims.js';
+import { assessText, detectClaims, containsToken, metricMatches } from './claims.js';
 import { activeCta } from './model.js';
 
 export const RUNTIME_SCRIPT = `(function(){var d=document.documentElement,b=document.body;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);var io='IntersectionObserver' in window;if(!rm&&io)d.classList.add('js');
@@ -12,7 +12,7 @@ function fmt(v,dec){return Number(v).toLocaleString('ja-JP',{minimumFractionDigi
 var els=document.querySelectorAll('.reveal');if(rm||!io){for(var i=0;i<els.length;i++)els[i].classList.add('in')}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
 var cs=document.querySelectorAll('[data-count]');Array.prototype.forEach.call(cs,function(el){var raw=el.getAttribute('data-count');var to=parseFloat(raw);var dec=(raw.split('.')[1]||'').length;if(rm||!io||!isFinite(to)){el.textContent=fmt(to,dec);return}el.textContent=fmt(0,dec);var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();function step(t){var k=Math.min(1,(t-t0)/900);el.textContent=fmt(to*(1-Math.pow(1-k,3)),dec);if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)});o.observe(el)});
 var bar=document.querySelector('.cta-sticky');if(!bar)return;var timing=b.getAttribute('data-cta-timing')||'spec';var fvVis=true,half=false,inl=document.querySelectorAll('.cta-inline'),vis=[];
-function upd(){var anyInline=vis.some(function(v){return v});var show=timing==='always'?true:timing==='after-half'?(half&&!anyInline):(!fvVis&&!anyInline);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
+function upd(){var anyInline=vis.some(function(v){return v});var show=!fvVis&&!anyInline&&(timing!=='after-half'||half);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
 if(io){var fv=document.querySelector('.fv');if(fv)new IntersectionObserver(function(es){fvVis=es[0].isIntersecting;upd()}).observe(fv);else fvVis=false;var io2=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(inl,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(inl,function(x,i){vis[i]=false;io2.observe(x)})}else{fvVis=false}
 function onScroll(){var h=document.documentElement;half=(h.scrollTop+window.innerHeight)/Math.max(1,h.scrollHeight)>0.5;upd()}addEventListener('scroll',onScroll,{passive:true});onScroll()})();`;
 
@@ -31,7 +31,7 @@ function baseCss(project, cta) {
   const ctaColor = safeColor(cta.color) || '#d93d63';
   const ctaText = readableOn(ctaColor);
   const fvText = readableOn(primary);
-  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
+  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--primary-ink:${inkFor(primary, '#ffffff')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%}
 body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);font-size:17.5px;line-height:34.1px;overflow-wrap:anywhere;padding-bottom:110px}
@@ -53,12 +53,13 @@ p{margin:0 0 18px}
 .fv-hero::before{content:"";position:absolute;top:0;bottom:0;right:0;width:36%;background:color-mix(in srgb,var(--ink) 9%,#ececef);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
 .hero-grid{position:relative;display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:center;padding-top:34px;padding-bottom:30px}
 .kicker{color:var(--accent-ink);font-weight:900;font-size:28px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em}
+.kicker.long{font-size:22px}
 .fv h1{font-size:52px;font-weight:900;line-height:1.22;margin:0 0 16px;color:var(--ink);letter-spacing:.01em}
 .fv .sub{font-weight:800;font-size:20px;line-height:1.75;color:var(--ink)}
 .fv .sub p{margin:0 0 4px}
 .fv-visual{position:relative;min-height:280px}
 .bp-card{position:absolute;width:44%;aspect-ratio:3/4;border-radius:10px;background:linear-gradient(160deg,#fff 0 58%,color-mix(in srgb,var(--primary) 18%,#fff) 58%);box-shadow:0 14px 28px rgba(0,0,0,.18);border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
-.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary);line-height:1}
+.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary-ink);line-height:1}
 .bp-card i{display:block;height:7px;border-radius:4px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
 .bp-card i:nth-of-type(2){width:72%}.bp-card i:nth-of-type(3){width:84%;background:color-mix(in srgb,var(--accent) 40%,transparent)}
 .bp-card.c1{left:0;bottom:6%;transform:rotate(-6deg)}.bp-card.c2{left:28%;bottom:12%;transform:rotate(2deg);z-index:1}.bp-card.c3{left:56%;bottom:4%;transform:rotate(7deg)}
@@ -79,7 +80,7 @@ p{margin:0 0 18px}
 .on-light .cta-ico{background:#fff}.on-light .cta-ico::after{border-left-color:var(--cta)}
 .cta-inline:focus-visible,.cta-sticky a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
 .cta-inline::after{content:"›";font-weight:900;font-size:1.3em;line-height:1}
-.cta-note{font-size:13px;line-height:1.7;opacity:.85}
+.cta-note{font-size:13px;line-height:1.7}
 .cta-sticky{position:fixed;right:24px;bottom:24px;width:340px;height:66px;z-index:50;visibility:hidden;opacity:0;transform:translateY(12px);transition:opacity .35s,transform .35s,visibility .35s}
 .cta-sticky.show{visibility:visible;opacity:1;transform:none}
 .cta-sticky a{display:flex;align-items:center;justify-content:center;gap:12px;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cta),color-mix(in srgb,var(--cta) 70%,var(--accent)));color:var(--cta-text);font-weight:800;font-size:18px;line-height:1.3;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:0 20px;text-align:center}
@@ -93,7 +94,7 @@ p{margin:0 0 18px}
 .compare .col{border-radius:18px;padding:22px}
 .compare .before{background:color-mix(in srgb,var(--ink) 6%,#fff)}
 .compare .after{background:color-mix(in srgb,var(--primary) 12%,#fff);border:2px solid var(--primary)}
-.compare h3{font-size:16px;letter-spacing:.1em}
+.compare h3{font-size:16px;letter-spacing:.1em;color:var(--ink)}
 ul.plain{list-style:none;padding:0;margin:0}
 ul.plain li{padding:10px 0;border-bottom:1px dashed color-mix(in srgb,var(--ink) 18%,transparent)}
 ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28px}
@@ -103,13 +104,13 @@ ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28p
 .ncard h3::before{content:"✓";flex:none;width:28px;height:28px;margin-top:3px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:15px;line-height:1}
 .ncard h3:only-child{border-bottom:0;padding-bottom:0}
 .ncard .nbody{position:relative;z-index:1;padding-top:14px}
-.yes li::before{content:"✓ ";color:var(--primary);font-weight:900}
-.no li::before{content:"— ";color:color-mix(in srgb,var(--ink) 55%,transparent);font-weight:900}
+.yes li::before{content:"✓ ";color:var(--primary-ink);font-weight:900}
+.no li::before{content:"— ";color:var(--ink);font-weight:900}
 .band{background:linear-gradient(120deg,color-mix(in srgb,var(--primary) 92%,#000),var(--accent));color:var(--fv-text)}
 .proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary);display:block;margin-bottom:6px}
+.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary-ink);display:block;margin-bottom:6px}
 .metric small{font-size:18px;margin-left:4px}
-.src{font-size:13px;line-height:1.6;opacity:.75;display:block;margin-top:8px}
+.src{font-size:13px;line-height:1.6;display:block;margin-top:8px}
 .closing{text-align:left}
 footer{padding:40px 0 30px;font-size:13px;line-height:1.8;background:color-mix(in srgb,var(--ink) 92%,#000);color:#f4f4f4}
 .reveal{transition:opacity .7s ease,transform .7s ease}
@@ -130,12 +131,13 @@ h2{font-size:30px}
 .fv-top{font-size:15px;padding:9px 12px}
 .fv-hero::before{width:44%;top:auto;height:58%}
 .hero-grid{display:block;padding-top:22px;padding-bottom:18px}
-.kicker{font-size:24px;margin-bottom:4px;padding-right:96px}
-.fv h1{font-size:44px;line-height:1.18;margin-bottom:12px;padding-right:0}
-.fv .sub{font-size:17px;line-height:1.7}
-.fv-visual{min-height:170px;margin-top:10px}
-.bp-card{width:30%;padding:9px 8px;gap:6px}.bp-card b{font-size:10px}.bp-card i{height:5px}
-.bp-card.c1{left:0}.bp-card.c2{left:22%}.bp-card.c3{left:44%}
+.kicker{font-size:21px;margin-bottom:6px;padding-right:100px}
+.kicker.long{font-size:17px;line-height:1.5}
+.fv h1{font-size:38px;line-height:1.2;margin-bottom:10px;padding-right:0}
+.fv .sub{font-size:16px;line-height:1.7}
+.fv-visual{min-height:118px;margin-top:16px}
+.bp-card{width:24%;padding:8px 7px;gap:5px}.bp-card b{font-size:10px}.bp-card i{height:5px}
+.bp-card.c1{left:0;bottom:4%}.bp-card.c2{left:17%;bottom:10%}.bp-card.c3{left:34%;bottom:2%}
 .bp-chip{left:auto;right:0;bottom:6%;font-size:13px;max-width:48%}
 .badge{text-decoration:none;position:absolute;right:12px;top:14px;width:96px;height:96px;font-size:10px}.badge strong{font-size:21px}
 .hero-grid{position:static}.fv-hero{position:relative}
@@ -207,11 +209,22 @@ function ctaInline(ctaInfo, note = '') {
   return `<a class="cta-inline" href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a>${note}`;
 }
 
+// 検証済みでも、参考LP固有値・薬機法語彙を含む根拠や、同意の無い推薦は公開しない
+export function evidencePublishable(project, ev) {
+  if (ev.status !== 'verified') return { ok: false, reason: '未検証の根拠' };
+  const claims = [ev.claim, ev.source, ev.metricUnit].flatMap((t) => detectClaims(t, project.brief.category));
+  const block = claims.find((c) => c.severity === 'block');
+  if (block) return { ok: false, reason: `${block.label}「${block.match}」を含む` };
+  if (claims.some((c) => c.category === 'testimonial') && ev.sourceType !== 'customer-consent') return { ok: false, reason: '推薦・声は本人同意（customer-consent）の出典が必要' };
+  if (ev.metricValue != null && !metricMatches(ev.claim, ev.metricValue, ev.metricUnit)) return { ok: false, reason: '数値・単位が主張文と一致しない' };
+  return { ok: true };
+}
+
 // FVのバッジ: 根拠セクションが参照する verified かつ数値付きの evidence がある場合だけ出す（未検証の実績は出さない）
 function fvBadge(project, kind) {
   const proof = project.sections.find((x) => x.type === 'proof' && (kind !== 'safe' || x.approved));
   if (!proof) return '';
-  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && x.status === 'verified' && Number.isFinite(x.metricValue));
+  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && Number.isFinite(x.metricValue) && evidencePublishable(project, x).ok);
   if (!ev) return '';
   return `<a class="badge stage s4" href="#s-${e(proof.id)}" aria-label="${e(ev.claim)}（根拠へ）"><span><strong>${e(ev.metricValue.toLocaleString('ja-JP'))}</strong>${e(ev.metricUnit)}<br>根拠あり</span></a>`;
 }
@@ -240,7 +253,7 @@ function sectionHtml(project, s, kind, ctx, ctaInfo, bgIndex) {
       return `<header class="fv" ${anchor}>
 ${top ? `<div class="fv-top stage s1"><div class="wide">${top}</div></div>` : ''}
 <div class="fv-hero"><div class="wide hero-grid"><div class="copy">
-${lead ? `<p class="kicker stage s1">${lead}</p>` : ''}
+${lead ? `<p class="kicker stage s1${lead.replace(/<[^>]+>/g, '').length > 26 ? ' long' : ''}">${lead}</p>` : ''}
 ${heading ? `<h1 class="stage s2">${heading}</h1>` : ''}
 ${body ? `<div class="sub stage s3">${paragraphs(body)}</div>` : ''}
 </div><div class="fv-visual stage s3" aria-hidden="true">
@@ -271,19 +284,21 @@ ${ctaInline(ctaInfo)}<span class="scroll-hint" aria-hidden="true">⌄</span></di
       return `<section class="band" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo)}</div></section>`;
     case 'proof': {
       const refs = new Set(s.claimRefs);
-      const evs = project.evidence.filter((x) => refs.has(x.id) && (kind !== 'safe' || x.status === 'verified'));
+      const all = project.evidence.filter((x) => refs.has(x.id));
+      const evs = all.filter((x) => kind !== 'safe' || evidencePublishable(project, x).ok);
       const cards = evs.map((ev) => {
-        const unverified = ev.status !== 'verified';
+        const pub = evidencePublishable(project, ev);
+        const flagged = !pub.ok;
         const metric = Number.isFinite(ev.metricValue)
-          ? (unverified ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
+          ? (flagged ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
             : `<span class="metric"><span data-count="${e(String(ev.metricValue))}">${e(String(ev.metricValue))}</span><small>${e(ev.metricUnit)}</small></span>`)
           : '';
-        const claimHtml = unverified ? `<span class="flag">${e(ev.claim)}</span><span class="flag-tag">未検証</span>` : e(ev.claim);
-        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${unverified ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
+        const claimHtml = flagged ? `<span class="flag" title="${e(pub.reason)}">${e(ev.claim)}</span><span class="flag-tag">${ev.status === 'verified' ? '公開不可' : '未検証'}</span>` : e(ev.claim);
+        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${flagged ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
       });
       ctx.proofCount = evs.length;
-      for (const ev of project.evidence.filter((x) => refs.has(x.id) && x.status !== 'verified')) {
-        if (kind === 'safe') ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: ['未検証の根拠'] });
+      if (kind === 'safe') {
+        for (const ev of all.filter((x) => !evidencePublishable(project, x).ok)) ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: [evidencePublishable(project, ev).reason] });
       }
       content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="proof-grid">${cards.join('')}</div>`;
       break;
@@ -310,9 +325,12 @@ function resolveCta(project, kind, ctx, variantId) {
   const urlOk = url && project.brief.ctaUrl.status === 'confirmed';
   const labelFromBrief = !(base ? base.label : project.cta.variants.find((x) => x.id === project.cta.activeVariant)?.label);
   const labelOk = v.label && (!labelFromBrief || project.brief.ctaLabel.status === 'confirmed');
-  const verified = project.evidence.filter((x) => x.status === 'verified');
-  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => ev.claim.normalize('NFKC').includes(c.match.normalize('NFKC'))));
+  // CTA を置くセクション（FV・再コミット・クロージング）が参照する verified 根拠だけで照合
+  const ctaRefs = new Set(project.sections.filter((s) => ['fv', 'recommit', 'closing'].includes(s.type)).flatMap((s) => s.claimRefs));
+  const verified = project.evidence.filter((x) => x.status === 'verified' && ctaRefs.has(x.id));
+  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => containsToken(ev.claim, c.match)));
   if (kind === 'safe') {
+    if ((v.timing || 'spec') !== 'spec') ctx.blockers.push('固定CTAの表示タイミングが仕様（FV後に表示）ではありません。比較用の案は公開用に使えません');
     if (!urlOk) ctx.blockers.push('CTAリンク先が確定していない、または許可されないURLです');
     if (!labelOk) ctx.blockers.push('CTA文言が確定していません');
     if (labelClaims.length) ctx.blockers.push(`CTA文言に根拠の無い主張: ${labelClaims.map((c) => c.match).join(', ')}`);
@@ -339,6 +357,9 @@ export function contrastChecks(project, variant) {
     { name: `CTA「${variant.id}」固定バー 文字 / 背景`, ratio: contrastRatio(ctaText, variant.color) },
     { name: `CTA「${variant.id}」固定バー 文字 / グラデーション終端`, ratio: contrastRatio(ctaText, mixHex(variant.color, b.accent, 0.3)) },
     { name: `CTA「${variant.id}」白ピル 文字`, ratio: contrastRatio(inkFor(variant.color, '#ffffff'), '#ffffff') },
+    { name: '数値・強調（primary系 / 白）', ratio: contrastRatio(inkFor(b.primary, '#ffffff'), '#ffffff') },
+    { name: '小見出し（accent系 / 淡色面）', ratio: contrastRatio(inkFor(b.accent, '#f1f1f3'), '#f1f1f3') },
+    { name: '比較カード（ink / primary淡色）', ratio: contrastRatio(b.ink, mixHex(b.primary, '#ffffff', 0.88)) },
     { name: '上部帯・オファー帯の文字', ratio: Math.min(contrastRatio(fvText, b.primary), contrastRatio(fvText, b.accent)) },
   ].map((c) => ({ ...c, ok: c.ratio >= 4.5 }));
 }
@@ -371,6 +392,9 @@ export function renderPage(project, { kind = 'preview', view = 'design', ctaVari
       else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['公開できる内容なし'] });
       continue;
     }
+    if (kind === 'safe' && !['fv', 'footer', 'proof'].includes(s.type) && !/<(p|li|div class="card)/.test(html.replace(/<h2>[^]*?<\/h2>/, ''))) {
+      ctx.warnings.push(`「${meta.label}」は見出しだけが公開されます（本文が除外されたか未入力）`);
+    }
     parts.push(html);
   }
   if (kind === 'safe') {
@@ -378,6 +402,8 @@ export function renderPage(project, { kind = 'preview', view = 'design', ctaVari
       if (!project.sections.some((s) => s.type === t)) ctx.blockers.push(`必須セクション「${SECTION_CATALOG[t].label}」がありません`);
     }
     if (project.brief.operator.status !== 'confirmed') ctx.blockers.push('運営者表記が確定していません');
+    const nameCheck = assessText(project, { claimRefs: [] }, project.name);
+    if (!nameCheck.publishable) ctx.blockers.push(`ページタイトル（プロジェクト名）に根拠の無い主張・未確定の値があります: ${reasonsOf(nameCheck).join(' / ')}`);
   }
   const scriptHash = sha256Base64(RUNTIME_SCRIPT);
   const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-${scriptHash}'; img-src data:; base-uri 'none'; form-action 'none'`;

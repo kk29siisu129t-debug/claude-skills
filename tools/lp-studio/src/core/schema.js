@@ -3,7 +3,8 @@
 // HTML は文字列として保持するだけで、描画時に必ず escape する。HTML import は存在しない。
 
 import { SECTION_TYPES, BRIEF_KEYS } from './sections.js';
-import { safeUrl, safeColor, stripControl } from './util.js';
+import { safeUrl, safeColor, stripControl, sectionHash, evidenceHash, isRealDate } from './util.js';
+import { metricMatches } from './claims.js';
 
 export const SCHEMA_VERSION = 1;
 export const MAX_JSON_BYTES = 2 * 1024 * 1024;
@@ -15,7 +16,10 @@ export const EVIDENCE_STATUS = ['verified', 'unverified'];
 export const SOURCE_TYPES = ['document', 'url', 'internal-data', 'customer-consent', 'policy', 'other'];
 export const PROVENANCE = ['human', 'template', 'claude-code', 'seed'];
 export const ORIGINS = ['template', 'claude-code', 'manual'];
-export const CTA_TIMINGS = ['spec', 'always', 'after-half'];
+// 'always' は v1 初期の値。読込時に 'spec' へ置き換える（FV中・インラインCTA可視中も出てしまうため）
+export const CTA_TIMINGS = ['spec', 'after-half'];
+const CTA_TIMINGS_ACCEPTED = [...CTA_TIMINGS, 'always'];
+export const METRIC_UNITS = ['', '人', '名', '社', '件', '%', '割', '倍', '円', '日', '日/週', '回/週', '分/日', '時間', '時間/週', '分', '回', '点', '年', 'か月', '位', '校', '店舗'];
 export const FONTS = ['sans', 'serif', 'rounded'];
 
 const str = (max, extra = {}) => ({ t: 'string', max, ...extra });
@@ -99,9 +103,10 @@ export const PROJECT_SPEC = {
           status: { t: 'string', enum: EVIDENCE_STATUS },
           verifiedBy: str(80),
           verifiedAt: str(10),
+          verifiedHash: str(64),
           provenance: { t: 'string', enum: PROVENANCE },
           metricValue: { t: 'number', nullable: true },
-          metricUnit: str(12),
+          metricUnit: { t: 'string', enum: METRIC_UNITS },
           note: str(300),
         },
         required: ['id', 'claim', 'sourceType', 'source', 'status', 'provenance'],
@@ -115,6 +120,7 @@ export const PROJECT_SPEC = {
           id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
           type: { t: 'string', enum: SECTION_TYPES },
           approved: { t: 'bool' },
+          approvedHash: str(64),
           needsReview: { t: 'bool' },
           origin: { t: 'string', enum: ORIGINS },
           fields: {
@@ -143,7 +149,7 @@ export const PROJECT_SPEC = {
               id: str(40, { pattern: /^[A-Za-z0-9_-]{1,40}$/ }),
               label: str(40),
               color: str(7),
-              timing: { t: 'string', enum: CTA_TIMINGS },
+              timing: { t: 'string', enum: CTA_TIMINGS_ACCEPTED },
             },
             required: ['id', 'label', 'color', 'timing'],
           },
@@ -287,15 +293,40 @@ export function validateProject(input) {
   const evIds = uniq(p.evidence, '$.evidence');
   uniq(p.sections, '$.sections');
   uniq(p.cta.variants, '$.cta.variants');
-  // verified の要件（確認者・確認日が無ければ降格）
+  // 数値は主張文に含まれていなければ使わない（バッジ・カウンターの捏造防止）
   for (const e of p.evidence) {
-    if (e.status === 'verified' && (!e.verifiedBy?.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(e.verifiedAt || ''))) {
+    if (e.metricValue == null) continue;
+    if (!metricMatches(e.claim, e.metricValue, e.metricUnit)) {
+      warnings.push(`$.evidence.${e.id}.metricValue: 主張文に「${e.metricValue}${e.metricUnit.split('/')[0]}」が無いため数値を外しました`);
+      e.metricValue = null;
+    }
+  }
+  // verified の要件（確認者・実在する過去の確認日・人の由来。満たさなければ降格）
+  const today = new Date().toISOString().slice(0, 10);
+  for (const e of p.evidence) {
+    if (e.status !== 'verified') continue;
+    let why = null;
+    if (!e.verifiedBy?.trim()) why = '確認者が無い';
+    else if (!isRealDate(e.verifiedAt || '') || e.verifiedAt > today) why = '確認日が実在しないか未来';
+    else if (e.provenance === 'template' || e.provenance === 'claude-code') why = '生成由来の根拠は人が検証し直す必要がある';
+    else if (e.verifiedHash !== evidenceHash(e)) why = '検証後に内容（主張・出典・数値）が変わっている';
+    if (why) {
       e.status = 'unverified';
-      warnings.push(`$.evidence.${e.id}: 確認者・確認日が無いため unverified に降格しました`);
+      e.verifiedBy = '';
+      e.verifiedAt = '';
+      e.verifiedHash = '';
+      warnings.push(`$.evidence.${e.id}: ${why}ため unverified に降格しました`);
+    }
+  }
+  for (const v of p.cta.variants) {
+    if (v.timing === 'always') {
+      v.timing = 'spec';
+      warnings.push(`$.cta.variants.${v.id}.timing: "always" は廃止。仕様どおり（FV後・インラインCTA表示中は隠す）に置き換えました`);
     }
   }
   for (const s of p.sections) {
     s.approved = !!s.approved;
+    s.approvedHash = s.approvedHash || '';
     s.needsReview = !!s.needsReview;
     s.origin = s.origin || 'manual';
     s.fields = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [], ...s.fields };
@@ -303,9 +334,18 @@ export function validateProject(input) {
       if (!evIds.has(r)) { warnings.push(`$.sections.${s.id}.claimRefs: 存在しない根拠 "${r}" を外しました`); return false; }
       return true;
     });
+    // 承認後に内容が書き換わっていたら承認を外す（改ざん防止の署名ではなく、承認と内容の対応づけ）
+    if (s.approved && s.approvedHash !== sectionHash(s)) {
+      s.approved = false;
+      s.approvedHash = '';
+      warnings.push(`$.sections.${s.id}: 承認後に内容が変わっているため承認を外しました`);
+    }
   }
   if (!p.lpo) p.lpo = { dataset: null };
   if (p.lpo.dataset === undefined) p.lpo.dataset = null;
+  for (const [i, x] of (p.lpo.dataset?.experiments || []).entries()) {
+    for (const k of ['start', 'end', 'plannedEnd']) if (!isRealDate(x[k])) errors.push(`$.lpo.dataset.experiments[${i}].${k}: 実在しない日付です`);
+  }
   if (p.lpo.dataset && p.lpo.dataset.fictional !== true) {
     errors.push('$.lpo.dataset.fictional: このツールは架空データのみ扱います（fictional: true が必要）');
   }

@@ -13,7 +13,7 @@ test('編集は純関数（元の project を変えない）で、結果は常�
     { type: 'moveSection', id: 'recommit', delta: -1 },
     { type: 'addSection', sectionType: 'price_reason', at: 3 },
     { type: 'addSection', sectionType: 'concept_video', at: 1 },
-    { type: 'setCtaVariant', id: 'b', color: '#123456', timing: 'always' },
+    { type: 'setCtaVariant', id: 'b', color: '#123456', timing: 'after-half' },
     { type: 'addCtaVariant' },
     { type: 'addEvidence', claim: '面談は60分', source: '仕様書', sourceType: 'policy' },
   ];

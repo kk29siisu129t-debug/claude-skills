@@ -12,7 +12,7 @@ const AUTOSAVE_KEY = 'lp-studio:autosave:v1';
 const UI_KEY = 'lp-studio:ui:v1';
 const TABS = ['brief', 'plan', 'design', 'cta', 'export', 'lpo', 'gen'];
 const STATUS_LABEL = { confirmed: '確定', unconfirmed: '未確定', missing: '未入力' };
-const TIMING_LABEL = { spec: 'FV後に表示・インラインCTA表示中は隠す', always: '常に表示', 'after-half': 'ページの半分を過ぎてから' };
+const TIMING_LABEL = { spec: '仕様: FV後に表示（公開用）', 'after-half': '比較用: ページの半分を過ぎてから' };
 const CATEGORY_LABEL = { general: '一般', education: '教育・学習', health: '健康', beauty: '美容', finance: '金融', employment: '就職・転職' };
 const MODE_LABEL = { full: 'LP全体作成', reangle: '訴求変更', section: 'セクション編集' };
 
@@ -412,6 +412,7 @@ function renderExport(p) {
         ? h('div', { class: 'alert', id: 'safe-blockers' }, h('strong', { text: '公開用に書き出せません:' }), h('ul', {}, ...safe.report.blockers.map((b) => h('li', { text: b }))))
         : h('div', { class: 'okbox', id: 'safe-ok', text: '承認済み・確定・検証済みの内容だけで書き出せます。' }),
       h('button', { type: 'button', id: 'btn-export-safe', class: 'primary', disabled: !safe.html, onclick: () => { const r = exportHtml(state.project, 'safe'); if (r.html) { download(`${safeName(p)}.html`, r.html, 'text/html'); toast('safe HTML を書き出しました'); } } }, 'safe HTML を書き出す'),
+      safe.report.warnings.length ? h('ul', { class: 'small warn', id: 'safe-warnings' }, ...safe.report.warnings.map((w) => h('li', { text: w }))) : null,
       safe.report.removed.length ? h('details', { open: true }, h('summary', { text: `safe export で除外される箇所（${safe.report.removed.length}）` }),
         h('ul', { class: 'small', id: 'safe-removed' }, ...safe.report.removed.map((r) => h('li', { text: `[${r.section}] ${r.text} — ${r.reasons.join(' / ')}` })))) : null));
 }
@@ -440,7 +441,7 @@ function renderLpo(p) {
     an.comparisons.length ? h('ul', { class: 'verdicts' }, ...an.comparisons.map((c) => h('li', { class: `v-${c.verdict}` },
       h('strong', { text: `${c.variant}: ${c.label}` }), c.p != null ? ` (p=${c.p.toExponential(2)}, 補正後α=${c.alphaAdjusted.toFixed(3)})` : '',
       h('ul', {}, ...c.reasons.map((r) => h('li', { text: r })))))) : h('p', { class: 'small', text: '比較対象の案がありません（単一群の参考集計）。' })));
-  const cross = h('ul', { class: 'small' }, ...a.crossPeriod.map((c) => h('li', { class: c.comparable ? '' : 'ng', text: `${c.a} × ${c.b}: ${c.comparable ? '定義が一致（比較の前提を満たす）' : `比較しない — ${c.reasons.join(' / ')}`}` })));
+  const cross = h('ul', { class: 'small' }, ...a.crossPeriod.map((c) => h('li', { class: c.comparable ? '' : 'ng', text: `${c.a} × ${c.b}: ${c.comparable ? `定義一致・期間重複なし（比較の前提を満たす。注意: ${c.cautions.join(' / ')}）` : `比較しない — ${c.reasons.join(' / ')}`}` })));
   const hyps = a.hypotheses.map((x) => h('article', { class: 'card hyp', 'data-h': x.id },
     h('h3', {}, h('span', { class: `prio p-${x.priority.level}`, text: `優先度 ${x.priority.level}` }), ` ${x.title}`),
     h('p', { class: 'small', text: `根拠種別: ${{ 'observed-fictional': '架空集計の観測', 'project-audit': 'このLPの監査結果', heuristic: '一般論（未検証）' }[x.evidenceType]} / スコア ${x.priority.score}（影響${x.priority.impact}×確度${x.priority.confidence}÷工数${x.priority.effort}）` }),

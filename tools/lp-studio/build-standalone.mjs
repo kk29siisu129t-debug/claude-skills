@@ -9,18 +9,37 @@ import { RUNTIME_SCRIPT } from './src/core/render.js';
 const root = new URL('.', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 
-// 依存順（後ろのものは前のものだけを import する）
-const MODULES = [
-  ['util', 'src/core/util.js'],
-  ['sections', 'src/core/sections.js'],
-  ['schema', 'src/core/schema.js'],
-  ['claims', 'src/core/claims.js'],
-  ['generate', 'src/core/generate.js'],
-  ['model', 'src/core/model.js'],
-  ['render', 'src/core/render.js'],
-  ['lpo', 'src/core/lpo.js'],
-  ['app', 'src/app/app.js'],
-];
+const FILES = {
+  util: 'src/core/util.js',
+  sections: 'src/core/sections.js',
+  claims: 'src/core/claims.js',
+  schema: 'src/core/schema.js',
+  generate: 'src/core/generate.js',
+  model: 'src/core/model.js',
+  render: 'src/core/render.js',
+  lpo: 'src/core/lpo.js',
+  app: 'src/app/app.js',
+};
+
+// import 文から依存順を決める（トポロジカルソート）
+function order() {
+  const deps = Object.fromEntries(Object.entries(FILES).map(([n, p]) => [n,
+    [...read(p).matchAll(/^import[^']*'([^']+)'/gm)].map((m) => m[1].split('/').pop().replace(/\.js$/, ''))]));
+  const out = [];
+  const visiting = new Set();
+  const visit = (n) => {
+    if (out.includes(n)) return;
+    if (visiting.has(n)) throw new Error(`循環 import: ${n}`);
+    if (!FILES[n]) throw new Error(`未登録のモジュール: ${n}`);
+    visiting.add(n);
+    deps[n].forEach(visit);
+    visiting.delete(n);
+    out.push(n);
+  };
+  Object.keys(FILES).forEach(visit);
+  return out.map((n) => [n, FILES[n]]);
+}
+const MODULES = order();
 
 function transform(name, src) {
   const exports = [];

@@ -72,6 +72,7 @@ switch (cmd) {
     const { html, report } = exportHtml(load(need('project')), kind);
     for (const b of report.blockers) console.error(`blocker: ${b}`);
     for (const r of report.removed) console.error(`removed: [${r.section}] ${r.text} — ${r.reasons.join(' / ')}`);
+    for (const w of report.warnings) console.error(`warning: ${w}`);
     if (!html) { console.error('safe export をブロックしました（上記 blocker を解消してください）'); process.exit(3); }
     if (args.out) { writeFileSync(args.out, html); console.error(`wrote ${args.out}`); } else process.stdout.write(html);
     break;
@@ -88,7 +89,7 @@ switch (cmd) {
       for (const c of an.comparisons) console.log(`  判定: ${c.variant} → ${c.label}${c.p != null ? ` (p=${c.p.toExponential(2)})` : ''}\n    ${c.reasons.join('\n    ')}`);
     }
     console.log('\n■ 期間をまたぐ比較の前提');
-    for (const c of a.crossPeriod) console.log(`  ${c.a} × ${c.b}: ${c.comparable ? '定義一致（比較の前提を満たす）' : `比較しない — ${c.reasons.join(' / ')}`}`);
+    for (const c of a.crossPeriod) console.log(`  ${c.a} × ${c.b}: ${c.comparable ? `定義一致・期間重複なし（比較の前提を満たす。注意: ${c.cautions.join(' / ')}）` : `比較しない — ${c.reasons.join(' / ')}`}`);
     console.log('\n■ 仮説と検証計画（推測）');
     for (const h of a.hypotheses) console.log(`  [${h.priority.level}] ${h.title}（根拠種別: ${h.evidenceType}）\n    ${h.hypothesis}`);
     break;

@@ -1,10 +1,13 @@
 // 共通データモデルへの編集操作。すべて純関数（入力を変更せず新しい project を返す）。
 // WF / PC / SP / export は同じ project から描画されるので、ここを通せば全ビューが同期する。
 
-import { SCHEMA_VERSION, BRIEF_STATUS, SOURCE_TYPES, CTA_TIMINGS, FONTS, CATEGORIES, validateProject } from './schema.js';
+import { SCHEMA_VERSION, BRIEF_STATUS, SOURCE_TYPES, CTA_TIMINGS, FONTS, CATEGORIES, METRIC_UNITS, validateProject } from './schema.js';
+import { metricMatches } from './claims.js';
 import { SECTION_CATALOG, BRIEF_KEYS } from './sections.js';
 import { templateSection } from './generate.js';
-import { clone, makeId, safeColor, safeUrl } from './util.js';
+import { clone, makeId, safeColor, safeUrl, stripControl, sectionHash, evidenceHash, isRealDate } from './util.js';
+
+const txt = (v, max) => stripControl(String(v ?? '')).slice(0, max);
 
 export function emptyProject(name = '新しいLP') {
   return {
@@ -38,12 +41,12 @@ export function applyEdit(project, op) {
   const p = clone(project);
   switch (op.type) {
     case 'setName':
-      p.name = String(op.value).slice(0, 120);
+      p.name = txt(op.value, 120);
       break;
     case 'setBrief': {
       if (!BRIEF_KEYS.includes(op.key)) throw new Error('不明なブリーフ項目');
       const cur = p.brief[op.key];
-      let value = op.value !== undefined ? String(op.value).slice(0, 600) : cur.value;
+      let value = op.value !== undefined ? txt(op.value, 600) : cur.value;
       let status = op.status !== undefined ? op.status : cur.status;
       if (!BRIEF_STATUS.includes(status)) throw new Error('不明なステータス');
       if (op.key === 'ctaUrl' && value && !safeUrl(value)) throw new Error('リンク先は https: / mailto: / tel: / #id のみ使えます');
@@ -70,13 +73,14 @@ export function applyEdit(project, op) {
     }
     case 'setField': {
       const i = findSection(p, op.id);
-      if (TEXT_FIELDS.includes(op.field)) p.sections[i].fields[op.field] = String(op.value).slice(0, op.field === 'body' ? 2000 : 400);
+      if (TEXT_FIELDS.includes(op.field)) p.sections[i].fields[op.field] = txt(op.value, op.field === 'body' ? 2000 : op.field === 'heading' ? 200 : 400);
       else if (LIST_FIELDS.includes(op.field)) {
         const list = Array.isArray(op.value) ? op.value : String(op.value).split('\n');
-        p.sections[i].fields[op.field] = list.map((v) => String(v).slice(0, 300)).filter((v) => v.trim()).slice(0, 12);
+        p.sections[i].fields[op.field] = list.map((v) => txt(v, 300)).filter((v) => v.trim()).slice(0, 12);
       } else throw new Error('不明なフィールド');
       p.sections[i].origin = 'manual';
       p.sections[i].approved = false; // 編集したら承認し直し
+      p.sections[i].approvedHash = '';
       break;
     }
     case 'addSection': {
@@ -105,6 +109,7 @@ export function applyEdit(project, op) {
     case 'approveSection': {
       const i = findSection(p, op.id);
       p.sections[i].approved = !!op.value;
+      p.sections[i].approvedHash = op.value ? sectionHash(p.sections[i]) : '';
       if (op.value) p.sections[i].needsReview = false;
       break;
     }
@@ -113,14 +118,20 @@ export function applyEdit(project, op) {
       const ids = new Set(p.evidence.map((e) => e.id));
       p.sections[i].claimRefs = (op.value || []).filter((r) => ids.has(r));
       p.sections[i].approved = false;
+      p.sections[i].approvedHash = '';
       break;
     }
     case 'addEvidence': {
       if (!SOURCE_TYPES.includes(op.sourceType || 'other')) throw new Error('不明な出典種別');
+      const claim = txt(op.claim, 300);
+      const metricValue = Number.isFinite(op.metricValue) ? op.metricValue : null;
+      const metricUnit = String(op.metricUnit || '');
+      if (!METRIC_UNITS.includes(metricUnit)) throw new Error(`単位は次から選んでください: ${METRIC_UNITS.filter(Boolean).join(' ')}`);
+      if (metricValue != null && !metricMatches(claim, metricValue, metricUnit)) throw new Error('数値と単位は、主張文に含まれている組（例: 4.2日）だけを使えます');
       p.evidence.push({
-        id: makeId('ev'), claim: String(op.claim || '').slice(0, 300), source: String(op.source || '').slice(0, 300),
-        sourceType: op.sourceType || 'other', status: 'unverified', provenance: 'human', verifiedBy: '', verifiedAt: '',
-        metricValue: Number.isFinite(op.metricValue) ? op.metricValue : null, metricUnit: String(op.metricUnit || '').slice(0, 12), note: '',
+        id: makeId('ev'), claim, source: txt(op.source, 300),
+        sourceType: op.sourceType || 'other', status: 'unverified', provenance: 'human', verifiedBy: '', verifiedAt: '', verifiedHash: '',
+        metricValue, metricUnit, note: '',
       });
       break;
     }
@@ -130,15 +141,18 @@ export function applyEdit(project, op) {
       if (!e) throw new Error('根拠が見つかりません');
       if (op.value) {
         if (!String(op.verifiedBy || '').trim()) throw new Error('確認者を入力してください');
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(op.verifiedAt || '')) throw new Error('確認日は YYYY-MM-DD');
+        if (!isRealDate(op.verifiedAt || '') || op.verifiedAt > new Date().toISOString().slice(0, 10)) throw new Error('確認日は実在する今日以前の日付（YYYY-MM-DD）');
         if (!e.source.trim()) throw new Error('出典が空の根拠は検証済みにできません');
         e.status = 'verified';
-        e.verifiedBy = String(op.verifiedBy).slice(0, 80);
+        e.verifiedBy = txt(op.verifiedBy, 80);
+        e.provenance = 'human';
+        e.verifiedHash = evidenceHash(e);
         e.verifiedAt = op.verifiedAt;
       } else {
         e.status = 'unverified';
         e.verifiedBy = '';
         e.verifiedAt = '';
+        e.verifiedHash = '';
       }
       break;
     }
@@ -150,7 +164,7 @@ export function applyEdit(project, op) {
     case 'setCtaVariant': {
       const v = p.cta.variants.find((x) => x.id === op.id);
       if (!v) throw new Error('CTA案が見つかりません');
-      if (op.label !== undefined) v.label = String(op.label).slice(0, 40);
+      if (op.label !== undefined) v.label = txt(op.label, 40);
       if (op.color !== undefined) {
         const c = safeColor(op.color);
         if (!c) throw new Error('色は #RRGGBB で指定してください');

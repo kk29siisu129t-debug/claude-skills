@@ -1,6 +1,7 @@
 // 架空seed project を生成する（seed/project.fictional.json）。中身はすべて架空。実在の事業・人物・実績ではない。
 import { writeFileSync, readFileSync } from 'node:fs';
 import { validateProject, serializeProject } from '../src/core/schema.js';
+import { sectionHash, evidenceHash } from '../src/core/util.js';
 
 const dataset = JSON.parse(readFileSync(new URL('./lpo-dataset.fictional.json', import.meta.url), 'utf8'));
 const B = (value, status = 'confirmed') => ({ value, status });
@@ -55,6 +56,10 @@ const project = {
   },
   lpo: { dataset },
 };
+
+// seed の承認は「デモの確認者が内容を確認した」扱い。承認と内容を hash で対応づける
+for (const s of project.sections) if (s.approved) s.approvedHash = sectionHash(s);
+for (const e of project.evidence) if (e.status === 'verified') e.verifiedHash = evidenceHash(e);
 
 const check = validateProject(project);
 if (!check.ok) {
