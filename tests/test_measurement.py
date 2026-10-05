@@ -145,6 +145,7 @@ class Ratios(unittest.TestCase):
         self.assertTrue(any('open cohort' in x for x in r['reasons']))
         self.assertTrue(any('確定したCVRとして扱いません' in x for x in r['reasons']))
         self.assertEqual(len(r['reasons']), len(set(r['reasons'])))
+        self.assertIn('予定の観測期間 cohort 終了後 31日のうち、データ cutoff までに観測できたのは 1日分です', r['reasons'])
 
     def test_cohort_closes_when_cutoff_passes(self):
         def mut(d):
@@ -158,7 +159,10 @@ class Ratios(unittest.TestCase):
 
     def test_cutoff_boundary(self):
         # cutoff 10/01 00:00 は 9/30 までを含む。9/30 23:59 で切ると 9/30 終わりの cohort は締まらない
-        d = ready(mut=lambda x: x['sources'][0].update(data_cutoff='2026-09-30T23:59:00+09:00'))
+        def mut(x):
+            x['sources'][0].update(data_cutoff='2026-09-30T23:59:00+09:00')
+            obs(x, 'A-O12')['raw'] = None
+        d = ready(mut=mut)
         self.assertTrue(d.maturity(d.obs['A-O5'])[0])
         self.assertTrue(d.maturity(d.obs['A-O1'])[0])
 
@@ -175,15 +179,16 @@ class Ratios(unittest.TestCase):
         self.assertTrue(any('期間が違います' in x for x in r['reasons']))
 
     def test_billing_is_never_cvr(self):
+        # 監査3: 請求の対象判定の件数は、件数比としても値を出さない
         r = ratio(ready(), 'A-R5')
-        self.assertEqual(r['kind'], 'count_ratio')
+        self.assertEqual((r['kind'], r['value']), ('blocked', None))
         self.assertTrue(any('手数料請求' in x for x in r['reasons']))
         # cohort・母集団がそろっていても、請求用の定義が入れば CVR にしない
         def mut(d):
             for m in d['metric_definitions']:
                 if m['id'] == 'A-CONS-C':
                     m['purpose'] = 'billing'
-        self.assertEqual(ratio(ready(mut=mut), 'A-R1')['kind'], 'count_ratio')
+        self.assertEqual(ratio(ready(mut=mut), 'A-R1')['kind'], 'blocked')
 
     def test_billing_rule_on_marketing_definition_stops(self):
         def mut(d):
@@ -331,11 +336,11 @@ class Timezone(unittest.TestCase):
         # 10月の太平洋時間は夏時間（-07:00）。-08:00 は誤り
         _, ck = ds('ms-beta.json', lambda x: x['sources'][1].update(data_cutoff='2026-10-01T00:00:00-08:00'))
         self.assertIn('BAD_TZ', codes(ck))
-        _, ck = ds('ms-alpha.json', lambda x: x['sources'][0].update(data_cutoff='2026-10-01T00:00:00+00:00'))
+        _, ck = ds('ms-alpha.json', lambda x: x['sources'][0].update(data_cutoff='2026-10-01T00:00:00+08:00'))
         self.assertIn('BAD_TZ', codes(ck))
 
     def test_unknown_timezone_stops(self):
-        for tz in ('Asia/Tokio', 'JST', 'Mars/Base', '', ' Asia/Tokyo', None, 9):
+        for tz in ('Asia/Tokio', 'JST', 'Mars/Base', '', ' Asia/Tokyo', None, 9, 'localtime'):
             _, ck = ds(mut=lambda x: x['sources'][0].update(timezone=tz))
             self.assertIn('BAD_TZ', codes(ck), repr(tz))
 
@@ -445,6 +450,160 @@ class Validation(unittest.TestCase):
                     f.write(txt)
                 self.assertIsInstance(M.load_dir(d)[0][1], M.MeasurementError, txt)
         self.assertEqual(M.load_dir(os.path.join(ROOT, 'no-such-dir')), [])
+
+
+class MonthBoundary(unittest.TestCase):
+    """報告月の境界（架空の日付だけ）。
+    注意: 個々の出来事の timestamp を報告月に振り分ける処理は実装していない。観測行は報告期間（日付）で集計済みの値を持つ。
+    ここで確かめるのは、実装済みの「データ cutoff の瞬間で、報告 timezone の暦月が締まったか／その月に値があってよいか」の境界だけ"""
+
+    def alpha(self, cutoff, keep_oct=False, now=NOW):
+        raw = base()['ms-alpha.json']
+        raw['sources'][0].update(data_cutoff=cutoff, fetched_at='2026-10-02T09:00:00+09:00')
+        if not keep_oct:
+            obs(raw, 'A-O12')['raw'] = None   # 10月の行は空欄にする（比較 A-C5 の参照は残す）
+        return raw, M.validate(raw, now)
+
+    def test_utc_instant_of_tokyo_month_start_closes_september(self):
+        # 2026-09-30T15:00:00Z は Asia/Tokyo の 10/01 00:00 と同じ瞬間。9月は丸ごと入っている
+        for cut in ('2026-09-30T15:00:00Z', '2026-09-30T15:00:00+00:00', '2026-10-01T00:00:00+09:00'):
+            raw, ck = self.alpha(cut)
+            self.assertEqual(ck.errors, [], cut)
+            d = M.Dataset(raw)
+            self.assertFalse(d.maturity(d.obs['A-O1'])[0], cut)    # 9月（発生日）は締まった
+            self.assertFalse(d.maturity(d.obs['A-O5'])[0], cut)    # 観測終了 9/30 の cohort も締まった
+            self.assertEqual(ratio(d, 'A-R1')['kind'], 'cvr')
+
+    def test_one_second_before_month_start_is_still_september(self):
+        for cut in ('2026-09-30T14:59:59Z', '2026-09-30T23:59:59+09:00'):
+            raw, ck = self.alpha(cut)
+            self.assertEqual(ck.errors, [], cut)
+            d = M.Dataset(raw)
+            self.assertTrue(d.maturity(d.obs['A-O1'])[0], cut)
+            self.assertEqual(ratio(d, 'A-R1')['kind'], 'provisional')
+
+    def test_exact_next_month_start_is_not_in_previous_month(self):
+        # cutoff が 10/01 00:00（Tokyo）ちょうどなら、その瞬間は10月の始まりで9月には入らない。
+        # だから10月の行に値があれば矛盾（10月の出来事は1件も入っていないはず）
+        for cut in ('2026-09-30T15:00:00Z', '2026-10-01T00:00:00+09:00'):
+            raw, ck = self.alpha(cut, keep_oct=True)
+            self.assertIn('DATE_ORDER', codes(ck), cut)
+            self.assertTrue(any(x['where'] == 'observations/A-O12' for x in ck.errors))
+        # 1秒でも10月に入っていれば、10月の値はありうる（未成熟として持つ）
+        raw, ck = self.alpha('2026-09-30T15:00:01Z', keep_oct=True)
+        self.assertEqual(ck.errors, [])
+        d = M.Dataset(raw)
+        self.assertTrue(d.maturity(d.obs['A-O12'])[0])
+
+    def test_zero_or_blank_after_cutoff_is_not_contradiction(self):
+        for raw_v in (0, '', None):
+            raw = base()['ms-alpha.json']
+            raw['sources'][0]['data_cutoff'] = '2026-10-01T00:00:00+09:00'
+            obs(raw, 'A-O12')['raw'] = raw_v
+            self.assertEqual(M.validate(raw, NOW).errors, [], repr(raw_v))
+
+    def test_absent_timezone_is_not_utc(self):
+        raw = base()['ms-alpha.json']
+        raw['sources'][0].pop('timezone')
+        raw['sources'][0]['data_cutoff'] = '2026-09-30T15:00:00Z'
+        self.assertIn('BAD_TZ', codes(M.validate(raw, NOW)))
+
+    def test_unsupported_environment_does_not_fall_back_to_utc(self):
+        with mock.patch.object(M, 'zoneinfo', None):
+            raw, ck = self.alpha('2026-09-30T15:00:00Z')
+            self.assertEqual(ck.errors, [])           # 止めずに「未検証」として持つ
+            d = M.Dataset(raw)
+            closed, why = d.maturity(d.obs['A-O1'])
+            self.assertTrue(closed)                    # UTC とみなして「9月は締まった」とは言わない
+            self.assertIn('未検証', why)
+            self.assertEqual(ratio(d, 'A-R1')['kind'], 'blocked')
+            raw2, ck2 = self.alpha('2026-09-30T15:00:00Z', keep_oct=True)
+            self.assertEqual(ck2.errors, [])           # 境界の矛盾も、timezone が検証できない以上は判定しない（止めるのは比・比較）
+
+    def test_marketing_lab_period_close_uses_cutoff_in_report_timezone(self):
+        def run_(su, fa):
+            bm = {n: b for n, b in ml.load_dir(FIX)}
+            p = bm['passlabo.json']['campaigns'][0]['results']['periods'][1]   # 期間終了 2026-09-28
+            p.update(source_updated_at=su, fetched_at=fa)
+            res = {n: ck for n, b, ck in ml.validate_all(sorted(bm.items()), NOW)}
+            return [x['code'] for x in res['passlabo.json'].errors]
+        # 監査1: 最終日の当日に更新・取得した値は締まっていない
+        self.assertIn('DATE_ORDER', run_('2026-09-28T07:00:00+09:00', '2026-09-28T09:00:00+09:00'))
+        # 9/29 00:00 JST と同じ瞬間（UTC 表記）なら締まっている
+        self.assertEqual(run_('2026-09-28T15:00:00Z', '2026-09-29T09:00:00+09:00'), [])
+        self.assertIn('DATE_ORDER', run_('2026-09-28T14:59:59Z', '2026-09-29T09:00:00+09:00'))
+
+
+class AuditFindings(unittest.TestCase):
+    """監査役レビュー（合成fixtureで再現）で採用した修正の回帰テスト"""
+
+    def test_2_cohort_observation_window(self):
+        def mut(d):
+            for i, v in (('A-O20', 100), ('A-O21', 30)):
+                o = copy.deepcopy(obs(d, 'A-O5' if i == 'A-O20' else 'A-O6'))
+                o.update(id=i, raw=v, period={'start': '2026-07-01', 'end': '2026-07-31'},
+                         cohort={'start': '2026-07-01', 'end': '2026-07-31', 'observation_end': '2026-09-30'})
+                d['observations'].append(o)
+            d['ratios'].append({'id': 'A-R7', 'intent': 'conversion', 'numerator': 'A-O21', 'denominator': 'A-O20'})
+        a = ready(mut=mut)
+        ok, why = M.comparability(a, a.obs['A-O21'], a.obs['A-O6'])
+        self.assertFalse(ok)
+        self.assertTrue(any('観測期間の長さが違います' in x for x in why))
+        r7, r1 = ratio(a, 'A-R7'), ratio(a, 'A-R1')
+        self.assertEqual((r7['kind'], r1['kind']), ('cvr', 'cvr'))
+        self.assertTrue(any('cohort 終了後 61日' in x for x in r7['notes']))
+        self.assertTrue(any('cohort 終了後 30日' in x for x in r1['notes']))
+
+    def billing_beta(self, extra_ratio):
+        def mut(d):
+            d['metric_definitions'].append({'id': 'B-FEE', 'version': 'v1', 'label': '請求対象', 'unit': 'rows',
+                                            'basis': 'occurrence', 'purpose': 'billing'})
+            d['observations'].append({'id': 'B-OF', 'metric': {'id': 'B-FEE', 'version': 'v1'}, 'source': 'SRC-B1',
+                                      'cell': 'Z1', 'level': 'campaign', 'node': 'B-CMP-1',
+                                      'period': {'start': '2026-09-01', 'end': '2026-09-30'}, 'raw': 10})
+            d['ratios'].append(extra_ratio)
+        return ready('ms-beta.json', mut)
+
+    def test_3_billing_not_in_cost_per(self):
+        b = self.billing_beta({'id': 'B-R9', 'intent': 'cost_per', 'numerator': 'B-O8', 'denominator': 'B-OF'})
+        r = ratio(b, 'B-R9')
+        self.assertEqual((r['kind'], r['value']), ('blocked', None))
+        self.assertTrue(any('手数料請求' in x for x in r['reasons']))
+
+    def test_4_rule_ref_by_id(self):
+        _, ck = ds(mut=lambda x: x['metric_definitions'][1].update(rule_ref={'id': 'A-FEE', 'version': 'v1'}))
+        self.assertIn('BILLING_RULE', codes(ck))
+        _, ck = ds(mut=lambda x: x['metric_definitions'][1].update(rule_ref={'id': 'A-NONE', 'version': 'v1'}))
+        self.assertIn('UNKNOWN_REF', codes(ck))
+        _, ck = ds(mut=lambda x: x['metric_definitions'][1].update(rule_ref={'id': 'A-REG', 'version': 'v1'}))
+        self.assertEqual(ck.errors, [])  # マーケ定義どうしの参照は可
+
+    def test_5_immature_count_ratio_blocked(self):
+        def mut(d):
+            d['observations'].append({'id': 'A-OX', 'metric': {'id': 'A-CONS', 'version': 'v1'}, 'source': 'SRC-A1',
+                                      'cell': 'Z', 'level': 'campaign', 'node': 'A-CMP-WEB',
+                                      'period': {'start': '2026-10-01', 'end': '2026-10-31'}, 'raw': 1})
+            d['ratios'].append({'id': 'A-RX', 'intent': 'conversion', 'numerator': 'A-OX', 'denominator': 'A-O12'})
+        r = ratio(ready(mut=mut), 'A-RX')
+        self.assertEqual((r['kind'], r['value']), ('blocked', None))
+        self.assertTrue(any('期間が締まっていない' in x for x in r['reasons']))
+
+    def test_6_cost_per_label_follows_denominator(self):
+        def mut(d):
+            d['ratios'].append({'id': 'B-R10', 'intent': 'cost_per', 'numerator': 'B-O8', 'denominator': 'B-O11'})
+        b = ready('ms-beta.json', mut)
+        r = ratio(b, 'B-R10')
+        self.assertEqual(r['kind_label'], '費用 ÷ 人数（ユニーク）')
+        self.assertTrue(any('費用 ÷ 人数（ユニーク）' in x for x in r['notes']))
+        self.assertEqual(ratio(b, 'B-R1')['kind_label'], '費用 ÷ 行数')
+        doc = M.render_dataset('ms-beta.json', b.ds, M.Check('beta'))
+        self.assertIn('費用 ÷ 人数（ユニーク）', doc)
+
+    def test_7_localtime_is_not_iana(self):
+        for n in ('localtime', 'Factory', 'posixrules', 'Japan', 'right/Asia/Tokyo', 'posix/Asia/Tokyo'):
+            self.assertEqual(M.tz_status(n)[0], M.TZ_UNKNOWN, n)
+        self.assertEqual(M.tz_status('Asia/Tokyo')[0], M.TZ_VALID)
+        self.assertEqual(M.tz_status('America/Los_Angeles')[0], M.TZ_VALID)
 
 
 S_ = '2026-09-01'

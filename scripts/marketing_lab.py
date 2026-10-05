@@ -523,8 +523,6 @@ def _validate_campaign(ck, c, w, reg, owners, stage_keys, now):
             ck.err('DATE_ORDER', pw, '元データの更新日時が取得日時より後です（取得後に元が変わっています）')
         if fa and fa > now:
             ck.err('DATE_ORDER', pw, '取得日時が現在より未来です')
-        if pe and fa and fa.date() < pe:
-            ck.err('DATE_ORDER', pw, '期間の終了前に取得した値です（期間が締まっていません）')
         cnt = p.get('counts') or {}
         for k in ['impressions', 'clicks'] + mk:
             if k not in cnt:
@@ -542,8 +540,13 @@ def _validate_campaign(ck, c, w, reg, owners, stage_keys, now):
             ck.err('BAD_TZ', pw + '/timezone', tmsg)
         elif tst == ms.TZ_VALID:
             for k, d in (('source_updated_at', su), ('fetched_at', fa)):
-                if d is not None and d.utcoffset() != d.astimezone(zi).utcoffset():
+                if d is not None and not ms.offset_ok(d, zi):
                     ck.err('BAD_TZ', pw + '/' + k, '日時の時差が %s のその時点の時差と一致しません' % p['timezone'])
+            # 期間が締まったかは、取得時刻ではなく元データの更新時刻（cutoff）で、報告 timezone の暦日として見る。
+            # 最終日の当日に更新・取得した値は、最終日の残りが入っていない
+            if pe and su and not ms.day_closed(su, pe, zi):
+                ck.err('DATE_ORDER', pw, '元データの更新が期間最終日の終わり（%s の翌日 0:00）より前です（期間が締まっていません）'
+                       % p['timezone'])
         if not re.match(r'^[A-Z]{3}$', p.get('currency') or ''):
             ck.err('BAD_VALUE', pw + '/currency', '通貨は ISO 3文字です')
         if not (p.get('cost_basis') or '').strip():

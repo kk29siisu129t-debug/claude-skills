@@ -14,7 +14,7 @@
    "id": "SRC-A1",
    "ref": "synthetic://alpha/register-table",
    "timezone": "Asia/Tokyo",
-   "data_cutoff": "2026-10-01T00:00:00+09:00",
+   "data_cutoff": "2026-10-02T00:00:00+09:00",
    "fetched_at": "2026-10-02T09:00:00+09:00"
   }
  ],

@@ -54,6 +54,38 @@ TZ_JA = {TZ_VALID: '検証済み', TZ_UNVALIDATED: '未検証（この環境に 
          TZ_UNKNOWN: '未知の timezone'}
 
 
+_IANA = []
+
+
+_IANA_AREA = re.compile(r'^(Africa|America|Antarctica|Arctic|Asia|Atlantic|Australia|Europe|Indian|Pacific|Etc)/[A-Za-z0-9_+\-/]+$')
+
+
+def _iana_names():
+    """検証済みにしてよい名前。available_timezones() はファイルを数えるだけなので 'localtime' や 'Factory'、
+    旧名（'Japan' など）も含む。地域/都市の正式名と UTC だけに絞る"""
+    if not _IANA:
+        _IANA.append(frozenset(n for n in zoneinfo.available_timezones() if n == 'UTC' or _IANA_AREA.match(n)))
+    return _IANA[0]
+
+
+def offset_ok(d, zi):
+    """記録された時差が正しいか。UTC 表記（+00:00 / Z）は同じ瞬間を一意に表すので受け付け、報告 timezone に変換して使う。
+    それ以外の時差は、報告 timezone のその瞬間の時差（夏時間を含む）と一致しなければならない"""
+    return d.utcoffset() == datetime.timedelta(0) or d.utcoffset() == d.astimezone(zi).utcoffset()
+
+
+def day_closed(cutoff, day, zi):
+    """cutoff（「この瞬間より前を含む」）までに、報告 timezone の暦日 day が丸ごと入っているか。
+    翌日 0:00 ちょうどの cutoff で締まる。1秒前ならまだ締まっていない"""
+    nxt = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time(0), tzinfo=zi)
+    return cutoff >= nxt
+
+
+def day_started_after(cutoff, day, zi):
+    """報告 timezone の暦日 day の 0:00 が cutoff 以降か（その日の出来事は1件も入っていないはず）"""
+    return datetime.datetime.combine(day, datetime.time(0), tzinfo=zi) >= cutoff
+
+
 def tz_status(name):
     """(状態, ZoneInfo | None, 説明)"""
     if not isinstance(name, str) or not name.strip() or name != name.strip():
@@ -61,9 +93,14 @@ def tz_status(name):
     if zoneinfo is None:
         return TZ_UNVALIDATED, None, 'zoneinfo が使えない環境です'
     try:
-        return TZ_VALID, zoneinfo.ZoneInfo(name), ''
+        zi = zoneinfo.ZoneInfo(name)
     except (zoneinfo.ZoneInfoNotFoundError, ValueError):
-        pass
+        zi = None
+    if zi is not None:
+        # 'localtime' のようにファイルとしては引けても、機械ごとに中身が変わる名前は IANA 名として扱わない
+        if name in _iana_names():
+            return TZ_VALID, zi, ''
+        return TZ_UNKNOWN, None, 'IANA の timezone 名ではありません: %s' % name[:40]
     try:
         zoneinfo.ZoneInfo('UTC')  # データベース自体があるか
     except zoneinfo.ZoneInfoNotFoundError:
@@ -278,9 +315,9 @@ def validate(ds, now):
             ck.err('BAD_DATE', w, 'data_cutoff / fetched_at は時差付きの日時が必要です')
             continue
         if tst == TZ_VALID:
-            # その瞬間の時差（夏時間を含む）と、記録された時差が一致するか
+            # その瞬間の時差（夏時間を含む）と、記録された時差が一致するか（UTC 表記は可）
             for k, d in (('data_cutoff', cut), ('fetched_at', got)):
-                if d.utcoffset() != d.astimezone(zi).utcoffset():
+                if not offset_ok(d, zi):
                     ck.err('BAD_TZ', w + '/' + k, '日時の時差が %s のその時点の時差（%s）と一致しません' % (
                         tz, d.astimezone(zi).utcoffset()))
         if cut > got:
@@ -319,9 +356,18 @@ def validate(ds, now):
             ck.err('BAD_VALUE', w, '母集団の定義と基準（発生日／cohort）が違います')
     for d in defs:
         rr = d.get('rule_ref')
-        if d.get('purpose') == 'marketing' and isinstance(rr, dict) and rr.get('purpose') == 'billing':
-            ck.err('BILLING_RULE', 'metric_definitions/%s' % d.get('id'),
-                   '手数料請求の対象判定ルールをマーケの conversion に適用しています')
+        if rr is None:
+            continue
+        w = 'metric_definitions/%s' % d.get('id')
+        if not isinstance(rr, dict):
+            ck.err('BAD_VALUE', w, 'rule_ref は {id, version} か {purpose} です')
+            continue
+        tgt = dmap.get((rr.get('id'), rr.get('version'))) if 'id' in rr else None
+        if 'id' in rr and tgt is None:
+            ck.err('UNKNOWN_REF', w, 'rule_ref の定義がありません')
+        billing = rr.get('purpose') == 'billing' or (tgt is not None and tgt.get('purpose') == 'billing')
+        if d.get('purpose') == 'marketing' and billing:
+            ck.err('BILLING_RULE', w, '手数料請求の対象判定ルールをマーケの conversion に適用しています')
 
     nmap = {n.get('id'): n for n in nodes}
     for n in nodes:
@@ -356,6 +402,13 @@ def validate(ds, now):
             ck.err('BAD_DATE', w, '報告期間の日付が読めません')
         elif ps > pe:
             ck.err('DATE_ORDER', w, '報告期間の開始が終了より後です')
+        src = smap.get(o.get('source'))
+        if d is not None and src is not None and ps is not None:
+            tst, zi, _ = tz_status(src.get('timezone'))
+            cut = _dt(src.get('data_cutoff'))
+            if tst == TZ_VALID and cut is not None and day_started_after(cut, ps, zi):
+                if normalize(o.get('raw'), o.get('declared_state'), d.get('unit'))['state'] == VALUE:
+                    ck.err('DATE_ORDER', w, '期間の開始がデータ cutoff 以降なのに値があります（cutoff か期間のどちらかが誤り）')
         co = o.get('cohort')
         if d is not None and d.get('basis') == 'registration_cohort':
             cs, ce, cx = (_date((co or {}).get(k)) for k in ('start', 'end', 'observation_end'))
@@ -469,8 +522,7 @@ class Dataset:
         # cutoff は「この時刻より前を含む」。最終日が丸ごと入るのは、cutoff が
         # 報告 timezone での翌日 0:00 以降のときだけ（9/30 23:59 で切れば 9/30 は締まっていない）
         def complete(day):
-            nxt = datetime.datetime.combine(day + datetime.timedelta(days=1), datetime.time(0), tzinfo=zi)
-            return cut >= nxt
+            return day_closed(cut, day, zi)
         if d['basis'] == 'registration_cohort':
             xe = _date(o['cohort']['observation_end'])
             if not complete(xe):
@@ -480,6 +532,14 @@ class Dataset:
         if not complete(pe):
             return True, '期間が締まっていない（期間終了 %s ／ データ cutoff %s）' % (pe.isoformat(), cut.isoformat())
         return False, ''
+
+
+def obs_window(o):
+    """cohort の観測期間の長さ（cohort 終了日の翌日から観測終了日までの日数）。発生日基準は None"""
+    co = o.get('cohort')
+    if not co:
+        return None
+    return (_date(co['observation_end']) - _date(co['end'])).days
 
 
 def series_key(ds, o):
@@ -512,6 +572,9 @@ def comparability(ds, a, b):
     if (da.get('currency'), da.get('cost_basis')) != (db.get('currency'), db.get('cost_basis')):
         why.append('通貨・費用基準が違います（%s %s ／ %s %s）' % (
             da.get('currency'), da.get('cost_basis'), db.get('currency'), db.get('cost_basis')))
+    wa, wb = obs_window(a), obs_window(b)
+    if wa != wb:
+        why.append('cohort の観測期間の長さが違います（cohort 終了後 %s日 ／ %s日）' % (wa, wb))
     la = (_date(a['period']['end']) - _date(a['period']['start'])).days
     lb = (_date(b['period']['end']) - _date(b['period']['start'])).days
     if la != lb:
@@ -554,9 +617,12 @@ def evaluate_ratio(ds, r):
         if ds.tz_state(o) != TZ_VALID:
             stop.append('%s の timezone %s は%s' % (o['id'], ds.tz(o), TZ_JA[ds.tz_state(o)]))
     stop = list(dict.fromkeys(stop))
+    if 'billing' in (dn['purpose'], dd['purpose']):
+        # 手数料請求の対象判定で数えたものは、率にも単価にも使わない
+        stop.append('手数料請求の対象判定の定義を含みます（マーケの率・単価に使いません）')
     if r['intent'] == 'cost_per':
         if dn['unit'] != 'currency' or dd['unit'] == 'currency':
-            stop.append('費用 ÷ 件数の形になっていません')
+            stop.append('費用 ÷ 件数・人数の形になっていません')
     elif 'currency' in (dn['unit'], dd['unit']):
         stop.append('金額を含む比は conversion rate になりません')
     elif dn['unit'] != dd['unit']:
@@ -577,8 +643,9 @@ def evaluate_ratio(ds, r):
     out['value'] = nn['value'] / nd['value']
     if r['intent'] == 'cost_per':
         out['kind'] = 'cost_per'
-        out['notes'].append('%s・%s。発生日基準の同期間の費用 ÷ 件数で、%sの効率の証明ではありません' % (
-            dn['currency'], dn['cost_basis'], '施策'))
+        out['kind_label'] = '費用 ÷ %s' % UNITS[dd['unit']]
+        out['notes'].append('%s・%s。%sの同期間の費用 ÷ %sで、施策の効率の証明ではありません' % (
+            dn['currency'], dn['cost_basis'], BASES[dd['basis']], UNITS[dd['unit']]))
         im, txt = ds.maturity(num)
         im2, txt2 = ds.maturity(den)
         if im or im2:
@@ -587,21 +654,32 @@ def evaluate_ratio(ds, r):
             out['reasons'] = list(dict.fromkeys([t for t in (txt, txt2) if t]))
         return out
     not_cvr = []
-    if 'billing' in (dn['purpose'], dd['purpose']):
-        not_cvr.append('手数料請求の対象判定の定義を含みます（マーケの conversion に使いません）')
     if dn['basis'] == 'occurrence':
         not_cvr.append('発生日基準の同期間の件数比です。分子の人が分母に含まれる保証がありません')
     pop = dn.get('population_of') or {}
     if (pop.get('id'), pop.get('version')) != (dd['id'], dd['version']):
         not_cvr.append('分子が分母の母集団の部分集合として定義されていません')
-    if not_cvr:
-        out.update(kind='count_ratio', reasons=not_cvr)
-        return out
     im, txt = ds.maturity(num)
     im2, txt2 = ds.maturity(den)
+    if not_cvr:
+        if im or im2:
+            # 締まっていない期間の件数比は、締まった月と並べて読まれるので値を出さない
+            out.update(kind='blocked', value=None,
+                       reasons=list(dict.fromkeys([t for t in (txt, txt2) if t])) + not_cvr)
+            return out
+        out.update(kind='count_ratio', reasons=not_cvr)
+        return out
+    win = obs_window(num)
+    out['notes'].append('観測期間: cohort 終了後 %d日（%s まで）。観測期間の長さが違う cohort とは並べて比べません'
+                        % (win, num['cohort']['observation_end']))
     if im or im2:
+        zi = tz_status(ds.tz(num))[1]
+        last = (ds.cutoff(num).astimezone(zi) - datetime.timedelta(microseconds=1)).date()  # 丸ごと入った最後の日
+        seen = max(0, (min(last, _date(num['cohort']['observation_end'])) - _date(num['cohort']['end'])).days)
         out.update(kind='provisional', reasons=list(dict.fromkeys([t for t in (txt, txt2) if t])) +
-                   ['観測が終わっていないので、ここから増えます。確定したCVRとして扱いません'])
+                   ['観測が終わっていないので、ここから増えます。確定したCVRとして扱いません',
+                    '予定の観測期間 cohort 終了後 %d日のうち、データ cutoff までに観測できたのは %d日分です'
+                    % (obs_window(num), seen)])
         return out
     if nn['value'] > nd['value']:
         out.update(kind='blocked', value=None, reasons=['分子が分母を超えています（部分集合になっていません）'])
@@ -800,6 +878,7 @@ def render_dataset(name, ds_raw, ck):
         for r in ds_raw['ratios']:
             ev = evaluate_ratio(ds, r)
             lab, cls = KIND_JA[ev['kind']]
+            lab = ev.get('kind_label', lab)
             if ev['value'] is None:
                 val = '値を出しません'
             elif ev['kind'] == 'cost_per':
@@ -809,7 +888,7 @@ def render_dataset(name, ds_raw, ck):
             h.append('<div class="ratio"><div><b>%s</b> <span class="badge %s">%s</span> <span class="val">%s</span></div>'
                      '<div class="small">依頼の意図: %s ／ 分子 %s（原値 <code>%s</code>・%s） ÷ 分母 %s（原値 <code>%s</code>・%s）</div>' % (
                          e(r.get('label') or r['id']), cls, e(lab), e(val),
-                         e('conversion rate' if r['intent'] == 'conversion' else '費用 ÷ 件数'),
+                         e('conversion rate' if r['intent'] == 'conversion' else '費用 ÷ 件数・人数'),
                          e(_obs_label(ds, ev['num'])), e(raw_text(ev['num'].get('raw'))),
                          e(STATE_JA[ds.norm[ev['num']['id']]['state']]),
                          e(_obs_label(ds, ev['den'])), e(raw_text(ev['den'].get('raw'))),
