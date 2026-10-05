@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 2,
+  "id": "mitsumoriban-team-tool",
+  "name": "見積もり番（架空デモ）",
+  "updatedAt": "",
+  "display": {
+    "brandName": "見積もり番",
+    "serviceDescriptor": "見積もりの返事待ちを共有する、チーム用管理ツール",
+    "audienceLabel": "少人数で案件を進める制作会社へ",
+    "demoMode": "synthetic-demo",
+    "demoNotice": "架空サービスのデモです。登録やお申し込みはできません。",
+    "operator": "",
+    "category": "b2b-software"
+  },
+  "brand": { "primary": "#1f5f57", "accent": "#d0672b", "ink": "#182226", "paper": "#f7f8f6", "font": "sans" },
+  "inputs": {
+    "scene": {
+      "who": "少人数の制作会社で、見積もり送付後の確認を担当する人とチーム責任者",
+      "timing": "定例会議",
+      "trying": "誰がどの案件の返事を待っているかを把握する",
+      "stuckAt": "送付後の状況が各担当者のメールとメモに分かれ、会議で確認し直している"
+    },
+    "efforts": {
+      "tried": "定例会議で担当者に一つずつ確認する",
+      "whatHappened": "状況をそろえるために会議の時間を使う",
+      "alternatives": "各担当者のメールとメモ"
+    },
+    "promiseLayers": {
+      "canDo": [
+        { "text": "案件名、見積もりの状況、担当者、次回確認日を記録できる", "sourceRefs": ["s2-input"] },
+        { "text": "チームの共有一覧で確認できる", "sourceRefs": ["s2-list"] },
+        { "text": "担当者、状況、次回確認日で絞り込める", "sourceRefs": ["s2-filter"] }
+      ],
+      "expectedChange": [
+        { "text": "次に誰がいつ確認するかを、チームで同じ一覧から判断できる", "sourceRefs": ["s2-list", "s2-filter"] }
+      ],
+      "cannotGuarantee": [
+        { "text": "受注・売上の改善", "sourceRefs": [] },
+        { "text": "メールの自動取り込み・自動送信・会計処理", "sourceRefs": ["s2-boundary"] }
+      ]
+    },
+    "mechanism": {
+      "receive": "チームで共有する見積もりの一覧",
+      "withWhom": "チームのメンバー",
+      "sequence": "送った見積もりを手入力で記録 → 共有一覧で確認 → 担当者・状況・次回確認日で絞り込む",
+      "frequency": "見積もりを送ったとき・状況が変わったときに記録",
+      "differentiation": "",
+      "differentiationBasisRef": ""
+    },
+    "action": {
+      "ctaLabel": "",
+      "behavior": "none",
+      "url": "",
+      "price": "", "duration": "", "method": "", "continuation": "", "requiredInput": "",
+      "confirmed": { "offer": false, "price": false, "duration": false, "method": false, "url": false }
+    },
+    "doNotAssert": ["失注を防ぐ", "売上が上がる", "確認漏れゼロ", "工数を削減した", "自動化で手間いらず"]
+  },
+  "ledger": [
+    { "id": "s2-target", "text": "少人数の制作会社で、見積もり送付後の確認を担当する人とチーム責任者", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic fixture" },
+    { "id": "s2-scene", "text": "送付後の状況が各担当者のメールとメモに分かれ、定例会議で誰がどの案件の返事を待っているか確認し直している", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic fixture; no interview conducted" },
+    { "id": "s2-input", "text": "案件名、見積もりの状況、担当者、次回確認日を手入力で記録する", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic service specification" },
+    { "id": "s2-list", "text": "記録した案件をチームの共有一覧で確認できる", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic service specification" },
+    { "id": "s2-filter", "text": "担当者、状況、次回確認日で案件を絞り込める", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic service specification" },
+    { "id": "s2-boundary", "text": "メールの自動取り込み、自動送信、会計処理は提供しない", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic service specification" },
+    { "id": "s2-demo", "text": "LP内で架空案件の一覧イメージを閲覧できる。申込み・アカウント作成・メール送信は行わない", "kind": "provider-claim", "reality": "synthetic", "origin": "synthetic demo requirement" },
+    { "id": "u2-price", "text": "実販売価格", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u2-seats", "text": "ユーザー数上限", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u2-contract", "text": "契約条件", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u2-security", "text": "セキュリティ仕様", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u2-apply", "text": "実販売の申込先", "kind": "unknown", "reality": "synthetic", "origin": "未確定" }
+  ],
+  "quotes": [], "evidence": [],
+  "insights": [], "angles": [], "chosenAngleId": "", "sections": [], "selfCheck": null,
+  "cta": { "activeVariant": "a", "variants": [{ "id": "a", "label": "", "color": "#1f5f57", "timing": "spec" }] },
+  "lpo": { "dataset": null }
+}

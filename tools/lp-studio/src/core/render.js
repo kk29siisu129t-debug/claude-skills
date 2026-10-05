@@ -1,344 +1,31 @@
-// 同じ project から WF / デザイン（PC・SP は同一のレスポンシブHTML）/ draft / safe を描画する。
-// すべての文字列は escapeHtml を通す。URL は safeUrl、色は safeColor を通した値だけを使う。
-// script はツールが持つ固定文字列だけ（ユーザー入力を含まない）で、CSP の sha256 hash を付ける。
+// LP の描画（v2）。同じ project から draft（社内確認）/ review（レビュー用プレビュー）/ commercial（実販売）を描く。
+// - すべての文字列は escapeHtml を通す。URL は safeUrl、色は safeColor を通した値だけを使う。
+// - script はツールが持つ固定文字列だけ（ユーザー入力を含まない）。CSP の sha256 hash を付ける。
+// - 見出し・本文・CTA は最初の描画から読める。動くのは仕組みを説明する図だけ（1.2秒以内に静止）。
+// - デモ（live 以外）では、行動ボタンはページ内の例へのアンカーだけ。実際の申込ボタンは無効表示。
 
 import { escapeHtml as e, safeUrl, safeColor, contrastRatio, readableOn, inkFor, sha256Base64 } from './util.js';
-import { SECTION_CATALOG, BRIEF_LABELS } from './sections.js';
-import { assessText, detectClaims, containsToken, metricMatches } from './claims.js';
-import { activeCta } from './model.js';
+import { ROLES } from './roles.js';
+import { headingPhrases } from './segment.js';
+import { checkProject, gates } from './editorial.js';
+import { refIndex } from './schema.js';
 
-export const RUNTIME_SCRIPT = `(function(){var d=document.documentElement,b=document.body;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);var io='IntersectionObserver' in window;if(!rm&&io)d.classList.add('js');
-function fmt(v,dec){return Number(v).toLocaleString('ja-JP',{minimumFractionDigits:dec,maximumFractionDigits:dec})}
-var els=document.querySelectorAll('.reveal');if(rm||!io){for(var i=0;i<els.length;i++)els[i].classList.add('in')}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -8% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
-var cs=document.querySelectorAll('[data-count]');Array.prototype.forEach.call(cs,function(el){var raw=el.getAttribute('data-count');var to=parseFloat(raw);var dec=(raw.split('.')[1]||'').length;if(rm||!io||!isFinite(to)){el.textContent=fmt(to,dec);return}el.textContent=fmt(0,dec);var o=new IntersectionObserver(function(es){if(!es[0].isIntersecting)return;o.disconnect();var t0=performance.now();function step(t){var k=Math.min(1,(t-t0)/900);el.textContent=fmt(to*(1-Math.pow(1-k,3)),dec);if(k<1)requestAnimationFrame(step)}requestAnimationFrame(step)});o.observe(el)});
-var bar=document.querySelector('.cta-sticky');if(!bar)return;var timing=b.getAttribute('data-cta-timing')||'spec';var fvVis=true,half=false,inl=document.querySelectorAll('.cta-inline'),vis=[];
-function upd(){var anyInline=vis.some(function(v){return v});var show=!fvVis&&!anyInline&&(timing!=='after-half'||half);bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
-if(io){var fv=document.querySelector('.fv');if(fv)new IntersectionObserver(function(es){fvVis=es[0].isIntersecting;upd()}).observe(fv);else fvVis=false;var io2=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(inl,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(inl,function(x,i){vis[i]=false;io2.observe(x)})}else{fvVis=false}
-function onScroll(){var h=document.documentElement;half=(h.scrollTop+window.innerHeight)/Math.max(1,h.scrollHeight)>0.5;upd()}addEventListener('scroll',onScroll,{passive:true});onScroll()})();`;
+// head で js クラスを付ける（動きを減らす設定なら付けない）。body 末尾で付けると一瞬の明滅が起きうるため
+export const HEAD_SCRIPT = `(function(){try{var d=document.documentElement;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);if(!rm&&!d.hasAttribute('data-reduce-motion')&&'IntersectionObserver' in window)d.classList.add('js')}catch(e){}})();`;
+
+export const RUNTIME_SCRIPT = `(function(){var d=document.documentElement;var io='IntersectionObserver' in window;
+var els=document.querySelectorAll('.reveal');function showAll(){for(var i=0;i<els.length;i++)els[i].classList.add('in')}
+if(!d.classList.contains('js')||!io){showAll()}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -6% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
+addEventListener('hashchange',showAll);addEventListener('beforeprint',showAll);if(location.hash)showAll();
+var bar=document.querySelector('.sticky-cta');if(!bar)return;var zones=document.querySelectorAll('.cta-zone'),vis=[];
+function upd(){var any=false;for(var i=0;i<vis.length;i++)if(vis[i])any=true;var show=!any;bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
+if(io){var z=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(zones,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(zones,function(x,i){vis[i]=true;z.observe(x)});upd()}else{bar.classList.add('show');bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}})();`;
 
 const FONT_STACK = {
-  sans: '"Hiragino Sans","Noto Sans JP","Yu Gothic UI","Meiryo",system-ui,sans-serif',
-  serif: '"Hiragino Mincho ProN","Noto Serif JP","Yu Mincho",serif',
+  sans: '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI","Meiryo",system-ui,sans-serif',
+  serif: '"Hiragino Mincho ProN","Noto Serif JP","Noto Serif CJK JP","Yu Mincho",serif',
   rounded: '"Hiragino Maru Gothic ProN","M PLUS Rounded 1c","Noto Sans JP",system-ui,sans-serif',
 };
-
-function baseCss(project, cta) {
-  const b = project.brand;
-  const primary = safeColor(b.primary) || '#2f3cbe';
-  const accent = safeColor(b.accent) || '#e0567a';
-  const ink = safeColor(b.ink) || '#1d2230';
-  const paper = safeColor(b.paper) || '#fbf8f2';
-  const ctaColor = safeColor(cta.color) || '#d93d63';
-  const ctaText = readableOn(ctaColor);
-  const fvText = readableOn(primary);
-  return `:root{--primary:${primary};--accent:${accent};--ink:${ink};--paper:${paper};--cta:${ctaColor};--cta-text:${ctaText};--fv-text:${fvText};--accent-ink:${inkFor(accent, '#f1f1f3')};--primary-ink:${inkFor(primary, '#ffffff')};--cta-ink:${inkFor(ctaColor, '#ffffff')};--font:${FONT_STACK[b.font] || FONT_STACK.sans}}
-*,*::before,*::after{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;font-family:var(--font);color:var(--ink);background:var(--paper);font-size:17.5px;line-height:34.1px;overflow-wrap:anywhere;padding-bottom:110px}
-img,video{max-width:100%}
-.wrap{max-width:720px;margin:0 auto;padding:0 24px}
-.wide{max-width:1040px;margin:0 auto;padding:0 24px}
-section{padding:88px 0;position:relative}
-h1,h2,h3{line-height:1.35;margin:0 0 20px;letter-spacing:.01em}
-h2{font-size:36px;font-weight:800}
-h3{font-size:21px}
-p{margin:0 0 18px}
-.eyebrow{display:inline-block;font-size:13px;letter-spacing:.14em;font-weight:700;text-transform:uppercase;line-height:1.6;padding:4px 12px;border-radius:999px;border:1.5px solid currentColor;margin-bottom:18px}
-.lead{font-size:20px;line-height:1.8;font-weight:600}
-.bg-paper{background:color-mix(in srgb,var(--accent) 5%,var(--paper));background-image:radial-gradient(color-mix(in srgb,var(--ink) 7%,transparent) 1px,transparent 1.2px);background-size:22px 22px}
-.bg-grid{background-color:color-mix(in srgb,var(--accent) 3%,#fff);background-image:linear-gradient(color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px),linear-gradient(90deg,color-mix(in srgb,var(--accent) 10%,transparent) 1px,transparent 1px);background-size:30px 30px}
-.fv{padding:0;overflow:hidden;background:var(--paper)}
-.fv-top{background:linear-gradient(90deg,var(--primary),var(--accent));color:var(--fv-text);text-align:center;font-weight:800;font-size:22px;line-height:1.5;padding:12px 0;letter-spacing:.04em}
-.fv-hero{position:relative;background:linear-gradient(180deg,#fafafa,#f1f1f3);overflow:hidden}
-.fv-hero::before{content:"";position:absolute;top:0;bottom:0;right:0;width:36%;background:color-mix(in srgb,var(--ink) 9%,#ececef);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
-.hero-grid{position:relative;display:grid;grid-template-columns:1.55fr 1fr;gap:28px;align-items:center;padding-top:34px;padding-bottom:30px}
-.kicker{color:var(--accent-ink);font-weight:900;font-size:28px;line-height:1.3;margin:0 0 6px;letter-spacing:.02em}
-.kicker.long{font-size:22px}
-.fv h1{font-size:52px;font-weight:900;line-height:1.22;margin:0 0 16px;color:var(--ink);letter-spacing:.01em}
-.fv .sub{font-weight:800;font-size:20px;line-height:1.75;color:var(--ink)}
-.fv .sub p{margin:0 0 4px}
-.fv-visual{position:relative;min-height:280px}
-.bp-card{position:absolute;width:44%;aspect-ratio:3/4;border-radius:10px;background:linear-gradient(160deg,#fff 0 58%,color-mix(in srgb,var(--primary) 18%,#fff) 58%);box-shadow:0 14px 28px rgba(0,0,0,.18);border:1px solid color-mix(in srgb,var(--ink) 10%,transparent);padding:14px 12px;display:flex;flex-direction:column;gap:8px}
-.bp-card b{font-size:13px;letter-spacing:.12em;color:var(--primary-ink);line-height:1}
-.bp-card i{display:block;height:7px;border-radius:4px;background:color-mix(in srgb,var(--ink) 14%,transparent)}
-.bp-card i:nth-of-type(2){width:72%}.bp-card i:nth-of-type(3){width:84%;background:color-mix(in srgb,var(--accent) 40%,transparent)}
-.bp-card.c1{left:0;bottom:6%;transform:rotate(-6deg)}.bp-card.c2{left:28%;bottom:12%;transform:rotate(2deg);z-index:1}.bp-card.c3{left:56%;bottom:4%;transform:rotate(7deg)}
-.bp-chip{position:absolute;left:6%;bottom:-2%;z-index:2;background:var(--ink);color:#fff;font-weight:800;font-size:15px;line-height:1.5;padding:6px 14px;border-radius:8px;max-width:90%}
-.badge{text-decoration:none;position:absolute;right:16px;top:18px;z-index:3;width:138px;height:138px;border-radius:50%;display:grid;place-items:center;text-align:center;background:radial-gradient(circle,#fff 0 56%,transparent 57%),repeating-conic-gradient(var(--accent) 0 10deg,color-mix(in srgb,var(--accent) 70%,#fff) 10deg 20deg);box-shadow:0 8px 20px rgba(0,0,0,.18);color:var(--ink);font-weight:900;line-height:1.15;font-size:13px}
-.badge strong{display:block;font-size:30px;color:var(--accent-ink)}
-.fv-offer{position:relative;background:linear-gradient(90deg,var(--primary),var(--accent));color:var(--fv-text);padding:20px 0 14px;text-align:center}
-.fv-offer::before,.fv-offer::after{content:"✦";position:absolute;font-size:14px;opacity:.6}.fv-offer::before{left:6%;top:38%}.fv-offer::after{right:9%;top:60%}
-.offer-row{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
-.offer-tag{display:inline-block;background:color-mix(in srgb,var(--ink) 75%,#5a0f0f);color:#fff;font-weight:800;font-size:15px;line-height:1.5;padding:10px 26px;clip-path:polygon(6% 0,100% 0,94% 100%,0 100%)}
-.offer-big{font-size:44px;font-weight:900;line-height:1.25;letter-spacing:.02em}
-.fv-offer .cta-inline{margin:16px auto 4px}
-.scroll-hint{display:block;font-size:22px;line-height:1;opacity:.75}
-.cta-inline{display:flex;align-items:center;justify-content:center;gap:14px;min-height:76px;width:100%;max-width:600px;padding:12px 28px;border-radius:999px;background:#fff;color:var(--cta-ink);font-weight:900;font-size:24px;line-height:1.35;text-decoration:none;box-shadow:0 12px 26px rgba(0,0,0,.18);margin:28px 0 8px}
-.cta-ico{flex:none;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--cta),color-mix(in srgb,var(--cta) 55%,var(--accent)));position:relative}
-.cta-ico::after{content:"";position:absolute;left:15px;top:12px;border-left:13px solid #fff;border-top:8px solid transparent;border-bottom:8px solid transparent}
-.on-light .cta-inline{background:var(--cta);color:var(--cta-text)}
-.on-light .cta-ico{background:#fff}.on-light .cta-ico::after{border-left-color:var(--cta)}
-.cta-inline:focus-visible,.cta-sticky a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
-.cta-inline::after{content:"›";font-weight:900;font-size:1.3em;line-height:1}
-.cta-note{font-size:13px;line-height:1.7}
-.cta-sticky{position:fixed;right:24px;bottom:24px;width:340px;height:66px;z-index:50;visibility:hidden;opacity:0;transform:translateY(12px);transition:opacity .35s,transform .35s,visibility .35s}
-.cta-sticky.show{visibility:visible;opacity:1;transform:none}
-.cta-sticky a{display:flex;align-items:center;justify-content:center;gap:12px;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--cta),color-mix(in srgb,var(--cta) 70%,var(--accent)));color:var(--cta-text);font-weight:800;font-size:18px;line-height:1.3;text-decoration:none;box-shadow:0 12px 30px rgba(0,0,0,.25);padding:0 20px;text-align:center}
-.cta-sticky .cta-ico{width:30px;height:30px;background:#fff}.cta-sticky .cta-ico::after{left:11px;top:8px;border-left:10px solid var(--cta);border-top:7px solid transparent;border-bottom:7px solid transparent}
-.cta-sticky a::after{content:"›";font-size:1.3em;line-height:1}
-.cards{display:grid;gap:16px}
-.card{background:#fff;border-radius:18px;padding:22px 24px;box-shadow:0 1px 0 color-mix(in srgb,var(--ink) 10%,transparent),0 8px 24px color-mix(in srgb,var(--ink) 7%,transparent);border:1px solid color-mix(in srgb,var(--ink) 8%,transparent)}
-.bubble{position:relative;font-weight:600}
-.bubble::before{content:"“";color:var(--accent);font-size:34px;line-height:0;vertical-align:-12px;margin-right:6px;font-weight:900}
-.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-.compare .col{border-radius:18px;padding:22px}
-.compare .before{background:color-mix(in srgb,var(--ink) 6%,#fff)}
-.compare .after{background:color-mix(in srgb,var(--primary) 12%,#fff);border:2px solid var(--primary)}
-.compare h3{font-size:16px;letter-spacing:.1em;color:var(--ink)}
-ul.plain{list-style:none;padding:0;margin:0}
-ul.plain li{padding:10px 0;border-bottom:1px dashed color-mix(in srgb,var(--ink) 18%,transparent)}
-ol.steps{list-style:none;padding:0;margin:0;counter-reset:s;display:grid;gap:28px}
-.ncard{counter-increment:s;position:relative;overflow:hidden;background:#fff;border-radius:6px;padding:34px 36px 30px;box-shadow:0 18px 40px color-mix(in srgb,var(--accent) 16%,rgba(0,0,0,.08))}
-.ncard::before{content:counter(s,decimal-leading-zero);position:absolute;right:18px;top:-14px;font-size:96px;font-weight:900;line-height:1;color:color-mix(in srgb,var(--accent) 12%,#fff);z-index:0}
-.ncard h3{position:relative;z-index:1;display:flex;gap:10px;align-items:flex-start;font-size:22px;line-height:1.5;margin:0;padding-bottom:16px;border-bottom:2px dotted color-mix(in srgb,var(--ink) 18%,transparent)}
-.ncard h3::before{content:"✓";flex:none;width:28px;height:28px;margin-top:3px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;font-size:15px;line-height:1}
-.ncard h3:only-child{border-bottom:0;padding-bottom:0}
-.ncard .nbody{position:relative;z-index:1;padding-top:14px}
-.yes li::before{content:"✓ ";color:var(--primary-ink);font-weight:900}
-.no li::before{content:"— ";color:var(--ink);font-weight:900}
-.band{background:linear-gradient(120deg,color-mix(in srgb,var(--primary) 92%,#000),var(--accent));color:var(--fv-text)}
-.proof-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px}
-.metric{font-size:44px;font-weight:900;line-height:1.1;color:var(--primary-ink);display:block;margin-bottom:6px}
-.metric small{font-size:18px;margin-left:4px}
-.src{font-size:13px;line-height:1.6;display:block;margin-top:8px}
-.closing{text-align:left}
-footer{padding:40px 0 30px;font-size:13px;line-height:1.8;background:color-mix(in srgb,var(--ink) 92%,#000);color:#f4f4f4}
-.reveal{transition:opacity .7s ease,transform .7s ease}
-.js .reveal{opacity:0;transform:translateY(18px)}
-.js .reveal.in{opacity:1;transform:none}
-.js .fv .stage{opacity:0;animation:rise .8s cubic-bezier(.2,.7,.2,1) forwards}
-.js .fv .s1{animation-delay:.05s}.js .fv .s2{animation-delay:.2s;animation-duration:.6s}.js .fv .s3{animation-delay:.35s;animation-duration:.7s}.js .fv .s4{animation-delay:.5s;animation-duration:.9s}
-@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.js .reveal,.js .fv .stage{opacity:1!important;transform:none!important}}
-.flag{background:repeating-linear-gradient(45deg,#fff3b0,#fff3b0 6px,#ffe58a 6px,#ffe58a 12px);color:#3b2f00;border-radius:4px;padding:0 3px}
-.flag-tag{display:inline-block;font-size:11px;line-height:1.5;font-weight:800;background:#7a1f00;color:#fff;border-radius:4px;padding:0 5px;margin-left:4px;vertical-align:2px}
-.draft-banner{position:sticky;top:0;z-index:60;background:#7a1f00;color:#fff;font-size:13px;line-height:1.6;padding:8px 16px;text-align:center}
-@media (max-width:600px){
-body{font-size:16px;line-height:31.2px}
-.wrap,.wide{padding:0 18px}
-section{padding:64px 0}
-h2{font-size:30px}
-.fv-top{font-size:15px;padding:9px 12px}
-.fv-hero::before{width:44%;top:auto;height:58%}
-.hero-grid{display:block;padding-top:22px;padding-bottom:18px}
-.kicker{font-size:21px;margin-bottom:6px;padding-right:100px}
-.kicker.long{font-size:17px;line-height:1.5}
-.fv h1{font-size:38px;line-height:1.2;margin-bottom:10px;padding-right:0}
-.fv .sub{font-size:16px;line-height:1.7}
-.fv-visual{min-height:118px;margin-top:16px}
-.bp-card{width:24%;padding:8px 7px;gap:5px}.bp-card b{font-size:10px}.bp-card i{height:5px}
-.bp-card.c1{left:0;bottom:4%}.bp-card.c2{left:17%;bottom:10%}.bp-card.c3{left:34%;bottom:2%}
-.bp-chip{left:auto;right:0;bottom:6%;font-size:13px;max-width:48%}
-.badge{text-decoration:none;position:absolute;right:12px;top:14px;width:96px;height:96px;font-size:10px}.badge strong{font-size:21px}
-.hero-grid{position:static}.fv-hero{position:relative}
-.fv-offer{padding:16px 0 12px}
-.offer-row{gap:10px;flex-direction:column}
-.offer-tag{display:block;width:100%;font-size:14px;padding:7px 14px;clip-path:polygon(2% 0,100% 0,98% 100%,0 100%)}
-.offer-big{font-size:30px}
-.cta-inline{font-size:19px;min-height:62px;margin-top:12px;padding:10px 18px;gap:10px}.cta-ico{width:34px;height:34px}.cta-ico::after{left:13px;top:10px;border-left-width:11px;border-top-width:7px;border-bottom-width:7px}.ncard{padding:26px 20px 22px}.ncard h3{font-size:20px}.ncard::before{font-size:76px}
-.compare{grid-template-columns:1fr}
-.metric{font-size:38px}
-.cta-sticky{left:12px;right:12px;bottom:10px;width:auto;height:54px}
-.cta-sticky a{font-size:16px}
-body{padding-bottom:84px}
-}`;
-}
-
-function wfCss() {
-  return `*,*::before,*::after{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans JP",sans-serif;background:#eef0f3;color:#222;font-size:15px;line-height:1.7;overflow-wrap:anywhere;padding:16px 0 40px}
-.wf{max-width:760px;margin:0 auto;padding:0 12px;display:grid;gap:12px}
-.box{background:#fff;border:2px dashed #9aa3b2;border-radius:10px;padding:14px 16px}
-.box.req{border-style:solid}
-.meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:6px;font-size:12px}
-.tag{background:#e3e7ee;border-radius:4px;padding:1px 6px;font-weight:700}
-.tag.req{background:#2f3cbe;color:#fff}.tag.ok{background:#1f6f5c;color:#fff}.tag.warn{background:#7a1f00;color:#fff}
-.role{font-size:12px;color:#555;margin:0 0 8px}
-.h{font-weight:800;font-size:18px;margin:4px 0}
-.ph{background:#dfe3ea;border-radius:6px;padding:6px 8px;color:#444;font-size:13px;margin:6px 0}
-.cta{display:inline-block;border:2px solid #222;border-radius:999px;padding:6px 16px;font-weight:700;margin-top:6px}
-.miss{font-size:12px;color:#7a1f00;margin:6px 0 0;padding-left:18px}
-.flag{background:#fff3b0;border-radius:3px}
-ul{margin:4px 0;padding-left:20px}
-.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}@media (max-width:600px){.two{grid-template-columns:1fr}}`;
-}
-
-// ---------------- テキスト評価と描画 ----------------
-
-function renderInline(project, section, raw, kind, ctx) {
-  const a = assessText(project, section, raw);
-  if (kind === 'safe') {
-    if (!a.publishable) {
-      ctx.removed.push({ section: SECTION_CATALOG[section.type].label, text: a.text.slice(0, 60), reasons: reasonsOf(a) });
-      return null;
-    }
-    return e(a.text);
-  }
-  if (a.publishable) return e(a.text);
-  const why = reasonsOf(a).join(' / ');
-  return `<span class="flag" title="${e(why)}">${e(a.text)}</span><span class="flag-tag">未確認</span>`;
-}
-
-function reasonsOf(a) {
-  const r = [];
-  if (a.placeholder) r.push('要記入が残っている');
-  for (const t of a.unresolvedTokens) r.push(`${BRIEF_LABELS[t.key] || t.key}が${t.reason === 'unconfirmed' ? '未確定' : '未入力'}`);
-  for (const c of a.claims.filter((x) => !x.resolved)) r.push(`${c.label}「${c.match}」の根拠なし`);
-  return r;
-}
-
-function paragraphs(html) {
-  if (html == null) return '';
-  return html.split(/\n+/).filter(Boolean).map((p) => `<p>${p}</p>`).join('');
-}
-
-function list(project, s, key, kind, ctx) {
-  return (s.fields[key] || []).map((v) => renderInline(project, s, v, kind, ctx)).filter((x) => x != null);
-}
-
-function ctaInline(ctaInfo, note = '') {
-  return `<a class="cta-inline" href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a>${note}`;
-}
-
-// 検証済みでも、参考LP固有値・薬機法語彙を含む根拠や、同意の無い推薦は公開しない
-export function evidencePublishable(project, ev) {
-  if (ev.status !== 'verified') return { ok: false, reason: '未検証の根拠' };
-  const claims = [ev.claim, ev.source, ev.metricUnit].flatMap((t) => detectClaims(t, project.brief.category));
-  const block = claims.find((c) => c.severity === 'block');
-  if (block) return { ok: false, reason: `${block.label}「${block.match}」を含む` };
-  if (claims.some((c) => c.category === 'testimonial') && ev.sourceType !== 'customer-consent') return { ok: false, reason: '推薦・声は本人同意（customer-consent）の出典が必要' };
-  if (ev.metricValue != null && !metricMatches(ev.claim, ev.metricValue, ev.metricUnit)) return { ok: false, reason: '数値・単位が主張文と一致しない' };
-  return { ok: true };
-}
-
-// FVのバッジ: 根拠セクションが参照する verified かつ数値付きの evidence がある場合だけ出す（未検証の実績は出さない）
-function fvBadge(project, kind) {
-  const proof = project.sections.find((x) => x.type === 'proof' && (kind !== 'safe' || x.approved));
-  if (!proof) return '';
-  const ev = project.evidence.find((x) => proof.claimRefs.includes(x.id) && Number.isFinite(x.metricValue) && evidencePublishable(project, x).ok);
-  if (!ev) return '';
-  return `<a class="badge stage s4" href="#s-${e(proof.id)}" aria-label="${e(ev.claim)}（根拠へ）"><span><strong>${e(ev.metricValue.toLocaleString('ja-JP'))}</strong>${e(ev.metricUnit)}<br>根拠あり</span></a>`;
-}
-
-function sectionHtml(project, s, kind, ctx, ctaInfo, bgIndex) {
-  const t = s.type;
-  const F = (k) => (s.fields[k] ? renderInline(project, s, s.fields[k], kind, ctx) : null);
-  const heading = F('heading');
-  const lead = F('lead');
-  const body = F('body');
-  const note = F('note');
-  const items = list(project, s, 'items', kind, ctx);
-  const alt = list(project, s, 'itemsAlt', kind, ctx);
-  const bg = bgIndex % 2 === 0 ? 'bg-paper' : 'bg-grid';
-  const h2 = heading ? `<h2>${heading}</h2>` : '';
-  const leadP = lead ? `<p class="lead">${lead}</p>` : '';
-  const noteP = note ? `<p class="src">${note}</p>` : '';
-  const anchor = `id="s-${e(s.id)}"`;
-  let content = '';
-  switch (t) {
-    case 'fv': {
-      const top = project.brief.audience.value ? renderInline(project, s, '{{audience}}へ', kind, ctx) : null;
-      const product = project.brief.product.value ? renderInline(project, s, '{{product}}', kind, ctx) : null;
-      const offer = project.brief.offer.value ? renderInline(project, s, '{{offer}}', kind, ctx) : null;
-      const badge = fvBadge(project, kind);
-      return `<header class="fv" ${anchor}>
-${top ? `<div class="fv-top stage s1"><div class="wide">${top}</div></div>` : ''}
-<div class="fv-hero"><div class="wide hero-grid"><div class="copy">
-${lead ? `<p class="kicker stage s1${lead.replace(/<[^>]+>/g, '').length > 26 ? ' long' : ''}">${lead}</p>` : ''}
-${heading ? `<h1 class="stage s2">${heading}</h1>` : ''}
-${body ? `<div class="sub stage s3">${paragraphs(body)}</div>` : ''}
-</div><div class="fv-visual stage s3" aria-hidden="true">
-<div class="bp-card c1"><b>01</b><i></i><i></i><i></i></div><div class="bp-card c2"><b>02</b><i></i><i></i><i></i></div><div class="bp-card c3"><b>03</b><i></i><i></i><i></i></div>
-${product ? `<span class="bp-chip">${product}</span>` : ''}</div>${badge}</div></div>
-<div class="fv-offer stage s4"><div class="wide"><div class="offer-row"><span class="offer-tag">今回のご案内</span>${offer ? `<span class="offer-big">${offer}</span>` : ''}</div>
-${ctaInline(ctaInfo)}<span class="scroll-hint" aria-hidden="true">⌄</span></div></div></header>`;
-    }
-    case 'concept_video':
-      content = `${h2}${leadP}<div class="card" role="note">${body ? paragraphs(body) : ''}</div>`;
-      break;
-    case 'empathy':
-      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="cards">${items.map((i) => `<div class="card bubble reveal">${i}</div>`).join('')}</div>`;
-      break;
-    case 'reframe':
-      content = `${h2}${leadP}${body ? paragraphs(body) : ''}${items.length || alt.length ? `<div class="compare reveal"><div class="col before"><h3>これまで</h3><ul class="plain">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div><div class="col after"><h3>これから</h3><ul class="plain">${alt.map((i) => `<li>${i}</li>`).join('')}</ul></div></div>` : ''}`;
-      break;
-    case 'steps':
-      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<ol class="steps">${items.map((i) => `<li class="ncard reveal"><h3>${i}</h3></li>`).join('')}</ol>`;
-      break;
-    case 'scope':
-    case 'fit': {
-      const [a, b] = t === 'scope' ? ['含まれるもの', '含まれないもの'] : ['向いている人', '向いていない人'];
-      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="compare reveal"><div class="col after"><h3>${a}</h3><ul class="plain yes">${items.map((i) => `<li>${i}</li>`).join('')}</ul></div><div class="col before"><h3>${b}</h3><ul class="plain no">${alt.map((i) => `<li>${i}</li>`).join('')}</ul></div></div>`;
-      break;
-    }
-    case 'recommit':
-      return `<section class="band" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo)}</div></section>`;
-    case 'proof': {
-      const refs = new Set(s.claimRefs);
-      const all = project.evidence.filter((x) => refs.has(x.id));
-      const evs = all.filter((x) => kind !== 'safe' || evidencePublishable(project, x).ok);
-      const cards = evs.map((ev) => {
-        const pub = evidencePublishable(project, ev);
-        const flagged = !pub.ok;
-        const metric = Number.isFinite(ev.metricValue)
-          ? (flagged ? `<span class="metric">${e(String(ev.metricValue))}<small>${e(ev.metricUnit)}</small></span>`
-            : `<span class="metric"><span data-count="${e(String(ev.metricValue))}">${e(String(ev.metricValue))}</span><small>${e(ev.metricUnit)}</small></span>`)
-          : '';
-        const claimHtml = flagged ? `<span class="flag" title="${e(pub.reason)}">${e(ev.claim)}</span><span class="flag-tag">${ev.status === 'verified' ? '公開不可' : '未検証'}</span>` : e(ev.claim);
-        return `<div class="card reveal">${metric}<div>${claimHtml}</div><span class="src">出典: ${e(ev.source)}${flagged ? '' : `（確認 ${e(ev.verifiedAt)}）`}</span></div>`;
-      });
-      ctx.proofCount = evs.length;
-      if (kind === 'safe') {
-        for (const ev of all.filter((x) => !evidencePublishable(project, x).ok)) ctx.removed.push({ section: '根拠', text: ev.claim.slice(0, 60), reasons: [evidencePublishable(project, ev).reason] });
-      }
-      content = `${h2}${leadP}${body ? paragraphs(body) : ''}<div class="proof-grid">${cards.join('')}</div>`;
-      break;
-    }
-    case 'closing':
-      return `<section class="band closing" ${anchor}><div class="wrap reveal">${h2}${leadP}${body ? paragraphs(body) : ''}${ctaInline(ctaInfo, noteP)}</div></section>`;
-    case 'footer':
-      return `<footer ${anchor}><div class="wrap">${body ? paragraphs(body) : ''}${noteP}</div></footer>`;
-    default:
-      content = `${h2}${leadP}${body ? `<div class="reveal">${paragraphs(body)}</div>` : ''}`;
-  }
-  return `<section class="${bg}" ${anchor}><div class="wrap">${content}${t === 'concept_video' ? '' : noteP}</div></section>`;
-}
-
-function sectionHasContent(s, html) {
-  if (s.type === 'proof') return /class="card/.test(html);
-  return /<(h1|h2|p|li|div class="card)/.test(html.replace(/<span class="eyebrow[^]*?<\/span>/, ''));
-}
-
-function resolveCta(project, kind, ctx, variantId) {
-  const base = variantId ? project.cta.variants.find((v) => v.id === variantId) : null;
-  const v = base ? { ...base, label: base.label || project.brief.ctaLabel.value } : activeCta(project);
-  const url = safeUrl(project.brief.ctaUrl.value);
-  const urlOk = url && project.brief.ctaUrl.status === 'confirmed';
-  const labelFromBrief = !(base ? base.label : project.cta.variants.find((x) => x.id === project.cta.activeVariant)?.label);
-  const labelOk = v.label && (!labelFromBrief || project.brief.ctaLabel.status === 'confirmed');
-  // CTA を置くセクション（FV・再コミット・クロージング）が参照する verified 根拠だけで照合
-  const ctaRefs = new Set(project.sections.filter((s) => ['fv', 'recommit', 'closing'].includes(s.type)).flatMap((s) => s.claimRefs));
-  const verified = project.evidence.filter((x) => x.status === 'verified' && ctaRefs.has(x.id));
-  const labelClaims = detectClaims(v.label, project.brief.category).filter((c) => c.severity === 'block' || !verified.some((ev) => containsToken(ev.claim, c.match)));
-  if (kind === 'safe') {
-    if ((v.timing || 'spec') !== 'spec') ctx.blockers.push('固定CTAの表示タイミングが仕様（FV後に表示）ではありません。比較用の案は公開用に使えません');
-    if (!urlOk) ctx.blockers.push('CTAリンク先が確定していない、または許可されないURLです');
-    if (!labelOk) ctx.blockers.push('CTA文言が確定していません');
-    if (labelClaims.length) ctx.blockers.push(`CTA文言に根拠の無い主張: ${labelClaims.map((c) => c.match).join(', ')}`);
-  }
-  const ok = urlOk && labelOk && !labelClaims.length;
-  const labelHtml = ok || kind === 'safe' ? e(v.label || 'CTA') : `<span class="flag">${e(v.label || '【CTA文言 未入力】')}</span><span class="flag-tag">未確認</span>`;
-  return { href: url || '#', external: !!url && url.startsWith('https:'), labelHtml, variant: v };
-}
 
 function mixHex(a, b, t) {
   const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
@@ -346,125 +33,356 @@ function mixHex(a, b, t) {
   return '#' + pa.map((v, i) => Math.round(v * (1 - t) + pb[i] * t).toString(16).padStart(2, '0')).join('');
 }
 
-export function contrastChecks(project, variant) {
+function tokens(project) {
   const b = project.brand;
-  const fvText = readableOn(b.primary);
-  const ctaText = readableOn(variant.color);
+  const v = project.cta.variants.find((x) => x.id === project.cta.activeVariant) || project.cta.variants[0];
+  const primary = safeColor(b.primary) || '#2741b8';
+  const accent = safeColor(b.accent) || '#c42f57';
+  const ink = safeColor(b.ink) || '#1b1f2b';
+  const paper = safeColor(b.paper) || '#fbf8f3';
+  const cta = safeColor(v?.color) || accent;
+  return { primary, accent, ink, paper, cta, ctaText: readableOn(cta), primaryInk: inkFor(primary, '#ffffff'), accentInk: inkFor(accent, '#ffffff'), bandText: readableOn(primary), font: FONT_STACK[b.font] || FONT_STACK.sans, timing: v?.timing || 'spec' };
+}
+
+export function contrastChecks(project) {
+  const t = tokens(project);
   return [
-    { name: '本文（ink / paper）', ratio: contrastRatio(b.ink, b.paper) },
-    { name: '本文（ink / 白カード）', ratio: contrastRatio(b.ink, '#ffffff') },
-    { name: 'FV見出し（ink / 淡色面）', ratio: contrastRatio(b.ink, '#f1f1f3') },
-    { name: `CTA「${variant.id}」固定バー 文字 / 背景`, ratio: contrastRatio(ctaText, variant.color) },
-    { name: `CTA「${variant.id}」固定バー 文字 / グラデーション終端`, ratio: contrastRatio(ctaText, mixHex(variant.color, b.accent, 0.3)) },
-    { name: `CTA「${variant.id}」白ピル 文字`, ratio: contrastRatio(inkFor(variant.color, '#ffffff'), '#ffffff') },
-    { name: '数値・強調（primary系 / 白）', ratio: contrastRatio(inkFor(b.primary, '#ffffff'), '#ffffff') },
-    { name: '小見出し（accent系 / 淡色面）', ratio: contrastRatio(inkFor(b.accent, '#f1f1f3'), '#f1f1f3') },
-    { name: '比較カード（ink / primary淡色）', ratio: contrastRatio(b.ink, mixHex(b.primary, '#ffffff', 0.88)) },
-    { name: '上部帯・オファー帯の文字', ratio: Math.min(contrastRatio(fvText, b.primary), contrastRatio(fvText, b.accent)) },
+    { name: '本文（文字色 / 紙面）', ratio: contrastRatio(t.ink, t.paper) },
+    { name: '本文（文字色 / 白）', ratio: contrastRatio(t.ink, '#ffffff') },
+    { name: '補足（文字色の補足 / 白）', ratio: contrastRatio(mixHex(t.ink, '#ffffff', 0.25), '#ffffff') },
+    { name: '強調（メイン色 / 白）', ratio: contrastRatio(t.primaryInk, '#ffffff') },
+    { name: '呼びかけ（アクセント色 / 白）', ratio: contrastRatio(t.accentInk, '#ffffff') },
+    { name: 'CTA（文字 / ボタン色）', ratio: contrastRatio(t.ctaText, t.cta) },
+    { name: '締めの帯（文字 / メイン色）', ratio: contrastRatio(t.bandText, t.primary) },
+    { name: '締めの帯（文字 / 帯の終端）', ratio: contrastRatio(t.bandText, mixHex(t.primary, '#000000', 0.28)) },
   ].map((c) => ({ ...c, ok: c.ratio >= 4.5 }));
 }
 
-/**
- * kind: 'preview'（編集中の確認。未確認は旗付き）/ 'draft'（レビュー用export。バナー+noindex）/ 'safe'（公開可能なものだけ）
- * view: 'design' | 'wf'
- */
-export function renderPage(project, { kind = 'preview', view = 'design', ctaVariantId = null } = {}) {
-  const ctx = { removed: [], blockers: [], warnings: [], proofCount: 0 };
-  if (view === 'wf') return { html: renderWireframe(project), report: ctx };
-  const ctaInfo = resolveCta(project, kind, ctx, ctaVariantId);
-  const variant = ctaInfo.variant;
-  const contrast = contrastChecks(project, variant);
-  for (const c of contrast.filter((x) => !x.ok)) {
-    (kind === 'safe' ? ctx.blockers : ctx.warnings).push(`コントラスト不足: ${c.name} ${c.ratio}:1（4.5:1 以上が必要）`);
+function css(project) {
+  const t = tokens(project);
+  return `:root{--primary:${t.primary};--accent:${t.accent};--ink:${t.ink};--paper:${t.paper};--cta:${t.cta};--cta-text:${t.ctaText};--primary-ink:${t.primaryInk};--accent-ink:${t.accentInk};--band-text:${t.bandText};--sub:${mixHex(t.ink, '#ffffff', 0.25)};--line:${mixHex(t.ink, '#ffffff', 0.86)};--tint:${mixHex(t.primary, '#ffffff', 0.93)};--hl:${mixHex(t.accent, '#ffffff', 0.86)};--font:${t.font}}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-padding-bottom:96px;scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);color:var(--ink);background:#fff;font-size:16px;line-height:1.8;font-weight:400;overflow-wrap:break-word;line-break:strict;padding-bottom:96px}
+p{margin:0 0 1em}
+.ph{display:inline-block;max-width:100%}
+h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
+.demo-bar{background:var(--ink);color:#fff;font-size:14px;line-height:1.6;text-align:center;padding:8px 16px}
+.demo-bar b{font-weight:700}
+.hero{background:linear-gradient(180deg,var(--paper),#fff);border-bottom:1px solid var(--line)}
+.hero-in{max-width:1160px;margin:0 auto;padding:56px 32px 64px;display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);grid-template-areas:"copy visual" "cta visual";column-gap:40px;align-items:start}
+.hero-copy{grid-area:copy}
+.hero-cta{grid-area:cta;margin-top:28px}
+.hero-visual{grid-area:visual;align-self:center;margin:0}
+.hero-meta{font-size:13px;line-height:1.5;color:var(--sub);margin:0 0 18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hero-meta b{color:var(--ink);font-weight:700;margin-right:.6em}
+.aud{font-size:15px;line-height:1.5;font-weight:700;color:var(--accent-ink);margin:0 0 12px}
+.hero h1{font-size:52px;line-height:1.3;font-weight:800;letter-spacing:-.02em;margin:0 0 20px;text-wrap:balance}
+.lead{font-size:17px;line-height:1.8;max-width:34em;margin:0}
+.cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:12px 28px;border-radius:12px;font-size:17px;line-height:1.4;font-weight:700;text-decoration:none;text-align:center}
+.btn-primary{background:var(--cta);color:var(--cta-text);box-shadow:0 6px 16px color-mix(in srgb,var(--cta) 28%,transparent)}
+.btn-primary:focus-visible,.sticky-cta a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
+.arw{display:inline-block;width:.6em;height:.6em;border-top:2.5px solid currentColor;border-right:2.5px solid currentColor;transform:rotate(45deg);margin-left:2px}
+.btn-disabled{background:#fff;color:var(--sub);border:1.5px dashed var(--line);cursor:not-allowed;font-weight:700;min-height:48px;font-size:15px;padding:10px 18px}
+.cta-note{font-size:14px;line-height:1.7;color:var(--sub);margin:10px 0 0}
+.vis{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px color-mix(in srgb,var(--ink) 9%,transparent);padding:20px 22px}
+.vis-label{display:inline-block;font-size:12px;line-height:1.5;font-weight:700;color:var(--primary-ink);background:var(--tint);border-radius:6px;padding:3px 8px;margin-bottom:12px}
+.vis-title{font-size:20px;line-height:1.4;font-weight:800;margin:0 0 12px;font-variant-numeric:tabular-nums}
+.vis-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px 14px;font-size:16px;line-height:1.6;font-weight:700}
+.vis-box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--primary-ink);margin-top:2px}
+.vis-ghost{height:10px;border-radius:5px;background:var(--line);margin:12px 0 0;width:72%}
+.vis-ghost+.vis-ghost{width:54%;margin-top:8px}
+.vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0}
+.vis-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+.vis-table th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+.vis-table td{padding:10px 8px;border-bottom:1px solid var(--line)}
+.vis-table tr.hl td{font-weight:700}
+.tag{display:inline-block;font-size:12px;line-height:1.4;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--primary-ink)}
+.flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:stretch}
+.flow-step{border:1px solid var(--line);border-radius:12px;padding:16px;font-size:15px;line-height:1.7;background:#fff}
+.flow-step.main{border:2px solid var(--primary-ink);font-weight:700}
+.flow-arrow{align-self:center;width:14px;height:14px;border-top:2.5px solid var(--sub);border-right:2.5px solid var(--sub);transform:rotate(45deg)}
+.check-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.check-list li{display:flex;gap:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px}
+.sec{padding:80px 0}
+.sec:nth-of-type(even){background:var(--paper)}
+.sec-in{max-width:760px;margin:0 auto;padding:0 32px}
+.sec-in.wide{max-width:1040px}
+.sec h2{font-size:36px;line-height:1.35;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-wrap:balance}
+.sec .body{max-width:640px}
+.sec-empathy .body{font-size:17px;border-left:4px solid var(--accent);padding-left:20px}
+.points{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
+.points li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px}
+.points b{display:block;font-size:17px}
+.steps{list-style:none;padding:0;margin:0;display:grid;gap:16px;counter-reset:st}
+.steps li{counter-increment:st;display:grid;grid-template-columns:44px minmax(0,1fr);gap:16px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px 32px 24px 24px}
+.steps li::before{content:counter(st);width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:var(--tint);color:var(--primary-ink);font-weight:800;font-size:18px;line-height:1;font-variant-numeric:tabular-nums}
+.steps h3{font-size:19px;line-height:1.5;font-weight:700;margin:6px 0 6px}
+.steps p{margin:0}
+.scope-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:28px 32px}
+.faq{margin:0;display:grid;gap:16px}
+.faq div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:24px 32px}
+.faq dt{font-weight:700;font-size:17px;line-height:1.6;margin:0 0 8px}
+.faq dt::before{content:"Q.";color:var(--primary-ink);margin-right:.4em}
+.faq dd{margin:0}
+.illus .vis{padding:28px 32px}
+.closing{background:linear-gradient(135deg,var(--primary),${mixHex(t.primary, '#000000', 0.28)});color:var(--band-text);padding:80px 0}
+.closing h2{color:inherit;font-size:36px;line-height:1.35;font-weight:800;margin:0 0 20px;text-wrap:balance}
+.closing .body{max-width:640px;margin-bottom:28px}
+.closing .btn-primary{background:#fff;color:var(--primary-ink);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.closing .btn-disabled{background:transparent;color:var(--band-text);border-color:color-mix(in srgb,var(--band-text) 55%,transparent)}
+.closing .cta-note{color:var(--band-text)}
+footer{padding:32px 0;font-size:14px;line-height:1.7;color:var(--sub);border-top:1px solid var(--line)}
+footer .sec-in{max-width:1040px}
+.sticky-cta{position:fixed;right:24px;bottom:24px;width:340px;height:60px;z-index:50;visibility:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s}
+.sticky-cta.show{visibility:visible;opacity:1;transform:none}
+.sticky-cta a{display:flex;align-items:center;justify-content:center;gap:10px;height:100%;border-radius:14px;background:var(--cta);color:var(--cta-text);font-weight:700;font-size:16px;line-height:1.3;text-decoration:none;box-shadow:0 10px 26px rgba(0,0,0,.22);padding:0 18px;text-align:center}
+.draft-banner{background:#7a1f00;color:#fff;font-size:13px;line-height:1.6;padding:8px 16px}
+.draft-meta{font-size:12px;line-height:1.5;color:#7a1f00;background:#fff3e0;border:1px dashed #e0a060;border-radius:6px;padding:4px 8px;margin:0 0 12px;font-family:ui-monospace,Menlo,monospace}
+.reveal{transition:opacity .45s ease,transform .45s ease}
+.js .reveal{opacity:0;transform:translateY(12px)}
+.js .reveal.in{opacity:1;transform:none}
+.js .hero-visual{animation:vin .6s cubic-bezier(.2,.7,.2,1) .28s both}
+.js .hero-visual .hl{animation:hl .4s ease .7s both}
+@keyframes vin{from{opacity:0;transform:translateY(18px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes hl{from{background-color:#fff;box-shadow:inset 0 0 0 0 var(--accent)}to{background-color:var(--hl);box-shadow:inset 4px 0 0 0 var(--accent)}}
+.hl{background-color:var(--hl);box-shadow:inset 4px 0 0 0 var(--accent)}
+tr.hl td{background-color:var(--hl)}
+.js .hero-visual tr.hl td{animation:hlc .4s ease .7s both}
+@keyframes hlc{from{background-color:#fff}to{background-color:var(--hl)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+@media print{.reveal{opacity:1!important;transform:none!important}.sticky-cta{display:none}}
+@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:42px}}
+@media (max-width:767px){
+.hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";padding:16px 20px 24px}
+.hero-meta{margin-bottom:12px;font-size:12px}
+.aud{font-size:14px;margin-bottom:8px}
+.hero h1{font-size:31px;margin-bottom:12px}
+.lead{font-size:16px}
+.hero-visual{margin-top:14px;align-self:stretch}
+.hero-visual .vis{padding:14px 16px;border-radius:14px}
+.hero-visual .vis-label{margin-bottom:8px}
+.hero-visual .vis-title{font-size:17px;margin-bottom:8px}
+.hero-visual .vis-row{padding:10px 12px;font-size:15px}
+.hero-visual .vis-ghost{display:none}
+.hero-visual .vis-note{margin-top:6px;font-size:12px;line-height:1.5}
+.hero-visual .vis-table tr{padding:6px 6px}
+.hero-cta{margin-top:14px}
+.cta-note{font-size:13px;margin-top:6px}
+.demo-bar{font-size:13px;padding:6px 12px}
+.cta-row{flex-direction:column;align-items:stretch;gap:8px}
+.btn{width:100%;min-height:56px;font-size:16px;padding:12px 16px}
+.btn-disabled{min-height:40px;font-size:14px;padding:6px 12px}
+.sec{padding:56px 0}
+.closing{padding:56px 0}
+.sec-in{padding:0 20px}
+.sec h2,.closing h2{font-size:28px;line-height:1.4;margin-bottom:18px}
+.sec-empathy .body{padding-left:14px}
+.steps li{grid-template-columns:36px minmax(0,1fr);gap:12px;padding:20px 24px 20px 16px}
+.steps li::before{width:36px;height:36px;font-size:16px}
+.steps h3{font-size:17px;margin-top:4px}
+.faq div,.scope-box{padding:20px 24px}
+.illus .vis{padding:20px 18px}
+.flow{grid-template-columns:minmax(0,1fr);gap:8px}
+.flow-arrow{justify-self:center;transform:rotate(135deg);margin:2px 0 6px}
+.vis-table thead{display:none}
+.vis-table,.vis-table tbody{display:block;width:100%}
+.vis-table tr{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"a b" "c d";column-gap:8px;row-gap:2px;border-bottom:1px solid var(--line);padding:8px 8px}
+.vis-table td{border:0;padding:0;display:block}
+.vis-table td:nth-child(1){grid-area:a;font-weight:700}
+.vis-table td:nth-child(2){grid-area:b;justify-self:end}
+.vis-table td:nth-child(3){grid-area:c;font-size:13px;color:var(--sub)}
+.vis-table td:nth-child(4){grid-area:d;justify-self:end;font-size:13px;color:var(--sub)}
+.vis-table td:nth-child(4)::before{content:attr(data-label) " ";font-size:11px}
+.vis-table tr.hl td{font-weight:700}
+.sticky-cta{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;height:56px}
+}
+@media (max-width:399px){.hero h1{font-size:28px}}
+@media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}.hero h1{font-size:26px}}
+`;
+}
+
+// ---------------- 部品 ----------------
+
+const paras = (text) => String(text || '').split(/\n+/).filter((x) => x.trim()).map((x) => `<p>${e(x)}</p>`).join('');
+
+function phrasesHtml(heading, preferred) {
+  const { phrases } = headingPhrases(heading, preferred);
+  return phrases.map((p) => `<span class="ph">${e(p)}</span>`).join('');
+}
+
+function visualHtml(v, { hero = false } = {}) {
+  if (!v) return '';
+  const label = `<span class="vis-label">${e(v.label)}</span>`;
+  const note = v.note ? `<p class="vis-note">${e(v.note)}</p>` : '';
+  if (v.kind === 'task-card') {
+    return `<div class="vis vis-taskcard">${label}${v.title ? `<p class="vis-title">${e(v.title)}</p>` : ''}<div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div>${hero ? '<div class="vis-ghost" aria-hidden="true"></div><div class="vis-ghost" aria-hidden="true"></div>' : ''}${note}</div>`;
   }
+  if (v.kind === 'flow') {
+    const steps = [v.from, v.to, v.review].filter(Boolean);
+    const html = steps.map((s, i) => `<div class="flow-step${i === 1 ? ' main' : ''}">${e(s)}</div>`).join('<span class="flow-arrow" aria-hidden="true"></span>');
+    return `<div class="vis vis-flow">${label}<div class="flow" role="list">${html}</div>${note}</div>`;
+  }
+  if (v.kind === 'table') {
+    const cols = v.columns || [];
+    const rows = (v.rows || []).map((r, i) => `<tr${i === v.highlight ? ' class="hl"' : ''}>${r.map((c, j) => `<td data-label="${e(cols[j] || '')}">${j === 1 ? `<span class="tag">${e(c)}</span>` : e(c)}</td>`).join('')}</tr>`).join('');
+    return `<div class="vis vis-tablebox">${label}<table class="vis-table"><thead><tr>${cols.map((c) => `<th scope="col">${e(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>${note}</div>`;
+  }
+  if (v.kind === 'checklist') {
+    const items = [v.title, v.task, v.from, v.to, v.review].filter(Boolean);
+    return `<div class="vis">${label}<ul class="check-list">${items.map((x, i) => `<li${i === 0 ? ' class="hl"' : ''}><span class="vis-box" aria-hidden="true"></span>${e(x)}</li>`).join('')}</ul>${note}</div>`;
+  }
+  return '';
+}
+
+function ctaHtml(s, mode) {
+  if (!s.cta && !s.commercialPreview) return '';
   const parts = [];
-  let bgIndex = 0;
+  if (s.cta) parts.push(`<a class="btn btn-primary" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>`);
+  if (s.commercialPreview) {
+    if (mode.commercial) {
+      parts.push(`<a class="btn btn-primary" href="${e(mode.commercialUrl)}" rel="noopener noreferrer">${e(s.commercialPreview.label)}<span class="arw" aria-hidden="true"></span></a>`);
+    } else {
+      parts.push(`<span class="btn btn-disabled" role="link" aria-disabled="true">${e(s.commercialPreview.label)}</span>`);
+    }
+  }
+  const note = !mode.commercial ? (s.commercialPreview?.note || mode.demoNotice) : '';
+  return `<div class="cta-row cta-zone">${parts.join('')}</div>${note ? `<p class="cta-note">${phrasesHtml(note)}</p>` : ''}`;
+}
+
+function hasContent(s) {
+  return !!(s.body.trim() || s.items.some((i) => (i.heading || i.body).trim()) || s.visual);
+}
+
+function draftMeta(s, mode) {
+  if (!mode.draft) return '';
+  const refs = [...new Set([...s.sourceRefs, ...s.items.flatMap((i) => i.sourceRefs), ...(s.visual?.sourceRefs || [])])];
+  const st = s.approved ? '承認済' : '未承認';
+  return `<p class="draft-meta">${e(ROLES[s.role].label)} / ${st}${s.needsReview ? ' / 要再確認' : ''} / 参照: ${e(refs.join(', ') || 'なし')}</p>`;
+}
+
+function sectionHtml(project, s, mode) {
+  const id = e(s.id);
+  const h2 = s.heading ? `<h2>${phrasesHtml(s.heading, s.headingPhrases)}</h2>` : '';
+  const meta = draftMeta(s, mode);
+  switch (s.role) {
+    case 'hero': {
+      const d = project.display;
+      return `<header class="hero" id="${id}"><div class="hero-in">
+<div class="hero-copy">${meta}<p class="hero-meta"><b>${e(d.brandName)}</b>${e(d.serviceDescriptor)}</p>
+${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}
+<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>
+${s.body ? `<p class="lead">${e(s.body)}</p>` : ''}</div>
+${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</figure>` : ''}
+<div class="hero-cta">${ctaHtml(s, mode)}</div>
+</div></header>`;
+    }
+    case 'closing':
+      return `<section class="closing" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}${ctaHtml(s, mode)}</div></section>`;
+    case 'process':
+      return `<section class="sec sec-process" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}<ol class="steps">${s.items.map((it) => `<li class="reveal"><div><h3>${phrasesHtml(it.heading)}</h3>${it.body ? `<p>${e(it.body)}</p>` : ''}</div></li>`).join('')}</ol>${ctaHtml(s, mode)}</div></section>`;
+    case 'faq':
+      return `<section class="sec sec-faq" id="${id}"><div class="sec-in">${meta}<h2>${s.heading ? phrasesHtml(s.heading, s.headingPhrases) : 'よくある質問'}</h2>${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<dl class="faq">${s.items.map((it) => `<div class="reveal"><dt>${e(it.heading)}</dt><dd>${e(it.body)}</dd></div>`).join('')}</dl></div></section>`;
+    case 'illustration':
+      return `<section class="sec sec-illus illus" id="${id}"><div class="sec-in wide">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<div class="reveal">${visualHtml(s.visual)}</div>${ctaHtml(s, mode)}</div></section>`;
+    case 'scope':
+      return `<section class="sec sec-scope" id="${id}"><div class="sec-in">${meta}${h2}<div class="scope-box reveal">${paras(s.body)}${s.items.length ? `<ul>${s.items.map((it) => `<li>${e(it.heading)}${it.body ? `：${e(it.body)}` : ''}</li>`).join('')}</ul>` : ''}</div>${ctaHtml(s, mode)}</div></section>`;
+    case 'proof': {
+      const idx = refIndex(project);
+      const ev = s.sourceRefs.map((r) => idx.get(r)).filter((x) => x && x.type === 'evidence' && x.reality === 'real' && x.item.status === 'verified' && x.item.kind !== 'illustrative');
+      if (!ev.length) return '';
+      return `<section class="sec sec-proof" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<ul class="points">${ev.map((x) => `<li class="reveal">${e(x.text)}<br><small>出典: ${e(x.item.source)}</small></li>`).join('')}</ul></div></section>`;
+    }
+    default: {
+      const items = s.items.filter((it) => it.heading || it.body);
+      return `<section class="sec sec-${e(s.role)}" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}${items.length ? `<ul class="points">${items.map((it) => `<li class="reveal">${it.heading ? `<b>${e(it.heading)}</b>` : ''}${it.body ? e(it.body) : ''}</li>`).join('')}</ul>` : ''}${s.visual ? `<div class="reveal">${visualHtml(s.visual)}</div>` : ''}${ctaHtml(s, mode)}</div></section>`;
+    }
+  }
+}
+
+/**
+ * kind: 'draft'（社内確認。役割・参照IDと検査結果を表示）/ 'review'（レビュー用プレビュー。デモ表示・CTAはページ内のみ）/ 'commercial'（実販売。判定が通った場合だけ）
+ * options.reduceMotion: true なら動きなしで描画（プレビューの「動きを減らす」）
+ */
+export function renderPage(project, { kind = 'review', reduceMotion = false } = {}) {
+  const issues = checkProject(project);
+  const g = gates(project, issues);
+  const contrast = contrastChecks(project);
+  const commercial = kind === 'commercial' && g.commercialReady.ok;
+  const mode = {
+    draft: kind === 'draft',
+    commercial,
+    commercialUrl: commercial ? safeUrl(project.inputs.action.url) : '#',
+    demoNotice: project.display.demoMode !== 'live' ? project.display.demoNotice : '',
+  };
+  const removed = [];
+  const parts = [];
   for (const s of project.sections) {
-    const meta = SECTION_CATALOG[s.type];
-    if (kind === 'safe' && !s.approved) {
-      if (meta.required) ctx.blockers.push(`必須セクション「${meta.label}」が未承認です`);
-      else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['未承認'] });
-      continue;
-    }
-    const html = sectionHtml(project, s, kind, ctx, ctaInfo, s.type === 'fv' ? 0 : bgIndex++);
-    if (kind === 'safe' && !sectionHasContent(s, html)) {
-      if (meta.required) ctx.blockers.push(`必須セクション「${meta.label}」に公開できる内容がありません`);
-      else ctx.removed.push({ section: meta.label, text: '(セクション全体)', reasons: ['公開できる内容なし'] });
-      continue;
-    }
-    if (kind === 'safe' && !['fv', 'footer', 'proof'].includes(s.type) && !/<(p|li|div class="card)/.test(html.replace(/<h2>[^]*?<\/h2>/, ''))) {
-      ctx.warnings.push(`「${meta.label}」は見出しだけが公開されます（本文が除外されたか未入力）`);
-    }
+    if (!hasContent(s) && s.role !== 'hero') { removed.push({ id: s.id, role: s.role, reason: '本文が無い（見出し・CTAだけを残さない）' }); continue; }
+    const html = sectionHtml(project, s, mode);
+    if (!html) { removed.push({ id: s.id, role: s.role, reason: '出せる根拠が無い' }); continue; }
     parts.push(html);
   }
-  if (kind === 'safe') {
-    for (const t of Object.keys(SECTION_CATALOG).filter((t) => SECTION_CATALOG[t].required)) {
-      if (!project.sections.some((s) => s.type === t)) ctx.blockers.push(`必須セクション「${SECTION_CATALOG[t].label}」がありません`);
-    }
-    if (project.brief.operator.status !== 'confirmed') ctx.blockers.push('運営者表記が確定していません');
-    const nameCheck = assessText(project, { claimRefs: [] }, project.name);
-    if (!nameCheck.publishable) ctx.blockers.push(`ページタイトル（プロジェクト名）に根拠の無い主張・未確定の値があります: ${reasonsOf(nameCheck).join(' / ')}`);
-  }
-  const scriptHash = sha256Base64(RUNTIME_SCRIPT);
-  const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-${scriptHash}'; img-src data:; base-uri 'none'; form-action 'none'`;
-  const banner = kind === 'draft' ? '<div class="draft-banner" role="note">レビュー用ドラフト — 未確認の内容（旗付き）を含みます。公開しないでください。</div>' : '';
-  const robots = kind === 'safe' ? '' : '<meta name="robots" content="noindex,nofollow">';
-  const timing = variant.timing || 'spec';
+  const hero = project.sections.find((s) => s.role === 'hero');
+  const stickyTarget = hero?.cta;
+  const sticky = stickyTarget ? `<div class="sticky-cta" aria-hidden="true" inert><a href="#${e(stickyTarget.target)}">${e(stickyTarget.label)}<span class="arw" aria-hidden="true"></span></a></div>` : '';
+  const d = project.display;
+  const demoBar = d.demoMode !== 'live' ? `<div class="demo-bar" role="note"><b>${d.demoMode === 'synthetic-demo' ? 'デモ' : '試作'}</b> ${phrasesHtml(d.demoNotice)}</div>` : '';
+  const stops = issues.filter((i) => i.level === 'stop');
+  const warns = issues.filter((i) => i.level === 'warn');
+  const banner = kind === 'draft' ? `<div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 ${stops.length} 件 / 要確認 ${warns.length} 件。${stops.slice(0, 3).map((x) => e(x.message)).join(' ／ ')}</div>` : '';
+  const footer = `<footer><div class="sec-in"><b>${e(d.brandName)}</b>${d.operator ? ` ・ 運営: ${e(d.operator)}` : ''}${d.demoMode !== 'live' ? `<br>${e(d.demoNotice)}` : ''}</div></footer>`;
+  const csp = `default-src 'none'; style-src 'unsafe-inline'; script-src 'sha256-${sha256Base64(HEAD_SCRIPT)}' 'sha256-${sha256Base64(RUNTIME_SCRIPT)}'; img-src data:; base-uri 'none'; form-action 'none'`;
+  const robots = commercial ? '' : '<meta name="robots" content="noindex,nofollow">';
   const html = `<!doctype html>
-<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="${csp}">${robots}
-<meta name="generator" content="lp-studio (${kind})">
-<title>${e(project.name)}</title><style>${baseCss(project, variant)}</style></head>
-<body data-cta-timing="${e(timing)}" data-kind="${e(kind)}">${banner}
+<html lang="ja"${reduceMotion ? ' data-reduce-motion' : ''}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="referrer" content="no-referrer">${robots}
+<meta name="generator" content="lp-studio v2 (${kind})">
+<title>${e(d.brandName)}${d.serviceDescriptor ? `｜${e(d.serviceDescriptor)}` : ''}</title>
+<script>${HEAD_SCRIPT}</script>
+<style>${css(project)}</style></head>
+<body data-kind="${e(kind)}" data-demo="${e(d.demoMode)}">${banner}${demoBar}
 <main>${parts.join('\n')}</main>
-<div class="cta-sticky" aria-hidden="true" inert><a href="${e(ctaInfo.href)}"${ctaInfo.external ? ' rel="noopener noreferrer"' : ''}><span class="cta-ico" aria-hidden="true"></span><span>${ctaInfo.labelHtml}</span></a></div>
+${footer}
+${sticky}
 <script>${RUNTIME_SCRIPT}</script>
 </body></html>`;
-  return { html, report: { ...ctx, contrast, publishable: kind === 'safe' ? ctx.blockers.length === 0 : false } };
+  return { html, report: { issues, gates: g, contrast, removed } };
 }
 
-/** export。safe はブロッカーがあれば HTML を返さない（fail-closed）。 */
+/**
+ * 書き出し。review は停止条件（コントラスト不足を含む）があれば出さない。commercial は実販売の判定が通ったときだけ。
+ */
 export function exportHtml(project, kind) {
-  if (!['draft', 'safe'].includes(kind)) throw new Error('kind は draft か safe');
-  const { html, report } = renderPage(project, { kind });
-  if (kind === 'safe' && !report.publishable) return { html: null, report };
-  return { html, report };
+  if (!['draft', 'review', 'commercial', 'safe'].includes(kind)) throw new Error('kind は draft / review / commercial');
+  const k = kind === 'safe' ? 'commercial' : kind;
+  const { html, report } = renderPage(project, { kind: k });
+  const contrastFail = report.contrast.filter((c) => !c.ok).map((c) => `コントラスト不足: ${c.name} ${c.ratio}:1`);
+  if (k === 'review' && (!report.gates.reviewPreview.ok || contrastFail.length)) return { html: null, report: { ...report, blockers: [...report.gates.reviewPreview.reasons, ...contrastFail] } };
+  if (k === 'commercial' && (!report.gates.commercialReady.ok || contrastFail.length)) return { html: null, report: { ...report, blockers: [...report.gates.commercialReady.reasons, ...contrastFail] } };
+  return { html, report: { ...report, blockers: [] } };
 }
 
-// ---------------- WF ----------------
-
-function renderWireframe(project) {
-  const cta = activeCta(project);
+/** ワイヤーフレーム（同じデータ。役割・参照・検査結果を見せる） */
+export function renderWireframe(project) {
+  const issues = checkProject(project);
   const boxes = project.sections.map((s) => {
-    const meta = SECTION_CATALOG[s.type];
-    const fieldHtml = (raw) => {
-      const a = assessText(project, s, raw);
-      return a.publishable ? e(a.text) : `<span class="flag" title="${e(reasonsOf(a).join(' / '))}">${e(a.text)}</span>`;
-    };
-    const f = s.fields;
-    const listHtml = (arr) => (arr.length ? `<ul>${arr.map((v) => `<li>${fieldHtml(v)}</li>`).join('')}</ul>` : '');
-    const missing = [];
-    for (const k of meta.needs) {
-      const b = project.brief[k];
-      if (b.status !== 'confirmed') missing.push(`${BRIEF_LABELS[k]}（${b.status === 'missing' ? '未入力' : '未確定'}）`);
-    }
-    const tags = [
-      `<span class="tag">${e(meta.label)}</span>`,
-      meta.required ? '<span class="tag req">必須</span>' : '<span class="tag">任意</span>',
-      s.approved ? '<span class="tag ok">承認済</span>' : '<span class="tag warn">未承認</span>',
-      s.needsReview ? '<span class="tag warn">要再確認</span>' : '',
-      `<span class="tag">${e(s.origin)}</span>`,
-    ].join('');
-    const visual = s.type === 'fv' ? '<div class="ph">［ビジュアル枠］PC: 右カラム / SP: 見出しの下にチップ列で再配置</div>' : '';
-    const ctaBox = ['fv', 'recommit', 'closing'].includes(s.type) ? `<div class="cta">CTA: ${e(cta.label || '未入力')}</div>` : '';
-    const proof = s.type === 'proof'
-      ? `<div class="ph">根拠カード: 参照 ${s.claimRefs.length} 件 / うち検証済み ${project.evidence.filter((x) => s.claimRefs.includes(x.id) && x.status === 'verified').length} 件</div>` : '';
-    return `<div class="box${meta.required ? ' req' : ''}" data-section-id="${e(s.id)}"><div class="meta">${tags}</div><p class="role">役割: ${e(meta.role)}</p>
-${f.heading ? `<div class="h">${fieldHtml(f.heading)}</div>` : ''}${f.lead ? `<div>${fieldHtml(f.lead)}</div>` : ''}${f.body ? `<div>${fieldHtml(f.body)}</div>` : ''}
-${f.items.length || f.itemsAlt.length ? `<div class="two"><div>${listHtml(f.items)}</div><div>${listHtml(f.itemsAlt)}</div></div>` : ''}
-${visual}${proof}${ctaBox}${missing.length ? `<ul class="miss">${missing.map((m) => `<li>不足: ${e(m)}</li>`).join('')}</ul>` : ''}</div>`;
+    const own = issues.filter((i) => i.sectionId === s.id);
+    const refs = [...new Set([...s.sourceRefs, ...s.items.flatMap((i) => i.sourceRefs), ...(s.visual?.sourceRefs || [])])];
+    return `<div class="box${ROLES[s.role].required ? ' req' : ''}" data-section-id="${e(s.id)}"><div class="meta"><span class="tag">${e(ROLES[s.role].label)}</span>${s.approved ? '<span class="tag ok">承認済</span>' : '<span class="tag warn">未承認</span>'}${s.needsReview ? '<span class="tag warn">要再確認</span>' : ''}<span class="tag">${e(s.origin)}</span></div>
+${s.heading ? `<div class="h">${e(s.heading)}</div>` : ''}${s.body ? `<div>${e(s.body)}</div>` : ''}
+${s.items.length ? `<ul>${s.items.map((it) => `<li>${e(it.heading)}${it.body ? ` — ${e(it.body)}` : ''}</li>`).join('')}</ul>` : ''}
+${s.visual ? `<div class="ph">［図: ${e(s.visual.label)}（${e(s.visual.kind)}）］</div>` : ''}
+${s.cta ? `<div class="cta">CTA: ${e(s.cta.label)} → #${e(s.cta.target)}</div>` : ''}${s.commercialPreview ? `<div class="cta off">無効表示: ${e(s.commercialPreview.label)}</div>` : ''}
+<p class="refs">参照: ${e(refs.join(', ') || 'なし')}</p>
+${own.length ? `<ul class="miss">${own.map((i) => `<li>${i.level === 'stop' ? '停止' : '要確認'}: ${e(i.message)}</li>`).join('')}</ul>` : ''}</div>`;
   });
   return `<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'"><meta name="robots" content="noindex,nofollow">
-<title>WF: ${e(project.name)}</title><style>${wfCss()}</style></head><body><div class="wf">${boxes.join('\n')}</div></body></html>`;
+<title>WF: ${e(project.name)}</title><style>*,*::before,*::after{box-sizing:border-box}body{margin:0;font-family:system-ui,"Noto Sans JP",sans-serif;background:#eef0f3;color:#222;font-size:14px;line-height:1.7;padding:16px 0 40px}
+.wf{max-width:760px;margin:0 auto;padding:0 12px;display:grid;gap:12px}.box{background:#fff;border:2px dashed #9aa3b2;border-radius:10px;padding:12px 14px}.box.req{border-style:solid}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:6px}.tag{background:#e3e7ee;border-radius:4px;padding:1px 6px;font-size:12px;font-weight:700}.tag.ok{background:#1f6f5c;color:#fff}.tag.warn{background:#7a1f00;color:#fff}
+.h{font-weight:800;font-size:16px}.ph{background:#dfe3ea;border-radius:6px;padding:6px 8px;margin:6px 0;font-size:13px}.cta{display:inline-block;border:2px solid #222;border-radius:8px;padding:4px 12px;font-weight:700;margin-top:6px}.cta.off{border-style:dashed;color:#666;margin-left:6px}
+.refs{font-size:12px;color:#555;margin:6px 0 0;font-family:ui-monospace,monospace}.miss{font-size:12px;color:#7a1f00;margin:6px 0 0;padding-left:18px}ul{margin:4px 0;padding-left:20px}</style></head><body><div class="wf">${boxes.join('\n')}</div></body></html>`;
 }

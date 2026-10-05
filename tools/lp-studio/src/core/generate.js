@@ -1,173 +1,180 @@
-// 生成アダプタ。
-// - template: ブリーフ値を決まった型に差し込む「決定的テンプレート」。AI生成ではない。
-// - claude-code: 生成指示（prompt）を出力 → Claude Code セッションが JSON を書く → ingest で検証して取り込む。
-//   ブラウザからは推論APIを呼ばない（未接続）。新規APIキー・外部連携はしない。
-// どちらの経路でも、生成物は approved:false、根拠は unverified に強制する（昇格は人の操作だけ）。
+// 生成経路（v2）。事実台帳 → インサイト仮説 → 訴求の選択 → 構成/コピー → 図解データ → 検証つき取り込み。
+// - 'skeleton'（ルールベース）: 入力から骨組みだけを作る。文章は書かず【要記入】を置く。AI生成ではない。
+// - 'claude-code': buildPrompt の指示を Claude Code セッションが読み、JSON を書く → ingestGenerated で検証して取り込む。
+//   ブラウザから推論APIは呼ばない。新規APIキー・外部連携なし。
+// 生成物は常に「仮説・未承認・未検証」で入る。顧客の原文（quotes）は生成では作れない。
 
-import { SECTION_CATALOG, SECTION_TYPES, DEFAULT_ORDER, BRIEF_KEYS, BRIEF_LABELS } from './sections.js';
-import { validateShape } from './schema.js';
-import { detectClaims, containsToken, REFERENCE_DENYLIST } from './claims.js';
-import { clone, makeId } from './util.js';
+import { ROLES, ROLE_IDS, ANGLE_DEPENDENT } from './roles.js';
+import { validateShape, VISUAL_SPEC, VISUAL_KINDS, CONFIDENCE } from './schema.js';
+import { checkProject } from './editorial.js';
+import { clone } from './util.js';
 
 export const ADAPTERS = {
-  template: { id: 'template', label: 'テンプレート下書き（AI生成ではない）', connected: true },
-  'claude-code': { id: 'claude-code', label: 'Claude Code 生成（prompt→JSON受け渡し）', connected: false },
+  skeleton: { id: 'skeleton', label: '骨組み（ルールベース・AI生成ではない）', connected: true },
+  'claude-code': { id: 'claude-code', label: 'Claude Code 生成（prompt → JSON 受け渡し）', connected: false },
 };
 
 const TODO = (what) => `【要記入: ${what}】`;
 
-const TEMPLATES = {
-  fv: () => ({ heading: '{{promise}}', lead: '{{audience}}のための{{product}}', body: '', items: [], itemsAlt: [], note: '' }),
-  concept_video: () => ({ heading: 'コンセプト', lead: '', body: TODO('動画の説明。素材が無ければこのセクションを外す'), items: [], itemsAlt: [], note: '' }),
-  empathy: () => ({ heading: 'こんな状態が続いていませんか', lead: '', body: '{{problem}}', items: [TODO('対象者が実際に口にした悩み（ヒアリングの言葉で）')], itemsAlt: [], note: '' }),
-  reframe: () => ({ heading: 'うまくいかない理由は、別のところにあるかもしれません', lead: '', body: TODO('従来のやり方と、その限界（事実ベースで）'), items: [`これまで: ${TODO('従来の方法')}`], itemsAlt: [`{{product}}: ${TODO('違い')}`], note: '' }),
-  origin: () => ({ heading: '{{product}}が生まれた理由', lead: '', body: TODO('開発の経緯と差別化（確認できる事実のみ）'), items: [], itemsAlt: [], note: '' }),
-  steps: () => ({ heading: '申込後の流れ', lead: '', body: '', items: ['{{ctaLabel}}から申し込む', TODO('次に何が起きるか'), TODO('その後の流れ')], itemsAlt: [], note: '' }),
-  scope: () => ({ heading: '提供範囲', lead: '', body: '', items: ['{{offer}}'], itemsAlt: [TODO('含まないもの')], note: '' }),
-  recommit: () => ({ heading: '{{promise}}', lead: 'ここまで読んで、自分に当てはまると感じたら。', body: '', items: [], itemsAlt: [], note: '' }),
-  proof: () => ({ heading: '根拠', lead: '確認できた事実と出典だけを載せています。', body: '', items: [], itemsAlt: [], note: '' }),
-  price_reason: () => ({ heading: '価格・条件について', lead: '{{price}}', body: TODO('この価格・条件にしている理由'), items: [], itemsAlt: [], note: '' }),
-  fit: () => ({ heading: '向いている人 / 向いていない人', lead: '', body: '', items: ['{{audience}}'], itemsAlt: [TODO('向いていない人')], note: '' }),
-  closing: () => ({ heading: '{{promise}}', lead: '', body: TODO('行動した後の状態（約束できる範囲で）'), items: [], itemsAlt: [], note: '' }),
-  footer: () => ({ heading: '', lead: '', body: '運営: {{operator}}', items: [], itemsAlt: [], note: '' }),
-};
-
-const ANGLE_TYPES = ['fv', 'recommit', 'closing'];
-
-export function templateSection(type, project) {
-  return {
-    id: makeId(type.replace('_', '')),
-    type,
-    approved: false,
-    approvedHash: '',
-    needsReview: false,
-    origin: 'template',
-    fields: TEMPLATES[type](),
-    claimRefs: type === 'proof' ? project.evidence.map((e) => e.id) : [],
-  };
-}
-
-/** モード1: LP全体作成（template） */
-export function generateAllTemplate(project, { includeVideo = false } = {}) {
-  const p = clone(project);
-  const order = includeVideo ? ['fv', 'concept_video', ...DEFAULT_ORDER.slice(1)] : DEFAULT_ORDER;
-  p.sections = order.map((t) => templateSection(t, p));
-  return p;
-}
-
-/** モード2: 訴求変更。約束する価値を差し替え、訴求系だけ作り直し、残りに要確認を立てる */
-export function reangleTemplate(project, newPromise) {
-  const p = clone(project);
-  p.brief.promise = { value: String(newPromise).slice(0, 600), status: 'unconfirmed' };
-  p.sections = p.sections.map((s) => {
-    if (ANGLE_TYPES.includes(s.type)) {
-      return { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false };
-    }
-    if (s.type === 'footer') return s;
-    return { ...s, needsReview: true, approved: false, approvedHash: '' };
+/** ルールベースの骨組み。コピーは書かない（AI推論ではない）。 */
+export function skeletonSections(project) {
+  const mk = (role, extra = {}) => ({
+    id: role, role, approved: false, approvedHash: '', needsReview: false, origin: 'template',
+    heading: TODO(`${ROLES[role].label}の見出し`), headingPhrases: [], body: TODO(ROLES[role].purpose), note: '', sourceRefs: [], items: [], visual: null, cta: null, commercialPreview: null, ...extra,
   });
-  return p;
+  return [mk('hero'), mk('empathy'), mk('mechanism'), mk('process'), mk('closing')];
 }
 
-/** モード3: セクション単体の再生成（template） */
-export function regenerateSectionTemplate(project, sectionId) {
+export function applySkeleton(project) {
   const p = clone(project);
-  const i = p.sections.findIndex((s) => s.id === sectionId);
-  if (i < 0) throw new Error('セクションが見つかりません');
-  const s = p.sections[i];
-  p.sections[i] = { ...s, fields: TEMPLATES[s.type](), origin: 'template', approved: false, approvedHash: '', needsReview: false,
-    claimRefs: s.type === 'proof' ? p.evidence.map((e) => e.id) : s.claimRefs };
+  p.sections = skeletonSections(p);
   return p;
 }
 
-// ---------------- claude-code アダプタ ----------------
+/** 訴求を選び直す（ルールベース部分）。依存セクションを「要再確認・未承認」にし、無関係な編集は保持する。 */
+export function chooseAngle(project, angleId) {
+  const p = clone(project);
+  if (!p.angles.some((a) => a.id === angleId)) throw new Error('訴求が見つかりません');
+  if (p.chosenAngleId === angleId) return p;
+  p.chosenAngleId = angleId;
+  p.sections = p.sections.map((s) => (ANGLE_DEPENDENT.includes(s.role) ? { ...s, needsReview: true, approved: false, approvedHash: '' } : s));
+  return p;
+}
 
-const GENERATED_SECTION_SPEC = {
+// ---------------- prompt ----------------
+
+const SYSTEM_TEXT = `あなたは、入力資料からLPの訴求と日本語コピーを設計する編集者です。美辞麗句を増やすのでなく、読者の具体的な状況と、この商品を選ぶ理由をつなげてください。
+
+まず入力を確認済み事実、提供者の申告、顧客の観察・原文、仮説、未確認情報に分けてください。商品名や数値が書かれているだけで、実在・検証済み・公開可能だとみなしてはいけません。デモデータは実績の根拠に使わないでください。
+
+コピーを書く前に、対象者の場面、既にしている努力、止まる瞬間、欲しい変化、商品が提供する仕組み、申込前の不安を短いブリーフへまとめてください。心理や因果関係の推測には仮説と明記してください。顧客の実際の発言がなければ、引用や口コミを生成しないでください。
+
+中心となる訴求を一つ選び、選択理由と根拠IDを示してください。その訴求から、FV、共感、仕組み、裏づけ、条件、CTAへつながる本文を作成してください。セクションの数や順番は入力の事実と読者の疑問に合わせます。事実のない創業話、実績、価格理由は作らず、省くか編集画面の確認事項にしてください。
+
+見出しと本文は自然な日本語に書き直してください。入力文章を{{audience}}や{{promise}}でそのまま結合しないでください。価格、条件、URLなどの正確な値は参照元とひも付け、公開用コピーの自由な言い換えと分けてください。公開文の各主張にsourceRefsを付けて、意味が入力より強くなっていないか検査してください。
+
+FVでは、対象者の具体的な詰まりと、サービスが手伝う内容を短く伝えてください。デザイン上の小見出し、H1の意味ごとの改行候補、本文、CTA文言、隣接注記、必要な図解の内容を別フィールドで出してください。SPで語を途中分割してまで大きく見せる前提にしないでください。
+
+CTAが何をするか、料金、時間、提供方法、契約条件に未確認項目があれば、実販売の公開を止める理由を出してください。別の数字や『無料』『お気軽に』で穴埋めしないでください。説明用の例は例と明記し、成果や実物の証拠として使わないでください。
+
+最後に、事実の裏づけ、訴求の一貫性、日本語の自然さ、重要情報の不足、SPでの文字量を自己点検し、残る要確認事項を列挙してください。スコアだけで合格扱いにせず、停止条件が一つでもあれば公開不可にしてください。`;
+
+const RULES = [
+  'H1（hero.heading）は声に出して一息で読める長さ（目安24字以内）。ブランド名を入れない。headingPhrases に意味のまとまりごとの改行候補を入れる（連結すると heading と完全一致）',
+  '対象者の呼びかけ（display.audienceLabel）と業態（display.serviceDescriptor）はデザイン側が1回だけ出す。コピー本文で繰り返さない',
+  '数値は参照した事実にある意味のまま使う。ある数値を別の対象（例: 学習の単位 → 面談の所要時間）に移さない。不明な条件（料金・所要時間・方法など）を数値や「無料」で埋めない',
+  '共感（empathy）は読者の場面を地の文で描く。顧客の原文が無いので、引用符つきの「お客様の声」・吹き出し・人物属性は作らない',
+  'デモ（display.demoMode が live 以外）のあいだ、行動ボタンはページ内の説明用の例へのアンカー（cta.behavior = "anchor"、target = 移動先セクションの id）だけ。実際の予約・登録の文言は commercialPreview（無効表示）に置き、note でデモのため使えないことを書く',
+  '図解（visual）は仕組みが分かる具体的な例。kind は task-card / flow / table / checklist から選ぶ。label に「〜のイメージ」「架空データ」など例であることを書き、note に「例であり実物・成果ではない」旨を書く。成果の数値を入れない',
+  '本文の無い見出しだけ・CTAだけのセクションを作らない。該当する事実が無い役割（創業話・お客様の声・価格の理由・根拠など）は省く',
+  '各セクションと各項目に sourceRefs（台帳の id）を付ける。unknown 種別の id は根拠に使わない',
+  'です・ます調を基本にし、句点で文を終える。同じ話の繰り返し、入力文の貼り付け、意味の取り違え、不自然な助詞を声に出して点検する',
+  'section の id は役割名（hero, empathy, mechanism, illustration, process, scope, faq, fit, closing など）にする',
+];
+
+function dumpInputs(project) {
+  const d = project.display;
+  const i = project.inputs;
+  const L = [];
+  L.push('## 表示用の名前（display）');
+  L.push(`- brandName: ${d.brandName}`, `- serviceDescriptor: ${d.serviceDescriptor}`, `- audienceLabel: ${d.audienceLabel}`, `- demoMode: ${d.demoMode}`, `- demoNotice: ${d.demoNotice}`, '');
+  L.push('## 事実台帳（id / 種別 / 実在or合成 / 内容）');
+  for (const l of project.ledger) L.push(`- ${l.id} [${l.kind} / ${l.reality}] ${l.text}`);
+  L.push('');
+  L.push('## 根拠（evidence。合成の成果データはLPの根拠に使わない）');
+  if (!project.evidence.length) L.push('- （なし）');
+  for (const e of project.evidence) L.push(`- ${e.id} [${e.kind} / ${e.reality} / ${e.status}] ${e.claim}`);
+  L.push('', '## 顧客の原文（quotes）', project.quotes.length ? project.quotes.map((q) => `- ${q.id} ${q.text}（${q.method} ${q.date}）`).join('\n') : '- （なし。引用・口コミは作らない）', '');
+  L.push('## A 読者と場面');
+  for (const [k, v] of Object.entries(i.scene || {})) if (v) L.push(`- ${k}: ${v}`);
+  L.push('## B 既存の努力と詰まり');
+  for (const [k, v] of Object.entries(i.efforts || {})) if (v) L.push(`- ${k}: ${v}`);
+  L.push('## E 商材が担える変化');
+  for (const k of ['canDo', 'expectedChange', 'cannotGuarantee']) for (const x of i.promiseLayers[k] || []) L.push(`- ${k}: ${x.text} (${(x.sourceRefs || []).join(', ')})`);
+  L.push('## F 仕組み');
+  for (const [k, v] of Object.entries(i.mechanism || {})) if (v) L.push(`- ${k}: ${v}`);
+  L.push('## H 行動条件（未確定は穴埋めしない）');
+  const a = i.action;
+  L.push(`- behavior: ${a.behavior} / ctaLabel: ${a.ctaLabel || '（なし）'} / url: ${a.url || '（なし）'}`);
+  for (const k of ['price', 'duration', 'method', 'continuation', 'requiredInput']) L.push(`- ${k}: ${a[k] || '（未確定）'}${a.confirmed?.[k] ? '（確定）' : ''}`);
+  L.push(`- 確定済み: ${Object.entries(a.confirmed || {}).filter(([, v]) => v).map(([k]) => k).join(', ') || 'なし'}`);
+  L.push('## 言わないこと（doNotAssert）');
+  for (const x of i.doNotAssert || []) L.push(`- ${x}`);
+  return L.join('\n');
+}
+
+export function buildPrompt(project, mode = 'full', target = {}) {
+  const L = ['# LP Studio 生成指示 v2（Claude Code 用）', '', SYSTEM_TEXT, '', '## 守ること', ...RULES.map((r) => `- ${r}`), '', dumpInputs(project), ''];
+  L.push('## 使えるセクション役割（全部使う必要はない）');
+  for (const r of ROLE_IDS) L.push(`- ${r}: ${ROLES[r].label} — ${ROLES[r].purpose}`);
+  L.push(`- 図解の kind: ${VISUAL_KINDS.join(' / ')}`, '');
+  L.push('## 依頼');
+  if (mode === 'full') {
+    L.push('事実台帳の分類 → 読者ブリーフ → インサイト仮説（2〜3案）→ 訴求候補（比較して1つ選ぶ）→ セクション → 自己点検 の順に考え、下の JSON を1つだけ出力する。');
+  } else if (mode === 'reangle') {
+    const angle = project.angles.find((a) => a.id === (target.angleId || project.chosenAngleId));
+    L.push(`訴求を「${angle ? angle.statement : String(target.statement || '').slice(0, 200)}」に変える。この訴求に依存する役割（${ANGLE_DEPENDENT.join(', ')}）のセクションを書き直す。依存しないセクションは出力しない（手動編集を保持するため）。`);
+    L.push('現在のセクション:', '```json', JSON.stringify(project.sections.map((s) => ({ id: s.id, role: s.role, heading: s.heading, body: s.body })), null, 1), '```');
+  } else {
+    const s = project.sections.find((x) => x.id === target.sectionId);
+    L.push(`セクション ${s ? `${s.id}（${s.role}）` : '(未指定)'} を1つだけ書き直す。現在: ${s ? JSON.stringify({ heading: s.heading, body: s.body, items: s.items }) : '-'}`);
+  }
+  L.push('', '## JSON 契約（この形だけを出力する）', '```json', JSON.stringify({
+    generator: 'claude-code',
+    mode,
+    analysis: {
+      factClasses: { verifiedSpec: [], providerClaims: ['s1-...'], customerObservations: [], hypotheses: [], unknowns: ['u1-...'] },
+      readerBrief: '場面・既にしている努力・止まる瞬間・欲しい変化・仕組み・申込前の不安を短く',
+      objections: ['申込前に読者が持つ疑問'],
+    },
+    insights: [{ id: 'i1', statement: '〜したいが、〜なので、〜してしまう。そこで〜が必要ではないか（仮説）', readFromSource: '資料から読んだこと', inferred: '推測したこと', sourceRefs: ['s1-...'], confidence: 'low', alternatives: ['別の解釈'], questions: ['確認したい質問'] }],
+    angles: [{ id: 'a1', statement: '訴求', insightId: 'i1', sourceRefs: ['s1-...'], rationale: '選んだ・選ばなかった理由', scores: { evidence: 0, fit: 0, specificity: 0, nextAction: 0 } }],
+    chosenAngleId: 'a1',
+    sections: [{
+      id: 'hero', role: 'hero', heading: '', headingPhrases: [''], body: '', note: '', sourceRefs: [],
+      items: [{ heading: '', body: '', sourceRefs: [] }],
+      visual: { kind: 'task-card', label: '〜のイメージ', title: '', task: '', note: '例であり実物・成果ではない旨', sourceRefs: [] },
+      cta: { label: '', behavior: 'anchor', target: 'illustration' },
+      commercialPreview: { label: '実際の申込ボタンの文言', note: 'デモのため使えない旨' },
+    }],
+    selfCheck: { readAloud: ['声に出して直した点'], consistency: 'FV→共感→仕組み→裏づけ→CTA が同じ話か', missing: ['重要情報の不足'], spLength: 'SPでの文字量', openQuestions: ['残る要確認事項'] },
+  }, null, 2), '```');
+  return L.join('\n');
+}
+
+// ---------------- ingest ----------------
+
+const item = { t: 'object', fields: { heading: { t: 'string', max: 120 }, body: { t: 'string', max: 400 }, sourceRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 } }, required: [] };
+const GEN_SECTION = {
   t: 'object',
   fields: {
-    type: { t: 'string', enum: SECTION_TYPES },
-    fields: {
-      t: 'object',
-      fields: {
-        heading: { t: 'string', max: 200 }, lead: { t: 'string', max: 400 }, body: { t: 'string', max: 2000 }, note: { t: 'string', max: 400 },
-        items: { t: 'array', of: { t: 'string', max: 300 }, max: 12 },
-        itemsAlt: { t: 'array', of: { t: 'string', max: 300 }, max: 12 },
-      },
-      required: [],
-    },
-    claimRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 },
+    id: { t: 'string', max: 40, pattern: /^[a-z][a-z0-9_-]{0,39}$/ },
+    role: { t: 'string', enum: ROLE_IDS },
+    heading: { t: 'string', max: 120 }, headingPhrases: { t: 'array', of: { t: 'string', max: 60 }, max: 8 },
+    body: { t: 'string', max: 1200 }, note: { t: 'string', max: 200 },
+    sourceRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 },
+    items: { t: 'array', of: item, max: 10 },
+    visual: VISUAL_SPEC,
+    cta: { t: 'object', nullable: true, fields: { label: { t: 'string', max: 40 }, behavior: { t: 'string', enum: ['anchor'] }, target: { t: 'string', max: 40 } }, required: ['label', 'behavior', 'target'] },
+    commercialPreview: { t: 'object', nullable: true, fields: { label: { t: 'string', max: 40 }, note: { t: 'string', max: 80 } }, required: ['label'] },
   },
-  required: ['type', 'fields'],
+  required: ['role'],
 };
-
+const STR_LIST = (n, max = 300) => ({ t: 'array', of: { t: 'string', max }, max: n });
 const RESPONSE_SPEC = {
   t: 'object',
   fields: {
     generator: { t: 'string', enum: ['claude-code'] },
     mode: { t: 'string', enum: ['full', 'reangle', 'section'] },
-    promise: { t: 'string', max: 600 },
-    sections: { t: 'array', of: GENERATED_SECTION_SPEC, max: 20, min: 1 },
-    evidenceCandidates: {
-      t: 'array', max: 20,
-      of: { t: 'object', fields: { claim: { t: 'string', max: 300 }, source: { t: 'string', max: 300 } }, required: ['claim', 'source'] },
-    },
+    analysis: { t: 'object', fields: { factClasses: { t: 'object', fields: { verifiedSpec: STR_LIST(40, 40), providerClaims: STR_LIST(40, 40), customerObservations: STR_LIST(40, 40), hypotheses: STR_LIST(40, 40), unknowns: STR_LIST(40, 40) }, required: [] }, readerBrief: { t: 'string', max: 800 }, objections: STR_LIST(10) }, required: [] },
+    insights: { t: 'array', max: 5, of: { t: 'object', fields: { id: { t: 'string', max: 40, pattern: /^[A-Za-z0-9_-]{1,40}$/ }, statement: { t: 'string', max: 300 }, readFromSource: { t: 'string', max: 300 }, inferred: { t: 'string', max: 300 }, sourceRefs: STR_LIST(20, 40), confidence: { t: 'string', enum: CONFIDENCE }, alternatives: STR_LIST(5, 200), questions: STR_LIST(5, 200) }, required: ['id', 'statement', 'sourceRefs'] } },
+    angles: { t: 'array', max: 6, of: { t: 'object', fields: { id: { t: 'string', max: 40, pattern: /^[A-Za-z0-9_-]{1,40}$/ }, statement: { t: 'string', max: 200 }, insightId: { t: 'string', max: 40 }, sourceRefs: STR_LIST(20, 40), rationale: { t: 'string', max: 400 }, scores: { t: 'object', fields: { evidence: { t: 'number', min: 0, max: 3, int: true }, fit: { t: 'number', min: 0, max: 3, int: true }, specificity: { t: 'number', min: 0, max: 3, int: true }, nextAction: { t: 'number', min: 0, max: 3, int: true } }, required: [] } }, required: ['id', 'statement', 'sourceRefs'] } },
+    chosenAngleId: { t: 'string', max: 40 },
+    sections: { t: 'array', of: GEN_SECTION, max: 14 },
+    selfCheck: { t: 'object', fields: { readAloud: STR_LIST(12, 200), consistency: { t: 'string', max: 400 }, missing: STR_LIST(12, 200), spLength: { t: 'string', max: 300 }, openQuestions: STR_LIST(12, 200) }, required: [] },
   },
   required: ['generator', 'mode', 'sections'],
 };
-
-/** Claude Code に渡す生成指示（Markdown）。JSON の契約と禁止事項を含む。 */
-export function buildPrompt(project, mode = 'full', target = {}) {
-  const lines = [];
-  lines.push('# LP Studio 生成指示（Claude Code 用）', '');
-  lines.push('あなたは LP の構成・コピーの**下書き**を書く。出力は下記 JSON 契約に従う JSON のみ（```json フェンス可）。');
-  lines.push('この出力はツール側で schema 検証され、すべて「未承認」「根拠未検証」として取り込まれる。人が確認するまで公開されない。', '');
-  lines.push('## 禁止事項（違反したフィールドは取り込み時に拒否・除外される）');
-  lines.push('- ブリーフや根拠に無い数値・実績・受講者数・満足度・ランキング・受賞・メディア掲載を書かない');
-  lines.push('- 推薦文・お客様の声・専門家/医師の権威づけを創作しない');
-  lines.push('- 保証・断定（必ず/絶対/誰でも）、煽り（今だけ/残りわずか/限定）を書かない');
-  lines.push('- 効能効果（治る/痩せる/効く 等）を書かない');
-  lines.push(`- 参考LP固有の値を使わない: ${REFERENCE_DENYLIST.join(' / ')}`);
-  lines.push('- ブリーフ値は {{key}} 差込で参照する（例: {{offer}}）。値を書き写さない。使えるキー: ' + BRIEF_KEYS.join(', '));
-  lines.push('- 分からないこと・ヒアリングが要ることは 【要記入: 何が必要か】 と書く。埋め合わせない');
-  lines.push('- HTML タグ・スクリプト・URL を書かない（プレーンテキストのみ）', '');
-  lines.push('## ブリーフ（status: confirmed=確定 / unconfirmed=未確定 / missing=未入力）');
-  for (const k of BRIEF_KEYS) {
-    const f = project.brief[k];
-    lines.push(`- ${k}（${BRIEF_LABELS[k]}）[${f.status}]: ${f.value || '（なし）'}`);
-  }
-  lines.push(`- category: ${project.brief.category}`, '');
-  lines.push('## 根拠（id / status / 内容）。claimRefs には verified のものだけを入れる');
-  if (!project.evidence.length) lines.push('- （なし）');
-  for (const e of project.evidence) lines.push(`- ${e.id} [${e.status}] ${e.claim}（出典: ${e.source}）`);
-  lines.push('');
-  lines.push('## セクションの役割（参考構成の流れ）');
-  for (const t of SECTION_TYPES) {
-    const m = SECTION_CATALOG[t];
-    lines.push(`- ${t}: ${m.label} — ${m.role}${m.required ? '（必須）' : '（任意）'}`);
-  }
-  lines.push('');
-  lines.push('## 依頼');
-  if (mode === 'full') {
-    lines.push('LP全体の sections を上の順で書く（concept_video は素材が無いので不要）。');
-  } else if (mode === 'reangle') {
-    lines.push(`訴求を「${String(target.promise || '').slice(0, 200)}」に変える。promise と、fv / recommit / closing の 3 セクションだけを書く。`);
-  } else {
-    const s = project.sections.find((x) => x.id === target.sectionId);
-    lines.push(`セクション ${s ? s.type : '(未指定)'} を 1 つだけ書き直す。現在の内容: ${s ? JSON.stringify(s.fields) : '-'}`);
-  }
-  lines.push('');
-  lines.push('## JSON 契約');
-  lines.push('```json');
-  lines.push(JSON.stringify({
-    generator: 'claude-code',
-    mode,
-    ...(mode === 'reangle' ? { promise: '新しい約束（プレーンテキスト）' } : {}),
-    sections: [{ type: 'fv', fields: { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] }, claimRefs: [] }],
-    evidenceCandidates: [{ claim: '確認が必要な事実の候補', source: 'どこで確認できるか' }],
-  }, null, 2));
-  lines.push('```');
-  return lines.join('\n');
-}
 
 function extractJson(text) {
   const s = String(text ?? '').trim();
@@ -175,45 +182,33 @@ function extractJson(text) {
   return fence ? fence[1] : s;
 }
 
-/**
- * 生成物のフィールドを検査する。次を含むフィールドは取り込まない:
- * HTML/URL、参考LP固有値・薬機法語彙・推薦文・権威（創作禁止）、
- * 確定ブリーフにも verified 根拠にも無い数値・最上級・保証・煽り・オファー表現。
- */
-function screenFields(fields, project, report, label) {
-  const confirmed = BRIEF_KEYS.filter((k) => project.brief[k].status === 'confirmed').map((k) => project.brief[k].value).join('\n');
-  const verified = project.evidence.filter((e) => e.status === 'verified').map((e) => e.claim).join('\n');
-  const bad = (v) => {
-    if (/<\s*\/?\s*[a-z!]|javascript:|https?:\/\/|www\./i.test(v)) return 'HTML/URL を含む';
-    for (const c of detectClaims(v, project.brief.category)) {
-      if (['reference', 'pharma', 'testimonial', 'authority'].includes(c.category)) return `${c.label}「${c.match}」`;
-      if (!containsToken(confirmed, c.match) && !containsToken(verified, c.match)) return `根拠の無い${c.label}「${c.match}」`;
-    }
-    return null;
+const UNSAFE = /<\s*\/?\s*[a-z!]|javascript:|https?:\/\/|www\./i;
+
+function toSection(g, idFor, report) {
+  const clean = (v, where) => {
+    if (typeof v !== 'string') return v;
+    if (UNSAFE.test(v)) { report.rejected.push(`${where}: HTML/URL を含むため除外`); return ''; }
+    return v;
   };
-  const out = { heading: '', lead: '', body: '', note: '', items: [], itemsAlt: [] };
-  for (const k of ['heading', 'lead', 'body', 'note']) {
-    const v = fields[k] || '';
-    const why = v && bad(v);
-    if (why) report.rejected.push(`${label}.${k}: ${why}のため拒否`);
-    else out[k] = v;
-  }
-  for (const k of ['items', 'itemsAlt']) {
-    for (const v of fields[k] || []) {
-      const why = bad(v);
-      if (why) report.rejected.push(`${label}.${k}: ${why}のため拒否`);
-      else out[k].push(v);
-    }
-  }
-  return out;
+  const s = {
+    id: idFor(g), role: g.role, approved: false, approvedHash: '', needsReview: false, origin: 'claude-code',
+    heading: clean(g.heading || '', `${g.role}.heading`), headingPhrases: (g.headingPhrases || []).map((x) => clean(x, `${g.role}.headingPhrases`)),
+    body: clean(g.body || '', `${g.role}.body`), note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
+    items: (g.items || []).map((it, i) => ({ heading: clean(it.heading || '', `${g.role}.items[${i}]`), body: clean(it.body || '', `${g.role}.items[${i}]`), sourceRefs: it.sourceRefs || [] })),
+    visual: g.visual ? { title: '', task: '', from: '', to: '', review: '', columns: [], rows: [], highlight: -1, sourceRefs: [], ...g.visual, notEvidence: true } : null,
+    cta: g.cta || null,
+    commercialPreview: g.commercialPreview ? { note: '', ...g.commercialPreview } : null,
+  };
+  if (s.visual) for (const k of ['label', 'title', 'task', 'note', 'from', 'to', 'review']) s.visual[k] = clean(s.visual[k] || '', `${g.role}.visual.${k}`);
+  return s;
 }
 
 /**
- * Claude Code の出力（JSON 文字列）を検証して project に取り込む。
- * 返り値: { ok, project, report: { errors, warnings, rejected, added } }
+ * Claude Code の出力（JSON 文字列）を検証して取り込む。
+ * 返り値: { ok, project, report: { errors, warnings, rejected, added, issues } }
  */
 export function ingestGenerated(project, responseText, { mode, sectionId } = {}) {
-  const report = { errors: [], warnings: [], rejected: [], added: [] };
+  const report = { errors: [], warnings: [], rejected: [], added: [], issues: [] };
   let data;
   try {
     data = JSON.parse(extractJson(responseText), (k, v) => {
@@ -229,70 +224,63 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
   report.warnings.push(...shape.warnings);
   if (shape.errors.length) return { ok: false, project, report };
   const r = shape.value;
-  if (mode && r.mode !== mode) {
-    report.errors.push(`mode が一致しません（期待: ${mode} / 応答: ${r.mode}）`);
-    return { ok: false, project, report };
-  }
+  if (mode && r.mode !== mode) { report.errors.push(`mode が一致しません（期待: ${mode} / 応答: ${r.mode}）`); return { ok: false, project, report }; }
   const p = clone(project);
-  const evIds = new Set(p.evidence.map((e) => e.id));
-  const toSection = (g, keep) => {
-    const refs = (g.claimRefs || []).filter((id) => {
-      if (!evIds.has(id)) { report.warnings.push(`claimRefs "${id}" は存在しないため外しました`); return false; }
-      return true;
-    });
-    return {
-      id: keep?.id || makeId(g.type.replace('_', '')),
-      type: g.type,
-      approved: false, // 強制
-      approvedHash: '',
-      needsReview: false,
-      origin: 'claude-code',
-      fields: screenFields(g.fields, p, report, g.type),
-      claimRefs: refs,
-    };
+  const known = new Set([...p.ledger.map((l) => l.id), ...p.evidence.map((e) => e.id), ...p.quotes.map((q) => q.id)]);
+  const checkRefs = (list, where) => list.filter((id) => { if (!known.has(id)) { report.warnings.push(`${where}: 参照 "${id}" は台帳に無いため外しました`); return false; } return true; });
+
+  if (r.insights && r.mode !== 'section') {
+    // 生成されたインサイトは常に仮説
+    p.insights = r.insights.map((x) => ({ ...x, sourceRefs: checkRefs(x.sourceRefs, `insight ${x.id}`), confidence: x.confidence || 'low', alternatives: x.alternatives || [], questions: x.questions || [], readFromSource: x.readFromSource || '', inferred: x.inferred || '', status: 'hypothesis', provenance: 'claude-code' }));
+    report.added.push(`インサイト仮説 ${p.insights.length} 件（すべて仮説）`);
+  }
+  if (r.angles && r.mode !== 'section') {
+    p.angles = r.angles.map((x) => ({ ...x, sourceRefs: checkRefs(x.sourceRefs, `angle ${x.id}`), insightId: x.insightId || '', rationale: x.rationale || '', scores: x.scores || {} }));
+    if (r.chosenAngleId && p.angles.some((a) => a.id === r.chosenAngleId)) p.chosenAngleId = r.chosenAngleId;
+    report.added.push(`訴求候補 ${p.angles.length} 件（選択: ${p.chosenAngleId || 'なし'}）`);
+  }
+  if (r.selfCheck) p.selfCheck = { readAloud: [], consistency: '', missing: [], spLength: '', openQuestions: [], ...r.selfCheck };
+  if (r.analysis?.objections?.length && p.selfCheck) p.selfCheck.openQuestions = [...new Set([...(p.selfCheck.openQuestions || []), ...r.analysis.objections.map((o) => `読者の疑問: ${o}`)])].slice(0, 12);
+
+  const used = new Set();
+  const idFor = (g) => {
+    let id = g.id || g.role;
+    while (used.has(id)) id = `${g.role}-${used.size + 1}`;
+    used.add(id);
+    return id;
   };
+  const gen = r.sections.map((g) => {
+    const s = toSection(g, idFor, report);
+    s.sourceRefs = checkRefs(s.sourceRefs, `${s.id}.sourceRefs`);
+    s.items = s.items.map((it, i) => ({ ...it, sourceRefs: checkRefs(it.sourceRefs, `${s.id}.items[${i}]`) }));
+    if (s.visual) s.visual.sourceRefs = checkRefs(s.visual.sourceRefs, `${s.id}.visual`);
+    return s;
+  });
 
   if (r.mode === 'full') {
-    const seen = new Set();
-    p.sections = [];
-    for (const g of r.sections) {
-      if (seen.has(g.type)) { report.warnings.push(`${g.type} が重複しているため2つ目以降を無視しました`); continue; }
-      seen.add(g.type);
-      p.sections.push(toSection(g));
-    }
-    for (const t of SECTION_TYPES.filter((t) => SECTION_CATALOG[t].required && !seen.has(t))) {
-      p.sections.push(templateSection(t, p));
-      report.warnings.push(`必須セクション ${t} が無いためテンプレートで補いました（AI生成ではありません）`);
-    }
-    report.added.push(`${p.sections.length} セクション`);
+    if (!gen.some((s) => s.role === 'hero')) { report.errors.push('hero（FV）がありません'); return { ok: false, project, report }; }
+    p.sections = gen;
   } else if (r.mode === 'reangle') {
-    if (r.promise) p.brief.promise = { value: r.promise, status: 'unconfirmed' };
-    const byType = new Map(r.sections.filter((g) => ANGLE_TYPES.includes(g.type)).map((g) => [g.type, g]));
-    for (const g of r.sections) if (!ANGLE_TYPES.includes(g.type)) report.warnings.push(`訴求変更では ${g.type} は対象外のため無視しました`);
+    const byRole = new Map(gen.filter((s) => ANGLE_DEPENDENT.includes(s.role)).map((s) => [s.role, s]));
+    for (const s of gen) if (!ANGLE_DEPENDENT.includes(s.role)) report.warnings.push(`訴求変更では ${s.role} は対象外のため無視しました（手動編集を保持）`);
     p.sections = p.sections.map((s) => {
-      if (byType.has(s.type)) return toSection(byType.get(s.type), s);
-      if (s.type === 'footer') return s;
-      return { ...s, needsReview: true, approved: false, approvedHash: '' };
+      if (byRole.has(s.role)) { const n = byRole.get(s.role); byRole.delete(s.role); return { ...n, id: s.id }; }
+      if (ANGLE_DEPENDENT.includes(s.role)) return { ...s, needsReview: true, approved: false, approvedHash: '' };
+      return s;
     });
-    report.added.push(`${byType.size} セクションを差し替え`);
+    for (const s of byRole.values()) p.sections.push(s);
+    report.added.push('訴求に依存するセクションを差し替え');
   } else {
     const i = p.sections.findIndex((s) => s.id === sectionId);
     if (i < 0) { report.errors.push('対象セクションが見つかりません'); return { ok: false, project, report }; }
-    const g = r.sections.find((x) => x.type === p.sections[i].type);
-    if (!g) { report.errors.push(`応答に ${p.sections[i].type} がありません`); return { ok: false, project, report }; }
-    p.sections[i] = toSection(g, p.sections[i]);
-    report.added.push('1 セクションを差し替え');
+    const g = gen.find((s) => s.role === p.sections[i].role);
+    if (!g) { report.errors.push(`応答に ${p.sections[i].role} がありません`); return { ok: false, project, report }; }
+    p.sections[i] = { ...g, id: p.sections[i].id };
   }
-  for (const c of r.evidenceCandidates || []) {
-    const blocked = [...detectClaims(c.claim, p.brief.category), ...detectClaims(c.source, p.brief.category)].find((x) => x.severity === 'block');
-    if (blocked || /<\s*\/?\s*[a-z!]|javascript:/i.test(c.claim + c.source)) {
-      report.rejected.push(`根拠候補「${c.claim.slice(0, 30)}」: ${blocked ? blocked.label : 'HTML/スクリプト'}のため拒否`);
-      continue;
-    }
-    const id = makeId('ev');
-    p.evidence.push({ id, claim: c.claim, source: c.source, sourceType: 'other', status: 'unverified', provenance: 'claude-code', verifiedBy: '', verifiedAt: '', verifiedHash: '', metricValue: null, metricUnit: '', note: '生成時の候補。人が出典を確認するまで公開されない' });
-    report.added.push(`根拠候補（未検証）: ${c.claim.slice(0, 30)}`);
-  }
+  // CTA の移動先は存在する id に限る
+  const ids = new Set(p.sections.map((s) => s.id));
+  for (const s of p.sections) if (s.cta && !ids.has(s.cta.target)) { report.warnings.push(`${s.id}.cta: 移動先 "${s.cta.target}" が無いため外しました`); s.cta = null; }
+  report.added.push(`${gen.length} セクション（すべて未承認）`);
+  report.issues = checkProject(p);
   return { ok: true, project: p, report };
 }
-

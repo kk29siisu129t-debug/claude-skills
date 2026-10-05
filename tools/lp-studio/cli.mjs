@@ -1,20 +1,18 @@
 #!/usr/bin/env node
-// LP Studio CLI。Claude Code セッションから実行する前提（新規APIキー・外部API接続なし）。
+// LP Studio CLI（v2）。Claude Code セッションから実行する前提（新規APIキー・外部API接続なし）。
 //
-//   node cli.mjs new --out p.json                          空の project
-//   node cli.mjs seed --out p.json                         架空seedをコピー
-//   node cli.mjs template --project p.json --out p.json    LP全体をテンプレートで下書き（AI生成ではない）
-//   node cli.mjs prompt --project p.json --mode full|reangle|section [--promise 文] [--section id] > prompt.md
+//   node cli.mjs new --out p.json                              空の project
+//   node cli.mjs case <michishirube|mitsumoriban> --out p.json  fixture のブリーフ（入力だけ。コピーは含まない）
+//   node cli.mjs prompt --project p.json --mode full|reangle|section [--angle id] [--section id] > prompt.md
 //   node cli.mjs ingest --project p.json --response r.json --mode full|reangle|section [--section id] --out p2.json
-//   node cli.mjs validate --project p.json
-//   node cli.mjs audit --project p.json
-//   node cli.mjs export --project p.json --kind draft|safe --out page.html
-//   node cli.mjs lpo --project p.json [--json]
+//   node cli.mjs check  --project p.json                       停止条件・要確認・公開判定（2段）
+//   node cli.mjs export --project p.json --kind draft|review|commercial --out page.html
+//   node cli.mjs lpo    --project p.json [--json]
 import { readFileSync, writeFileSync } from 'node:fs';
 import { parseProjectJson, serializeProject } from './src/core/schema.js';
 import { emptyProject } from './src/core/model.js';
-import { generateAllTemplate, buildPrompt, ingestGenerated } from './src/core/generate.js';
-import { auditProject } from './src/core/claims.js';
+import { buildPrompt, ingestGenerated } from './src/core/generate.js';
+import { checkProject, gates } from './src/core/editorial.js';
 import { exportHtml } from './src/core/render.js';
 import { analyzeLpo } from './src/core/lpo.js';
 
@@ -23,18 +21,14 @@ const args = {};
 for (let i = 0; i < rest.length; i++) {
   if (rest[i].startsWith('--')) {
     const k = rest[i].slice(2);
-    const v = rest[i + 1] && !rest[i + 1].startsWith('--') ? rest[++i] : true;
-    args[k] = v;
-  }
+    args[k] = rest[i + 1] && !rest[i + 1].startsWith('--') ? rest[++i] : true;
+  } else if (!args._) args._ = rest[i];
 }
 
 function load(path) {
   const r = parseProjectJson(readFileSync(path, 'utf8'));
   for (const w of r.warnings) console.error(`warn: ${w}`);
-  if (!r.ok) {
-    for (const e of r.errors) console.error(`error: ${e}`);
-    process.exit(2);
-  }
+  if (!r.ok) { for (const e of r.errors) console.error(`error: ${e}`); process.exit(2); }
   return r.project;
 }
 function save(project, out) {
@@ -45,35 +39,37 @@ const need = (k) => { if (!args[k] || args[k] === true) { console.error(`--${k} 
 
 switch (cmd) {
   case 'new': save(emptyProject(args.name || '新しいLP'), args.out); break;
-  case 'seed': save(load(new URL('./seed/project.fictional.json', import.meta.url).pathname), args.out); break;
-  case 'template': save(generateAllTemplate(load(need('project'))), args.out); break;
+  case 'case': save(load(new URL(`./seed/cases/${args._ || 'michishirube'}.brief.json`, import.meta.url).pathname), args.out); break;
   case 'prompt': {
     const p = load(need('project'));
-    process.stdout.write(buildPrompt(p, args.mode || 'full', { promise: args.promise, sectionId: args.section }) + '\n');
+    process.stdout.write(buildPrompt(p, args.mode || 'full', { angleId: args.angle, sectionId: args.section }) + '\n');
     break;
   }
   case 'ingest': {
     const p = load(need('project'));
     const r = ingestGenerated(p, readFileSync(need('response'), 'utf8'), { mode: need('mode'), sectionId: args.section });
     for (const k of ['errors', 'rejected', 'warnings', 'added']) for (const m of r.report[k]) console.error(`${k}: ${m}`);
+    for (const i of r.report.issues || []) if (i.level !== 'info') console.error(`${i.level}: ${i.message}`);
     if (!r.ok) process.exit(2);
     save(r.project, args.out);
     break;
   }
-  case 'validate': { load(need('project')); console.log('ok'); break; }
-  case 'audit': {
-    const issues = auditProject(load(need('project')));
+  case 'check': {
+    const p = load(need('project'));
+    const issues = checkProject(p);
     for (const i of issues) console.log(`[${i.level}] ${i.message}`);
-    console.log(`${issues.length} 件`);
+    const g = gates(p, issues);
+    console.log(`\nレビュー用プレビュー: ${g.reviewPreview.ok ? '描画できる' : '停止条件あり'}`);
+    console.log(`実販売の公開準備: ${g.commercialReady.ok ? '整っている' : '整っていない'}`);
+    for (const r of g.commercialReady.reasons) console.log(`  - ${r}`);
     break;
   }
   case 'export': {
     const kind = need('kind');
     const { html, report } = exportHtml(load(need('project')), kind);
     for (const b of report.blockers) console.error(`blocker: ${b}`);
-    for (const r of report.removed) console.error(`removed: [${r.section}] ${r.text} — ${r.reasons.join(' / ')}`);
-    for (const w of report.warnings) console.error(`warning: ${w}`);
-    if (!html) { console.error('safe export をブロックしました（上記 blocker を解消してください）'); process.exit(3); }
+    for (const r of report.removed) console.error(`removed: ${r.role}（${r.reason}）`);
+    if (!html) { console.error(`${kind} の書き出しを止めました（上記を解消してください）`); process.exit(3); }
     if (args.out) { writeFileSync(args.out, html); console.error(`wrote ${args.out}`); } else process.stdout.write(html);
     break;
   }
@@ -89,7 +85,7 @@ switch (cmd) {
       for (const c of an.comparisons) console.log(`  判定: ${c.variant} → ${c.label}${c.p != null ? ` (p=${c.p.toExponential(2)})` : ''}\n    ${c.reasons.join('\n    ')}`);
     }
     console.log('\n■ 期間をまたぐ比較の前提');
-    for (const c of a.crossPeriod) console.log(`  ${c.a} × ${c.b}: ${c.comparable ? `定義一致・期間重複なし（比較の前提を満たす。注意: ${c.cautions.join(' / ')}）` : `比較しない — ${c.reasons.join(' / ')}`}`);
+    for (const c of a.crossPeriod) console.log(`  ${c.a} × ${c.b}: ${c.comparable ? `定義一致・期間重複なし（注意: ${c.cautions.join(' / ')}）` : `比較しない — ${c.reasons.join(' / ')}`}`);
     console.log('\n■ 仮説と検証計画（推測）');
     for (const h of a.hypotheses) console.log(`  [${h.priority.level}] ${h.title}（根拠種別: ${h.evidenceType}）\n    ${h.hypothesis}`);
     break;

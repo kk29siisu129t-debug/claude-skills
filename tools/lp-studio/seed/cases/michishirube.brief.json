@@ -1,0 +1,79 @@
+{
+  "schemaVersion": 2,
+  "id": "michishirube-study-support",
+  "name": "ミチシルベ簿記（架空デモ）",
+  "updatedAt": "",
+  "display": {
+    "brandName": "ミチシルベ簿記",
+    "serviceDescriptor": "学習計画の作成・見直しサポート",
+    "audienceLabel": "仕事をしながら、簿記2級を目指す方へ",
+    "demoMode": "synthetic-demo",
+    "demoNotice": "架空サービスのデモです。お申し込みは受け付けていません。",
+    "operator": "",
+    "category": "education"
+  },
+  "brand": { "primary": "#2741b8", "accent": "#c42f57", "ink": "#1b1f2b", "paper": "#fbf8f3", "font": "sans" },
+  "inputs": {
+    "scene": {
+      "who": "仕事と両立しながら簿記2級を目指す社会人",
+      "timing": "平日の夜、仕事のあと",
+      "trying": "教材を開いて勉強を始めようとする",
+      "stuckAt": "何から手をつけるか決められず、週末にまとめてやろうとして崩れる"
+    },
+    "efforts": {
+      "tried": "教材を買った",
+      "whatHappened": "平日に進まなかった分を週末にまとめようとして、予定の分を終えられない",
+      "alternatives": "週末にまとめて学習する"
+    },
+    "promiseLayers": {
+      "canDo": [
+        { "text": "面談で学習計画を一緒に作る", "sourceRefs": ["s1-mechanism"] },
+        { "text": "学習内容を毎晩15分の単位に分ける", "sourceRefs": ["s1-mechanism"] },
+        { "text": "計画を週ごとに見直す", "sourceRefs": ["s1-mechanism"] }
+      ],
+      "expectedChange": [
+        { "text": "勉強を始める前に、今夜取り組むことが決まっている", "sourceRefs": ["s1-mechanism"] }
+      ],
+      "cannotGuarantee": [
+        { "text": "試験結果（合格）", "sourceRefs": ["s1-boundary"] }
+      ]
+    },
+    "mechanism": {
+      "receive": "学習計画",
+      "withWhom": "面談で一緒に作る",
+      "sequence": "今の進み具合と使える時間を確認 → 学習内容を15分の単位に分ける → 週ごとに見直す",
+      "frequency": "毎晩15分の単位、計画の見直しは週ごと",
+      "differentiation": "",
+      "differentiationBasisRef": ""
+    },
+    "action": {
+      "ctaLabel": "学習設計面談を予約する",
+      "behavior": "external-booking",
+      "url": "https://example.com/apply?utm_content=demo01",
+      "price": "", "duration": "", "method": "", "continuation": "", "requiredInput": "",
+      "confirmed": { "offer": false, "price": false, "duration": false, "method": false, "url": false }
+    },
+    "doNotAssert": ["やる気がない", "意志が弱い", "必ず続けられる", "15分で合格できる", "週末の遅れを解消できる"]
+  },
+  "ledger": [
+    { "id": "s1-target", "text": "仕事と両立しながら簿記2級を目指す社会人", "kind": "provider-claim", "reality": "synthetic", "origin": "seed brief.audience" },
+    { "id": "s1-scene", "text": "教材は買ったが、平日の夜に何から手をつけるか決められず、週末にまとめてやろうとして崩れる", "kind": "provider-claim", "reality": "synthetic", "origin": "seed brief.problem（顧客調査ではない）" },
+    { "id": "s1-mechanism", "text": "学習計画は面談で一緒に作り、毎晩15分の単位に分けて、週ごとに見直す", "kind": "provider-claim", "reality": "synthetic", "origin": "seed ev-plan; fictional service specification" },
+    { "id": "s1-process", "text": "面談で今の進み具合と使える時間を一緒に確認する", "kind": "provider-claim", "reality": "synthetic", "origin": "seed sections.steps; supplied fictional scenario" },
+    { "id": "s1-boundary", "text": "試験結果の保証はしない", "kind": "provider-claim", "reality": "synthetic", "origin": "seed sections.scope" },
+    { "id": "u1-fee", "text": "面談料金", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u1-duration", "text": "面談の所要時間", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u1-method", "text": "実施方法の確定", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u1-booking", "text": "予約方法", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u1-contract", "text": "継続契約の条件", "kind": "unknown", "reality": "synthetic", "origin": "未確定" },
+    { "id": "u1-materials", "text": "教材への対応範囲", "kind": "unknown", "reality": "synthetic", "origin": "未確定" }
+  ],
+  "quotes": [],
+  "evidence": [
+    { "id": "ev-hours", "claim": "【架空】面談後4週間の平均学習日数は週4.2日", "kind": "outcome-aggregate", "reality": "synthetic", "source": "架空の社内集計（デモ用）", "scope": "検証用データ", "consent": false, "checkedAt": "", "status": "unverified", "verifiedBy": "", "verifiedAt": "", "verifiedHash": "", "provenance": "seed", "metricValue": 4.2, "metricUnit": "日/週", "metricTarget": "架空の面談利用者", "metricPeriod": "面談後4週間", "metricDenominator": "不明", "metricDefinition": "学習した日数の週平均（架空）", "note": "合成データ。LPの成果根拠には使わない" },
+    { "id": "ev-voice", "claim": "【架空・未確認】受講者アンケートで満足度92%", "kind": "outcome-aggregate", "reality": "synthetic", "source": "出典未確認", "scope": "検証用データ", "consent": false, "checkedAt": "", "status": "unverified", "verifiedBy": "", "verifiedAt": "", "verifiedHash": "", "provenance": "seed", "metricValue": 92, "metricUnit": "%", "metricTarget": "", "metricPeriod": "", "metricDenominator": "", "metricDefinition": "", "note": "合成データ。LPの成果根拠には使わない" }
+  ],
+  "insights": [], "angles": [], "chosenAngleId": "", "sections": [], "selfCheck": null,
+  "cta": { "activeVariant": "a", "variants": [{ "id": "a", "label": "", "color": "#c42f57", "timing": "spec" }] },
+  "lpo": { "dataset": null }
+}

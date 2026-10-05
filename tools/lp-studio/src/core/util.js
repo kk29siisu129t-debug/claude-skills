@@ -155,13 +155,16 @@ export function isRealDate(s) {
   return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
 }
 
-/** 承認と内容を対応づける hash（type・fields・claimRefs） */
+/** 承認と内容を対応づける hash（v2: 役割・見出し・本文・項目・図解・CTA・参照） */
 export function sectionHash(s) {
+  if (s.role) {
+    return sha256Base64(JSON.stringify([s.role, s.heading || '', s.headingPhrases || [], s.body || '', s.note || '', s.items || [], s.visual || null, s.cta || null, s.commercialPreview || null, s.sourceRefs || []]));
+  }
   const f = s.fields || {};
   return sha256Base64(JSON.stringify([s.type, f.heading || '', f.lead || '', f.body || '', f.note || '', f.items || [], f.itemsAlt || [], s.claimRefs || []]));
 }
 
 /** 根拠の検証と内容を対応づける hash（主張・出典・数値） */
 export function evidenceHash(e) {
-  return sha256Base64(JSON.stringify([e.claim || '', e.source || '', e.sourceType || '', e.metricValue ?? null, e.metricUnit || '']));
+  return sha256Base64(JSON.stringify([e.claim || '', e.source || '', e.sourceType || e.kind || '', e.reality || '', e.metricValue ?? null, e.metricUnit || '']));
 }
