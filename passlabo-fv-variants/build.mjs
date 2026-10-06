@@ -77,7 +77,7 @@ img{display:block;max-width:100%}
 
 // ---- 案A: 濃紺の1枚の広告。商品名（共テ数学 特別講義）→ 講師本人 → 板書と配布テキスト → 無料・特別テキスト → CTA ----
 const A = () => `
-<header class="a-band"><p>${e(C.target)}</p></header>
+<header class="a-band"><span class="a-brand">${e(C.brand)}</span><p>${e(C.target)}</p></header>
 <section class="a-hero" aria-label="ファーストビュー">
   <div class="a-copy">
     <p class="a-cred">${e(C.credential)}</p>
@@ -85,7 +85,7 @@ const A = () => `
     <p class="a-sub">${phrases(C.subA)}</p>
   </div>
   <figure class="a-photo"><img src="${photo.uri}" alt="${e(photo.alt)}"></figure>
-  ${nameTag('a-name')}
+  <p class="a-name"><span class="role">${e(C.instructorRole)}</span><span class="nm">${e(C.instructorName)}</span></p>
   <figure class="a-mats" aria-label="${e(C.materialLabel)}">
     <span class="paper a-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
     <span class="paper a-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
@@ -93,12 +93,13 @@ const A = () => `
   </figure>
 </section>
 <section class="a-offer">
-  <p class="a-strip"><span class="a-free">無料</span><span class="a-gift">${phrases(C.offerText)}</span></p>
+  <p class="a-main">${e(C.offerMain)}</p><p class="a-subgift">${e(C.offerSub)}</p>
   ${cta()}
 </section>
 ${reviewNote}`;
 const A_CSS = `
-.a-band{background:var(--gold);text-align:center;padding:9px 12px}
+.a-band{background:var(--gold);text-align:center;padding:8px 12px;position:relative}
+.a-brand{display:block;font-size:13px;font-weight:900;letter-spacing:.14em;color:var(--navy);opacity:.85;line-height:1.2}
 .a-band p{margin:0;font-size:19px;font-weight:900;color:var(--navy);letter-spacing:.04em}
 .a-hero{position:relative;height:372px;overflow:hidden;background:linear-gradient(90deg,#0c2f8e 0%,#0b2672 45%,#0e1a45 75%,#13151d 100%);color:#fff}
 .a-copy{position:absolute;z-index:3;left:16px;top:16px;width:60%}
@@ -107,18 +108,20 @@ const A_CSS = `
 .a-title span{display:block;white-space:nowrap}
 .a-title span:last-child{color:#fff;-webkit-text-stroke:0}
 .a-sub{margin:10px 0 0;font-size:16px;font-weight:700;line-height:1.55;color:#e8edff}
+.a-sub .nb{display:block}
 .a-photo{position:absolute;z-index:1;right:-84px;top:0;height:100%;margin:0;aspect-ratio:656/585}
 .a-photo img{height:100%;width:100%;object-fit:cover}
 .a-name{position:absolute;z-index:4;right:10px;bottom:14px;margin:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .a-name .role{background:var(--gold);color:var(--navy);font-size:13px;font-weight:900;padding:1px 8px}
-.a-name .nm{background:#fff;color:var(--navy);font-size:22px;font-weight:900;padding:2px 10px;letter-spacing:.06em}
+.a-name .nm{background:#fff;color:var(--navy);font-size:18px;font-weight:900;padding:2px 10px;letter-spacing:.06em}
 .a-name .cred{background:var(--navy);color:#fff;font-size:13px;font-weight:700;padding:2px 8px}
 .a-mats{position:absolute;z-index:2;left:14px;bottom:16px;width:210px;height:138px;margin:0}
 .a-sheet{position:absolute;left:62px;top:0;width:134px;height:118px;transform:rotate(4deg)}
 .a-board{position:absolute;left:0;top:10px;width:128px;height:116px;transform:rotate(-5deg)}
 .a-mats figcaption{position:absolute;left:0;bottom:-6px;font-size:13px;font-weight:900;color:#fff;background:rgba(11,31,92,.9);padding:2px 8px;white-space:nowrap}
 .a-offer{background:#fff8e1;padding:14px 16px 20px;border-top:4px solid var(--gold)}
-.a-strip{margin:0 0 14px;display:flex;align-items:center;justify-content:center;gap:12px}
+.a-main{margin:0;text-align:center;font-size:40px;font-weight:900;color:var(--red);line-height:1.1;letter-spacing:-.02em}
+.a-subgift{margin:4px 0 12px;text-align:center;font-size:16px;font-weight:700;color:var(--navy)}
 .a-free{font-size:40px;font-weight:900;color:var(--red);line-height:1;letter-spacing:-.02em;white-space:nowrap;flex:none}
 .a-gift{font-size:18px;font-weight:900;color:var(--navy);line-height:1.35}
 @media (min-width:900px){
@@ -131,7 +134,7 @@ const A_CSS = `
 .a-sheet{left:110px;width:210px;height:190px}.a-board{width:200px;height:186px}
 .a-name{right:max(24px,calc((100% - 1160px)/2));bottom:28px}.a-name .nm{font-size:30px}
 .a-offer{display:grid;grid-template-columns:auto minmax(0,460px);justify-content:center;align-items:center;gap:44px;padding:22px}
-.a-strip{margin:0}
+.a-main{grid-column:1;text-align:left}.a-subgift{grid-column:1;margin:4px 0 0;text-align:left}.a-offer .cta{grid-column:2;grid-row:1/3}
 }`;
 
 // ---- 案B: 白地で悩みから入る縦の流れ。悩み → 学ぶこと → 配布テキストと板書＋講師本人 → 無料の特別講義 → CTA ----
@@ -161,22 +164,22 @@ const B_CSS = `
 .b-pains{list-style:none;margin:0;padding:0;display:flex;gap:8px;justify-content:center}
 .b-pains li{font-size:18px;font-weight:900;color:#9f1239;background:#fff1f2;border:2px solid #fecdd3;border-radius:8px;padding:5px 10px}
 .b-pains li::before{content:"×";margin-right:6px;color:#e11d48}
-.b-arrow{width:0;height:0;margin:7px auto 5px;border-left:13px solid transparent;border-right:13px solid transparent;border-top:13px solid var(--blue)}
-.b-change{margin:0;text-align:center;font-size:36px;line-height:1.22;font-weight:900;letter-spacing:-.03em;color:var(--ink)}
-.b-stage{position:relative;margin:12px -16px 0;height:214px;background:linear-gradient(180deg,#fff 0 22%,var(--paper) 22%)}
-.b-sheet{position:absolute;left:14px;top:4px;width:150px;height:190px;transform:rotate(-3deg);z-index:2}
-.b-board{position:absolute;left:120px;top:44px;width:120px;height:120px;transform:rotate(4deg);z-index:1}
-.b-photo{position:absolute;right:0;bottom:0;width:186px;height:214px;margin:0;overflow:hidden}
+.b-arrow{width:0;height:0;margin:6px auto 4px;border-left:13px solid transparent;border-right:13px solid transparent;border-top:13px solid var(--blue)}
+.b-change{margin:0;text-align:center;font-size:40px;line-height:1.18;font-weight:900;letter-spacing:-.03em;color:var(--ink)}
+.b-stage{position:relative;margin:10px -16px 0;height:180px;background:linear-gradient(180deg,#fff 0 22%,var(--paper) 22%)}
+.b-sheet{position:absolute;left:14px;top:4px;width:140px;height:166px;transform:rotate(-3deg);z-index:2}
+.b-board{position:absolute;left:116px;top:36px;width:116px;height:112px;transform:rotate(4deg);z-index:1}
+.b-photo{position:absolute;right:0;bottom:0;width:170px;height:180px;margin:0;overflow:hidden}
 .b-photo img{width:100%;height:100%;object-fit:cover;object-position:62% 0}
 .b-name{position:absolute;z-index:3;right:8px;bottom:10px;margin:0;display:flex;flex-direction:column;align-items:flex-end;gap:2px}
 .b-name .role{background:var(--gold);color:var(--navy);font-size:13px;font-weight:900;padding:1px 8px}
 .b-name .nm{background:#fff;color:var(--navy);font-size:20px;font-weight:900;padding:1px 10px;letter-spacing:.06em}
 .b-name .cred{background:var(--navy);color:#fff;font-size:13px;font-weight:700;padding:1px 8px}
-.b-offer{background:var(--navy);padding:12px 16px 20px;text-align:center;color:#fff}
+.b-offer{background:var(--navy);padding:10px 16px 18px;text-align:center;color:#fff}
 .b-product{margin:0;font-weight:900;display:flex;align-items:center;justify-content:center;gap:10px}
 .b-product b{font-size:34px;letter-spacing:-.02em;white-space:nowrap}
 .b-free{background:var(--red);color:#fff;font-size:20px;padding:3px 10px;border-radius:4px}
-.b-gift{margin:4px 0 12px;font-size:17px;font-weight:700;color:var(--gold)}
+.b-gift{margin:2px 0 10px;font-size:17px;font-weight:700;color:var(--gold)}
 @media (min-width:900px){
 .b-top{padding:12px max(24px,calc((100% - 1160px)/2))}
 .b-hero{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);grid-template-areas:"pains stage" "arrow stage" "change stage";grid-template-rows:1fr auto 1fr;column-gap:40px;padding:40px max(24px,calc((100% - 1160px)/2)) 0;align-content:center}

@@ -1,37 +1,37 @@
 {
  "a": {
-  "ctaBottom": 561,
+  "ctaBottom": 595,
   "h1": 48,
   "h1Box": [
-   90,
-   192
+   103,
+   205
   ],
   "photo": [
-   45,
-   417
+   58,
+   430
   ],
   "material": null,
   "hscroll": false,
   "minFont": 13,
-  "fonts": 45,
+  "fonts": 51,
   "ctaNoNav": true,
   "externalRequests": []
  },
  "b": {
-  "ctaBottom": 600,
-  "h1": 36,
+  "ctaBottom": 562,
+  "h1": 40,
   "h1Box": [
-   123,
-   210
+   121,
+   215
   ],
   "photo": [
-   222,
-   436
+   225,
+   405
   ],
   "material": null,
   "hscroll": false,
   "minFont": 13,
-  "fonts": 47,
+  "fonts": 48,
   "ctaNoNav": true,
   "externalRequests": []
  }
