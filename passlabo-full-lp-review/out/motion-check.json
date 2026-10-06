@@ -1,0 +1,300 @@
+{
+ "360": {
+  "jsClass": true,
+  "hiddenBeforeScroll": [
+   "0",
+   "0",
+   "0"
+  ],
+  "stickyMismatches": [],
+  "stickyShownSections": [
+   "lp-goal",
+   "lp-feel",
+   "lp-turn",
+   "lp-themes",
+   "lp-mats",
+   "lp-prof"
+  ],
+  "stickyHiddenSections": [
+   "fv",
+   "lp-goal",
+   "lp-gift",
+   "lp-final"
+  ],
+  "stickyFirstShownAtY": 640,
+  "allRevealedAfterScroll": true,
+  "stepsOpacityAfter": [
+   "1",
+   "1",
+   "1"
+  ],
+  "transitions": [
+   ".lp-mark: 0.55s / delay 0.15s",
+   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+  ],
+  "infiniteAnimations": 0,
+  "stickyAtBottom": false,
+  "stickyClickedNoNav": true,
+  "stickyRect": [
+   626,
+   700,
+   700
+  ],
+  "keyboard": [
+   {
+    "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "cta lp-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A株式会社ペイ・フォワード",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "Aプライバシーポリシー",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A特定商取引法に基づく表記",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "BODYPASSLABO共テ数学",
+    "covered": false,
+    "visible": false
+   }
+  ],
+  "externalRequests": [],
+  "consoleErrors": [],
+  "fastScrollAllRevealed": true,
+  "fastScrollStepsOpacity": [
+   "1",
+   "1",
+   "1"
+  ],
+  "reducedMotion": {
+   "jsClass": false,
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "matTransform": "none",
+   "markSize": "100% 6px"
+  },
+  "noJs": {
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "stickyHidden": true,
+   "markSize": "100% 6px"
+  }
+ },
+ "400": {
+  "jsClass": true,
+  "hiddenBeforeScroll": [
+   "0",
+   "0",
+   "0"
+  ],
+  "stickyMismatches": [],
+  "stickyShownSections": [
+   "lp-goal",
+   "lp-feel",
+   "lp-turn",
+   "lp-themes",
+   "lp-mats",
+   "lp-prof"
+  ],
+  "stickyHiddenSections": [
+   "fv",
+   "lp-goal",
+   "lp-gift",
+   "lp-final"
+  ],
+  "stickyFirstShownAtY": 640,
+  "allRevealedAfterScroll": true,
+  "stepsOpacityAfter": [
+   "1",
+   "1",
+   "1"
+  ],
+  "transitions": [
+   ".lp-mark: 0.55s / delay 0.15s",
+   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+  ],
+  "infiniteAnimations": 0,
+  "stickyAtBottom": false,
+  "stickyClickedNoNav": true,
+  "stickyRect": [
+   626,
+   700,
+   700
+  ],
+  "keyboard": [
+   {
+    "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "cta lp-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A株式会社ペイ・フォワード",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "Aプライバシーポリシー",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A特定商取引法に基づく表記",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "BODYPASSLABO共テ数学",
+    "covered": false,
+    "visible": false
+   }
+  ],
+  "externalRequests": [],
+  "consoleErrors": [],
+  "fastScrollAllRevealed": true,
+  "fastScrollStepsOpacity": [
+   "1",
+   "1",
+   "1"
+  ],
+  "reducedMotion": {
+   "jsClass": false,
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "matTransform": "none",
+   "markSize": "100% 6px"
+  },
+  "noJs": {
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "stickyHidden": true,
+   "markSize": "100% 6px"
+  }
+ },
+ "1280": {
+  "jsClass": true,
+  "hiddenBeforeScroll": [
+   "0",
+   "0",
+   "0"
+  ],
+  "stickyMismatches": [],
+  "stickyShownSections": [],
+  "stickyHiddenSections": [
+   "fv",
+   "lp-goal",
+   "lp-feel",
+   "lp-turn",
+   "lp-themes",
+   "lp-mats",
+   "lp-prof",
+   "lp-gift",
+   "lp-final"
+  ],
+  "stickyFirstShownAtY": null,
+  "allRevealedAfterScroll": true,
+  "stepsOpacityAfter": [
+   "1",
+   "1",
+   "1"
+  ],
+  "transitions": [
+   ".lp-mark: 0.55s / delay 0.15s",
+   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+  ],
+  "infiniteAnimations": 0,
+  "stickyAtBottom": false,
+  "keyboard": [
+   {
+    "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "cta lp-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A株式会社ペイ・フォワード",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "Aプライバシーポリシー",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "A特定商取引法に基づく表記",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "BODYPASSLABO共テ数学",
+    "covered": false,
+    "visible": false
+   }
+  ],
+  "externalRequests": [],
+  "consoleErrors": [],
+  "fastScrollAllRevealed": true,
+  "fastScrollStepsOpacity": [
+   "1",
+   "1",
+   "1"
+  ],
+  "reducedMotion": {
+   "jsClass": false,
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "matTransform": "none",
+   "markSize": "100% 6px"
+  },
+  "noJs": {
+   "stepsOpacity": [
+    "1",
+    "1",
+    "1"
+   ],
+   "stickyHidden": true,
+   "markSize": "100% 6px"
+  }
+ }
+}
