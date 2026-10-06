@@ -30,7 +30,7 @@ for (const w of [360, 400, 1280]) {
   p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); }); p.on('pageerror', (e) => errs.push(String(e)));
   await p.goto(url); await p.evaluate(() => document.fonts.ready);
   r.jsClass = await p.evaluate(() => document.documentElement.classList.contains('js'));
-  r.hiddenBeforeScroll = await p.evaluate(() => [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity));
+  r.stepsOpacityBeforeScroll = await p.evaluate(() => [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity));
   // 通常スクロール（160px ずつ、各 120ms）
   const H = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight);
   const log = [];
@@ -69,6 +69,35 @@ for (const w of [360, 400, 1280]) {
   r.keyboard = focus;
   r.externalRequests = ext; r.consoleErrors = errs;
   await ctx.close();
+  // 例外1: 追従 CTA にフォーカスしたまま最終 CTA が見える位置・最下部へ → Tab / Shift+Tab で外へ出たら、スクロール無しで追従 CTA が消える
+  if (w < 900) {
+    const c5 = await b.newContext({ viewport: { width: w, height: 700 } }); const p5 = await c5.newPage();
+    const seq = async (key, where) => {
+      await p5.goto(url); await p5.evaluate(() => document.fonts.ready);
+      await p5.evaluate(() => scrollTo(0, document.querySelector('.lp-mats').offsetTop + 40)); await p5.waitForTimeout(150);
+      const shownBefore = await p5.evaluate(() => !document.querySelector('.lp-sticky').hidden);
+      await p5.focus('.lp-sticky-cta');
+      await p5.evaluate((wh) => { if (wh === 'final') { const c = document.querySelector('.lp-cta'); scrollTo(0, c.getBoundingClientRect().top + scrollY - innerHeight / 2); } else scrollTo(0, document.documentElement.scrollHeight); }, where);
+      await p5.waitForTimeout(150);
+      const whileFocused = await p5.evaluate(() => ({ shown: !document.querySelector('.lp-sticky').hidden, focusKept: document.activeElement.classList.contains('lp-sticky-cta') }));
+      const y = await p5.evaluate(() => scrollY);
+      await p5.keyboard.press(key); await p5.waitForTimeout(60); // スクロールイベントを起こさずに確認
+      const after = await p5.evaluate(() => ({ shown: !document.querySelector('.lp-sticky').hidden, focused: (document.activeElement.className || document.activeElement.tagName) + ':' + (document.activeElement.textContent || '').trim().slice(0, 10) }));
+      return { key, where, shownBefore, whileFocused, after, scrolledByKey: (await p5.evaluate(() => scrollY)) !== y };
+    };
+    r.focusExit = [await seq('Tab', 'final'), await seq('Shift+Tab', 'final'), await seq('Tab', 'bottom')];
+    await c5.close();
+  }
+  // 例外2: js クラスは付いたが表示更新が来ない（途中失敗）状態でも、本文・テーマ・教材が全部読める
+  const c6 = await b.newContext({ viewport: { width: w, height: 700 } }); const p6 = await c6.newPage();
+  await p6.goto(url);
+  r.partialFailure = await p6.evaluate(() => {
+    document.documentElement.classList.add('js');
+    document.querySelectorAll('.is-in').forEach((el) => el.classList.remove('is-in'));
+    const hidden = [...document.querySelectorAll('.lp *')].filter((el) => { const c = getComputedStyle(el); return +c.opacity < 1 || c.visibility === 'hidden' || (c.display === 'none' && !el.closest('[hidden]')); }).map((el) => el.className || el.tagName);
+    return { jsClass: document.documentElement.classList.contains('js'), hiddenOrTransparent: hidden, stepsOpacity: [...document.querySelectorAll('.lp-step,.lp-step h3,.lp-q')].map((el) => getComputedStyle(el).opacity).join('') };
+  });
+  await c6.close();
   // 高速スクロール: 読み込み直後に最下部へ飛ぶ → 上にある演出対象も全部表示状態
   const c2 = await b.newContext({ viewport: { width: w, height: 700 } }); const p2 = await c2.newPage();
   await p2.goto(url); await p2.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await p2.waitForTimeout(80);

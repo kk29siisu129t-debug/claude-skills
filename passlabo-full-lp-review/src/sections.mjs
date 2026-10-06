@@ -152,7 +152,8 @@ export const css = `
 /* 3つのテーマ: 番号つきの要点。観点（読み手の問い）と講義で扱うことを分ける */
 .lp-themes{background:var(--pale)}
 .lp-steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:12px}
-.lp-step{display:grid;grid-template-columns:58px 1fr;align-items:start;background:#fff;padding:18px 18px 16px;border-top:4px solid var(--b)}
+.lp-step{position:relative;display:grid;grid-template-columns:58px 1fr;align-items:start;background:#fff;padding:18px 18px 16px;border-top:4px solid #cfe3ee}
+.lp-step::before{content:"";position:absolute;left:0;right:0;top:-4px;height:4px;background:var(--b);transform-origin:left center}
 .lp-no{font-size:34px;font-weight:900;line-height:1;color:var(--b);letter-spacing:-.02em}
 .lp-step h3{margin:0;font-size:22px;font-weight:900;line-height:1.3;color:var(--n)}
 .lp-q{margin:8px 0 0;font-size:17px;font-weight:500;line-height:1.6}
@@ -208,13 +209,14 @@ html.has-sticky{scroll-padding-bottom:96px}
 .lp-foot-links a{color:#e2ebf0;text-decoration:underline;text-underline-offset:3px}.lp-foot-links a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .lp-foot-links{list-style:none;max-width:1000px;margin:10px auto 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:#c9d6dd}
 .lp-review{max-width:1000px;margin:14px auto 0;padding:10px 14px;border:1px dashed #6f8794;border-radius:6px;font-size:14px;line-height:1.6;color:#e2ebf0}
-/* 演出（3つだけ・各1回）。JS が動き、動きを減らす設定でないときだけ。内容は最初から HTML にあり、JS 無しでも全部見える */
+/* 演出（3つだけ・各1回）。JS が動き、動きを減らす設定でないときだけ。文字・カード・画像は最初から見える（opacity で隠さない）。途中で JS が止まっても強調が付かないだけ */
 @media (prefers-reduced-motion:no-preference){
 .js .lp-mark{background-size:0 6px;transition:background-size .55s cubic-bezier(.2,.7,.2,1) .15s}
 .js .lp-mark.is-in{background-size:100% 6px}
-.js .lp-step{opacity:0;transform:translateY(10px);transition:opacity .45s ease-out,transform .45s ease-out}
-.js .lp-step:nth-child(2){transition-delay:.1s}.js .lp-step:nth-child(3){transition-delay:.2s}
-.js .lp-step.is-in{opacity:1;transform:none}
+.js .lp-step::before{transform:scaleX(0);transition:transform .45s cubic-bezier(.2,.7,.2,1)}
+.js .lp-step .lp-no{display:inline-block;color:#8fb6c9;transform:translateY(6px);transition:color .45s ease-out,transform .45s ease-out}
+.js .lp-step:nth-child(2)::before,.js .lp-step:nth-child(2) .lp-no{transition-delay:.1s}.js .lp-step:nth-child(3)::before,.js .lp-step:nth-child(3) .lp-no{transition-delay:.2s}
+.js .lp-step.is-in::before{transform:none}.js .lp-step.is-in .lp-no{color:var(--b);transform:none}
 .js .lp-mat img{transform:translateY(12px);box-shadow:0 4px 10px rgba(0,0,0,.3);transition:transform .5s cubic-bezier(.2,.7,.2,1),box-shadow .5s ease-out}
 .js .lp-mat:nth-child(2) img{transition-delay:.08s}
 .js .lp-mat.is-in img{transform:none;box-shadow:0 18px 34px rgba(0,0,0,.45)}
@@ -271,5 +273,6 @@ function update(){
 }
 function req(){if(!ticking){ticking=true;requestAnimationFrame(update)}}
 addEventListener('scroll',req,{passive:true});addEventListener('resize',req);
+sticky.addEventListener('focusout',function(){setTimeout(update,0)});
 update();
 })();`;

@@ -1,10 +1,10 @@
 {
  "360": {
   "jsClass": true,
-  "hiddenBeforeScroll": [
-   "0",
-   "0",
-   "0"
+  "stepsOpacityBeforeScroll": [
+   "1",
+   "1",
+   "1"
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
@@ -30,7 +30,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-step: 0s / delay 0s",
    ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
   ],
   "infiniteAnimations": 0,
@@ -75,6 +75,57 @@
   ],
   "externalRequests": [],
   "consoleErrors": [],
+  "focusExit": [
+   {
+    "key": "Tab",
+    "where": "final",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "A:株式会社ペイ・フォワ"
+    },
+    "scrolledByKey": false
+   },
+   {
+    "key": "Shift+Tab",
+    "where": "final",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "cta lp-cta:LINEで無料講義を"
+    },
+    "scrolledByKey": false
+   },
+   {
+    "key": "Tab",
+    "where": "bottom",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "A:株式会社ペイ・フォワ"
+    },
+    "scrolledByKey": false
+   }
+  ],
+  "partialFailure": {
+   "jsClass": true,
+   "hiddenOrTransparent": [
+    "IMG"
+   ],
+   "stepsOpacity": "111111111"
+  },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
    "1",
@@ -103,10 +154,10 @@
  },
  "400": {
   "jsClass": true,
-  "hiddenBeforeScroll": [
-   "0",
-   "0",
-   "0"
+  "stepsOpacityBeforeScroll": [
+   "1",
+   "1",
+   "1"
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
@@ -132,7 +183,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-step: 0s / delay 0s",
    ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
   ],
   "infiniteAnimations": 0,
@@ -177,6 +228,57 @@
   ],
   "externalRequests": [],
   "consoleErrors": [],
+  "focusExit": [
+   {
+    "key": "Tab",
+    "where": "final",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "A:株式会社ペイ・フォワ"
+    },
+    "scrolledByKey": false
+   },
+   {
+    "key": "Shift+Tab",
+    "where": "final",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "cta lp-cta:LINEで無料講義を"
+    },
+    "scrolledByKey": false
+   },
+   {
+    "key": "Tab",
+    "where": "bottom",
+    "shownBefore": true,
+    "whileFocused": {
+     "shown": true,
+     "focusKept": true
+    },
+    "after": {
+     "shown": false,
+     "focused": "A:株式会社ペイ・フォワ"
+    },
+    "scrolledByKey": false
+   }
+  ],
+  "partialFailure": {
+   "jsClass": true,
+   "hiddenOrTransparent": [
+    "IMG"
+   ],
+   "stepsOpacity": "111111111"
+  },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
    "1",
@@ -205,10 +307,10 @@
  },
  "1280": {
   "jsClass": true,
-  "hiddenBeforeScroll": [
-   "0",
-   "0",
-   "0"
+  "stepsOpacityBeforeScroll": [
+   "1",
+   "1",
+   "1"
   ],
   "stickyMismatches": [],
   "stickyShownSections": [],
@@ -232,7 +334,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0.45s, 0.45s / delay 0s, 0s",
+   ".lp-step: 0s / delay 0s",
    ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
   ],
   "infiniteAnimations": 0,
@@ -271,6 +373,17 @@
   ],
   "externalRequests": [],
   "consoleErrors": [],
+  "partialFailure": {
+   "jsClass": true,
+   "hiddenOrTransparent": [
+    "sp",
+    "sp",
+    "sp",
+    "sp",
+    "IMG"
+   ],
+   "stepsOpacity": "111111111"
+  },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
    "1",
