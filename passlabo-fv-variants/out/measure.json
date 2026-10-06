@@ -72,20 +72,20 @@
   "externalRequests": []
  },
  "a4p": {
-  "ctaBottom": 624,
+  "ctaBottom": 634,
   "h1": 74,
   "h1Box": [
    89,
    240
   ],
   "photo": [
-   234,
-   474
+   244,
+   484
   ],
   "material": null,
   "hscroll": false,
   "minFont": 12,
-  "fonts": 56,
+  "fonts": 61,
   "ctaNoNav": true,
   "externalRequests": []
  },
