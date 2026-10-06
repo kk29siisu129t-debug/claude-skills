@@ -74,11 +74,11 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
       <img class="lp-prof-photo" src="${profile}" alt="講師の宇佐見天彗さん" width="440" height="440">
       <div class="lp-prof-body">
         <p class="lp-kicker">講師</p>
-        <h2 id="h-prof" class="lp-prof-h">地方の公立高校から、<br class="sp">東大医学部へ。</h2>
+        <h2 id="h-prof" class="lp-prof-h">地方と都会の教育格差を、<br class="sp">なくすために。</h2>
         <p class="lp-prof-name">宇佐見 天彗<span lang="en">Subaru Usami</span></p>
         <ul class="lp-tags"><li>PASSLABO代表</li><li>東京大学医学部医学科卒</li><li>大学受験に特化した教育系YouTuber</li></ul>
         <p class="lp-text">地方の公立高校から東大理科Ⅱ類に現役合格。東京大学医学部医学科を卒業後、教育の道へ。</p>
-        <p class="lp-text">地方と都会の教育格差をなくすため、オンライン個別指導や学校での講演・出張講義を全国で行っています。教材の制作や書籍の出版も手がけています。</p>
+        <p class="lp-text">地方と都会の教育格差の是正に向けて、オンライン個別指導や学校での講演・出張講義を全国で行っています。教材の制作や書籍の出版も手がけています。</p>
       </div>
     </div>
     <div class="lp-in">${bridge('講義に参加した方には、特典もあります。')}</div>
