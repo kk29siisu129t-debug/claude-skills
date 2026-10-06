@@ -444,7 +444,7 @@ test('自己完結版（dist/lp-studio-standalone.html）を file:// で開い�
   await page.waitForFunction(() => document.querySelector('#project-name').value.includes('見積もり番'));
   await tab(page, 'export');
   const review = await downloadText(page, '#btn-export-review');
-  assert.ok(review.text.includes(JSON.parse(readFileSync(join(ROOT, "examples/v2/mitsumoriban/response.json"), "utf8")).sections[0].headingPhrases[0]));
+  assert.ok(review.text.replace(/<\/?span\b[^>]*>/g, '').includes(JSON.parse(readFileSync(join(ROOT, 'examples/v2/mitsumoriban/response.json'), 'utf8')).sections[0].headingPhrases[0])); // 句・語の span を除いて比べる
   assert.match(review.text, /<meta http-equiv="Content-Security-Policy" content="default-src 'none';[^"]*form-action 'none'/);
   const saved = await downloadText(page, '#btn-save');
   assert.equal(JSON.parse(saved.text).schemaVersion, 2);
@@ -639,4 +639,35 @@ test('LP: 固定CTAの比較用タイミング（ページの半分を過ぎて�
     assert.equal((await sticky(page)).shown, true, `${timing}: 後半`);
     await ctx.close();
   }
+});
+
+test('エディタ: 運営者は明示的に確認したときだけ確定（未定・仮は不可）。レビュー用は出せ、実販売は出せないまま', async () => {
+  const context = await browser.newContext();
+  const { page, errors } = await openApp(context);
+  await tab(page, 'inputs');
+  await page.fill('#d-op', '未定');
+  await page.locator('#d-op').press('Tab');
+  await page.click('#d-op-ok'); // 確認済みにしようとしても拒否され、チェックは外れたまま
+  await page.waitForSelector('#toast.show[data-kind="error"]');
+  assert.equal(await page.isChecked('#d-op-ok'), false);
+  await tab(page, 'export');
+  assert.match(await page.locator('#gate-commercial').innerText(), /運営者（事業者名）が確認されていません/);
+  await tab(page, 'inputs');
+  await page.fill('#d-op', '株式会社サンプル（架空）');
+  await page.locator('#d-op').press('Tab');
+  await page.click('#d-op-ok');
+  await page.waitForFunction(() => document.querySelector('#d-op-ok').checked);
+  await tab(page, 'export');
+  const com = await page.locator('#gate-commercial').innerText();
+  assert.ok(!/運営者（事業者名）が確認されていません/.test(com));
+  assert.match(com, /商用公開不可/); // 架空デモ・未確定の条件・未承認などで実販売は不可のまま
+  assert.match(await page.locator('#gate-review').innerText(), /安全に描画できます/);
+  assert.equal(await page.locator('#btn-export-commercial').isDisabled(), true);
+  assert.equal(await page.locator('#btn-export-review').isDisabled(), false);
+  // 補助文の上限（60文字）
+  await tab(page, 'plan');
+  await page.click('#pick-hero');
+  assert.equal(await page.getAttribute('#f-sub', 'maxlength'), '60');
+  assert.deepEqual(errors, []);
+  await context.close();
 });

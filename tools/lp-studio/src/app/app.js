@@ -169,6 +169,9 @@ function renderInputs(p) {
       h('div', { class: 'row' }, field('区分', sel('d-mode', DEMO_MODES, d.demoMode, (e) => edit({ type: 'setDisplay', key: 'demoMode', value: e.target.value }), L.demo)),
         field('カテゴリ', sel('d-cat', CATEGORIES, d.category, (e) => edit({ type: 'setDisplay', key: 'category', value: e.target.value }), L.cat))),
       field('デモ表示（ページ上部・CTA近く・フッターに出る）', tinput('d-notice', d.demoNotice, (e) => edit({ type: 'setDisplay', key: 'demoNotice', value: e.target.value }), 100)),
+      field('商品ラベル（FV の小見出し。変えると FV の承認が外れる）', tinput('d-label', d.productLabel || '', (e) => edit({ type: 'setDisplay', key: 'productLabel', value: e.target.value }), 30)),
+      field('運営者（事業者名。実販売に必須）', tinput('d-op', d.operator, (e) => edit({ type: 'setDisplay', key: 'operator', value: e.target.value }), 80)),
+      h('label', { class: 'inline' }, h('input', { type: 'checkbox', id: 'd-op-ok', checked: !!d.operatorConfirmed, onchange: (e) => edit({ type: 'setDisplay', key: 'operatorConfirmed', value: e.target.checked }) }), ' 運営者の名称・所在を確認した（空・未定・仮の値では確認済みにできません）'),
       h('h2', { text: 'A 読者と場面 / B 既存の努力' }),
       ...[['scene.who', '誰が'], ['scene.timing', 'どんなタイミングで'], ['scene.trying', '何をしようとして'], ['scene.stuckAt', 'どこで止まるか'], ['efforts.tried', '既に試したこと'], ['efforts.whatHappened', 'そのとき起きたこと'], ['efforts.alternatives', '今使っている代替手段']].map(([path, label]) => {
         const [g, k] = path.split('.');
@@ -313,6 +316,7 @@ function sectionEditor(p, s, issues) {
     field('見出しの改行候補（意味のまとまりを「/」で区切る。空なら自動）', tinput('f-phrases', s.headingPhrases.join('/'), (e) => edit({ type: 'setPhrases', id: s.id, value: e.target.value }), 300)),
     field('本文', h('textarea', { id: 'f-body', rows: 5, value: s.body, onchange: (e) => edit({ type: 'setField', id: s.id, field: 'body', value: e.target.value }) })),
     field('項目（1行に1つ。「見出し｜本文」）', h('textarea', { id: 'f-items', rows: 4, value: s.items.map((i) => (i.body ? `${i.heading}｜${i.body}` : i.heading)).join('\n'), onchange: (e) => edit({ type: 'setItems', id: s.id, value: e.target.value }) })),
+    s.role === 'hero' ? field('FV の補助文（60文字以内）', tinput('f-sub', s.sub || '', (e) => edit({ type: 'setField', id: s.id, field: 'sub', value: e.target.value }), 60)) : null,
     field('注記', tinput('f-note', s.note, (e) => edit({ type: 'setField', id: s.id, field: 'note', value: e.target.value }), 200)),
     s.visual ? h('fieldset', { class: 'refs' }, h('legend', { text: `図（${s.visual.kind}・説明用の例。成果の証拠ではない）` }),
       ...['label', 'title', 'task', 'from', 'to', 'review', 'note'].filter((k) => s.visual[k] !== undefined && (s.visual[k] || ['label', 'note'].includes(k))).map((k) => field(k, tinput(`v-${k}`, s.visual[k], (e) => edit({ type: 'setVisual', id: s.id, key: k, value: e.target.value }), 160)))) : null,

@@ -252,7 +252,9 @@ tr.hl td{background-color:var(--hl)}
 @media (max-width:359px){.hero-bar{padding:10px 16px 0}.hero-in{padding:16px 16px 24px}.hero h1{font-size:30px}.plan-title{font-size:24px}.ring{width:84px;height:84px}}
 /* ---- FV 人物写真版（SP基準・1枚の構図）: 大きな問い → 右の顔と左の解決 → 1つの行動。PC は min-width で広げる ---- */
 .hero-portrait{position:relative;background:var(--paper);isolation:isolate;border-bottom:0}
-.hero-portrait .hero-bar{padding:20px 20px 0;justify-content:space-between;align-items:center;min-height:40px}
+.hero-portrait .hero-bar{padding:20px 20px 0;justify-content:space-between;align-items:center;min-height:40px;flex-wrap:wrap;row-gap:6px}
+.hero-bar .logo,.hero-bar .demo-badge{white-space:nowrap}
+.ph .w{display:inline-block;max-width:100%;overflow-wrap:anywhere}
 .hero-portrait .logo{font-size:14px;font-weight:800;line-height:20px}
 .hero-portrait .demo-badge{font-size:11px;padding:4px 8px}
 .hero-portrait .hero-in,.gaze-right .hero-in{display:block;padding:0 20px 28px;max-width:none}
@@ -263,7 +265,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-stage{--ph:clamp(240px,80vw,320px);display:grid;grid-template-columns:minmax(0,1fr);margin:8px -20px 0 -20px;min-height:var(--ph)}
 .hero-stage>*{grid-area:1/1}
 .hero-photo{position:relative;margin:0;justify-self:end;width:57.5%;align-self:start}
-.hero-photo img{display:block;width:100%;height:var(--ph);object-fit:cover;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 40px),linear-gradient(to bottom,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0,#000 40px),linear-gradient(to bottom,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);mask-composite:intersect}
+.hero-photo img{display:block;width:100%;height:var(--ph);object-fit:cover;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
 .hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
 .photo-cap{margin:2px 0 0;padding-left:17.8%;font-size:11px;line-height:16px;color:#5b6170}
 .gaze-right .hero-photo{justify-self:start}
@@ -285,7 +287,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-portrait h1{font-size:56px;margin-top:10px}
 .hero-stage{display:contents}
 .hero-photo{position:absolute;inset:0;z-index:-1;width:auto;justify-self:stretch;align-self:stretch}
-.hero-photo img{height:100%;object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp);-webkit-mask-image:none;mask-image:none}
+.hero-photo img{height:100%;object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp)}
 .hero-photo img.flip{transform:scale(var(--zp)) scaleX(-1)}
 .gaze-left .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
 .gaze-right .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
@@ -306,7 +308,18 @@ const paras = (text) => String(text || '').split(/\n+/).filter((x) => x.trim()).
 
 function phrasesHtml(heading, preferred) {
   const { phrases } = headingPhrases(heading, preferred);
-  return phrases.map((p) => `<span class="ph">${e(p)}</span>`).join('');
+  return phrases.map((p) => `<span class="ph">${wordsHtml(p)}</span>`).join('');
+}
+// 句の中を語の単位に分け、語の途中（「ペー／ス」）で折り返さない。句読点と1文字の助詞は前の語に付ける
+const WORD_SEG = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter('ja', { granularity: 'word' }) : null;
+function wordsHtml(text) {
+  if (!WORD_SEG) return e(text);
+  const out = [];
+  for (const { segment } of WORD_SEG.segment(text)) {
+    if (out.length && (/^[、。！？!?，．・）」』]+$/.test(segment) || /^[ぁ-ゖ]$/.test(segment))) out[out.length - 1] += segment;
+    else out.push(segment);
+  }
+  return out.length > 1 ? out.map((w) => `<span class="w">${e(w)}</span>`).join('') : e(text);
 }
 
 function visualHtml(v, { hero = false } = {}) {
@@ -377,11 +390,11 @@ function sectionHtml(project, s, mode) {
       // FV は 1つの訴求・大きな主役（人物写真 または 計画の図）・1つのCTA。説明・デモの注意書き・実際の申込ボタンは FV の下（after-fv）
       const d = project.display;
       const badge = d.demoMode !== 'live' ? `<span class="demo-badge">${d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作'}</span>` : '';
-      const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>` : '';
+      const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}"><span class="ph">${wordsHtml(s.cta.label)}</span><span class="arw" aria-hidden="true"></span></a>` : '';
       const pt = project.assets?.heroPortrait;
       const label = d.productLabel || d.audienceLabel;
       const sub = s.sub ? `<p class="hero-sub">${phrasesHtml(s.sub, s.subPhrases)}</p>` : '';
-      const copy = `<div class="hero-copy">${meta}${label ? `<p class="aud">${e(label)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>${pt && pt.dataUri ? '' : sub}</div>`;
+      const copy = `<div class="hero-copy">${meta}${label ? `<p class="aud"><span class="ph">${wordsHtml(label)}</span></p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>${pt && pt.dataUri ? '' : sub}</div>`;
       if (pt && pt.dataUri) {
         // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
         const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);

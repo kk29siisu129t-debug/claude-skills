@@ -4,7 +4,7 @@
 //   commercialReady … 実販売向けに公開準備が整っている（live・条件確定・全承認・実在の根拠）
 // 「verified」や seed の有無だけで事実性・公開可否を決めない。
 
-import { refIndex } from './schema.js';
+import { refIndex, isRealOperator } from './schema.js';
 import { ROLES } from './roles.js';
 import { canon, containsToken, detectClaims, metricMatches, PLACEHOLDER_RE } from './claims.js';
 import { headingPhrases } from './segment.js';
@@ -41,12 +41,12 @@ export function collectTexts(project) {
   for (const s of project.sections) {
     const base = s.sourceRefs || [];
     const itemRefs = s.items.flatMap((i) => i.sourceRefs || []);
-    const push = (field, text, refs = []) => { if (text && String(text).trim()) out.push({ sectionId: s.id, role: s.role, field, text: String(text), refs: [...new Set([...refs, ...base])] }); };
+    const push = (field, text, refs = [], context = '') => { if (text && String(text).trim()) out.push({ sectionId: s.id, role: s.role, field, text: String(text), refs: [...new Set([...refs, ...base])], context }); };
     push('heading', s.heading, [...itemRefs, ...(s.visual?.sourceRefs || [])]); // 見出しは項目・図の参照もあわせて判断
-    push('body', s.body);
+    push('body', s.body, [], s.heading);
     push('sub', s.sub);
     push('note', s.note);
-    s.items.forEach((it, i) => { push(`items[${i}].heading`, it.heading, it.sourceRefs); push(`items[${i}].body`, it.body, it.sourceRefs); });
+    s.items.forEach((it, i) => { push(`items[${i}].heading`, it.heading, it.sourceRefs, s.heading); push(`items[${i}].body`, it.body, it.sourceRefs, `${s.heading}\n${it.heading}`); });
     if (s.visual) {
       const v = s.visual;
       for (const k of ['title', 'task', 'from', 'to', 'review', 'note']) push(`visual.${k}`, v[k], v.sourceRefs);
@@ -112,6 +112,14 @@ export function checkProject(project) {
       const tok = m[0];
       if ((ct[m.index - 1] === '月' && /[0-9]/.test(ct[m.index - 2] || '')) || /^[0-9]{1,2}月[0-9]{1,2}日/.test(ct.slice(m.index))) continue; // 日付（10月8日）は数量の主張ではない（「月4.2日」は数量）
       if (!refTexts.some((rt) => containsToken(rt, tok))) { issues.push(ISSUE('stop', 'number-unsupported', `${label}: 数値「${tok}」が参照した事実にありません`, where)); continue; }
+      // 期間の取り違え: 参照先の文で数値に付いている期間（週・月・日・年）と、コピーの期間が違えば止める（指標の有無によらない）
+      const periodOf = (str, at) => { const m2 = str.slice(Math.max(0, at - 7), at).match(/(毎週|1週間あたり|1週あたり|週平均|週に|週|毎月|1か月あたり|月平均|月に|月|毎日|1日あたり|日平均|日に|毎年|年間|年に|年)$/); return m2 ? (m2[1].match(/[週月日年]/)?.[0] || '') : ''; };
+      const mine = periodOf(ct, m.index);
+      const theirs = refTexts.map((rt) => { const c2 = canon(rt); const at = c2.search(new RegExp(`(?<![0-9.])${tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)); return at >= 0 ? periodOf(c2, at) : null; }).filter((x) => x !== null);
+      if (theirs.length && !theirs.includes(mine)) issues.push(ISSUE('stop', 'metric-mismatch', `${label}: 「${mine}${tok}」は参照先の「${theirs[0]}${tok}」と期間が合いません`, where));
+      // 実販売: 数値の裏づけは、実在・検証済みの根拠か、確定した仕様（verified-spec・確定した行動条件）だけ
+      const numVerified = refHits.some((h) => containsToken(h.text, tok) && ((h.type === 'evidence' && h.reality === 'real' && h.item.status === 'verified') || (h.type === 'ledger' && h.kind === 'verified-spec' && h.reality === 'real') || h.type === 'action'));
+      if (!numVerified) issues.push(ISSUE('warn', 'claim-unverified', `${label}: 数値「${tok}」の裏づけが実在・検証済みの根拠・確定した仕様ではありません（実販売では出せません）`, where));
       // 指標つきの根拠と同じ数値なら、単位・期間（X/Y）まで一致すること（週4.2日 ≠ 月4.2日 ≠ 4.2時間）
       const num = parseFloat(tok.replace(/[^0-9.]/g, ''));
       for (const h of refHits.filter((x) => x.type === 'evidence' && x.item.metricValue === num && x.item.metricUnit)) {
@@ -119,20 +127,37 @@ export function checkProject(project) {
       }
     }
     // 未確定の条件を別の数値で埋めていないか（例: 学習の15分を面談の15分にする）
+    // 対象（面談など）が、この文・前の文・項目の見出し・セクションの見出しのどこかで出たあと、数量が出たら止める。
+    // ただし、その数量が参照先の事実で別の対象に付いている語（例: 「15分の単位」の「単位」）と一緒に書かれていれば、その事実の意味なので止めない
     const cls = clauses(t.text);
     const subjOf = (u, cc) => (u.subject ? synonymsOf(u.subject).some((w) => cc.includes(canon(w))) : true);
+    const ctx = canon(t.context || '');
     const filled = new Set();
-    cls.forEach((c, i) => {
-      const cc = canon(c);
-      for (const u of unknowns) {
-        if (filled.has(u.id)) continue;
-        if (subjOf(u, cc) && u.test.test(cc)) { filled.add(u.id); issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${c}」と書いています（別の数値や条件で埋めない）`, where)); continue; }
-        // 読点で分けても同じ（「面談は、15分です。」）: 前の節が対象を言い、この節が対象を言い換えずに数量だけを述べる
-        const prev = i > 0 ? canon(cls[i - 1]) : '';
-        const ownNouns = (cc.replace(/[0-9０-９.]+\s*(分間|分|時間|日|円|万円|回|人|%|％)?/g, ' ').match(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu) || []);
-        if (prev && subjOf(u, prev) && u.test.test(cc) && ownNouns.length === 0) { filled.add(u.id); issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${cls[i - 1]}、${c}」と書いています（別の数値や条件で埋めない）`, where)); }
+    const ownMeaning = (cc) => {
+      for (const m of cc.matchAll(NUMBER_RE)) {
+        const tok = m[0];
+        for (const rt of refTexts) {
+          const c2 = canon(rt);
+          const at = c2.indexOf(canon(tok));
+          if (at < 0) continue;
+          const around = (c2.slice(Math.max(0, at - 8), at) + ' ' + c2.slice(at + canon(tok).length, at + canon(tok).length + 8)).match(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu) || [];
+          if (around.some((w) => w.length >= 2 && cc.includes(w) && !unknowns.some((u) => synonymsOf(u.subject).includes(w)))) return true;
+        }
       }
-    });
+      return false;
+    };
+    let seen = '';
+    for (const c of cls) {
+      const cc = canon(c);
+      seen += cc;
+      for (const u of unknowns) {
+        if (filled.has(u.id) || !u.test.test(cc)) continue;
+        if (!(subjOf(u, cc) || subjOf(u, seen) || subjOf(u, ctx))) continue;
+        if (!subjOf(u, cc) && ownMeaning(cc)) continue;
+        filled.add(u.id);
+        issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${c}」と書いています（別の数値や条件で埋めない）`, where));
+      }
+    }
     for (const c of cls) {
       const cc = canon(c);
       // 同じ対象に別々の数値が付いていないか
@@ -207,8 +232,9 @@ export function checkProject(project) {
     if (pt) {
       // 写真を講師・受講生・推薦者・実績と結び付けない（alt と注記も検査する）
       for (const [k, v] of [['alt', pt.alt], ['caption', pt.caption]]) {
-        const hit = String(v || '').match(PORTRAIT_ROLE_RE);
-        if (hit) issues.push(ISSUE('stop', 'portrait-claim', `FV の写真（${k}）に「${hit[0]}」とあります（人物を講師・受講生・推薦者・実績として紹介しない）`, { sectionId: hero.id }));
+        const cv = canon(v || '');
+        const hit = cv.match(PORTRAIT_ROLE_RE) || cv.match(PORTRAIT_NAME_RE) || detectClaims(String(v || ''), d.category).find((c) => ['authority', 'testimonial'].includes(c.category))?.match;
+        if (hit) issues.push(ISSUE('stop', 'portrait-claim', `FV の写真（${k}）に「${Array.isArray(hit) ? hit[0] : hit}」とあります（人物を講師・受講生・推薦者・資格者・実績として紹介しない）`, { sectionId: hero.id }));
       }
       if (pt.origin !== 'ai_generated' && /AI生成/.test(pt.caption)) issues.push(ISSUE('stop', 'portrait-origin-mismatch', 'FV の写真の注記は「AI生成」ですが、由来が AI 生成と記録されていません', { sectionId: hero.id }));
       if (pt.origin === 'ai_generated' && !/AI|イメージ|架空/.test(pt.caption)) issues.push(ISSUE('warn', 'portrait-origin-mismatch', 'AI 生成の写真であることが注記から分かりません', { sectionId: hero.id }));
@@ -232,7 +258,10 @@ export function fvTextOf(project, hero = project.sections.find((s) => s.role ===
   return parts.filter(Boolean).join('').replace(/\s/g, '');
 }
 
-const PORTRAIT_ROLE_RE = /講師|先生|受講生|受講者|合格者|合格|監修|専門家|お客様|利用者|ユーザーの声|の声|体験談|実績|さん|様|氏|代表|スタッフ|社員/;
+// 写真の人物に役割・資格・権威・実績を与える語（canon 後の文字列に当てる。空白・全角・結合文字ですり抜けない）
+const PORTRAIT_ROLE_RE = /講師|先生|教師|教員|指導者|受講生|受講者|在校生|卒業生|修了生|合格者|合格|取得者|取得した|資格者|有資格|会計士|税理士|簿記検定|検定[0-9０-９一二三]級|[0-9０-９一二三]級保持|監修|専門家|プロ|コーチ|トレーナー|インストラクター|メンター|チューター|アドバイザー|カウンセラー|コンサルタント|担当者|担当の|お客様|利用者|ユーザーの声|の声|体験談|口コミ|推薦|実績|代表|スタッフ|社員|creator|coach|mentor|tutor|teacher|instructor/i;
+// 「〇〇さん」「〇〇様」「〇〇氏」の形（人名）だけを止める。「皆様」「お客様（上で扱う）」は名前ではない
+const PORTRAIT_NAME_RE = /(?<![\p{Script=Han}\p{Script=Katakana}ー])(?!皆|各位|みな)(?:[\p{Script=Han}]{1,4}|[\p{Script=Katakana}ー]{2,8}|[A-Za-z]{2,})(?:さん|様|氏|先生)/u;
 
 const EXAMPLE_HOST = /(^|\.)example\.(com|org|net)$/i;
 
@@ -243,7 +272,7 @@ export function gates(project, issues = checkProject(project)) {
   const d = project.display;
   const a = project.inputs.action;
   if (d.demoMode !== 'live') reasons.push(d.demoMode === 'synthetic-demo' ? '架空サービスのデモです' : '試作です');
-  if (!String(d.operator || '').trim()) reasons.push('運営者（事業者名）が確認されていません'); // v1 から引き継ぐ商用の必須条件
+  if (!isRealOperator(d.operator) || d.operatorConfirmed !== true) reasons.push('運営者（事業者名）が確認されていません'); // v1 から引き継ぐ商用の必須条件（空・仮の値・未確認は不可）
   if (!review.ok) reasons.push('重大な停止条件があります');
   if (a.behavior === 'none') reasons.push('CTAで何が起きるか（申込・予約など）が決まっていません');
   const labels = { offer: 'オファー', price: '料金', duration: '所要時間', method: '実施方法', url: 'リンク先' };

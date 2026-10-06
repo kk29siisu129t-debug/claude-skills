@@ -133,6 +133,7 @@ test('実販売の判定: 未承認・運営者未確定・薬機法の語彙を
   const g = gates(seed()).commercialReady;
   assert.ok(g.reasons.some((r) => r.startsWith('未承認')));
   assert.ok(g.reasons.some((r) => /運営者/.test(r)));
+  assert.equal(seed().display.operatorConfirmed, false);
   // 薬機法の語彙は業種（美容・健康）の project で、checkProject を通して止める
   const beauty = { ...applyEdit(seed(), { type: 'setField', id: 'empathy', field: 'body', value: '使うほど肌が若返る。' }), display: { ...seed().display, category: 'beauty' } };
   assert.ok(checkProject(beauty).some((i) => i.level === 'stop' && /若返/.test(i.message)), JSON.stringify(checkProject(beauty).filter((i) => i.level === 'stop').map((i) => i.message)));
@@ -173,7 +174,7 @@ test('CTA の文言（FV・締め・固定CTAの案）も、主張には対象�
   assert.ok(!stopCodes(q).includes('claim-unsupported'));
   assert.ok(gates(q).commercialReady.reasons.some((r) => /No\.1/.test(r) && /検証済み/.test(r)));
   // 断り書き（保証するものではありません）は主張として扱わない
-  assert.ok(!checkProject(seed()).some((i) => i.code === 'claim-unverified'));
+  assert.ok(!checkProject(seed()).some((i) => i.code === 'claim-unverified' && /保証/.test(i.message)));
 });
 
 test('XSS: project のすべての文字列欄（約200か所）から、タグ・属性・スクリプトを注入できない', () => {
@@ -213,4 +214,75 @@ test('保存→再読込で、インサイトの公開資料の参照に誤っ�
   assert.ok(r.ok);
   assert.deepEqual(r.warnings, []);
   assert.deepEqual(r.project, seed());
+});
+
+
+// ---- 監査役 再検品（5e4cfb5）の指摘: 再現の文をそのまま使う ----
+test('再監査A 別の節・別の文・言い換えで、未確定の面談時間を数値で埋めない', () => {
+  const stopA = (heading, body) => checkProject(applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading, body }] })).some((i) => i.code === 'unknown-filled');
+  for (const v of ['面談は、所要15分です。', '面談は、15分程度です。', '面談は、オンラインで15分。', '面談があります。時間は15分です。', '面談は、15分です。']) assert.ok(stopA('面談について', v) && stopA('質問', v), v);
+  assert.ok(stopA('面談の時間は？', '15分です。'), '項目の見出しで対象を言い、本文で数値だけ');
+  for (const v of ['面談で計画をつくり、毎晩15分の単位に分けます。', '15分は、学習内容を分ける単位です。', '面談のあと、毎晩15分の単位で学習します。']) assert.ok(!stopA('質問', v), v);
+});
+
+test('再監査B 写真の alt・注記の職業・資格・役割・人名（空白や見えない文字を挟んでも）。「皆様」は止めない', () => {
+  const b = seed();
+  const claim = (k, v) => checkProject(validateProject({ ...b, assets: { heroPortrait: { ...b.assets.heroPortrait, [k]: v } } }).project).some((i) => i.code === 'portrait-claim' && i.level === 'stop');
+  for (const v of ['会計士', 'コーチ', 'トレーナー', 'インストラクター', 'メンター', 'チューター', '卒業生', '取得した社会人', '講　師', '講​師', '税理士の学習イメージ', '田中さん', 'ヤマダさん', '監修者']) {
+    assert.ok(claim('alt', v), `alt: ${v}`);
+    assert.ok(claim('caption', `イメージ：${v}`), `caption: ${v}`);
+  }
+  for (const v of ['皆様のための学習イメージ', 'みなさまの学習イメージ', '夜、自宅の机でノートに書き込みながら学習する大人']) assert.ok(!claim('alt', v), v);
+});
+
+test('再監査① 運営者は明示的に確認したときだけ確定。空・未定・仮の値は確定にできず、実販売の理由に残る', () => {
+  for (const v of ['', '未定', 'TBD', '（仮）', '調整中', '-', '?']) {
+    const p = applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: v });
+    assert.throws(() => applyEdit(p, { type: 'setDisplay', key: 'operatorConfirmed', value: true }), /運営者/, v);
+    const raw = JSON.parse(serializeProject(p)); raw.display.operatorConfirmed = true;
+    const r = validateProject(raw);
+    assert.equal(r.project.display.operatorConfirmed, false, v);
+    assert.ok(gates(r.project).commercialReady.reasons.some((x) => /運営者/.test(x)), v);
+  }
+  // 入力しただけでは確認済みにしない
+  let p = applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: '株式会社サンプル（架空）' });
+  assert.ok(gates(p).commercialReady.reasons.some((x) => /運営者/.test(x)));
+  p = applyEdit(p, { type: 'setDisplay', key: 'operatorConfirmed', value: true });
+  assert.ok(!gates(p).commercialReady.reasons.some((x) => /運営者/.test(x)));
+  // 運営者を変えたら確認し直し
+  p = applyEdit(p, { type: 'setDisplay', key: 'operator', value: '別の会社（架空）' });
+  assert.equal(p.display.operatorConfirmed, false);
+});
+
+test('再監査② 台帳の文で裏づけても期間の取り違え（月4.2日・4.2日）は止める。数値の主張は実販売の理由に残る', () => {
+  let p = applyEdit(seed(), { type: 'addLedger', text: '平均学習日数は週4.2日', kind: 'provider-claim' });
+  const lid = p.ledger.at(-1).id;
+  p = applyEdit(p, { type: 'setRefs', id: 'closing', value: [...p.sections.find((s) => s.role === 'closing').sourceRefs, lid] });
+  const run = (v) => { const q = applyEdit(p, { type: 'setCtaLabel', id: 'closing', value: v }); const is = checkProject(q); return { stop: is.filter((i) => i.level === 'stop').map((i) => i.code), reasons: gates(q, is).commercialReady.reasons }; };
+  for (const v of ['月4.2日の学習を見る', '4.2日の学習を見る']) assert.ok(run(v).stop.includes('metric-mismatch'), v);
+  for (const v of ['週4.2日の学習を見る', '毎週4.2日の学習を見る']) {
+    const r = run(v);
+    assert.deepEqual(r.stop, [], v);
+    assert.ok(r.reasons.some((x) => /4\.2日/.test(x) && /検証済み/.test(x)), `${v}: 提供者の申告だけの数値は実販売の理由に残る`);
+  }
+});
+
+test('再監査 小項目: 補助文の上限は編集・保存・再読込で一致、商品ラベルの変更で FV の承認が外れる、参照 id の重複は拒否', () => {
+  assert.throws(() => applyEdit(seed(), { type: 'setField', id: 'hero', field: 'sub', value: 'あ'.repeat(61) }), /60文字/);
+  const ok60 = applyEdit(seed(), { type: 'setField', id: 'hero', field: 'sub', value: 'あ'.repeat(60) });
+  const re = validateProject(JSON.parse(serializeProject(ok60)));
+  assert.ok(re.ok, re.errors.join());
+  assert.equal(re.project.sections.find((s) => s.role === 'hero').sub.length, 60);
+  // 商品ラベル（FV に出る）: 編集で FV の承認が外れ、JSON の書き換えでも外れる
+  const ap = applyEdit(seed(), { type: 'approveSection', id: 'hero', value: true });
+  assert.equal(applyEdit(ap, { type: 'setDisplay', key: 'productLabel', value: '別の商品ラベル' }).sections.find((s) => s.role === 'hero').approved, false);
+  const raw = JSON.parse(serializeProject(ap)); raw.display.productLabel = '合格保証つき講座';
+  assert.equal(validateProject(raw).project.sections.find((s) => s.role === 'hero').approved, false);
+  // 参照 id の重複（公開資料に台帳と同じ id など）は読込で拒否
+  const dup = JSON.parse(serializeProject(seed())); dup.publicSources[0].id = 's1-mechanism';
+  const d = validateProject(dup);
+  assert.equal(d.ok, false);
+  assert.ok(d.errors.some((e) => /重複/.test(e) && /s1-mechanism/.test(e)));
+  const dup2 = JSON.parse(serializeProject(seed())); dup2.publicSources[1].id = dup2.publicSources[0].id;
+  assert.equal(validateProject(dup2).ok, false);
 });

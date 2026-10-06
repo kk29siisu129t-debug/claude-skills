@@ -3,7 +3,7 @@
 
 import {
   SCHEMA_VERSION, DEMO_MODES, CATEGORIES, LEDGER_KINDS, REALITY, EVIDENCE_KINDS, ACTION_BEHAVIORS,
-  CTA_TIMINGS, FONTS, METRIC_UNITS, VISUAL_KINDS, validateProject,
+  CTA_TIMINGS, FONTS, METRIC_UNITS, VISUAL_KINDS, validateProject, isRealOperator,
 } from './schema.js';
 import { ROLES } from './roles.js';
 import { metricMatches } from './claims.js';
@@ -18,7 +18,7 @@ export function emptyProject(name = '新しいLP') {
     id: makeId('lp'),
     name,
     updatedAt: '',
-    display: { brandName: '', serviceDescriptor: '', audienceLabel: '', demoMode: 'prototype', demoNotice: '試作のページです。お申し込みは受け付けていません。', operator: '', category: 'general' },
+    display: { brandName: '', serviceDescriptor: '', audienceLabel: '', productLabel: '', demoMode: 'prototype', demoNotice: '試作のページです。お申し込みは受け付けていません。', operator: '', operatorConfirmed: false, category: 'general' },
     brand: { primary: '#2741b8', accent: '#c42f57', ink: '#1b1f2b', paper: '#fbf8f3', font: 'sans' },
     inputs: {
       scene: { who: '', timing: '', trying: '', stuckAt: '' },
@@ -50,7 +50,14 @@ export function applyEdit(project, op) {
       const lim = { brandName: 40, serviceDescriptor: 60, audienceLabel: 60, productLabel: 30, demoNotice: 100, operator: 80 };
       if (op.key === 'demoMode') { if (!DEMO_MODES.includes(op.value)) throw new Error('不明なデモ区分'); p.display.demoMode = op.value; }
       else if (op.key === 'category') { if (!CATEGORIES.includes(op.value)) throw new Error('不明なカテゴリ'); p.display.category = op.value; }
-      else if (lim[op.key]) p.display[op.key] = txt(op.value, lim[op.key]);
+      else if (op.key === 'operatorConfirmed') {
+        if (op.value && !isRealOperator(p.display.operator)) throw new Error('運営者（事業者名）を入力してから確認済みにしてください（未定・仮の値は不可）');
+        p.display.operatorConfirmed = !!op.value;
+      } else if (lim[op.key]) {
+        p.display[op.key] = txt(op.value, lim[op.key]);
+        if (op.key === 'operator') p.display.operatorConfirmed = false; // 運営者を変えたら確認し直す
+        if (op.key === 'productLabel') for (const s of p.sections) if (s.role === 'hero') touch(s); // FV に出る商品ラベルが変わったら FV の承認を外す
+      }
       else throw new Error('不明な表示項目');
       if (p.display.demoMode !== 'live' && !p.display.demoNotice.trim()) throw new Error('デモ・試作ではデモ表示を空にできません');
       break;
@@ -163,8 +170,10 @@ export function applyEdit(project, op) {
     case 'setField': {
       const s = sec(p, op.id);
       if (!['heading', 'body', 'sub', 'note'].includes(op.field)) throw new Error('不明なフィールド');
-      s[op.field] = txt(op.value, op.field === 'body' ? 1200 : op.field === 'heading' ? 120 : 200);
+      if (op.field === 'sub' && String(op.value ?? '').length > 60) throw new Error('FV の補助文は60文字以内です');
+      s[op.field] = txt(op.value, op.field === 'body' ? 1200 : op.field === 'heading' ? 120 : op.field === 'sub' ? 60 : 200);
       if (op.field === 'heading') s.headingPhrases = []; // 見出しを変えたら改行候補は作り直し
+      if (op.field === 'sub') s.subPhrases = [];
       touch(s);
       break;
     }
@@ -234,7 +243,7 @@ export function applyEdit(project, op) {
     case 'approveSection': {
       const s = sec(p, op.id);
       s.approved = !!op.value;
-      s.approvedHash = op.value ? sectionHash(s, p.assets?.heroPortrait) : '';
+      s.approvedHash = op.value ? sectionHash(s, p.assets?.heroPortrait, p.display.productLabel) : '';
       if (op.value) s.needsReview = false;
       break;
     }

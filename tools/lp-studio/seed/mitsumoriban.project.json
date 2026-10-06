@@ -6,6 +6,7 @@
   "display": {
     "demoNotice": "架空サービスのデモです。登録やお申し込みはできません。",
     "operator": "",
+    "operatorConfirmed": false,
     "category": "b2b-software",
     "brandName": "見積もり番",
     "serviceDescriptor": "見積もりの返事待ちを共有する、チーム用管理ツール",

@@ -10,7 +10,7 @@ import { serializeProject, validateProject } from '../../src/core/schema.js';
 import { seed, seed2, brief, RESPONSE } from './helpers.mjs';
 
 const stops = (p) => checkProject(p).filter((i) => i.level === 'stop');
-const text = (html) => html.replace(/<style>[\s\S]*?<\/style>|<script>[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');
+const text = (html) => html.replace(/<style>[\s\S]*?<\/style>|<script>[\s\S]*?<\/script>/g, '').replace(/<\/?span\b[^>]*>/g, '').replace(/<[^>]+>/g, ' '); // span（句・語の単位）は語の区切りではない
 const review = (p) => exportHtml(p, 'review');
 
 test('両ケースとも同じ経路（brief → response → ingest）で生成され、停止条件なしでレビュー用に描画できる', () => {
@@ -175,7 +175,7 @@ test('一般化: 両ケースとも仮説は仮説のまま・FVは仕組みを�
     assert.deepEqual(hero.headingPhrases, phrases);
     const { html } = renderPage(p, { kind: 'review' });
     const h1 = html.match(/<h1>([\s\S]*?)<\/h1>/)[1];
-    assert.deepEqual([...h1.matchAll(/<span class="ph">([^<]*)<\/span>/g)].map((m) => m[1].replace(/&#39;|&quot;/g, '')), phrases.map((x) => x.replace(/["']/g, '')));
+    assert.deepEqual(h1.split('<span class="ph">').slice(1).map((x) => x.replace(/<[^>]+>/g, '').replace(/&#39;|&quot;/g, '')), phrases.map((x) => x.replace(/["']/g, '')));
     // FV の補助文（無ければ本文）は、一般的な「サポート」「効率化」ではなく提供内容の動作を書く
     const support = hero.sub || hero.body;
     assert.ok(support.length >= 15 && /計画|見直|記録|分け|決め/.test(support), support);
