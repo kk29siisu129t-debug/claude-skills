@@ -270,6 +270,7 @@ body[data-variant="a2"] .cta{font-size:17px}
 
 // ---- 案A3（未公開のレビュー稿）: 白〜ウォームグレーの一続きの背景に、透過の本人写真と教材を同じ光で置く。仮置きの数値バッジを含む ----
 const portrait = asset('portrait');
+const portraitV3 = asset('portraitV3');
 const A3 = () => `
 <div class="s-stage">
 <header class="s-top"><span class="s-brand">${e(C.brand)}</span><p class="s-target">${e(C.target)}</p></header>
@@ -369,7 +370,7 @@ const A4 = (withPerson) => `
     <p class="f-cred">${e(C.credential)}</p>
     <h1 class="f-title"><span>共テ数学</span><span>特別講義</span></h1>
     <p class="f-sub">${phrases(C.subA)}</p>
-    ${withPerson ? `<figure class="f-person"><img src="${portrait.uri}" alt="${e(portrait.alt)}" width="1330" height="1183"></figure>` : ''}
+    ${withPerson ? `<figure class="f-person"><img src="${portraitV3.uri}" alt="${e(portraitV3.alt)}" width="1330" height="1183"></figure>` : ''}
     <figure class="f-mats" aria-label="${e(C.materialLabel)}">
       <span class="f-paper f-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
       <span class="f-paper f-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
@@ -429,7 +430,7 @@ body[data-variant^="a4"] .review{background:#f4f7f9}
 .f-with .f-hero{height:420px}
 .f-with .f-title{font-size:74px}
 .f-with .f-sub{margin-top:12px;font-size:26px;font-weight:900;line-height:1.28;color:#fff;letter-spacing:.01em}.f-with .f-sub .nb{display:block}
-.f-person{position:absolute;z-index:1;right:-66px;bottom:0;height:240px;margin:0;aspect-ratio:1330/1183}
+.f-person{position:absolute;z-index:1;right:-72px;bottom:0;height:240px;margin:0;aspect-ratio:1330/1183}
 .f-person::before{content:"";position:absolute;inset:18% 4% -10% 8%;background:radial-gradient(closest-side,rgba(50,148,193,.45),rgba(50,148,193,0));z-index:-1}
 .f-person img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(6px 10px 18px rgba(0,0,0,.55))}
 .f-with .f-mats{left:18px;top:272px;width:196px;height:112px}

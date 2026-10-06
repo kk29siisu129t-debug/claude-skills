@@ -51,6 +51,11 @@
       "file": "portrait-retouched-v2.webp",
       "source": "ユーザー提供のレタッチ済み透過写真 portrait-retouched-v2.png（1330×1183、透過あり）。同じ本人・スーツ・指差し。生成し直さず、縦横比を保って使用",
       "alt": "講師の宇佐見天彗さん"
+    },
+    "portraitV3": {
+      "file": "portrait-retouched-v3.png",
+      "source": "ユーザー提供のレタッチ済み透過写真 portrait-retouched-v3.png（1330×1183 RGBA、1,388,807 bytes、ZIP から無加工で展開）。A4 人物ありで使用。再生成・再エンコード・非等方の拡縮なし",
+      "alt": "講師の宇佐見天彗さん"
     }
   },
   "_note_time": "教材の【スピード勝負】（3分〜5分）は1問の目標時間の表示なので、時間の数値は FV に出さない（ユーザー判断）",
