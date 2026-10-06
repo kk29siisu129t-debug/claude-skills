@@ -18,11 +18,11 @@
  },
  "definition_version": "passcal-demo-def/v1",
  "definitions": {
-  "application": "応募ID（APP-4桁）ごとの最初の有効な form_submitted。応募日は報告 timezone の暦日。同じ応募IDの再回答は数えず初回を採用。同じ event_id の再送は1回だけ数える",
-  "interview": "面談到達: コホート内の応募IDに、応募以降・観察窓内・cutoff 前の interview_held が1件以上あること。予約確定（interview_booked）だけでは数えない。複数回の面談も1つの応募IDとして1回。取消済み予約での実施や応募前の実施は矛盾として保留",
+  "application": "応募ID（APP-4桁）ごとの最初のフォーム回答（form_submitted）。同じ応募IDの再回答は数えず初回を採用。同じ event_id の再送は1回。同じ応募IDに日時の欠損・不正・時差なしの回答、または同じ日時で中身の違う回答があれば、初回を決められないので応募IDごと保留",
+  "interview": "面談到達: コホート内の応募IDに、応募以降・観察窓内・cutoff 前の interview_held が1件以上あること。予約確定（interview_booked）だけでは数えない。複数回の面談も1つの応募IDとして1回。予約の状態は応募IDと予約IDの組で時系列に見る。実施の直前が取消なら矛盾として保留（取消の後に同じ予約IDで予約し直していれば有効）。同じ予約に日時不明の取消があれば保留。応募前の実施も保留",
   "enrollment": "入塾到達: コホート内の応募IDに、応募以降・観察窓内・cutoff 前の enrollment_completed（入塾手続き完了）があること。入金・売上・着金ではない",
   "cohort": "応募日コホート: 初回フォーム回答の暦日（Asia/Tokyo）が期間内の応募ID",
-  "window": "観察窓: コホート開始から observation_end の 23:59:59（Asia/Tokyo）まで。cutoff が observation_end の翌日 0:00 に達するまで暫定"
+  "window": "観察窓: 各応募の応募日から、コホートの observation_end の 23:59:59（Asia/Tokyo）まで。cutoff（この瞬間より前を含む）が observation_end の翌日 0:00 に達するまで暫定"
  },
  "cohorts": [
   {
@@ -63,7 +63,8 @@
    "period": {
     "start": "2026-08-01",
     "end": "2026-08-31"
-   }
+   },
+   "scope": "PC-CMP-1"
   }
  ],
  "unconnected": [
@@ -123,7 +124,7 @@
     "R-INT-C-2026-08",
     "R-ENR-C-2026-08",
     "R-INT-C-2026-09",
-    "R-CPA-2026-08"
+    "R-CPA-SP-2026-08"
    ],
    "next": "9月コホートの観察窓（10/31）が閉じてから、同じ定義版で8月と並べる"
   }

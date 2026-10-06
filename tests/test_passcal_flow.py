@@ -84,14 +84,14 @@ class Baseline(unittest.TestCase):
         # 入塾到達の分母はフォーム回答（面談到達ではない）
         self.assertEqual(r2['den']['id'], 'O-APP-' + AUG)
 
-    def test_reached_sets_are_nested_and_identified(self):
+    def test_reached_sets_identified(self):
+        # 定義は「面談到達 ⊆ フォーム回答」「入塾到達 ⊆ フォーム回答」。入塾が面談到達に含まれることは定義していない
         v = view()
         apps = set(v.res.cohort_apps[AUG])
-        ints = set(v.res.reached[('interview', AUG)])
-        enrs = set(v.res.reached[('enrollment', AUG)])
-        self.assertEqual(len(apps), 40)
-        self.assertTrue(ints <= apps and enrs <= ints)
-        self.assertEqual(sorted(enrs), ['APP-0001', 'APP-0003', 'APP-0004'])
+        self.assertEqual(apps, {'APP-%04d' % i for i in range(1, 41)})
+        self.assertEqual(set(v.res.reached[('interview', AUG)]), {'APP-%04d' % i for i in range(1, 13)})
+        self.assertEqual(sorted(v.res.reached[('enrollment', AUG)]), ['APP-0001', 'APP-0003', 'APP-0004'])
+        self.assertTrue(set(v.res.reached[('enrollment', AUG)]) <= apps)
 
     def test_open_cohort_is_provisional(self):
         v = view()
@@ -114,7 +114,7 @@ class Baseline(unittest.TestCase):
 
     def test_cpa_2400_same_period_scope_basis(self):
         v = view()
-        r = v.ratio('R-CPA-2026-08')
+        r = v.ratio('R-CPA-SP-2026-08')
         self.assertEqual((r['kind'], M.fmt_cost_per(r['value'], v.ds.d(r['num']))), ('cost_per', 'JPY 2,400'))
         self.assertEqual(r['num']['period'], r['den']['period'])
         self.assertEqual(int(v.value('O-APP-OCC-SP-2026-08')), 40)
@@ -124,10 +124,12 @@ class Baseline(unittest.TestCase):
         v = view()
         part = v.res.partition[AUG]
         matched = sum(len(x) for (k, _), x in part.items() if k == 'matched')
-        un = {k: len(x) for (k, _), x in part.items() if k != 'matched'}
-        self.assertEqual((matched, sum(un.values())), (37, 3))
-        self.assertEqual(un, {'missing_id': 2, 'unknown_id': 1})
+        un = sum(len(x) for (k, _), x in part.items() if k != 'matched')
+        self.assertEqual((matched, un), (37, 3))
+        self.assertEqual({k: len(x) for k, x in part.items() if k[0] != 'matched'},
+                         {('missing_id', ''): 1, ('missing_id', None): 1, ('unknown_id', 'PL-CR-99'): 1})
         self.assertEqual(v.ds.match(v.ds.obs['O-APP-CR-%s-missing_id' % AUG])[0], 'missing_id')
+        self.assertEqual(v.ds.match(v.ds.obs['O-APP-CR-%s-absent_id' % AUG])[0], 'missing_id')
         self.assertEqual(v.ds.match(v.ds.obs['O-APP-CR-%s-PL-CR-99' % AUG])[0], 'unknown_id')
         # 親子は足さない（応募ID数は子を足さない単位）
         ru = next(x for x in M.rollups(v.ds) if x['parent']['id'] == 'O-APP-AD-' + AUG)
@@ -250,7 +252,7 @@ class Stops(unittest.TestCase):
         v = mut(lambda d: d['spend'][0].update(raw=-1))
         self.assertTrue(v.ok)
         self.assertEqual(v.ds.norm['O-COST-SP-2026-08']['state'], M.ERROR)
-        r = v.ratio('R-CPA-2026-08')
+        r = v.ratio('R-CPA-SP-2026-08')
         self.assertEqual((r['kind'], r['value']), ('undecidable', None))
         v = mut(lambda d: d['spend'][0].update(raw=None))
         self.assertEqual(v.ds.norm['O-COST-SP-2026-08']['state'], M.BLANK)
@@ -273,10 +275,25 @@ class Stops(unittest.TestCase):
             r = M.evaluate_ratio(d2, next(x for x in ds['ratios'] if x['id'] == rid))
             self.assertEqual((r['kind'], r['value']), ('blocked', None), rid)
             self.assertTrue(any(frag in x for x in r['reasons']), (rid, r['reasons']))
-        # 定義の不一致（母集団が違う定義版）は件数比にしかならず、転換率と呼ばない
-        ds['metric_definitions'][1]['population_of'] = {'id': 'PC-APP', 'version': 'other'}
-        r = M.evaluate_ratio(M.Dataset(ds), next(x for x in ds['ratios'] if x['id'] == 'R-INT-' + AUG))
-        self.assertNotIn(r['kind'], ('cvr', 'provisional'))
+        # 定義の不一致は算出停止（件数比も出さない）。監査6
+        # 存在しない定義版を母集団にした場合は、計測レイヤーの検証そのものが止まる
+        ds_bad = copy.deepcopy(view().res.dataset)
+        ds_bad['metric_definitions'][1]['population_of'] = {'id': 'PC-APP', 'version': 'other'}
+        self.assertIn('UNKNOWN_REF', [x['code'] for x in M.validate(ds_bad, NOW).errors])
+        # 存在するが違う定義版（v2）を母集団・分母にした場合は、検証は通るが比は算出しない
+        for f in (lambda x: x['metric_definitions'][1].update(population_of={'id': 'PC-APP', 'version': 'v2'}),
+                  lambda x: next(o for o in x['observations'] if o['id'] == 'O-APP-' + AUG).update(
+                      metric={'id': 'PC-APP', 'version': 'v2'})):
+            v2 = view()
+            ds2 = v2.res.dataset
+            m2 = copy.deepcopy(ds2['metric_definitions'][0])
+            m2['version'] = 'v2'
+            ds2['metric_definitions'].append(m2)
+            f(ds2)
+            self.assertEqual(M.validate(ds2, NOW).errors, [])
+            v2.ds = M.Dataset(ds2)
+            r = v2.ratio('R-INT-' + AUG)
+            self.assertEqual((r['kind'], r['value']), ('blocked', None))
 
     def test_unit_mismatch_stops(self):
         v = view()
@@ -299,8 +316,104 @@ class Stops(unittest.TestCase):
         ds = copy.deepcopy(v.res.dataset)
         o = next(x for x in ds['observations'] if x['id'] == 'O-APP-OCC-SP-2026-08')
         o['period'] = {'start': '2026-08-01', 'end': '2026-08-30'}
-        r = M.evaluate_ratio(M.Dataset(ds), next(x for x in ds['ratios'] if x['id'] == 'R-CPA-2026-08'))
+        r = M.evaluate_ratio(M.Dataset(ds), next(x for x in ds['ratios'] if x['id'] == 'R-CPA-SP-2026-08'))
         self.assertEqual((r['kind'], r['value']), ('blocked', None))
+
+
+class AuditFindings(unittest.TestCase):
+    """独立監査の指摘（架空fixtureで再現したもの）の回帰テスト"""
+
+    def test_1_cpa_denominator_includes_out_of_cohort_applications(self):
+        def f(d):
+            d['spend'][0]['period'] = {'start': '2026-07-15', 'end': '2026-08-31'}
+            d['events'].append({'event_id': 'EV-X3', 'type': 'form_submitted', 'application_id': 'APP-0051',
+                                'at': '2026-07-31T10:00:00+09:00', 'creative_id': 'PL-CR-21'})
+        v = mut(f)
+        self.assertEqual(int(v.value('O-APP-OCC-SP-2026-08')), 41)
+        r = v.ratio('R-CPA-SP-2026-08')
+        self.assertEqual(M.fmt_cost_per(r['value'], v.ds.d(r['num'])), 'JPY 2,341')
+        self.assertIn('APP-0051', v.res.occ['SP-2026-08'])
+        self.assertEqual(counts(v), (40, 12, 3))   # コホートの数字は変わらない
+
+    def test_1_spend_scope_must_match(self):
+        self.assertFalse(mut(lambda d: d['spend'][0].update(scope='OTHER')).ok)
+        self.assertFalse(mut(lambda d: d['spend'][0].pop('scope')).ok)
+
+    def test_2a_cancel_with_unknown_time_holds_interview(self):
+        def f(d):
+            next(x for x in d['events'] if x.get('application_id') == 'APP-0015'
+                 and x['type'] == 'interview_cancelled')['at'] = '2026-08-21T10:00:00'
+        v = mut(f)
+        self.assertEqual(counts(v)[1], 12)
+        t = [x for x in v.res.trace if x['application_id'] == 'APP-0015' and x['type'] == 'interview_held']
+        self.assertEqual(t[0]['code'], 'CANCEL_UNCERTAIN')
+        self.assertIn('EV-', t[0]['reason'])
+
+    def test_2b_other_applications_cancel_does_not_apply(self):
+        v = mut(lambda d: d['events'].append({'event_id': 'EV-XC', 'type': 'interview_cancelled', 'application_id': 'APP-0030',
+                                              'at': '2026-08-02T10:00:00+09:00', 'booking_id': 'BK-0001-A'}))
+        self.assertEqual(counts(v)[1], 12)
+        self.assertIn('APP-0001', v.res.reached[('interview', AUG)])
+
+    def test_2c_rebook_after_cancel_is_valid(self):
+        v = mut(lambda d: d['events'].append({'event_id': 'EV-Y1', 'type': 'interview_booked', 'application_id': 'APP-0015',
+                                              'at': '2026-08-21T12:00:00+09:00', 'booking_id': 'BK-0015-A'}))
+        self.assertIn('APP-0015', v.res.reached[('interview', AUG)])
+        self.assertEqual(counts(v)[1], 13)
+        t = [x for x in view().res.trace if x['application_id'] == 'APP-0015' and x['type'] == 'interview_held']
+        self.assertIn('取消 EV-', t[0]['reason'])   # どの取消で保留したか追える
+
+    def test_3_ambiguous_first_answer_is_held(self):
+        v = mut(lambda d: d['events'].extend([
+            {'event_id': 'EV-Z1', 'type': 'form_submitted', 'application_id': 'APP-0050', 'at': '2026-08-31T10:00:00'},
+            {'event_id': 'EV-Z2', 'type': 'form_submitted', 'application_id': 'APP-0050', 'at': '2026-09-02T10:00:00+09:00'}]))
+        self.assertEqual(counts(v, SEP)[0], 5)
+        self.assertNotIn('APP-0050', v.res.apps)
+        self.assertEqual({t['code'] for t in v.res.trace if t['event_id'] == 'EV-Z2'}, {'AMBIGUOUS_APPLICATION'})
+
+    def test_3_same_time_different_answers_held(self):
+        def f(d):
+            first = next(x for x in d['events'] if x.get('application_id') == 'APP-0020' and x['type'] == 'form_submitted')
+            d['events'].append(dict(first, event_id='EV-0000', creative_id='PL-CR-11'))
+        v = mut(f)
+        self.assertNotIn('APP-0020', v.res.apps)
+        self.assertEqual(counts(v)[0], 39)
+        self.assertTrue(all(t['code'] in ('AMBIGUOUS_APPLICATION', 'APP_HELD', 'CONFLICT_DUP_ID') for t in v.res.trace
+                            if t['application_id'] == 'APP-0020'))
+
+    def test_5_ids_unique_with_two_event_files(self):
+        with tempfile.TemporaryDirectory() as t:
+            for n in ('a.json', 'b.json'):
+                with io.open(os.path.join(t, n), 'w', encoding='utf-8') as fh:
+                    json.dump(doc(), fh, ensure_ascii=False, default=str)
+            html = build_doc(t)
+        ids = re.findall(r' id="([^"]+)"', html)
+        self.assertEqual(len(ids), len(set(ids)), sorted(x for x in set(ids) if ids.count(x) > 1))
+        s0b = section(html, 'pc1-s0')
+        self.assertTrue(all(h.startswith('pc1-') for h in re.findall(r'href="#([^"]+)"', s0b)))
+
+    def test_7_repeat_enrollment_reason(self):
+        v = mut(lambda d: d['events'].append({'event_id': 'EV-X4', 'type': 'enrollment_completed', 'application_id': 'APP-0001',
+                                              'at': '2026-08-22T10:00:00+09:00'}))
+        self.assertEqual([t['code'] for t in v.res.trace if t['event_id'] == 'EV-X4'], ['REPEAT_ENROLLMENT'])
+        self.assertEqual(counts(v)[2], 3)
+
+    def test_8_out_of_cohort_is_not_orphan(self):
+        v = mut(lambda d: d['events'].extend([
+            {'event_id': 'EV-O1', 'type': 'form_submitted', 'application_id': 'APP-0052', 'at': '2026-07-30T10:00:00+09:00'},
+            {'event_id': 'EV-O2', 'type': 'interview_held', 'application_id': 'APP-0052', 'at': '2026-08-05T10:00:00+09:00'}]))
+        self.assertEqual([t['code'] for t in v.res.trace if t['event_id'] == 'EV-O2'], ['APP_OUT_OF_COHORT'])
+
+    def test_8_s5_version_mismatch_shown(self):
+        d = doc()
+        d['decisions'][0]['versions']['creative']['version'] = 'v9'
+        v = view(d)
+        self.assertTrue(any('v9' in x for x in P._version_checks(v, d['decisions'][0])))
+        self.assertEqual(P._version_checks(v, doc()['decisions'][1]), [])
+
+    def test_9_unconnected_items_required(self):
+        self.assertFalse(mut(lambda d: d.update(unconnected=[])).ok)
+        self.assertFalse(mut(lambda d: d['unconnected'].remove('利益')).ok)
 
 
 class Units(unittest.TestCase):
@@ -352,8 +465,8 @@ class Screens(unittest.TestCase):
             r = self.vals(sid, 'ratio')
             self.assertEqual(r.get('R-INT-' + AUG), '30.00%', sid)
             self.assertEqual(r.get('R-ENR-' + AUG), '7.50%', sid)
-        self.assertEqual(self.vals('pc-s2', 'ratio').get('R-CPA-2026-08'), 'JPY 2,400')
-        self.assertEqual(self.vals('pc-s5', 'ratio').get('R-CPA-2026-08'), 'JPY 2,400')
+        self.assertEqual(self.vals('pc-s2', 'ratio').get('R-CPA-SP-2026-08'), 'JPY 2,400')
+        self.assertEqual(self.vals('pc-s5', 'ratio').get('R-CPA-SP-2026-08'), 'JPY 2,400')
         self.assertEqual(self.vals('pc-s2', 'obs').get('O-COST-SP-2026-08'), 'JPY 96,000')
 
     def test_values_come_from_adapter_not_markup(self):
@@ -371,7 +484,7 @@ class Screens(unittest.TestCase):
 
     def test_conditions_shown(self):
         s0 = section(self.html, 'pc-s0')
-        for x in ('応募日コホート 2026-08-01〜2026-08-31（Asia/Tokyo）', '観察窓 2026-09-30 まで',
+        for x in ('応募日コホート 2026-08-01〜2026-08-31（Asia/Tokyo）', '観察窓 各応募日から 2026-09-30 まで',
                   'データ cutoff 2026-10-01T00:00:00+09:00', '取得 2026-10-01T09:00:00+09:00',
                   '定義版 passcal-demo-def/v1', '単位 応募ID数', 'synthetic://passcal/events-v1',
                   'conversion rate（確定）', '暫定比（未成熟・CVRではない）', '入塾到達（入金ではない）'):
@@ -389,6 +502,17 @@ class Screens(unittest.TestCase):
         for eid in ('EV-DUP-20', 'CANCELLED_BOOKING', 'NO_TZ', 'APP-0016', 'PAYMENT_OUT_OF_SCOPE'):
             self.assertIn(eid, s4)
         self.assertIn('CR に照合 <b>37</b> 応募ID ／ 未帰属 <b>3</b> 応募ID', s4)
+        # 監査4: 表示した数字・率にはすべて根拠リンクが付く
+        for sid in ('pc-s0', 'pc-s1', 'pc-s2', 'pc-s4'):
+            sec = section(self.html, sid)
+            for m in re.finditer(r'data-(obs|ratio)="[^"]+">[^<]+</b>', sec):
+                tail = sec[m.end():m.end() + 80]
+                self.assertTrue(tail.lstrip().startswith('<a class="small" href="#'), (sid, m.group(0)))
+        s1 = section(self.html, 'pc-s1')
+        attr = s1.split('id="pc-tr-app-%s"' % AUG)[1].split('</details>')[0]
+        self.assertEqual(len(re.findall(r'<tr><td>APP-\d{4}</td>', attr)), 40)
+        self.assertEqual(attr.count('PL-CR-21'), 18)
+        self.assertEqual(attr.count('ID欠落（未紐付け）'), 2)
 
     def test_s2_shows_existing_versions_only(self):
         s2 = section(self.html, 'pc-s2')
@@ -415,7 +539,7 @@ class Screens(unittest.TestCase):
             self.assertNotIn(bad, low)
 
     def test_six_tabs_first(self):
-        nav = self.html.split('<nav class="tabs"')[1].split('</nav>')[0]
+        nav = self.html.split('<nav class="tabs main"')[1].split('</nav>')[0]
         tabs = re.findall(r'<a href="#(pc-s\d)">', nav)
         self.assertEqual(tabs, ['pc-s0', 'pc-s1', 'pc-s2', 'pc-s3', 'pc-s4', 'pc-s5'])
         self.assertLess(self.html.index('id="pc-s0"'), self.html.index('id="biz-passlabo"'))

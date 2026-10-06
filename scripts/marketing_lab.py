@@ -1071,24 +1071,38 @@ def _render_checklist(biz):
 
 
 CSS = """
-:root{--bg:#F7F5F0;--fg:#22201C;--mut:#6B665C;--card:#FFFFFF;--line:#E2DDD2;--acc:#2F6F9F;
---ok:#2E7D4F;--okb:#E3F3E8;--wait:#9A6400;--waitb:#FFF2D6;--stop:#B3261E;--stopb:#FDE5E2;--demo:#5A3E9B;--demob:#EFE8FB}
+:root{--bg:#FFFFFF;--fg:#1B2433;--mut:#5B6575;--card:#FFFFFF;--line:#DDE2E9;--acc:#1F3A5F;--soft:#F4F6F9;
+--ok:#2E6B4A;--okb:#E8F2EC;--wait:#8A5A00;--waitb:#FFF4DC;--stop:#A3261E;--stopb:#FBE7E5;--demo:#1F3A5F;--demob:#EEF2F7}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17181B;--fg:#ECE9E2;--mut:#A39E93;
---card:#212328;--line:#34373E;--acc:#7DB6E0;--ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;
---stop:#FF9A90;--stopb:#3D1F1C;--demo:#C7B2F5;--demob:#2B2340}}
-:root[data-theme="dark"]{--bg:#17181B;--fg:#ECE9E2;--mut:#A39E93;--card:#212328;--line:#34373E;--acc:#7DB6E0;
---ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;--stop:#FF9A90;--stopb:#3D1F1C;--demo:#C7B2F5;--demob:#2B2340}
+--card:#212328;--line:#34373E;--acc:#9DB8DC;--soft:#1C1E22;--ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;
+--stop:#FF9A90;--stopb:#3D1F1C;--demo:#C9D6EA;--demob:#1E2633}}
+:root[data-theme="dark"]{--bg:#17181B;--fg:#ECE9E2;--mut:#A39E93;--card:#212328;--line:#34373E;--acc:#9DB8DC;--soft:#1C1E22;
+--ok:#7FD39C;--okb:#1D3326;--wait:#F2C46B;--waitb:#3A2F17;--stop:#FF9A90;--stopb:#3D1F1C;--demo:#C9D6EA;--demob:#1E2633}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 system-ui,-apple-system,"Hiragino Sans","Noto Sans JP",sans-serif}
-.demo{position:sticky;top:0;z-index:5;background:var(--demob);color:var(--demo);border-bottom:2px solid var(--demo);
-padding:8px 16px;font-weight:700;font-size:13px}
+.demo{position:sticky;top:0;z-index:5;background:var(--demob);color:var(--demo);border-bottom:1px solid var(--line);
+padding:4px 16px;font-weight:700;font-size:12px;line-height:1.5}
+/* 狭い画面では固定しない（本文や操作を覆わない） */
+@media (max-width:560px){.demo{position:static}}
 header,main{max-width:1080px;margin:0 auto;padding:0 16px}
-h1{font-size:20px;margin:16px 0 4px}h2{font-size:18px;margin:20px 0 8px}h3{font-size:16px;margin:12px 0 6px}
+h1{font-size:19px;margin:16px 0 4px;color:var(--acc)}h2{font-size:17px;margin:20px 0 8px;color:var(--acc)}h3{font-size:15px;margin:12px 0 6px}
 h4{font-size:14px;margin:12px 0 4px}small,.small{color:var(--mut);font-size:12px}
 nav.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}
-nav.tabs a{padding:8px 14px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--fg);
-text-decoration:none;font-size:14px}
-nav.tabs a[aria-current="true"]{border-color:var(--acc);color:var(--acc);font-weight:700}
+nav.tabs a{padding:6px 12px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--fg);
+text-decoration:none;font-size:13px}
+nav.tabs a[aria-current="true"]{border-color:var(--acc);background:var(--acc);color:var(--card);font-weight:700}
+@media (max-width:560px){nav.tabs{gap:6px}nav.tabs a{padding:5px 9px;font-size:12px}}
+.othernav{margin:4px 0 8px;font-size:13px}.othernav>summary{cursor:pointer;color:var(--mut)}
+nav.tabs.main{margin:8px 0 4px}
+details.cond{margin:4px 0}details.cond>summary{cursor:pointer;font-size:12px;color:var(--acc)}
+details.cond .small{margin:4px 0}
+.pcf .tblwrap table{min-width:0}.pcf td,.pcf th{overflow-wrap:anywhere}
+.pcf td:first-child,.pcf th:first-child{white-space:normal}
+.pcf .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+.pcf .kpi{padding:6px 8px}.pcf .rates{margin:6px 0;font-size:14px}
+.pcf h2{margin:12px 0 6px}
+@media (max-width:560px){.pcf .kpi .val{font-size:18px}h1{font-size:16px;margin:10px 0 2px}}
+.notice{background:var(--soft);border-left:3px solid var(--acc);padding:6px 10px;font-size:13px;border-radius:4px}
 .js .biz{display:none}.js .biz.on{display:block}
 .camp,.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin:12px 0}
 .statusline{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
@@ -1126,7 +1140,7 @@ code{font-size:12px}
 .ratio{border-top:1px solid var(--line);padding:8px 0}.ratio .val{font-weight:700;margin-left:6px}
 tr.parent td{font-weight:700}tr.sum td{background:var(--bg)}
 .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:8px 0}
-.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.kpi .val{font-size:22px}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card)}.kpi .val{font-size:20px;color:var(--acc)}
 .funnel li{margin:8px 0}.trace summary{cursor:pointer;font-size:13px;color:var(--acc)}
 footer{max-width:1080px;margin:24px auto;padding:0 16px 32px;color:var(--mut);font-size:12px}
 """
@@ -1143,6 +1157,7 @@ document.documentElement.classList.add('js');
   if(!secs.some(function(s){return s.id===id;})) id=secs.length?secs[0].id:'';
   secs.forEach(function(s){s.classList.toggle('on',s.id===id);});
   tabs.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'true':'false');});
+  tabs.forEach(function(a){if(a.getAttribute('aria-current')==='true'){var d=a.closest('details'); if(d)d.open=true;}});
   if(inner){if(inner.tagName==='DETAILS')inner.open=true; inner.scrollIntoView();}
  }
  tabs.forEach(function(a){a.addEventListener('click',function(ev){ev.preventDefault();
@@ -1159,14 +1174,15 @@ def render(results, today, now, source_label, measurement=None, flows=None):
     """measurement: measurement.validate_all の戻り値（無ければ計測タブを出さない）
     flows: passcal_flow.build_view の戻り値（無ければ PASSCAL 架空導線の6画面を出さない）"""
     secs, tabs = [], []
+    main_tabs = None
     if flows is not None:
-        # PASSCAL 架空導線の経営画面を先頭に置く（最初に開くのは S0）
-        tabs.append('<span class="tabsep">PASSCAL 架空導線（経営画面・架空イベント）</span>')
+        # PASSCAL 架空導線の経営画面を先頭に置く（最初に開くのは S0）。ほかの試作のナビは折りたたむ
+        main_tabs = []
         frs = pcf.render_all(flows)
-        tabs += [t for t, _ in frs]
+        main_tabs += [t for t, _ in frs]
         secs += [x for _, x in frs]
         if not frs:
-            tabs.append('<a href="#pc-none">PASSCAL: なし ⚠</a>')
+            main_tabs.append('<a href="#pc-none">PASSCAL: なし ⚠</a>')
             secs.append('<section class="biz pcf" id="pc-none"><div class="panel stopbox">%s<p>架空イベントの fixture が'
                         '1件もありません。検証を止めています。</p></div></section>' % _badge('検証停止'))
         tabs.append('<span class="tabsep">3事業の施策レビュー（架空）</span>')
@@ -1194,12 +1210,18 @@ def render(results, today, now, source_label, measurement=None, flows=None):
         '<!doctype html><html lang="ja"><head><meta charset="utf-8">',
         '<meta name="viewport" content="width=device-width,initial-scale=1">',
         '<title>マーケ施策レビュー試作</title><style>', CSS, '</style></head><body>',
-        '<div class="demo" role="note">試作品・架空データです。広告・LP・フォーム・計測・Sheetsには接続していません。'
-        '表示される承認・数値は本物ではありません。</div>',
-        '<header><h1>3事業マーケ施策レビュー（試作品）</h1>',
-        '<p class="small">基準時刻 %s ／ 判定日 %s ／ データ: %s ／ 読取り専用</p>' % (
+        '<div class="demo" role="note">試作品・架空データです。実データ・広告・LP・フォーム・計測・Sheets には接続していません。</div>',
+        '<header><h1>マーケ試作（架空データ・読取り専用）</h1>',
+        ''.join(['<nav class="tabs main" aria-label="PASSCAL 架空導線">', ''.join(main_tabs), '</nav>',
+                 '<details class="othernav"><summary>ほかの試作（3事業の施策レビュー・計測の正規化デモ）と生成情報</summary>',
+                 '<p class="small">基準時刻 %s ／ 判定日 %s ／ データ: %s ／ 表示される承認・数値は本物ではありません</p>' % (
+                     e(now.isoformat()), e(today.isoformat()), e(source_label)),
+                 '<nav class="tabs" aria-label="ほかの試作">', ''.join(tabs), '</nav></details>'])
+        if main_tabs is not None else
+        ''.join(['<p class="small">基準時刻 %s ／ 判定日 %s ／ データ: %s ／ 読取り専用 ／ 表示される承認・数値は本物ではありません</p>' % (
             e(now.isoformat()), e(today.isoformat()), e(source_label)),
-        '<nav class="tabs" aria-label="事業">', ''.join(tabs), '</nav></header><main>',
+            '<nav class="tabs" aria-label="事業">', ''.join(tabs), '</nav>']),
+        '</header><main>',
         ''.join(secs) or ('<div class="panel stopbox">%s<p>fixture が1件もありません。'
                           '表示できる事業が無いため検証を止めています。</p></div>' % _badge('検証停止')),
         '</main><footer>この画面は試作品です。公開・配信・停止・増額・承認の実行はできません。'
