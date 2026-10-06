@@ -21,7 +21,10 @@ for (const v of ['a', 'b']) {
   p.on('request', (r) => { if (!/^(file|data):/.test(r.url())) req.push(r.url()); });
   await p.goto(file);
   await p.evaluate(() => document.fonts.ready);
+  // 選定用の画像は FV 本体だけ（HTML 内の確認用注記は残すが、撮影では隠す。下は同じページ背景）
+  const hideNote = await p.addStyleTag({ content: '.review{display:none!important}' });
   await p.screenshot({ path: out(`passlabo-fv-${v}-sp400.png`) });
+  await hideNote.evaluate((el) => el.remove());
   measure[v] = await p.evaluate(() => {
     const r = (s) => { const el = document.querySelector(s); if (!el) return null; const b = el.getBoundingClientRect(); return [Math.round(b.top), Math.round(b.bottom)]; };
     const fs = (s) => { const el = document.querySelector(s); return el ? parseFloat(getComputedStyle(el).fontSize) : null; };
@@ -36,6 +39,7 @@ for (const v of ['a', 'b']) {
   const pc = await b.newContext({ viewport: { width: 1280, height: 800 } });
   const pp = await pc.newPage();
   await pp.goto(file); await pp.evaluate(() => document.fonts.ready);
+  await pp.addStyleTag({ content: '.review{display:none!important}' });
   await pp.screenshot({ path: out(`passlabo-fv-${v}-pc1280.png`) });
   await pc.close();
 }
