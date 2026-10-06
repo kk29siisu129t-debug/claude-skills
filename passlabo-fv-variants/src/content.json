@@ -1,0 +1,37 @@
+{
+  "_note": "FV の文言と素材。【確認待ち】は現行ページ（https://utage-system.com/p/IyDWey4w9kRg）を read-only で確認してから確定する。架空の実績・受講者数・点数保証・未検証の数値は入れない",
+  "brand": "PASSLABO",
+  "audience": "共通テスト数学で、時間が足りない・点数が伸びない人へ",
+  "subject": "共通テスト数学",
+  "product": "無料特別講義",
+  "pains": [
+    "時間が足りない",
+    "点数が伸びない"
+  ],
+  "change": "【確認待ち】受講後に変わること（現行ページの講義内容から）",
+  "changePhrases": [
+    "【確認待ち】受講後に",
+    "変わること"
+  ],
+  "instructorRole": "講師",
+  "instructorName": "宇佐見 天彗",
+  "materialLabel": "講義の板書・教材（現行ページより）",
+  "ctaLabel": "LINEで無料講義を見る",
+  "ctaNote": "確認用ボタン（外部送信・外部遷移はしません）",
+  "assets": {
+    "instructor": {
+      "file": "",
+      "source": "【確認待ち】現行ページの講師写真の URL",
+      "alt": "講師の宇佐見天彗さん"
+    },
+    "material": {
+      "file": "",
+      "source": "【確認待ち】現行ページの板書・教材見本の URL",
+      "alt": "講義の板書・教材の見本"
+    }
+  },
+  "offerVia": [
+    "【確認待ち】LINEから",
+    "そのまま受講"
+  ]
+}
