@@ -35,11 +35,11 @@ const BODY = `
   <section class="lp-sec lp-pain" aria-labelledby="h-pain">
     <div class="lp-in">
       <p class="lp-kicker">こんな人へ</p>
-      <h2 id="h-pain" class="lp-h2">共テ数学、<br class="sp">時間が足りない。</h2>
+      <h2 id="h-pain" class="lp-h2">こんな悩み、<br class="sp">ありませんか？</h2>
       <ul class="lp-pains">
-        <li>最後の大問まで手が回らない</li>
-        <li><span class="nb">解き方は分かるのに、</span><span class="nb">時間内に終わらない</span></li>
-        <li>どこから手をつけるかで迷ってしまう</li>
+        <li><span class="nb">問題演習をしているが、</span><span class="nb">解法が体系化されていない</span></li>
+        <li><span class="nb">共通テスト形式になると、</span><span class="nb">圧倒的に時間が足りない</span></li>
+        <li><span class="nb">共通テスト対策に向けた</span><span class="nb">数学の勉強法がわからない</span></li>
       </ul>
     </div>
   </section>
@@ -49,11 +49,11 @@ const BODY = `
       <p class="lp-kicker">講義で扱うこと</p>
       <h2 id="h-points" class="lp-h2">時間内に解くための<br class="sp">3つの視点</h2>
       <ol class="lp-steps">
-        <li><span class="lp-no" aria-hidden="true">01</span><div><h3>時短戦略</h3><p>どこに時間をかけ、どこを速く進めるかを考えます。</p></div></li>
-        <li><span class="lp-no" aria-hidden="true">02</span><div><h3>思考法</h3><p>問題を見たとき、何から考えるかの順番を整理します。</p></div></li>
-        <li><span class="lp-no" aria-hidden="true">03</span><div><h3>問題へのアプローチ</h3><p>実際の問題で、手のつけ方を確かめます。</p></div></li>
+        <li><span class="lp-no" aria-hidden="true">01</span><h3>時短戦略</h3></li>
+        <li><span class="lp-no" aria-hidden="true">02</span><h3>思考法</h3></li>
+        <li><span class="lp-no" aria-hidden="true">03</span><h3>問題の取り組み方</h3></li>
       </ol>
-      <p class="lp-lead">講師の板書と手元を見ながら進めます。</p>
+      <p class="lp-lead">共通テストに取り組むときに必要なこの3つを、講師の手元をお見せしながら解説します。</p>
     </div>
   </section>
 
@@ -108,7 +108,7 @@ const BODY = `
       <p class="lp-final-free"><span>無料</span></p>
       <h2 id="h-final" class="lp-final-h">共テ数学 特別講義</h2>
       <ul class="lp-sum">
-        <li>時短戦略・思考法・問題へのアプローチを板書で解説</li>
+        <li>時短戦略・思考法・問題の取り組み方を、手元を見せながら解説</li>
         <li>講義参加者全員に特別テキストを配布</li>
         <li>参加特典：講義板書／解説PDF、共テ数学プログラムの特別案内</li>
       </ul>
@@ -118,15 +118,8 @@ const BODY = `
 </main>
 <footer class="lp-foot">
   <p class="lp-foot-brand">PASSLABO</p>
-  <div class="lp-review" role="note">
-    <p class="lp-review-h">確認用ページについて（未公開）</p>
-    <ul>
-      <li>このページは社内確認用です。公開・本番反映はしていません。</li>
-      <li>ファーストビューのバッジ「累計受講者数 3,000人」はユーザー指定の仮置きで、実績集計は未確認です。</li>
-      <li>「LINEで無料講義を受け取る」はすべて確認用ボタンです（外部送信・外部遷移はしません）。LINE の実 URL は未確認です。</li>
-      <li>特典の配布時期、フッターの法務リンク（特定商取引法に基づく表記・プライバシーポリシー等）は確認中のため載せていません。</li>
-    </ul>
-  </div>
+  <ul class="lp-foot-links" aria-label="運営情報"><li>運営会社：株式会社ペイ・フォワード</li><li>プライバシーポリシー</li><li>特定商取引法に基づく表記</li></ul>
+  <p class="lp-review" id="cta-note" role="note">確認用・未公開。LINEボタンは未接続です。3,000人は仮置きで、実績未確認です。</p>
 `;
 
 const LP_CSS = `
@@ -147,10 +140,10 @@ const LP_CSS = `
 .lp-pains li::before{content:"";position:absolute;left:16px;top:50%;width:14px;height:14px;margin-top:-7px;border:2.5px solid var(--n);border-radius:50%}
 /* 3つの視点: 白地に大きな番号 */
 .lp-steps{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:0;counter-reset:s}
-.lp-steps li{display:grid;grid-template-columns:62px 1fr;align-items:start;padding:16px 0;border-top:1px solid #d6e4ec}
+.lp-steps li{display:grid;grid-template-columns:62px 1fr;align-items:center;padding:16px 0;border-top:1px solid #d6e4ec}
 .lp-steps li:last-child{border-bottom:1px solid #d6e4ec}
 .lp-no{font-size:36px;font-weight:900;line-height:1;color:var(--b);letter-spacing:-.02em}
-.lp-steps h3{margin:2px 0 4px;font-size:20px;font-weight:900;color:var(--n)}
+.lp-steps h3{margin:0;font-size:22px;line-height:1.3;font-weight:900;color:var(--n)}
 .lp-steps p{margin:0;font-size:16px;line-height:1.7}
 /* 教材見本: 紺の面に実物を大きく */
 .lp-mats{background:var(--n);color:#fff}
@@ -158,7 +151,7 @@ const LP_CSS = `
 .lp-mat{margin:0}
 .lp-mat img{width:100%;height:auto;background:#fff;padding:4px;box-shadow:0 10px 24px rgba(0,0,0,.35)}
 .lp-mat figcaption{margin-top:8px;font-size:14px;font-weight:500;line-height:1.6;color:var(--pale)}
-.lp-note-on-dark{margin:16px 0 0;font-size:15px;line-height:1.7;color:var(--pale)}
+.lp-note-on-dark{margin:16px 0 0;font-size:16px;line-height:1.7;color:var(--pale)}
 /* 特典: 青の面 */
 .lp-gift{background:var(--b);color:#fff}
 .lp-gift-h{margin:0;font-size:28px;font-weight:900;line-height:1.35}
@@ -167,7 +160,7 @@ const LP_CSS = `
 .lp-bonus-list{list-style:none;margin:12px 0 0;padding:0;display:grid;gap:10px}
 .lp-bonus-list li{display:flex;align-items:center;gap:12px;font-size:18px;font-weight:900;color:var(--n);line-height:1.4}
 .lp-bn{flex:none;width:30px;height:30px;border-radius:50%;background:var(--b);color:#fff;font-size:16px;display:flex;align-items:center;justify-content:center}
-.lp-bonus-note{margin:12px 0 0;font-size:14px;color:#3d4a52}
+.lp-bonus-note{margin:12px 0 0;font-size:16px;color:#3d4a52}
 /* 講師 */
 .lp-prof{background:#fff}
 .lp-prof-in{display:grid;gap:18px;justify-items:start}
@@ -175,7 +168,7 @@ const LP_CSS = `
 .lp-prof-name{margin:0;font-size:30px;font-weight:900;color:var(--n);line-height:1.2}
 .lp-prof-name span{display:block;margin-top:4px;font-size:15px;font-weight:500;letter-spacing:.06em;color:#3d4a52}
 .lp-tags{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
-.lp-tags li{background:var(--pale);color:var(--n);font-size:14px;font-weight:700;padding:4px 10px;border-radius:4px}
+.lp-tags li{background:var(--pale);color:var(--n);font-size:16px;font-weight:700;padding:4px 10px;border-radius:4px}
 .lp-prof-text{margin:12px 0 0;font-size:16px;line-height:1.8}
 /* まとめと最終 CTA: FV と同じ暗い実教材の面 */
 .lp-final{background:#0d1a22;color:#fff;overflow:hidden;padding-bottom:40px}
@@ -183,7 +176,7 @@ const LP_CSS = `
 .lp-final-bg img{position:absolute;left:50%;top:-30px;width:560px;max-width:none;transform:translateX(-30%) rotate(-5deg);opacity:.35;filter:grayscale(.35) blur(1.5px)}
 .lp-final-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,26,34,.82),rgba(25,60,81,.88) 55%,#0d1a22)}
 .lp-final-free{margin:0}.lp-final-free span{display:inline-block;background:var(--b);color:#fff;font-size:22px;font-weight:900;padding:2px 12px;border-radius:6px}
-.lp-final-h{margin:8px 0 0;font-size:40px;font-weight:900;line-height:1.15;letter-spacing:-.02em;text-shadow:0 4px 0 rgba(0,0,0,.35)}
+.lp-final-h{margin:8px 0 0;font-size:36px;font-weight:900;line-height:1.15;letter-spacing:-.02em;text-shadow:0 4px 0 rgba(0,0,0,.35)}
 .lp-sum{list-style:none;margin:18px 0 22px;padding:0;display:grid;gap:8px}
 .lp-sum li{position:relative;padding-left:24px;font-size:16px;font-weight:500;line-height:1.6;color:var(--pale)}
 .lp-sum li::before{content:"";position:absolute;left:2px;top:.5em;width:10px;height:6px;border-left:3px solid #9fd3ea;border-bottom:3px solid #9fd3ea;transform:rotate(-45deg)}
@@ -191,11 +184,9 @@ const LP_CSS = `
 /* フッターと確認用の案内 */
 .lp-foot{background:#0d1a22;color:#c9d6dd;padding:24px 22px 40px;border-top:1px solid rgba(255,255,255,.08)}
 .lp-foot-brand{margin:0 auto;max-width:1000px;font-size:14px;font-weight:700;letter-spacing:.18em;color:#9fd3ea}
-.lp-review{max-width:1000px;margin:16px auto 0;padding:14px 16px;border:2px dashed #6f8794;border-radius:8px;background:#13242e}
-.lp-review-h{margin:0 0 6px;font-size:15px;font-weight:700;color:#fff}
-.lp-review ul{margin:0;padding-left:1.2em;font-size:14px;line-height:1.7}
-body[data-variant] .lp-foot .review{margin:14px auto 0;max-width:1000px;background:#13242e;color:#c9d6dd;border-color:#6f8794}
-@media (max-width:389px){.lp-h2{font-size:28px}.lp-final-h{font-size:36px}.lp-pains li{font-size:16px}}
+.lp-foot-links{list-style:none;max-width:1000px;margin:10px auto 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:#c9d6dd}
+.lp-review{max-width:1000px;margin:14px auto 0;padding:10px 14px;border:1px dashed #6f8794;border-radius:6px;font-size:14px;line-height:1.6;color:#e2ebf0}
+@media (max-width:389px){.lp-h2{font-size:28px}.lp-final-h{font-size:34px}.lp-pains li{font-size:16px}}
 @media (min-width:900px){
 .lp .sp{display:none}
 .lp-sec{padding:72px 40px}
@@ -203,14 +194,14 @@ body[data-variant] .lp-foot .review{margin:14px auto 0;max-width:1000px;backgrou
 .lp-h2{font-size:36px}
 .lp-pains{grid-template-columns:repeat(3,1fr);gap:14px}
 .lp-steps{grid-template-columns:repeat(3,1fr);gap:24px}
-.lp-steps li{grid-template-columns:1fr;border:0;border-top:3px solid var(--b);padding-top:18px}
+.lp-steps li{grid-template-columns:1fr;align-items:start;align-content:start;row-gap:8px;border:0;border-top:3px solid var(--b);padding-top:18px}
 .lp-steps li:last-child{border-bottom:0}
 .lp-mat-grid{grid-template-columns:1.07fr 1fr;gap:28px;align-items:start}
 .lp-gift .lp-in{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
 .lp-gift-h{font-size:36px}.lp-bonus{margin:0}
 .lp-prof-in{grid-template-columns:220px 1fr;gap:40px;align-items:center}
 .lp-prof-photo{width:220px;height:220px}
-.lp-final{text-align:center}.lp-final-h{font-size:60px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}
+.lp-final{text-align:center}.lp-final-h{font-size:48px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}
 .lp-final-bg img{width:900px}
 }
 `;
@@ -239,10 +230,9 @@ const strip = (h) => h.replace(/<style[\s\S]*?<\/style>/g, '').replace(/src="dat
 const fvText = strip(fvHtml.split('<body')[1]) + 'LINEで無料講義を受け取る×';
 const fonts = fontFaces(strip(BODY), fvText, [500, 700, 900]);
 
-// 組み立て: FV の確認用注記（aside）はフッターへ移し、その位置に本文を入れる。FV 本体は1バイトも変えない
+// 組み立て: FV の確認用注記（aside）の位置に本文を入れ、注記はフッターの短い確認表示（同じ id）にまとめる。FV 本体は1バイトも変えない
 const asideRe = /\n<aside class="review" id="cta-note" role="note">[\s\S]*?<\/aside>\n/;
-const aside = fvHtml.match(asideRe)[0].trim();
-let html = fvHtml.replace(asideRe, `\n${BODY}\n  ${aside}\n</footer>\n`);
+let html = fvHtml.replace(asideRe, `\n${BODY}</footer>\n`);
 html = html.replace(/<title>[^<]*<\/title>/, '<title>PASSLABO 共テ数学 特別講義（未公開の確認用 LP・仮置き数値あり）</title>');
 html = html.replace('</style></head>', `\n${fonts}\n${LP_CSS}</style></head>`);
 // 固定 FV の範囲（<body> から FV の </div> まで）が原本と同一であることを確かめる

@@ -1,6 +1,6 @@
 {
  "360": {
-  "height": 4747,
+  "height": 4200,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -15,7 +15,7 @@
   "externalRequests": []
  },
  "400": {
-  "height": 4695,
+  "height": 4187,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -30,7 +30,7 @@
   "externalRequests": []
  },
  "1280": {
-  "height": 3699,
+  "height": 3424,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
