@@ -1,0 +1,509 @@
+{
+ "schema": "marketing-lab/v1",
+ "business_id": "potex",
+ "business_name": "POTEX",
+ "demo": true,
+ "note": "すべて架空の値。実在の顧客・生徒・患者・担当者の情報は含まない",
+ "metric_definitions": [
+  {
+   "id": "MD-PX",
+   "version": "v0-demo",
+   "status": "デモ用（本番未確定）",
+   "stages": [
+    {
+     "key": "register",
+     "label": "登録",
+     "definition": "LINE登録またはフォーム登録（デモ定義）"
+    },
+    {
+     "key": "trial",
+     "label": "体験",
+     "definition": "体験会への参加（デモ定義）"
+    },
+    {
+     "key": "contract",
+     "label": "契約",
+     "definition": "申込み・契約の成立（デモ定義）"
+    },
+    {
+     "key": "paid",
+     "label": "着金",
+     "definition": "入金の確認（デモ定義）"
+    }
+   ],
+   "primary_cv_stage": "trial"
+  }
+ ],
+ "lps": [
+  {
+   "id": "LP-PX-01",
+   "current_version": "v3",
+   "url": "https://potex.example.invalid/lp"
+  }
+ ],
+ "flows": [
+  {
+   "id": "FL-PX-01",
+   "version": "v1",
+   "lp_id": "LP-PX-01",
+   "form_id": "FORM-PX-01",
+   "thanks_path": "/thanks",
+   "utm_rule": "utm_campaign=campaign_id / utm_content=CR ID",
+   "id_carry": "LP → フォームの hidden 項目で campaign_id と CR ID を渡す（デモ設計）",
+   "events": [
+    {
+     "name": "px_register",
+     "stage": "register",
+     "rule": "1行動につき1回"
+    }
+   ]
+  }
+ ],
+ "checklist": [
+  {
+   "item": "広告アカウント・広告APIとの接続",
+   "state": "意図的に未接続",
+   "note": "試作品では接続しない。配信・停止・増額はこの画面の対象外"
+  },
+  {
+   "item": "本番の指標定義（各段階の数え方）",
+   "state": "未確定",
+   "note": "fixture の定義はデモ用。本番定義は事業側と合意が必要"
+  },
+  {
+   "item": "フォーム / Thanks / CVイベントの実装確認",
+   "state": "未検証",
+   "note": "実フォーム送信・タグ確認はしていない"
+  },
+  {
+   "item": "実績データの取得元と更新時刻",
+   "state": "未接続",
+   "note": "集計値はすべて架空。取得元・取得頻度・締め日が未確定"
+  },
+  {
+   "item": "代理店・クライアントの承認者と承認手順",
+   "state": "未確定",
+   "note": "役割だけ置いている。誰が・何の版を・どこで承認するかの合意が必要"
+  },
+  {
+   "item": "素材の権利・使用期限の確認手順",
+   "state": "未確定",
+   "note": "デモでは文字のみ。実素材を使う前に出典と期限の台帳が必要"
+  }
+ ],
+ "campaigns": [
+  {
+   "campaign_id": "PX-C01",
+   "title": "【架空】体験会の申込み導線テスト",
+   "request": {
+    "product": "オンライン講座の体験会（デモ）",
+    "persona": "副業を始めたい会社員（架空の像）",
+    "objective": "登録から体験会参加までの率を上げる",
+    "primary_cv": {
+     "stage": "trial",
+     "label": "体験",
+     "definition": "体験会に参加した件数（デモ定義）"
+    },
+    "period": {
+     "start": "2026-09-01",
+     "end": "2026-09-28"
+    },
+    "hypothesis": "体験会の中身を具体的に見せると、登録→体験の離脱が減る",
+    "budget_cap": {
+     "media_yen": null,
+     "production_yen": 80000
+    }
+   },
+   "creatives": {
+    "appeal_axes": [
+     {
+      "key": "content",
+      "label": "体験の中身"
+     },
+     {
+      "key": "voice",
+      "label": "受講者の声（架空）"
+     },
+     {
+      "key": "time",
+      "label": "短時間"
+     }
+    ],
+    "tone_axes": [
+     {
+      "key": "calm",
+      "label": "落ち着いた"
+     },
+     {
+      "key": "friendly",
+      "label": "親しみ"
+     },
+     {
+      "key": "urgent",
+      "label": "期限訴求"
+     }
+    ],
+    "items": [
+     {
+      "id": "PX-CR-11",
+      "version": "v1",
+      "appeal": "content",
+      "tone": "calm",
+      "hypothesis": "中身が分かると参加率が上がる",
+      "copy": "【デモ仮コピー】60分の体験会で、最初の一歩を一緒にやります（落ち着いた）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-12",
+      "version": "v2",
+      "appeal": "content",
+      "tone": "friendly",
+      "hypothesis": "中身が分かると参加率が上がる",
+      "copy": "【デモ仮コピー】60分の体験会で、最初の一歩を一緒にやります（親しみ）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-13",
+      "version": "v1",
+      "appeal": "content",
+      "tone": "urgent",
+      "hypothesis": "中身が分かると参加率が上がる",
+      "copy": "【デモ仮コピー】60分の体験会で、最初の一歩を一緒にやります（期限訴求）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-21",
+      "version": "v1",
+      "appeal": "voice",
+      "tone": "calm",
+      "hypothesis": "第三者の声で不安が減る",
+      "copy": "【デモ仮コピー】「始め方が分かった」という声（デモ）（落ち着いた）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-22",
+      "version": "v1",
+      "appeal": "voice",
+      "tone": "friendly",
+      "hypothesis": "第三者の声で不安が減る",
+      "copy": "【デモ仮コピー】「始め方が分かった」という声（デモ）（親しみ）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-23",
+      "version": "v1",
+      "appeal": "voice",
+      "tone": "urgent",
+      "hypothesis": "第三者の声で不安が減る",
+      "copy": "【デモ仮コピー】「始め方が分かった」という声（デモ）（期限訴求）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-31",
+      "version": "v1",
+      "appeal": "time",
+      "tone": "calm",
+      "hypothesis": "時間の不安を消すと申込みが増える",
+      "copy": "【デモ仮コピー】夜30分から参加できます（落ち着いた）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-32",
+      "version": "v1",
+      "appeal": "time",
+      "tone": "friendly",
+      "hypothesis": "時間の不安を消すと申込みが増える",
+      "copy": "【デモ仮コピー】夜30分から参加できます（親しみ）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "PX-CR-33",
+      "version": "v1",
+      "appeal": "time",
+      "tone": "urgent",
+      "hypothesis": "時間の不安を消すと申込みが増える",
+      "copy": "【デモ仮コピー】夜30分から参加できます（期限訴求）",
+      "cta": "体験会の日程を見る",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2026-09-15"
+      }
+     }
+    ]
+   },
+   "selected_creative": {
+    "id": "PX-CR-12",
+    "version": "v2"
+   },
+   "metric_def_ref": {
+    "id": "MD-PX",
+    "version": "v0-demo"
+   },
+   "flow_ref": {
+    "id": "FL-PX-01",
+    "version": "v1"
+   },
+   "lp_change": {
+    "id": "LPC-PX-01",
+    "lp_id": "LP-PX-01",
+    "url": "https://potex.example.invalid/lp?v=4",
+    "current_version": "v3",
+    "proposed_version": "v4",
+    "creative_ref": {
+     "id": "PX-CR-12",
+     "version": "v2"
+    },
+    "changes": [
+     {
+      "where": "体験会の説明",
+      "before": "概要のみ",
+      "after": "60分の流れを3段階で表示"
+     },
+     {
+      "where": "申込みボタン位置",
+      "before": "ページ下部のみ",
+      "after": "説明の直後にも追加"
+     }
+    ],
+    "expected_action": "体験会の日程ページを開き、申込みを完了する",
+    "alignment": {
+     "appeal": "CRの「体験の中身」とLPの流れ表示を一致",
+     "price": null,
+     "cta": "CR・LPとも「体験会の日程を見る」"
+    },
+    "measurement_impact": "ボタンが2か所になるため、クリックイベントの重複計上に注意",
+    "reviewer": "クライアントのマーケ担当（役割）",
+    "rollback_version": "v3"
+   },
+   "qa": {
+    "target": {
+     "creative": {
+      "id": "PX-CR-12",
+      "version": "v2"
+     },
+     "lp": {
+      "id": "LP-PX-01",
+      "version": "v4"
+     },
+     "flow": {
+      "id": "FL-PX-01",
+      "version": "v1"
+     },
+     "form_id": "FORM-PX-01"
+    },
+    "items": [
+     {
+      "key": "mobile",
+      "plan": "iPhone/Android の縦画面で、ファーストビューとCTAが切れずに見えるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "links",
+      "plan": "広告→LP→フォームの全リンクを踏み、404・別ページ遷移がないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "form_thanks",
+      "plan": "テスト用フォームで送信し、Thanks ページに着くかを見る（本番フォームには送らない）",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "utm_id",
+      "plan": "UTM と campaign_id / CR ID がフォーム送信まで落ちずに引き継がれるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "duplicate",
+      "plan": "同じ人の再送信・ブラウザ戻るで二重登録・二重計上にならないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "event_once",
+      "plan": "CVイベントが1回の行動で1回だけ発火するかをタグ確認ツールで見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     }
+    ]
+   },
+   "approvals": {
+    "required": [
+     {
+      "role": "agency",
+      "label": "代理店"
+     },
+     {
+      "role": "client",
+      "label": "クライアント"
+     }
+    ],
+    "records": [
+     {
+      "id": "AP-PX-01",
+      "role": "agency",
+      "status": "OK",
+      "target": {
+       "business_id": "potex",
+       "campaign_id": "PX-C01",
+       "creative": {
+        "id": "PX-CR-12",
+        "version": "v1"
+       },
+       "lp": {
+        "id": "LP-PX-01",
+        "version": "v4"
+       }
+      },
+      "at": "2026-09-20T10:00:00+09:00",
+      "scope": "CR文言",
+      "evidence": "デモ記録：レビュー票 #demo-2（CR改版前）"
+     }
+    ]
+   },
+   "results": {
+    "periods": [
+     {
+      "id": "PX-P1",
+      "label": "9月前半（架空）",
+      "start": "2026-09-01",
+      "end": "2026-09-14",
+      "population": "Meta配信（架空）",
+      "metric_def": {
+       "id": "MD-PX",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-01",
+       "to": "2026-09-14"
+      },
+      "source_updated_at": "2026-09-28T07:00:00+09:00",
+      "fetched_at": "2026-09-29T09:00:00+09:00",
+      "counts": {
+       "impressions": 52000,
+       "clicks": 780,
+       "register": 95,
+       "trial": 21,
+       "contract": 3,
+       "paid": null
+      },
+      "spend_yen": 240000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
+     },
+     {
+      "id": "PX-P2",
+      "label": "9月後半（架空）",
+      "start": "2026-09-15",
+      "end": "2026-09-28",
+      "population": "Meta＋検索広告（架空）",
+      "metric_def": {
+       "id": "MD-PX",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-15",
+       "to": "2026-09-28"
+      },
+      "source_updated_at": "2026-09-29T07:00:00+09:00",
+      "fetched_at": "2026-09-30T09:00:00+09:00",
+      "counts": {
+       "impressions": 61000,
+       "clicks": 1020,
+       "register": 120,
+       "trial": 30,
+       "contract": 2,
+       "paid": null
+      },
+      "spend_yen": 310000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
+     }
+    ],
+    "comparisons": [
+     {
+      "a": "PX-P1",
+      "b": "PX-P2"
+     }
+    ],
+    "data_quality": [
+     "前半と後半で配信面（母集団）が違うため、比較を止めている",
+     "着金は未取得（ゼロではない）。着金の元データの場所が未確定"
+    ],
+    "next_hypotheses": [
+     "同じ配信面に揃えた期間で、体験会の中身を見せる版と現行を比べる",
+     "CRを v2 に改版したため、代理店承認を v2 で取り直す"
+    ]
+   }
+  }
+ ]
+}

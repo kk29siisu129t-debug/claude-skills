@@ -1,0 +1,506 @@
+{
+ "schema": "marketing-lab/v1",
+ "business_id": "t-clinic",
+ "business_name": "Tクリニック",
+ "demo": true,
+ "note": "すべて架空の値。実在の顧客・生徒・患者・担当者の情報は含まない",
+ "metric_definitions": [
+  {
+   "id": "MD-TC",
+   "version": "v0-demo",
+   "status": "デモ用（本番未確定）",
+   "stages": [
+    {
+     "key": "reserve",
+     "label": "予約",
+     "definition": "カウンセリング予約の確定（デモ定義）"
+    },
+    {
+     "key": "visit",
+     "label": "来院",
+     "definition": "予約日に来院した件数（デモ定義）"
+    },
+    {
+     "key": "contract",
+     "label": "契約",
+     "definition": "施術の契約（デモ定義）"
+    }
+   ],
+   "primary_cv_stage": "reserve"
+  }
+ ],
+ "lps": [
+  {
+   "id": "LP-TC-01",
+   "current_version": "v3",
+   "url": "https://t-clinic.example.invalid/lp"
+  }
+ ],
+ "flows": [
+  {
+   "id": "FL-TC-01",
+   "version": "v1",
+   "lp_id": "LP-TC-01",
+   "form_id": "FORM-TC-01",
+   "thanks_path": "/thanks",
+   "utm_rule": "utm_campaign=campaign_id / utm_content=CR ID",
+   "id_carry": "LP → フォームの hidden 項目で campaign_id と CR ID を渡す（デモ設計）",
+   "events": [
+    {
+     "name": "tc_reserve",
+     "stage": "reserve",
+     "rule": "1行動につき1回"
+    }
+   ]
+  }
+ ],
+ "checklist": [
+  {
+   "item": "広告アカウント・広告APIとの接続",
+   "state": "意図的に未接続",
+   "note": "試作品では接続しない。配信・停止・増額はこの画面の対象外"
+  },
+  {
+   "item": "本番の指標定義（各段階の数え方）",
+   "state": "未確定",
+   "note": "fixture の定義はデモ用。本番定義は事業側と合意が必要"
+  },
+  {
+   "item": "フォーム / Thanks / CVイベントの実装確認",
+   "state": "未検証",
+   "note": "実フォーム送信・タグ確認はしていない"
+  },
+  {
+   "item": "実績データの取得元と更新時刻",
+   "state": "未接続",
+   "note": "集計値はすべて架空。取得元・取得頻度・締め日が未確定"
+  },
+  {
+   "item": "代理店・クライアントの承認者と承認手順",
+   "state": "未確定",
+   "note": "役割だけ置いている。誰が・何の版を・どこで承認するかの合意が必要"
+  },
+  {
+   "item": "素材の権利・使用期限の確認手順",
+   "state": "未確定",
+   "note": "デモでは文字のみ。実素材を使う前に出典と期限の台帳が必要"
+  }
+ ],
+ "campaigns": [
+  {
+   "campaign_id": "TC-C01",
+   "title": "【架空】カウンセリング予約の導線改善",
+   "request": {
+    "product": "初回カウンセリング（デモ）",
+    "persona": "施術を検討中で、まず話を聞きたい成人（架空の像）",
+    "objective": "予約から来院までの率を上げる",
+    "primary_cv": {
+     "stage": "reserve",
+     "label": "予約",
+     "definition": "カウンセリング予約の確定件数（デモ定義）"
+    },
+    "period": {
+     "start": "2026-09-01",
+     "end": null
+    },
+    "hypothesis": null,
+    "budget_cap": {
+     "media_yen": null,
+     "production_yen": null
+    }
+   },
+   "creatives": {
+    "appeal_axes": [
+     {
+      "key": "safety",
+      "label": "安心感"
+     },
+     {
+      "key": "process",
+      "label": "流れの説明"
+     },
+     {
+      "key": "access",
+      "label": "通いやすさ"
+     }
+    ],
+    "tone_axes": [
+     {
+      "key": "calm",
+      "label": "落ち着いた"
+     },
+     {
+      "key": "friendly",
+      "label": "親しみ"
+     },
+     {
+      "key": "urgent",
+      "label": "期限訴求"
+     }
+    ],
+    "items": [
+     {
+      "id": "TC-CR-11",
+      "version": "v1",
+      "appeal": "safety",
+      "tone": "calm",
+      "hypothesis": "不安を減らすと予約が増える",
+      "copy": "【デモ仮コピー】初回は相談だけでも大丈夫です（落ち着いた）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-12",
+      "version": "v1",
+      "appeal": "safety",
+      "tone": "friendly",
+      "hypothesis": "不安を減らすと予約が増える",
+      "copy": "【デモ仮コピー】初回は相談だけでも大丈夫です（親しみ）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-13",
+      "version": "v1",
+      "appeal": "safety",
+      "tone": "urgent",
+      "hypothesis": "不安を減らすと予約が増える",
+      "copy": "【デモ仮コピー】初回は相談だけでも大丈夫です（期限訴求）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-21",
+      "version": "v1",
+      "appeal": "process",
+      "tone": "calm",
+      "hypothesis": "当日の流れが分かると来院率が上がる",
+      "copy": "【デモ仮コピー】当日の流れを3ステップで説明します（落ち着いた）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-22",
+      "version": "v1",
+      "appeal": "process",
+      "tone": "friendly",
+      "hypothesis": "当日の流れが分かると来院率が上がる",
+      "copy": "【デモ仮コピー】当日の流れを3ステップで説明します（親しみ）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-23",
+      "version": "v1",
+      "appeal": "process",
+      "tone": "urgent",
+      "hypothesis": "当日の流れが分かると来院率が上がる",
+      "copy": "【デモ仮コピー】当日の流れを3ステップで説明します（期限訴求）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-31",
+      "version": "v1",
+      "appeal": "access",
+      "tone": "calm",
+      "hypothesis": "立地と時間の情報で来院率が上がる",
+      "copy": "【デモ仮コピー】駅から近く、夜も相談できます（デモ）（落ち着いた）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2026-09-30"
+      }
+     },
+     {
+      "id": "TC-CR-32",
+      "version": "v1",
+      "appeal": "access",
+      "tone": "friendly",
+      "hypothesis": "立地と時間の情報で来院率が上がる",
+      "copy": "【デモ仮コピー】駅から近く、夜も相談できます（デモ）（親しみ）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     },
+     {
+      "id": "TC-CR-33",
+      "version": "v1",
+      "appeal": "access",
+      "tone": "urgent",
+      "hypothesis": "立地と時間の情報で来院率が上がる",
+      "copy": "【デモ仮コピー】駅から近く、夜も相談できます（デモ）（期限訴求）",
+      "cta": "カウンセリングを予約する",
+      "asset": {
+       "source": "デモ用の文字のみ仮案（画像なし）",
+       "rights": "自作テキスト（デモ）",
+       "rights_checked": true,
+       "expires": "2027-03-31"
+      }
+     }
+    ]
+   },
+   "selected_creative": {
+    "id": "TC-CR-31",
+    "version": "v1"
+   },
+   "metric_def_ref": {
+    "id": "MD-TC",
+    "version": "v0-demo"
+   },
+   "flow_ref": {
+    "id": "FL-TC-01",
+    "version": "v1"
+   },
+   "lp_change": {
+    "id": "LPC-TC-01",
+    "lp_id": "LP-TC-01",
+    "url": "https://t-clinic.example.invalid/lp?v=4",
+    "current_version": "v3",
+    "proposed_version": "v4",
+    "creative_ref": {
+     "id": "TC-CR-31",
+     "version": "v1"
+    },
+    "changes": [
+     {
+      "where": "アクセス欄",
+      "before": "地図のみ",
+      "after": "最寄り駅からの道順を追加"
+     },
+     {
+      "where": "予約完了ページ",
+      "before": "完了の文言のみ",
+      "after": "来院前の持ち物と当日の流れを追加"
+     }
+    ],
+    "expected_action": "予約後、予約日に来院する",
+    "alignment": {
+     "appeal": "CRの「通いやすさ」とアクセス欄を一致",
+     "price": null,
+     "cta": "CR・LPとも「カウンセリングを予約する」"
+    },
+    "measurement_impact": "完了ページの改修で予約イベントの発火位置が変わる可能性",
+    "reviewer": null,
+    "rollback_version": "v3"
+   },
+   "qa": {
+    "target": {
+     "creative": {
+      "id": "TC-CR-31",
+      "version": "v1"
+     },
+     "lp": {
+      "id": "LP-TC-01",
+      "version": "v4"
+     },
+     "flow": {
+      "id": "FL-TC-01",
+      "version": "v1"
+     },
+     "form_id": "FORM-TC-01"
+    },
+    "items": [
+     {
+      "key": "mobile",
+      "plan": "iPhone/Android の縦画面で、ファーストビューとCTAが切れずに見えるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "links",
+      "plan": "広告→LP→フォームの全リンクを踏み、404・別ページ遷移がないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "form_thanks",
+      "plan": "テスト用フォームで送信し、Thanks ページに着くかを見る（本番フォームには送らない）",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "utm_id",
+      "plan": "UTM と campaign_id / CR ID がフォーム送信まで落ちずに引き継がれるかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "duplicate",
+      "plan": "同じ人の再送信・ブラウザ戻るで二重登録・二重計上にならないかを見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     },
+     {
+      "key": "event_once",
+      "plan": "CVイベントが1回の行動で1回だけ発火するかをタグ確認ツールで見る",
+      "status": "未検証",
+      "evidence": null,
+      "checked_at": null,
+      "checker": null
+     }
+    ]
+   },
+   "approvals": {
+    "required": [
+     {
+      "role": "agency",
+      "label": "代理店"
+     },
+     {
+      "role": "client",
+      "label": "クライアント"
+     }
+    ],
+    "records": [
+     {
+      "id": "AP-TC-01",
+      "role": "agency",
+      "status": "未了",
+      "target": {
+       "business_id": "t-clinic",
+       "campaign_id": "TC-C01",
+       "creative": {
+        "id": "TC-CR-31",
+        "version": "v1"
+       },
+       "lp": {
+        "id": "LP-TC-01",
+        "version": "v4"
+       }
+      },
+      "at": null,
+      "scope": null,
+      "evidence": null
+     }
+    ]
+   },
+   "results": {
+    "periods": [
+     {
+      "id": "TC-P1",
+      "label": "9月第1〜2週（架空）",
+      "start": "2026-09-01",
+      "end": "2026-09-14",
+      "population": "検索広告経由（架空）",
+      "metric_def": {
+       "id": "MD-TC",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-01",
+       "to": "2026-09-14"
+      },
+      "source_updated_at": "2026-09-28T07:00:00+09:00",
+      "fetched_at": "2026-09-29T09:00:00+09:00",
+      "counts": {
+       "impressions": 18000,
+       "clicks": 640,
+       "reserve": 12,
+       "visit": 7,
+       "contract": 0
+      },
+      "spend_yen": 150000,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
+     },
+     {
+      "id": "TC-P2",
+      "label": "9月第3週（架空）",
+      "start": "2026-09-15",
+      "end": "2026-09-21",
+      "population": "検索広告経由（架空）",
+      "metric_def": {
+       "id": "MD-TC",
+       "version": "v0-demo"
+      },
+      "occurred": {
+       "from": "2026-09-15",
+       "to": "2026-09-21"
+      },
+      "source_updated_at": "2026-09-28T07:00:00+09:00",
+      "fetched_at": "2026-09-29T09:00:00+09:00",
+      "counts": {
+       "impressions": null,
+       "clicks": 300,
+       "reserve": 9,
+       "visit": {
+        "raw": ""
+       },
+       "contract": {
+        "raw": "#REF!"
+       }
+      },
+      "spend_yen": null,
+      "basis": "occurrence",
+      "timezone": "Asia/Tokyo",
+      "currency": "JPY",
+      "cost_basis": "媒体費・税抜（デモ定義）"
+     }
+    ],
+    "comparisons": [
+     {
+      "a": "TC-P1",
+      "b": "TC-P2"
+     }
+    ],
+    "data_quality": [
+     "第3週は表示・費用が未取得、来院が空欄、契約が数式エラー（いずれも0ではない）。CTR・CPAは判定不可",
+     "2期間の長さが違う（14日／7日）ため、件数は比べない"
+    ],
+    "next_hypotheses": [
+     "予約完了ページに当日の流れを載せると、予約→来院の率が上がるかを見る（因果は未検証）",
+     "素材の使用期限が切れているため、期限の新しい素材に差し替えてから再レビューする"
+    ]
+   }
+  }
+ ]
+}

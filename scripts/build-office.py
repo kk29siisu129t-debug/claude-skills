@@ -1019,6 +1019,8 @@ body{margin:0;color:var(--ink);overflow-x:hidden;font-size:15px;
     <div class="pipe"><div><b>1</b>指示</div><div><b>2</b>着手</div><div><b>3</b>制作</div>
       <div><b>4</b>審査</div><div><b>5</b>納品</div></div>
     <button class="mo" id="mo" title="動きを止めると軽くなります">動き ON</button>
+    <a class="mo" href="marketing-lab.html" style="text-decoration:none"
+       title="3事業マーケ施策レビューの試作品。架空データで、実接続はありません（scripts/build-marketing-lab.py で生成）">マーケ試作（架空）</a>
     <span class="live"><i></i>LIVE</span>
   </div>
   <div class="tabrow">
