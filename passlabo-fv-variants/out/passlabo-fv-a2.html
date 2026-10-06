@@ -116,6 +116,11 @@ body[data-variant="a2"] .cta{background:var(--line);box-shadow:none;border-radiu
 body[data-variant="a2"] .cta:hover{background:#05b84e}
 body[data-variant="a2"] .cta:active{background:var(--line-d)}
 body[data-variant="a2"] .cta:focus-visible{outline:3px solid var(--x-navy);outline-offset:3px;box-shadow:none}
+@media (max-width:389px){
+.x-sign{right:12px;display:flex;flex-direction:column;align-items:flex-end;line-height:1.3}
+.x-sign span{margin:0}
+body[data-variant="a2"] .cta{font-size:17px}
+}
 @media (min-width:900px){
 .x-top{display:flex;align-items:baseline;gap:20px;padding:14px max(24px,calc((100% - 1160px)/2))}
 .x-target{margin:0;font-size:22px}
