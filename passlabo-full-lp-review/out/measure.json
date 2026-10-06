@@ -1,0 +1,47 @@
+{
+ "360": {
+  "height": 4747,
+  "hscroll": false,
+  "clippedText": [],
+  "minFont": 12,
+  "ctas": [
+   "button",
+   "button"
+  ],
+  "forms": 0,
+  "links": 0,
+  "imgsWithoutAlt": 0,
+  "ctaNoNav": true,
+  "externalRequests": []
+ },
+ "400": {
+  "height": 4695,
+  "hscroll": false,
+  "clippedText": [],
+  "minFont": 12,
+  "ctas": [
+   "button",
+   "button"
+  ],
+  "forms": 0,
+  "links": 0,
+  "imgsWithoutAlt": 0,
+  "ctaNoNav": true,
+  "externalRequests": []
+ },
+ "1280": {
+  "height": 3699,
+  "hscroll": false,
+  "clippedText": [],
+  "minFont": 12,
+  "ctas": [
+   "button",
+   "button"
+  ],
+  "forms": 0,
+  "links": 0,
+  "imgsWithoutAlt": 0,
+  "ctaNoNav": true,
+  "externalRequests": []
+ }
+}
