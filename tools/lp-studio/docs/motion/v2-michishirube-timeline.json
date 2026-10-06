@@ -1,8 +1,8 @@
 {
   "input": "examples/v2/michishirube/review.html",
-  "htmlSha256": "844fdce77024",
+  "htmlSha256": "10fe2a18078b",
   "reduced": false,
-  "recordedAt": "2026-10-05T23:44:24.012Z",
+  "recordedAt": "2026-10-06T00:17:45.095Z",
   "runs": [
     {
       "tag": "pc",
@@ -12,52 +12,52 @@
       },
       "visible": {
         "h1": {
-          "first": 96,
-          "full": 96
+          "first": 41,
+          "full": 41
         },
         "lead": {
-          "first": 96,
-          "full": 96
+          "first": 41,
+          "full": 41
         },
         "cta": {
-          "first": 96,
-          "full": 96
+          "first": 41,
+          "full": 41
         },
         "visual": {
-          "first": 421,
-          "full": 877
+          "first": 354,
+          "full": 803
         },
         "highlight": {
-          "first": 421,
-          "full": 877
+          "first": 354,
+          "full": 803
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 96,
+          "t": 41,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3205,
+          "t": 3470,
           "shown": true,
-          "scrollY": 479
+          "scrollY": 581
         },
         {
-          "t": 6421,
+          "t": 6253,
           "shown": false,
-          "scrollY": 2557
+          "scrollY": 1959
         },
         {
-          "t": 7771,
+          "t": 7819,
           "shown": true,
-          "scrollY": 2466
+          "scrollY": 1886
         },
         {
-          "t": 8805,
+          "t": 8703,
           "shown": false,
-          "scrollY": 382
+          "scrollY": 486
         }
       ],
       "ctaGapMs": []
@@ -70,52 +70,52 @@
       },
       "visible": {
         "h1": {
-          "first": 79,
-          "full": 79
+          "first": 41,
+          "full": 41
         },
         "lead": {
-          "first": 79,
-          "full": 79
+          "first": 41,
+          "full": 41
         },
         "cta": {
-          "first": 79,
-          "full": 79
+          "first": 41,
+          "full": 41
         },
         "visual": {
-          "first": 382,
-          "full": 832
+          "first": 341,
+          "full": 791
         },
         "highlight": {
-          "first": 382,
-          "full": 832
+          "first": 341,
+          "full": 791
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 79,
+          "t": 41,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3582,
+          "t": 3641,
           "shown": true,
-          "scrollY": 617
+          "scrollY": 667
         },
         {
-          "t": 6449,
+          "t": 6291,
           "shown": false,
-          "scrollY": 2918
+          "scrollY": 2330
         },
         {
-          "t": 7632,
+          "t": 7658,
           "shown": true,
-          "scrollY": 2833
+          "scrollY": 2244
         },
         {
-          "t": 8715,
+          "t": 8674,
           "shown": false,
-          "scrollY": 512
+          "scrollY": 540
         }
       ],
       "ctaGapMs": []
@@ -128,52 +128,52 @@
       },
       "visible": {
         "h1": {
-          "first": 105,
-          "full": 105
+          "first": 43,
+          "full": 43
         },
         "lead": {
-          "first": 105,
-          "full": 105
+          "first": 43,
+          "full": 43
         },
         "cta": {
-          "first": 105,
-          "full": 105
+          "first": 43,
+          "full": 43
         },
         "visual": {
-          "first": 427,
-          "full": 877
+          "first": 348,
+          "full": 799
         },
         "highlight": {
-          "first": 427,
-          "full": 877
+          "first": 348,
+          "full": 799
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 105,
+          "t": 43,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3627,
+          "t": 3665,
           "shown": true,
-          "scrollY": 643
+          "scrollY": 694
         },
         {
-          "t": 6460,
+          "t": 6298,
           "shown": false,
-          "scrollY": 3131
+          "scrollY": 2352
         },
         {
-          "t": 7660,
+          "t": 7681,
           "shown": true,
-          "scrollY": 3033
+          "scrollY": 2281
         },
         {
-          "t": 8710,
+          "t": 8681,
           "shown": false,
-          "scrollY": 471
+          "scrollY": 547
         }
       ],
       "ctaGapMs": []

@@ -1,20 +1,21 @@
-LP Studio クイックスタート（架空データのみ・外部通信なし・APIキー不要）
+LP Studio v2 クイックスタート（架空データのみ・外部通信なし・APIキー不要）
 
 【1. 一番簡単】インストール不要
   dist/lp-studio-standalone.html をダブルクリックしてブラウザで開く。
-  （Chrome / Edge / Safari / Firefox。架空seedが入った状態で起動。編集はブラウザに自動保存）
+  上部「架空seed…」で 簿記の学習計画（架空）/ 見積もり共有ツール（架空）を切り替え。
+  「4 プレビュー」で PC/SP、「5 検証・公開判定」でレビュー用と実販売の判定を確認。
 
 【2. ローカルサーバー版（Node 22 以上）】
   cd lp-studio
-  node serve.mjs            → ブラウザで http://127.0.0.1:4173/
-  node --test tests/unit/*.test.mjs        （unit テスト）
+  node serve.mjs                         → http://127.0.0.1:4173/
+  node --test tests/unit/*.test.mjs      （unit テスト）
 
-【3. Claude Code で本物の生成（文章・構成）を回す】
-  node cli.mjs seed --out p.json
+【3. Claude Code で本物の生成を回す（新しい secret 不要）】
+  node cli.mjs case michishirube --out p.json
   node cli.mjs prompt --project p.json --mode full > prompt.md
   → Claude Code に「prompt.md の JSON 契約どおりに r.json を書いて」と頼む
   node cli.mjs ingest --project p.json --response r.json --mode full --out p2.json
-  → 2 のアプリで p2.json を「JSON読込」し、内容を確認して承認 → 5 のタブで safe export
-  実例: examples/claude-code-run/
+  node cli.mjs check --project p2.json
+  実例: examples/v2/michishirube, examples/v2/mitsumoriban（prompt.md / response.json / project.json / review.html）
 
-詳しくは README.md。設計と監査の記録は docs/DESIGN.md / docs/AUDIT.md。
+詳しくは README.md。設計と監査の記録は docs/REDESIGN.md / docs/AUDIT.md。

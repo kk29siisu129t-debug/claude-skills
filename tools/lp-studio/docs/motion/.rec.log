@@ -1,0 +1,104 @@
+[
+ {
+  "tag": "pc",
+  "visible": {
+   "h1": {
+    "first": 41,
+    "full": 41
+   },
+   "lead": {
+    "first": 41,
+    "full": 41
+   },
+   "cta": {
+    "first": 41,
+    "full": 41
+   },
+   "visual": {
+    "first": 354,
+    "full": 803
+   },
+   "highlight": {
+    "first": 354,
+    "full": 803
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "41ms:hide@0",
+   "3470ms:show@581",
+   "6253ms:hide@1959",
+   "7819ms:show@1886",
+   "8703ms:hide@486"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp400",
+  "visible": {
+   "h1": {
+    "first": 41,
+    "full": 41
+   },
+   "lead": {
+    "first": 41,
+    "full": 41
+   },
+   "cta": {
+    "first": 41,
+    "full": 41
+   },
+   "visual": {
+    "first": 341,
+    "full": 791
+   },
+   "highlight": {
+    "first": 341,
+    "full": 791
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "41ms:hide@0",
+   "3641ms:show@667",
+   "6291ms:hide@2330",
+   "7658ms:show@2244",
+   "8674ms:hide@540"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp360",
+  "visible": {
+   "h1": {
+    "first": 43,
+    "full": 43
+   },
+   "lead": {
+    "first": 43,
+    "full": 43
+   },
+   "cta": {
+    "first": 43,
+    "full": 43
+   },
+   "visual": {
+    "first": 348,
+    "full": 799
+   },
+   "highlight": {
+    "first": 348,
+    "full": 799
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "43ms:hide@0",
+   "3665ms:show@694",
+   "6298ms:hide@2352",
+   "7681ms:show@2281",
+   "8681ms:hide@547"
+  ],
+  "ctaGapMs": []
+ }
+]
