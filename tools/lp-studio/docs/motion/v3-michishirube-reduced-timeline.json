@@ -2,7 +2,7 @@
   "input": "examples/v2/michishirube/review.html",
   "htmlSha256": "195e027c65e6",
   "reduced": true,
-  "recordedAt": "2026-10-06T02:02:39.152Z",
+  "recordedAt": "2026-10-06T02:11:30.381Z",
   "runs": [
     {
       "tag": "pc",
@@ -12,46 +12,46 @@
       },
       "visible": {
         "h1": {
-          "first": 9,
-          "full": 9
+          "first": 12,
+          "full": 12
         },
         "lead": {
-          "first": 9,
-          "full": 9
+          "first": 12,
+          "full": 12
         },
         "photo": {
-          "first": 9,
-          "full": 9
+          "first": 12,
+          "full": 12
         },
         "cta": {
-          "first": 9,
-          "full": 9
+          "first": 12,
+          "full": 12
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 9,
+          "t": 12,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3437,
+          "t": 3416,
           "shown": true,
           "scrollY": 1453
         },
         {
-          "t": 5136,
+          "t": 5116,
           "shown": false,
           "scrollY": 2001
         },
         {
-          "t": 7103,
+          "t": 7088,
           "shown": true,
           "scrollY": 1944
         },
         {
-          "t": 7470,
+          "t": 7449,
           "shown": false,
           "scrollY": 1353
         }
@@ -63,6 +63,60 @@
       "viewport": {
         "width": 400,
         "height": 760
+      },
+      "visible": {
+        "h1": {
+          "first": 47,
+          "full": 47
+        },
+        "lead": {
+          "first": 47,
+          "full": 47
+        },
+        "photo": {
+          "first": 47,
+          "full": 47
+        },
+        "cta": {
+          "first": 47,
+          "full": 47
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 47,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3308,
+          "shown": true,
+          "scrollY": 1401
+        },
+        {
+          "t": 5325,
+          "shown": false,
+          "scrollY": 2267
+        },
+        {
+          "t": 6975,
+          "shown": true,
+          "scrollY": 2245
+        },
+        {
+          "t": 7491,
+          "shown": false,
+          "scrollY": 1310
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp360",
+      "viewport": {
+        "width": 360,
+        "height": 800
       },
       "visible": {
         "h1": {
@@ -90,61 +144,7 @@
           "scrollY": 0
         },
         {
-          "t": 3350,
-          "shown": true,
-          "scrollY": 1401
-        },
-        {
-          "t": 5367,
-          "shown": false,
-          "scrollY": 2267
-        },
-        {
-          "t": 7017,
-          "shown": true,
-          "scrollY": 2245
-        },
-        {
-          "t": 7550,
-          "shown": false,
-          "scrollY": 1310
-        }
-      ],
-      "ctaGapMs": []
-    },
-    {
-      "tag": "sp360",
-      "viewport": {
-        "width": 360,
-        "height": 800
-      },
-      "visible": {
-        "h1": {
-          "first": 9,
-          "full": 9
-        },
-        "lead": {
-          "first": 9,
-          "full": 9
-        },
-        "photo": {
-          "first": 9,
-          "full": 9
-        },
-        "cta": {
-          "first": 9,
-          "full": 9
-        }
-      },
-      "cls": 0,
-      "sticky": [
-        {
-          "t": 9,
-          "shown": false,
-          "scrollY": 0
-        },
-        {
-          "t": 3352,
+          "t": 3335,
           "shown": true,
           "scrollY": 1386
         },

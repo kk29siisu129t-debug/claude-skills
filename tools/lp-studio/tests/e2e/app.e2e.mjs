@@ -671,3 +671,25 @@ test('エディタ: 運営者は明示的に確認したときだけ確定（未
   assert.deepEqual(errors, []);
   await context.close();
 });
+
+test('LP: 空白を含む見出し・補助文・商品ラベルは、描画（innerText）でも空白が残り、語の途中で割れない', async () => {
+  const j = JSON.parse(readFileSync(join(ROOT, 'seed/michishirube.project.json'), 'utf8'));
+  j.display.productLabel = 'Team Quote Tracker 共有';
+  const hero = j.sections.find((s) => s.role === 'hero'); hero.sub = 'Excel と メール を、ひとつに。'; hero.subPhrases = [];
+  j.sections.find((s) => s.role === 'empathy').heading = 'Excel と メール を、ひとつに。'; j.sections.find((s) => s.role === 'empathy').headingPhrases = [];
+  const pj = join(TMP, 'ws.json'); writeFileSync(pj, JSON.stringify(j));
+  const out = join(TMP, 'ws.html');
+  const r = spawn(process.execPath, ['cli.mjs', 'export', '--project', pj, '--kind', 'review', '--out', out], { cwd: ROOT });
+  assert.equal(await new Promise((res) => r.on('exit', res)), 0);
+  for (const [w, h] of [[400, 760], [1280, 800], [320, 640]]) {
+    const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+    const page = await ctx.newPage();
+    await page.goto(`file://${out}`);
+    const t = await page.evaluate(() => ({ label: document.querySelector('.hero .aud').innerText, sub: document.querySelector('.hero-sub').innerText, h2: document.querySelector('#empathy h2').innerText }));
+    const flat = (x) => x.replace(/\n/g, '');
+    assert.equal(flat(t.label), 'Team Quote Tracker 共有', `${w}: ${t.label}`);
+    assert.ok(/Excel と ?メール を、ひとつに。/.test(flat(t.sub).replace(/ +/g, ' ')) && flat(t.sub).includes('Excel と'), `${w} sub: ${JSON.stringify(t.sub)}`);
+    assert.ok(flat(t.h2).includes('Excel と') && flat(t.h2).includes('メール を'), `${w} h2: ${JSON.stringify(t.h2)}`);
+    await ctx.close();
+  }
+});

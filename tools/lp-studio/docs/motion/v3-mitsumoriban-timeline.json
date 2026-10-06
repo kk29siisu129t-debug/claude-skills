@@ -2,7 +2,7 @@
   "input": "examples/v2/mitsumoriban/review.html",
   "htmlSha256": "8e1dd774f52f",
   "reduced": false,
-  "recordedAt": "2026-10-06T02:03:27.527Z",
+  "recordedAt": "2026-10-06T02:12:18.865Z",
   "runs": [
     {
       "tag": "pc",
@@ -12,48 +12,48 @@
       },
       "visible": {
         "h1": {
-          "first": 52,
-          "full": 52
+          "first": 53,
+          "full": 53
         },
         "cta": {
-          "first": 52,
-          "full": 52
+          "first": 53,
+          "full": 53
         },
         "visual": {
-          "first": 362,
-          "full": 812
+          "first": 357,
+          "full": 808
         },
         "highlight": {
-          "first": 362,
-          "full": 812
+          "first": 357,
+          "full": 808
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 52,
+          "t": 53,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3346,
+          "t": 3341,
           "shown": true,
-          "scrollY": 462
+          "scrollY": 455
         },
         {
-          "t": 6329,
+          "t": 6374,
           "shown": false,
-          "scrollY": 2065
+          "scrollY": 2043
         },
         {
-          "t": 7796,
+          "t": 7857,
           "shown": true,
-          "scrollY": 1981
+          "scrollY": 1977
         },
         {
-          "t": 8729,
+          "t": 8807,
           "shown": false,
-          "scrollY": 361
+          "scrollY": 357
         }
       ],
       "ctaGapMs": []
@@ -66,48 +66,48 @@
       },
       "visible": {
         "h1": {
-          "first": 56,
-          "full": 56
+          "first": 67,
+          "full": 67
         },
         "cta": {
-          "first": 56,
-          "full": 56
+          "first": 67,
+          "full": 67
         },
         "visual": {
-          "first": 358,
-          "full": 808
+          "first": 369,
+          "full": 819
         },
         "highlight": {
-          "first": 358,
-          "full": 808
+          "first": 369,
+          "full": 819
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 56,
+          "t": 67,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3208,
+          "t": 3236,
           "shown": true,
-          "scrollY": 431
+          "scrollY": 442
         },
         {
-          "t": 6324,
+          "t": 6335,
           "shown": false,
-          "scrollY": 2095
+          "scrollY": 2058
         },
         {
-          "t": 7741,
+          "t": 7752,
           "shown": true,
-          "scrollY": 1995
+          "scrollY": 1997
         },
         {
-          "t": 8708,
+          "t": 8752,
           "shown": false,
-          "scrollY": 360
+          "scrollY": 358
         }
       ],
       "ctaGapMs": []
@@ -120,46 +120,46 @@
       },
       "visible": {
         "h1": {
-          "first": 45,
-          "full": 45
+          "first": 50,
+          "full": 50
         },
         "cta": {
-          "first": 45,
-          "full": 45
+          "first": 50,
+          "full": 50
         },
         "visual": {
-          "first": 355,
-          "full": 805
+          "first": 354,
+          "full": 804
         },
         "highlight": {
-          "first": 355,
-          "full": 805
+          "first": 354,
+          "full": 804
         }
       },
       "cls": 0,
       "sticky": [
         {
-          "t": 45,
+          "t": 50,
           "shown": false,
           "scrollY": 0
         },
         {
-          "t": 3238,
+          "t": 3237,
           "shown": true,
-          "scrollY": 449
+          "scrollY": 440
         },
         {
-          "t": 6305,
+          "t": 6320,
           "shown": false,
-          "scrollY": 2100
+          "scrollY": 2101
         },
         {
-          "t": 7788,
+          "t": 7770,
           "shown": true,
-          "scrollY": 2033
+          "scrollY": 2038
         },
         {
-          "t": 8705,
+          "t": 8720,
           "shown": false,
           "scrollY": 316
         }

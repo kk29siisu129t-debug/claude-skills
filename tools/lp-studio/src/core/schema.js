@@ -554,9 +554,11 @@ export function isRealOperator(v) {
   const t = String(v || '').normalize('NFKC').replace(/[\s\u200b-\u200f\u2060\ufeff()\[\]「」【】『』〔〕<>]/g, '');
   if (t.length < 2) return false;
   if (/^(未定|未確定|未設定|確認中|調整中|検討中|仮|仮称|tbd|tba|n\/?a|none|null|undefined|unknown|なし|無し|ー+|-+|―+|_+|\?+|？+|xxx+|○+|●+|\*+)$/i.test(t)) return false;
-  // 仮の値・伏せ字・見本: 未定・仮称・(仮)・仮の・〇〇・XX・テスト・サンプル・ダミー・example
+  // 仮の値・伏せ字・見本。社名の語（株式会社など）を除いた本体が見本の語そのもののときだけ止める（「テストラボ株式会社」は通す）
   const raw = String(v || '').normalize('NFKC');
-  return !/(未定|仮称|tbd|調整中|確認中|\(仮\)|^仮の|〇〇|○○|◯◯|xx|ｘｘ|テスト|サンプル|ダミー|sample|test|dummy|example|placeholder)/i.test(raw) && !/(未定|仮称|tbd|調整中|確認中|〇〇|○○|xx|テスト|サンプル|ダミー)/i.test(t);
+  if (/(未定|仮称|tbd|調整中|確認中|架空|\(仮\)|（仮）|^仮の|〇〇|○○|◯◯)/i.test(raw)) return false;
+  const core = t.replace(/(株式会社|有限会社|合同会社|一般社団法人|\(株\)|㈱|inc\.?|co\.?,?ltd\.?|llc)/gi, '');
+  return !/^(テスト|サンプル|ダミー|sample|test|dummy|example|placeholder|x{2,}|ｘ{2,}|〇+|○+|◯+|●+)$/i.test(core);
 }
 
 export function parseProjectJson(text) {

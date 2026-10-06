@@ -2,12 +2,120 @@
   "input": "examples/v2/michishirube/review.html",
   "htmlSha256": "195e027c65e6",
   "reduced": false,
-  "recordedAt": "2026-10-06T02:01:50.789Z",
+  "recordedAt": "2026-10-06T02:10:41.117Z",
   "runs": [
     {
       "tag": "pc",
       "viewport": {
         "width": 1280,
+        "height": 800
+      },
+      "visible": {
+        "h1": {
+          "first": 8,
+          "full": 8
+        },
+        "lead": {
+          "first": 8,
+          "full": 8
+        },
+        "photo": {
+          "first": 8,
+          "full": 8
+        },
+        "cta": {
+          "first": 8,
+          "full": 8
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 8,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 4035,
+          "shown": true,
+          "scrollY": 1461
+        },
+        {
+          "t": 5318,
+          "shown": false,
+          "scrollY": 2005
+        },
+        {
+          "t": 7952,
+          "shown": true,
+          "scrollY": 1966
+        },
+        {
+          "t": 8623,
+          "shown": false,
+          "scrollY": 1327
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp400",
+      "viewport": {
+        "width": 400,
+        "height": 760
+      },
+      "visible": {
+        "h1": {
+          "first": 65,
+          "full": 65
+        },
+        "lead": {
+          "first": 65,
+          "full": 65
+        },
+        "photo": {
+          "first": 65,
+          "full": 65
+        },
+        "cta": {
+          "first": 65,
+          "full": 65
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 65,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3925,
+          "shown": true,
+          "scrollY": 1433
+        },
+        {
+          "t": 5808,
+          "shown": false,
+          "scrollY": 2268
+        },
+        {
+          "t": 7758,
+          "shown": true,
+          "scrollY": 2252
+        },
+        {
+          "t": 8558,
+          "shown": false,
+          "scrollY": 1279
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp360",
+      "viewport": {
+        "width": 360,
         "height": 800
       },
       "visible": {
@@ -36,130 +144,22 @@
           "scrollY": 0
         },
         {
-          "t": 4021,
+          "t": 3970,
           "shown": true,
-          "scrollY": 1461
+          "scrollY": 1417
         },
         {
-          "t": 5271,
+          "t": 5837,
           "shown": false,
-          "scrollY": 1993
+          "scrollY": 2239
         },
         {
-          "t": 7887,
+          "t": 7904,
           "shown": true,
-          "scrollY": 1982
+          "scrollY": 2205
         },
         {
-          "t": 8604,
-          "shown": false,
-          "scrollY": 1317
-        }
-      ],
-      "ctaGapMs": []
-    },
-    {
-      "tag": "sp400",
-      "viewport": {
-        "width": 400,
-        "height": 760
-      },
-      "visible": {
-        "h1": {
-          "first": 54,
-          "full": 54
-        },
-        "lead": {
-          "first": 54,
-          "full": 54
-        },
-        "photo": {
-          "first": 54,
-          "full": 54
-        },
-        "cta": {
-          "first": 54,
-          "full": 54
-        }
-      },
-      "cls": 0,
-      "sticky": [
-        {
-          "t": 54,
-          "shown": false,
-          "scrollY": 0
-        },
-        {
-          "t": 3944,
-          "shown": true,
-          "scrollY": 1442
-        },
-        {
-          "t": 5811,
-          "shown": false,
-          "scrollY": 2259
-        },
-        {
-          "t": 7777,
-          "shown": true,
-          "scrollY": 2249
-        },
-        {
-          "t": 8544,
-          "shown": false,
-          "scrollY": 1279
-        }
-      ],
-      "ctaGapMs": []
-    },
-    {
-      "tag": "sp360",
-      "viewport": {
-        "width": 360,
-        "height": 800
-      },
-      "visible": {
-        "h1": {
-          "first": 48,
-          "full": 48
-        },
-        "lead": {
-          "first": 48,
-          "full": 48
-        },
-        "photo": {
-          "first": 48,
-          "full": 48
-        },
-        "cta": {
-          "first": 48,
-          "full": 48
-        }
-      },
-      "cls": 0,
-      "sticky": [
-        {
-          "t": 48,
-          "shown": false,
-          "scrollY": 0
-        },
-        {
-          "t": 3926,
-          "shown": true,
-          "scrollY": 1426
-        },
-        {
-          "t": 5792,
-          "shown": false,
-          "scrollY": 2246
-        },
-        {
-          "t": 7825,
-          "shown": true,
-          "scrollY": 2221
-        },
-        {
-          "t": 8542,
+          "t": 8587,
           "shown": false,
           "scrollY": 1199
         }

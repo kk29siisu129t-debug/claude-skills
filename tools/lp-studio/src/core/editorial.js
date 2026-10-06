@@ -153,6 +153,26 @@ export function checkProject(project) {
       }
       return out;
     };
+    // 免除は同じ節の中だけ: (1) 参照先の事実の言い回しを数値の後ろ5文字以上そのまま使う（「15分の単位に分け」）か、
+    // (2) 事実側の対象（学習・計画など。数値の隣の語・未確定の対象は除く）が数値のすぐ前後（6文字以内）で数値を受ける（「学習は15分」）
+    const factMeaning = (cc) => {
+      const fs = factSubjects(cc);
+      for (const m of cc.matchAll(NUMBER_RE)) {
+        const tok = canon(m[0]);
+        const after = cc.slice(m.index + m[0].length);
+        for (const rt of refTexts) {
+          const c2 = canon(rt);
+          const at = c2.indexOf(tok);
+          if (at < 0) continue;
+          const cont = c2.slice(at + tok.length);
+          let k = 0; while (k < after.length && k < cont.length && after[k] === cont[k]) k++;
+          if (k >= 5) return true;
+        }
+        const win = cc.slice(Math.max(0, m.index - 6), m.index) + '|' + after.slice(0, 6);
+        if ([...fs].some((w) => win.includes(w))) return true;
+      }
+      return false;
+    };
     let seen = '';
     const sentences = String(t.text).split(/(?<=[。！？!?\n])/);
     for (const sentence of sentences) {
@@ -164,7 +184,7 @@ export function checkProject(project) {
       for (const u of unknowns) {
         if (filled.has(u.id) || !u.test.test(cc)) continue;
         if (!(subjOf(u, cc) || subjOf(u, seen) || subjOf(u, ctx))) continue;
-        if (!subjOf(u, cc)) { const fs = factSubjects(cc); if ([...fs].some((w) => sent.includes(w))) continue; }
+        if (!subjOf(u, cc) && factMeaning(cc)) continue;
         filled.add(u.id);
         issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${c}」と書いています（別の数値や条件で埋めない）`, where));
       }

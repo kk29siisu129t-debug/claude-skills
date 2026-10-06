@@ -252,6 +252,8 @@ test('再監査① 運営者は明示的に確認したときだけ確定。空�
   // 運営者を変えたら確認し直し
   p = applyEdit(p, { type: 'setDisplay', key: 'operator', value: 'みちしるべ教育株式会社' });
   assert.equal(p.display.operatorConfirmed, false);
+  // 実名らしい社名は、見本の語を含んでいても確認できる（誤検出しない）
+  for (const v of ['テストラボ株式会社', '株式会社コンテスト', 'Exxon Japan']) assert.doesNotThrow(() => applyEdit(applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: v }), { type: 'setDisplay', key: 'operatorConfirmed', value: true }), v);
   // 確認した後に JSON で名前だけ差し替えて読み込むと、未確認に戻す
   const ok = applyEdit(applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: 'ミチシルベ学習株式会社' }), { type: 'setDisplay', key: 'operatorConfirmed', value: true });
   const raw = JSON.parse(serializeProject(ok)); raw.display.operator = '別の実在らしい会社';
@@ -303,12 +305,16 @@ test('再監査3 語の単位の span でも空白を消さない（表示テキ
   const visible = html.replace(/<style>[\s\S]*?<\/style>|<script>[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, '');
   assert.ok(visible.includes('Team Quote Tracker 共有'), '商品ラベルの空白');
   assert.ok(visible.includes('Excel と メール を、ひとつに。'), '見出しの空白');
-  assert.doesNotMatch(html, /<span class="w">\s+<\/span>/);
+  // inline-block の span の先頭・末尾に空白があると描画で潰れる。中身が空白で始まる・終わる span を作らない（描画は E2E の innerText で確認）
+  assert.doesNotMatch(html, /<span class="(?:w|ph)">\s|\s<\/span>/);
+  const sub = applyEdit(seed(), { type: 'setField', id: 'hero', field: 'sub', value: 'Excel と メール を、ひとつに。' });
+  assert.doesNotMatch(renderPage(sub, { kind: 'review' }).html, /<span class="(?:w|ph)">\s|\s<\/span>/);
 });
 
 test('再監査3 A: 前の文で対象を言い、次の文や同じ文の後ろの節で数量だけ言う形も止める（学習の15分は止めない）', () => {
   const f = (h, v) => checkProject(applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: h, body: v }] })).some((i) => i.code === 'unknown-filled');
-  for (const v of ['面談があります。毎晩15分です。', '面談は、15分の単位です。', '面談があります。15分単位で予約できます。']) assert.ok(f('質問', v), v);
+  for (const v of ['面談があります。毎晩15分です。', '面談は、15分の単位です。', '面談があります。15分単位で予約できます。', '面談では計画を確認し、15分で終わります。', '面談で学習の状況を聞き、15分ほどです。', '面談は一緒に、15分で行います。', '面談は週ごとに見直し、15分です。']) assert.ok(f('質問', v), v);
+  assert.ok(!f('質問', '面談で計画をつくり、毎晩15分の単位に分けます。'));
   for (const [h, v] of [['質問', '毎晩15分の単位に分けて、週ごとに見直します。'], ['質問', '学習計画は、毎晩15分の単位に分けます。'], ['面談では何をしますか？', '学習は15分ずつ進めます。']]) assert.ok(!f(h, v), v);
 });
 

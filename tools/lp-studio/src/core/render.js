@@ -308,7 +308,8 @@ const paras = (text) => String(text || '').split(/\n+/).filter((x) => x.trim()).
 
 function phrasesHtml(heading, preferred) {
   const { phrases } = headingPhrases(heading, preferred);
-  return phrases.map((p) => `<span class="ph">${wordsHtml(p)}</span>`).join('');
+  // 句の前後の空白は span の外に出す（inline-block の先頭・末尾の空白は描画で潰れるため）
+  return phrases.map((p) => { const m = /^(\s*)([\s\S]*?)(\s*)$/.exec(p); return `${e(m[1])}${m[2] ? `<span class="ph">${wordsHtml(m[2])}</span>` : ''}${e(m[3])}`; }).join('');
 }
 // 句の中を語の単位に分け、語の途中（「ペー／ス」）で折り返さない。句読点と1文字の助詞は前の語に付ける
 const WORD_SEG = typeof Intl !== 'undefined' && Intl.Segmenter ? new Intl.Segmenter('ja', { granularity: 'word' }) : null;
@@ -316,7 +317,7 @@ function wordsHtml(text) {
   if (!WORD_SEG) return e(text);
   const out = [];
   for (const { segment } of WORD_SEG.segment(text)) {
-    if (out.length && (/^[、。！？!?，．・）」』]+$/.test(segment) || /^[ぁ-ゖ]$/.test(segment))) out[out.length - 1] += segment;
+    if (out.length && !/^\s+$/.test(out[out.length - 1]) && (/^[、。！？!?，．・）」』]+$/.test(segment) || /^[ぁ-ゖ]$/.test(segment))) out[out.length - 1] += segment; // 空白の語にはつなげない
     else out.push(segment);
   }
   return out.length > 1 ? out.map((w) => (/^\s+$/.test(w) ? e(w) : `<span class="w">${e(w)}</span>`)).join('') : e(text); // 空白は span で包まない（幅 0 で消えないように）
