@@ -1,10 +1,11 @@
 {
  "360": {
-  "height": 4200,
+  "height": 5800,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
   "ctas": [
+   "button",
    "button",
    "button"
   ],
@@ -16,14 +17,16 @@
   ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
-  "externalRequests": []
+  "externalRequests": [],
+  "consoleErrors": []
  },
  "400": {
-  "height": 4187,
+  "height": 5740,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
   "ctas": [
+   "button",
    "button",
    "button"
   ],
@@ -35,14 +38,16 @@
   ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
-  "externalRequests": []
+  "externalRequests": [],
+  "consoleErrors": []
  },
  "1280": {
-  "height": 3424,
+  "height": 5008,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
   "ctas": [
+   "button",
    "button",
    "button"
   ],
@@ -54,14 +59,16 @@
   ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
-  "externalRequests": []
+  "externalRequests": [],
+  "consoleErrors": []
  },
  "400-1x": {
-  "height": 4187,
+  "height": 5740,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
   "ctas": [
+   "button",
    "button",
    "button"
   ],
@@ -73,6 +80,7 @@
   ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
-  "externalRequests": []
+  "externalRequests": [],
+  "consoleErrors": []
  }
 }

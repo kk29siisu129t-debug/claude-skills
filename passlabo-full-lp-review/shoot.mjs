@@ -9,10 +9,11 @@ const out = (f) => join(root, 'out', f);
 const b = await launch();
 const measure = {};
 for (const [w, scale, name] of [[400, 2, '400'], [360, 2, '360'], [1280, 1, '1280'], [400, 1, '400-1x']]) {
-  const ctx = await b.newContext({ viewport: { width: w, height: w > 900 ? 800 : 640 }, deviceScaleFactor: scale });
+  const ctx = await b.newContext({ viewport: { width: w, height: w > 900 ? 800 : 640 }, deviceScaleFactor: scale, reducedMotion: 'reduce' }); // 静止画は演出なしの最終状態で撮る（演出は check-motion.mjs で検査）
   const p = await ctx.newPage();
   const req = [];
   p.on('request', (r) => { if (!/^(file|data):/.test(r.url())) req.push(r.url()); });
+  const errors = []; p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); }); p.on('pageerror', (er) => errors.push(String(er)));
   await p.goto(`file://${out('passlabo-full-lp.html')}`);
   await p.evaluate(() => document.fonts.ready);
   await p.screenshot({ path: out(`lp-${name}-full.png`), fullPage: true });
@@ -22,9 +23,9 @@ for (const [w, scale, name] of [[400, 2, '400'], [360, 2, '360'], [1280, 1, '128
     return { height: document.documentElement.scrollHeight, hscroll: document.documentElement.scrollWidth > innerWidth, clippedText: clipped, minFont: Math.min(...vis.filter((el) => !el.closest('.review,.lp-review')).map((el) => parseFloat(getComputedStyle(el).fontSize))), ctas: [...document.querySelectorAll('.cta')].map((c) => c.type), forms: document.forms.length, links: [...document.links].map((a) => a.href), imgsWithoutAlt: [...document.images].filter((i) => !i.hasAttribute('alt')).length };
   });
   const before = p.url();
-  for (const c of await p.$$('.cta')) { await c.scrollIntoViewIfNeeded(); await c.click(); await p.keyboard.press('Enter'); }
+  for (const c of await p.$$('.cta:not(.lp-sticky-cta)')) { await c.scrollIntoViewIfNeeded(); await c.click(); await p.keyboard.press('Enter'); }
   await p.waitForTimeout(300);
-  measure[name].ctaNoNav = p.url() === before; measure[name].externalRequests = req;
+  measure[name].ctaNoNav = p.url() === before; measure[name].externalRequests = req; measure[name].consoleErrors = errors;
   await ctx.close();
 }
 await b.close();
