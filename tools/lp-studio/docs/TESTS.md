@@ -10,7 +10,7 @@
 | v1 | c329473 | 69 | 14 | `git show c329473:<file> \| grep -c "^test("`（unit 8ファイル、E2E は `tests/e2e/app.e2e.mjs`） |
 | v2 | d9c9c23 | 58 | 15 | 同上（unit 6ファイル） |
 | 顔主体 FV の途中 | 3161eda | 61 | 17 | 同上 |
-| 現在（最終） | 最終 commit（報告に記載） | 90 | 21 | 同上。実行結果は最終報告（同じ commit で `npm test`・`npm run test:e2e`） |
+| 現在（最終） | 最終 commit（報告に記載） | 90 | 22 | 同上。実行結果は最終報告（同じ commit で `npm test`・`npm run test:e2e`） |
 
 ファイル別の内訳（unit）:
 
