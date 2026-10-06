@@ -375,7 +375,7 @@ const A4 = (withPerson) => `
       <span class="f-paper f-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
       <figcaption>${e(C.materialLabel)}</figcaption>
     </figure>
-    <p class="f-sign"><span class="f-role">${e(C.instructorRole)}</span><span class="f-nm">${e(C.instructorName)}</span><span class="f-cr">${e(C.instructorCred)}</span></p>
+    <p class="f-sign"><span class="f-role">${e(C.instructorRole)}</span><span class="f-nm">${e(C.instructorName)}</span></p>
     <div class="f-badge" role="img" aria-label="${e(C.badgeLabel)} ${e(C.badgeValue + C.badgeUnit)}（${e(C.badgeNote.join('・').replace(/^※/, ''))}）">
       <span class="f-medal" aria-hidden="true"><span class="f-ml">${e(C.badgeLabel)}</span><span class="f-mv">${e(C.badgeValue)}<small>${e(C.badgeUnit)}</small></span></span>
       <span class="f-note" aria-hidden="true">${C.badgeNote.map((x) => `<span>${e(x)}</span>`).join('')}</span>
