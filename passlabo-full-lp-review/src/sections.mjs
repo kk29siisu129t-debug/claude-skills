@@ -32,7 +32,8 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
       <div class="lp-story-body">
         <h2 id="h-story" class="lp-story-h">はじめから、<br>できたわけじゃない。</h2>
         <p class="lp-text">地方の公立高校に入学したとき、宇佐見天彗の成績は<strong>学年最下位</strong>。そこから勉強の戦略を磨き、学年1位に。<strong>東京大学理科Ⅱ類に現役合格</strong>しました。</p>
-        <p class="lp-text">東京大学医学部医学科を卒業後、教育の道へ。<strong>構想7年の「高校数学解法大全」</strong>にも取り組んできました。</p>
+        <p class="lp-text">東京大学医学部医学科を卒業後、教育の道へ。</p>
+        <div class="lp-work"><p class="lp-work-label">取り組んできた制作</p><p class="lp-work-main"><span class="lp-work-years">構想7年</span><span class="lp-work-title">「高校数学解法大全」</span></p></div>
       </div>
       <figure class="lp-story-fig">
         <img src="${profile}" alt="講師の宇佐見天彗さん" width="440" height="440">
@@ -157,6 +158,11 @@ export const css = `
 .lp-story-h{margin:0;font-size:34px;font-weight:900;line-height:1.3;color:var(--n)}
 .lp-story strong{font-weight:900;color:var(--n);background:linear-gradient(transparent 62%,#cfe9f5 62%)}
 .lp-story-fig{margin:0}
+.lp-work{margin:20px 0 0;padding:14px 16px;border:2px solid var(--n);border-radius:8px}
+.lp-work-label{margin:0;font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--b)}
+.lp-work-main{margin:4px 0 0;display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 10px;color:var(--n)}
+.lp-work-years{font-size:30px;font-weight:900;letter-spacing:-.01em;line-height:1.2}
+.lp-work-title{font-size:20px;font-weight:900;line-height:1.3}
 .lp-story-fig{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
 .lp-story-fig .lp-quote footer{grid-column:1/-1}
 .lp-story-fig img{width:96px;height:96px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 4px var(--pale)}
