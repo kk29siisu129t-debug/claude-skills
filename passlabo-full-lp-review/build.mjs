@@ -4,7 +4,7 @@
 // - FV は固定: src/fv-a4p-4706a14.html（passlabo-fv-variants の commit 4706a14 の a4p と同一バイト。SHA256 を照合）を
 //   そのまま使い、FV の後ろに本文、末尾にレビュー用の案内を足すだけ（FV のマークアップ・CSS・画像は変更しない）
 // - 本文の事実は REVIEW.md の出典一覧の範囲だけ。架空の FAQ・日時・価格・受講者の声・点数の約束は書かない
-// - CTA はすべて確認用 <button type="button">。form・外部 URL・スクリプトを含めない（FV の CSP をそのまま使う）
+// - CTA はすべて確認用 <button type="button">。form・スクリプトを含めない（FV の CSP をそのまま使う）。外部 URL はフッターの法務リンク3つだけ（クリック時のみ）
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { join, dirname } from 'node:path';
@@ -118,7 +118,7 @@ const BODY = `
 </main>
 <footer class="lp-foot">
   <p class="lp-foot-brand">PASSLABO</p>
-  <ul class="lp-foot-links" aria-label="運営情報"><li>運営会社：株式会社ペイ・フォワード</li><li>プライバシーポリシー</li><li>特定商取引法に基づく表記</li></ul>
+  <ul class="lp-foot-links" aria-label="運営情報"><li>運営会社：<a href="https://passlabo.jp/">株式会社ペイ・フォワード</a></li><li><a href="https://utage-system.com/p/jFyT8LCb2fti">プライバシーポリシー</a></li><li><a href="https://utage-system.com/p/S4us61iIRJc4">特定商取引法に基づく表記</a></li></ul>
   <p class="lp-review" id="cta-note" role="note">確認用・未公開。LINEボタンは未接続です。3,000人は仮置きで、実績未確認です。</p>
 `;
 
@@ -184,6 +184,7 @@ const LP_CSS = `
 /* フッターと確認用の案内 */
 .lp-foot{background:#0d1a22;color:#c9d6dd;padding:24px 22px 40px;border-top:1px solid rgba(255,255,255,.08)}
 .lp-foot-brand{margin:0 auto;max-width:1000px;font-size:14px;font-weight:700;letter-spacing:.18em;color:#9fd3ea}
+.lp-foot-links a{color:#e2ebf0;text-decoration:underline;text-underline-offset:3px}.lp-foot-links a:focus-visible{outline:2px solid #fff;outline-offset:2px}
 .lp-foot-links{list-style:none;max-width:1000px;margin:10px auto 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 18px;font-size:13px;color:#c9d6dd}
 .lp-review{max-width:1000px;margin:14px auto 0;padding:10px 14px;border:1px dashed #6f8794;border-radius:6px;font-size:14px;line-height:1.6;color:#e2ebf0}
 @media (max-width:389px){.lp-h2{font-size:28px}.lp-final-h{font-size:34px}.lp-pains li{font-size:16px}}

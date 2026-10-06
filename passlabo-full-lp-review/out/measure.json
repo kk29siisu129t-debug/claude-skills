@@ -9,7 +9,11 @@
    "button"
   ],
   "forms": 0,
-  "links": 0,
+  "links": [
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
   "externalRequests": []
@@ -24,7 +28,11 @@
    "button"
   ],
   "forms": 0,
-  "links": 0,
+  "links": [
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
   "externalRequests": []
@@ -39,7 +47,30 @@
    "button"
   ],
   "forms": 0,
-  "links": 0,
+  "links": [
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
+  "imgsWithoutAlt": 0,
+  "ctaNoNav": true,
+  "externalRequests": []
+ },
+ "400-1x": {
+  "height": 4187,
+  "hscroll": false,
+  "clippedText": [],
+  "minFont": 12,
+  "ctas": [
+   "button",
+   "button"
+  ],
+  "forms": 0,
+  "links": [
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
   "imgsWithoutAlt": 0,
   "ctaNoNav": true,
   "externalRequests": []
