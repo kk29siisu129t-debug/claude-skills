@@ -28,12 +28,13 @@ const img = (f) => {
 const board = img('board-from-current-lp.webp');
 const sheet = img('text-from-current-lp.webp');
 const profile = img('profile-circle-from-current-lp.webp');
+const zoom = `data:image/webp;base64,${readFileSync(join(root, 'assets/board-zoom-graph-equations.webp')).toString('base64')}`;
 
 // FV と同じボタン（文言・アイコン・確認用の仕様）
 const ctaBtn = fvHtml.match(/<button type="button" class="cta f-cta"[\s\S]*?<\/button>/)[0].replace('class="cta f-cta"', 'class="cta lp-cta"');
 
 const stickyBtn = ctaBtn.replace('class="cta lp-cta"', 'class="cta lp-sticky-cta"');
-const BODY = body({ board, sheet, profile, ctaBtn, stickyBtn });
+const BODY = body({ board, sheet, zoom, profile, ctaBtn, stickyBtn });
 const LP_CSS = css;
 
 // 本文で増えた文字の書体（FV に入っている分割は重ねない）

@@ -1,0 +1,82 @@
+{
+ "refNumbers": [
+  {
+   "top": 57,
+   "height": 71,
+   "left": 134,
+   "width": 133
+  },
+  {
+   "top": 249,
+   "height": 72,
+   "left": 42,
+   "width": 318
+  },
+  {
+   "top": 444,
+   "height": 69,
+   "left": 84,
+   "width": 234
+  }
+ ],
+ "mineNumbers": [
+  {
+   "top": 55,
+   "height": 83,
+   "left": 156,
+   "width": 93
+  },
+  {
+   "top": 163,
+   "height": 22,
+   "left": 38,
+   "width": 329
+  },
+  {
+   "top": 263,
+   "height": 117,
+   "left": 41,
+   "width": 320
+  },
+  {
+   "top": 404,
+   "height": 22,
+   "left": 134,
+   "width": 138
+  },
+  {
+   "top": 551,
+   "height": 9,
+   "left": 22,
+   "width": 98
+  }
+ ],
+ "refS": [
+  {
+   "top": 2,
+   "height": 23,
+   "left": 4,
+   "width": 396
+  },
+  {
+   "top": 60,
+   "height": 333,
+   "left": 187,
+   "width": 151
+  }
+ ],
+ "mineS": [
+  {
+   "top": 60,
+   "height": 334,
+   "left": 187,
+   "width": 155
+  },
+  {
+   "top": 428,
+   "height": 12,
+   "left": 23,
+   "width": 115
+  }
+ ]
+}
