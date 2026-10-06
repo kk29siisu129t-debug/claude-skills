@@ -1,9 +1,9 @@
 // 本文（固定 FV の後ろ）・本文用 CSS・表示用の最小 JS。
 // 流れ: 目標 → 共感（時間が足りない・点数が上がらない）→ 見方の転換（解く量だけでなく、解き方にも目を向ける）→ 3つのテーマ → 実物の教材 → 講師 → 参加特典 → 無料講義と最終 CTA。
-// 各セクションの末尾に、次を読む理由になる短い橋渡し（.lp-bridge）を置く。
+// 説明口調の橋渡し行（中央寄せの一文＋小さな∨）は置かない。共感→本人の実話→転換→3テーマ→実物は、スクロール量に連動して下へ伸びるガイド線（.lp-guide）でつなぐ。
 // 事実は REVIEW.md の出典表の範囲だけ。架空の引用・受講者の声・保証・数値の追加・動画の見せかけは置かない。
 
-const bridge = (t) => `<p class="lp-bridge"><span>${t}</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></p>`;
+const guide = (tone) => `<div class="lp-guide lp-guide--${tone}" aria-hidden="true"><span class="lp-guide-track"></span><span class="lp-guide-line"></span><svg class="lp-guide-head" viewBox="0 0 22 14"><path d="M0 0h22L11 14z"/></svg></div>`;
 
 export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
 <main class="lp" aria-label="講義の案内">
@@ -12,7 +12,6 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
       <p class="lp-kicker">この講義で目指すこと</p>
       <h2 id="h-goal" class="lp-goal-h">目指すのは、<br>時間内に解き切ること。</h2>
       <p class="lp-text">答えだけでなく、どう考えて解き進めるのか。講師の板書と手元で、その過程を見ながら学べる講義です。</p>
-      ${bridge('でも、本番の形式になると——')}
     </div>
   </section>
 
@@ -24,15 +23,30 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
         <li>演習を続けているのに、点数が思うように上がらない。</li>
         <li>何をどう勉強すればいいのか、迷ってしまう。</li>
       </ul>
-      ${bridge('では、どこから見直せばいいのか。')}
+      ${guide('dark')}
     </div>
+  </section>
+
+  <section class="lp-sec lp-story" aria-labelledby="h-story">
+    <div class="lp-in lp-story-in">
+      <div class="lp-story-body">
+        <h2 id="h-story" class="lp-story-h">はじめから、<br>できたわけじゃない。</h2>
+        <p class="lp-text">地方の公立高校に入学したとき、宇佐見天彗の成績は<strong>学年最下位</strong>。そこから勉強の戦略を磨き、学年1位に。<strong>東京大学理科Ⅱ類に現役合格</strong>しました。</p>
+        <p class="lp-text">東京大学医学部医学科を卒業後、教育の道へ。<strong>構想7年の「高校数学解法大全」</strong>にも取り組んできました。</p>
+      </div>
+      <figure class="lp-story-fig">
+        <img src="${profile}" alt="講師の宇佐見天彗さん" width="440" height="440">
+        <blockquote class="lp-quote"><p>正しい情報と戦略を持てば、人は誰だって平等に挑戦できる</p><footer>宇佐見天彗（著書『超戦略的勉強法』の紹介文より。出典：<a href="https://www.kadokawa.co.jp/product/322003000286/">KADOKAWA 商品ページ</a>）</footer></blockquote>
+      </figure>
+    </div>
+    <div class="lp-in">${guide('light')}</div>
   </section>
 
   <section class="lp-sec lp-turn" aria-labelledby="h-turn">
     <div class="lp-in">
       <p class="lp-turn-pre">解く量だけでなく、</p>
       <h2 id="h-turn" class="lp-turn-h">解き方にも、<br><span class="lp-mark" data-reveal>目を向ける。</span></h2>
-      <p class="lp-text">講師の手元を見ながら、自分の考え方・手順を見直すきっかけに。この講義では、共通テストに取り組むときに必要な3つを扱います。</p>
+      <p class="lp-text">戦略を磨いてきた講師の手元を見ながら、自分の考え方・手順を見直すきっかけに。この講義では、共通テストに取り組むときに必要な3つを扱います。</p>
     </div>
   </section>
 
@@ -46,7 +60,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
         <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">03</span><div><h3>問題の取り組み方</h3><p class="lp-q"><span>考える観点</span>どこから、どう手をつけるか。</p></div></li>
       </ol>
       <p class="lp-how"><b>講義では</b>この3つを、講師の手元（板書）をお見せしながら解説します。</p>
-      ${bridge('実際の板書と教材を、見てください。')}
+      ${guide('pale')}
     </div>
   </section>
 
@@ -65,23 +79,19 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
         </figure>
       </div>
       <p class="lp-note-on-dark">見本は2024年 共通テスト本試の二次関数の問題です。</p>
-      ${bridge('解説するのは、この講師です。')}
     </div>
   </section>
 
   <section class="lp-sec lp-prof" aria-labelledby="h-prof">
     <div class="lp-in lp-prof-in">
-      <img class="lp-prof-photo" src="${profile}" alt="講師の宇佐見天彗さん" width="440" height="440">
       <div class="lp-prof-body">
         <p class="lp-kicker">講師</p>
         <h2 id="h-prof" class="lp-prof-h">地方と都会の教育格差を、<br class="sp">なくすために。</h2>
         <p class="lp-prof-name">宇佐見 天彗<span lang="en">Subaru Usami</span></p>
         <ul class="lp-tags"><li>PASSLABO代表</li><li>東京大学医学部医学科卒</li><li>大学受験に特化した教育系YouTuber</li></ul>
-        <p class="lp-text">地方の公立高校から東大理科Ⅱ類に現役合格。東京大学医学部医学科を卒業後、教育の道へ。</p>
         <p class="lp-text">地方と都会の教育格差の是正に向けて、オンライン個別指導や学校での講演・出張講義を全国で行っています。教材の制作や書籍の出版も手がけています。</p>
       </div>
     </div>
-    <div class="lp-in">${bridge('講義に参加した方には、特典もあります。')}</div>
   </section>
 
   <section class="lp-sec lp-gift" aria-labelledby="h-gift">
@@ -131,9 +141,6 @@ export const css = `
 .lp-h2{margin:0;font-size:30px;font-weight:900;line-height:1.3;color:var(--n)}
 .lp-h2--on-dark{color:#fff}
 .lp-text{margin:16px 0 0;font-size:17px;font-weight:500;line-height:1.85}
-/* 橋渡し: 次を読む理由を一行で。下向きの矢印は動かさない */
-.lp-bridge{margin:30px 0 0;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;font-size:17px;font-weight:700;color:var(--n)}
-.lp-bridge svg{width:22px;height:22px;color:var(--b)}
 /* 目標: 淡青の大きな面に強い一文 */
 .lp-goal{background:var(--pale);padding-top:44px}
 .lp-goal-h{margin:0;font-size:34px;font-weight:900;line-height:1.3;letter-spacing:-.01em;color:var(--n)}
@@ -143,7 +150,30 @@ export const css = `
 .lp-feel-list{list-style:none;margin:22px 0 0;padding:0;display:grid;gap:0}
 .lp-feel-list li{padding:14px 0;border-top:1px solid rgba(255,255,255,.18);font-size:17px;font-weight:500;line-height:1.7;color:var(--pale)}
 .lp-feel-list li:last-child{border-bottom:1px solid rgba(255,255,255,.18)}
-.lp-feel .lp-bridge{color:#fff}.lp-feel .lp-bridge svg{color:#9fd3ea}
+/* 本人の実話: 白い面。強い見出し → 第三人称の事実 → 写真と本人の短い信念（出典つき） */
+.lp-feel{padding-bottom:28px}
+.lp-story{background:#fff;padding-bottom:28px}
+.lp-story-in{display:grid;gap:22px}
+.lp-story-h{margin:0;font-size:34px;font-weight:900;line-height:1.3;color:var(--n)}
+.lp-story strong{font-weight:900;color:var(--n);background:linear-gradient(transparent 62%,#cfe9f5 62%)}
+.lp-story-fig{margin:0}
+.lp-story-fig{display:grid;grid-template-columns:112px 1fr;gap:14px;align-items:center}
+.lp-story-fig img{width:112px;height:112px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 4px var(--pale)}
+.lp-story-fig .lp-quote{margin:0}
+.lp-quote{margin:14px 0 0;padding:14px 16px;border-left:4px solid var(--b);background:var(--pale)}
+.lp-quote p{margin:0;font-size:18px;font-weight:700;line-height:1.6;color:var(--n)}
+.lp-quote p::before{content:"「"}.lp-quote p::after{content:"」"}
+.lp-quote footer{margin-top:8px;font-size:13px;line-height:1.6;color:#3d4a52}
+.lp-quote a{color:var(--n);text-decoration:underline;text-underline-offset:2px}
+.lp-quote a:focus-visible{outline:2px solid var(--b);outline-offset:2px}
+.lp-turn{padding-top:28px}
+.lp-themes{padding-bottom:28px}
+/* 下へ伸びるガイド線: スクロール量（--p 0〜1）に連動して線が伸び、先端に矢印頭が付いてくる。操作できる部品ではない */
+.lp-guide{--p:1;--h:120px;position:relative;width:24px;height:calc(var(--h) + 14px);margin:24px auto 0;pointer-events:none;color:var(--b)}
+.lp-guide-track{position:absolute;left:50%;top:0;height:var(--h);border-left:2px dashed currentColor;opacity:.25;transform:translateX(-1px)}
+.lp-guide-line{position:absolute;left:50%;top:0;width:4px;height:var(--h);margin-left:-2px;border-radius:2px;background:currentColor;transform-origin:50% 0;transform:scaleY(var(--p))}
+.lp-guide-head{position:absolute;left:50%;top:0;width:22px;height:14px;margin-left:-11px;fill:currentColor;transform:translateY(calc(var(--h) * var(--p) - 2px))}
+.lp-guide--dark{color:#9fd3ea}
 /* 転換: 白い面に短い2行。「解き方そのもの。」に一度だけ下線 */
 .lp-turn{background:#fff;padding-top:56px;padding-bottom:40px}
 .lp-turn-pre{margin:0;font-size:18px;font-weight:700;color:#3d4a52}
@@ -167,7 +197,6 @@ export const css = `
 .lp-mat img{width:100%;height:auto;background:#fff;padding:4px;box-shadow:0 14px 30px rgba(0,0,0,.4)}
 .lp-mat figcaption{margin-top:8px;font-size:14px;font-weight:500;line-height:1.6;color:var(--pale)}
 .lp-note-on-dark{margin:16px 0 0;font-size:16px;line-height:1.7;color:var(--pale)}
-.lp-mats .lp-bridge{color:#fff}.lp-mats .lp-bridge svg{color:#9fd3ea}
 /* 講師 */
 .lp-prof{background:#fff}
 .lp-prof-in{display:grid;gap:18px;justify-items:start}
@@ -221,7 +250,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .js .lp-mat:nth-child(2) img{transition-delay:.08s}
 .js .lp-mat.is-in img{transform:none;box-shadow:0 18px 34px rgba(0,0,0,.45)}
 }
-@media (max-width:389px){.lp-h2{font-size:28px}.lp-goal-h,.lp-turn-h{font-size:31px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-prof-h{font-size:28px}}
+@media (max-width:389px){.lp-story-h{font-size:31px}.lp-h2{font-size:28px}.lp-goal-h,.lp-turn-h{font-size:31px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-prof-h{font-size:28px}}
 @media (min-width:900px){
 .lp .sp{display:none}
 .lp-sec{padding:80px 40px}
@@ -229,8 +258,11 @@ html.has-sticky{scroll-padding-bottom:96px}
 .lp-h2{font-size:36px}
 .lp-goal-h,.lp-turn-h{font-size:48px}
 .lp-feel-h{font-size:52px}
+.lp-story-in{grid-template-columns:1.1fr 1fr;gap:56px;align-items:center}
+.lp-story-fig{grid-template-columns:160px 1fr;gap:20px}.lp-story-fig img{width:160px;height:160px}
+.lp-story-h{font-size:48px}
 .lp-feel .lp-in{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;align-items:center}
-.lp-feel .lp-bridge{grid-column:1/-1}
+.lp-feel .lp-guide{grid-column:1/-1}
 .lp-feel-list{margin:0}
 .lp-text{max-width:720px}
 .lp-steps{grid-template-columns:repeat(3,1fr);gap:20px}
@@ -238,7 +270,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .lp-mat-grid{grid-template-columns:1.07fr 1fr;gap:28px;align-items:start}
 .lp-gift .lp-in{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:center}
 .lp-gift-h{font-size:36px}.lp-bonus{margin:0}
-.lp-prof-in{grid-template-columns:240px 1fr;gap:48px;align-items:center}
+.lp-prof-in{grid-template-columns:1fr}
 .lp-prof-photo{width:240px;height:240px}
 .lp-prof-h{font-size:36px}
 .lp-final{text-align:center}.lp-final-h{font-size:48px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}
@@ -254,11 +286,14 @@ if(!reduce)root.classList.add('js');
 var items=[].slice.call(d.querySelectorAll('[data-reveal]'));
 var sticky=d.querySelector('.lp-sticky'),fvCta=d.querySelector('.f-cta'),stop=d.querySelector('.lp-final');
 var ctas=[].slice.call(d.querySelectorAll('.cta')).filter(function(c){return !sticky.contains(c)});
+var guides=[].slice.call(d.querySelectorAll('.lp-guide'));
 var ticking=false;
 function update(){
   ticking=false;var vh=innerHeight;
   // 画面に入ったもの、または素早く通り過ぎて上にあるものは表示状態にする（読めないまま残さない）
   items=items.filter(function(el){if(el.getBoundingClientRect().top<vh*.88){el.classList.add('is-in');return false}return true});
+  // ガイド線: 画面の下 85% に入ってから、画面の 40% まで上がる間に 0→1 まで伸びる（戻れば縮む）
+  if(!reduce)guides.forEach(function(g){var t=g.getBoundingClientRect().top,p=(vh*.85-t)/(vh*.45);p=p<0?0:p>1?1:p;g.style.setProperty('--p',p.toFixed(3))});
   var show=false;
   if(innerWidth<900&&fvCta){
     var passed=fvCta.getBoundingClientRect().bottom<0;
