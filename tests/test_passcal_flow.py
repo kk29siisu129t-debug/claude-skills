@@ -380,6 +380,19 @@ class AuditFindings(unittest.TestCase):
         self.assertEqual(counts(v)[0], 39)
         self.assertTrue(all(t['code'] in ('AMBIGUOUS_APPLICATION', 'APP_HELD', 'CONFLICT_DUP_ID') for t in v.res.trace
                             if t['application_id'] == 'APP-0020'))
+        # 再監査: 同じ時刻の回答が3件以上（同じ中身2件＋違う中身1件）でも保留にする
+        def f3(d):
+            first = next(x for x in d['events'] if x.get('application_id') == 'APP-0019' and x['type'] == 'form_submitted')
+            d['events'] += [dict(first, event_id='EV-0019a'), dict(first, event_id='EV-0020z', creative_id='PL-CR-11')]
+        v3 = mut(f3)
+        self.assertNotIn('APP-0019', v3.res.apps)
+        self.assertEqual({t['code'] for t in v3.res.trace if t['application_id'] == 'APP-0019'
+                          and t['type'] == 'form_submitted'}, {'AMBIGUOUS_APPLICATION'})
+        # 同じ時刻でも中身が同じ回答だけなら、初回を決められる（推測ではない）
+        def f4(d):
+            first = next(x for x in d['events'] if x.get('application_id') == 'APP-0021' and x['type'] == 'form_submitted')
+            d['events'].append(dict(first, event_id='EV-0021a'))
+        self.assertIn('APP-0021', mut(f4).res.apps)
 
     def test_5_ids_unique_with_two_event_files(self):
         with tempfile.TemporaryDirectory() as t:
@@ -516,7 +529,7 @@ class Screens(unittest.TestCase):
             self.assertIn(eid, s4)
         self.assertIn('CR に照合 <b>37</b> 応募ID ／ 未帰属 <b>3</b> 応募ID', s4)
         # 監査4: 表示した数字・率にはすべて根拠リンクが付く
-        for sid in ('pc-s0', 'pc-s1', 'pc-s2', 'pc-s4'):
+        for sid in ('pc-s0', 'pc-s1', 'pc-s2', 'pc-s3', 'pc-s4', 'pc-s5'):
             sec = section(self.html, sid)
             for m in re.finditer(r'data-(obs|ratio)="[^"]+">[^<]+</b>', sec):
                 tail = sec[m.end():m.end() + 80]

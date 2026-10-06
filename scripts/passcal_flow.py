@@ -286,8 +286,9 @@ def _process(r, doc):
     out_apps = set()
     for a in sorted(set(forms) | set(bad_forms)):
         lst = sorted(forms.get(a, []), key=lambda x: (x[0], x[1]['event_id']))
-        same_time = len(lst) >= 2 and lst[0][0] == lst[1][0] and \
-            {k: v for k, v in lst[0][1].items() if k != 'event_id'} != {k: v for k, v in lst[1][1].items() if k != 'event_id'}
+        # 先頭と同じ時刻の回答をすべて集め、中身（event_id を除く）が2種類以上なら初回を決められない
+        firsts = [x for at_, x in lst if lst and at_ == lst[0][0]]
+        same_time = len({_canon({k: v for k, v in x.items() if k != 'event_id'}) for x in firsts}) > 1
         if a in bad_forms or same_time:
             # 初回を決められない。推測で日付やコホート・帰属を決めない
             held_apps.add(a)
@@ -779,9 +780,10 @@ def render_s3(v):
     h = [_banner(v), '<div class="panel" id="%s"><h3>お金（接続状況）</h3><div class="tblwrap"><table><thead><tr><th>項目</th>'
          '<th>状態</th><th>説明</th></tr></thead><tbody>' % e(v.a('s3-spend'))]
     for sp in v.res.doc['spend']:
-        h.append('<tr><td>広告費（%s・架空）</td><td>%s</td><td>%s・%s・期間 %s〜%s・対象 %s・元の値 <code>%s</code>。'
+        h.append('<tr id="%s"><td>広告費（%s・架空）</td><td>%s</td><td>%s・%s・期間 %s〜%s・対象 %s・元の値 <code>%s</code>。'
                  '回答CPA は <a href="#%s">S2</a></td></tr>' % (
-                     e(sp['label']), _num(v, 'O-COST-%s' % sp['id']), e(sp['currency']), e(sp['cost_basis']),
+                     e(v.a('spend-%s' % sp['id'])), e(sp['label']), _num(v, 'O-COST-%s' % sp['id'], 'spend-%s' % sp['id']),
+                     e(sp['currency']), e(sp['cost_basis']),
                      e(sp['period']['start']), e(sp['period']['end']), e(sp['scope']), e(M.raw_text(sp.get('raw'))),
                      e(v.a('s2'))))
     for item in v.res.doc['unconnected']:
@@ -869,6 +871,18 @@ def _version_checks(v, d):
     return out
 
 
+def _evidence_links(v, rid):
+    """S5 の根拠の率から、S0〜S2 と同じ根拠表へ戻るリンク"""
+    for c in v.cohorts():
+        for m in ('int', 'enr'):
+            if rid == 'R-%s-%s' % (m.upper(), c['id']):
+                return _rate_links(c['id'], m)
+    for sp in v.res.doc['spend']:
+        if rid == 'R-CPA-%s' % sp['id']:
+            return (('spend-%s' % sp['id'], '費用の根拠'), ('tr-occ-%s' % sp['id'], '分母の根拠'))
+    return (('def', '定義'),)
+
+
 def render_s5(v):
     h = [_banner(v), '<p class="notice">架空の判断履歴です。本当の承認・採用・公開・配信ではありません。'
          'この画面から承認や配信を実行することはできません。根拠の値は判断した時点のものではなく、'
@@ -885,7 +899,8 @@ def render_s5(v):
         ev = list(d.get('evidence') or [])
         if ev:
             h.append('<dt>根拠（同じ集計から表示）</dt><dd><ul>%s</ul></dd>' % ''.join(
-                '<li>%s: %s</li>' % (e(rid), _ratio_html(v, rid)) if any(r['id'] == rid for r in v.res.dataset['ratios'])
+                '<li>%s: %s</li>' % (e(rid), _ratio_html(v, rid, _evidence_links(v, rid)))
+                if any(r['id'] == rid for r in v.res.dataset['ratios'])
                 else '<li>%s: <span class="unk">参照先がありません</span></li>' % e(rid) for rid in ev))
         h.append('<dt>次の1案</dt><dd>%s</dd></dl></div>' % e(d.get('next')))
     h.append(_basis(v))
