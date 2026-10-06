@@ -3,3 +3,4 @@ docs/motion/*.mp4
 docs/motion/*.gif
 docs/motion/*.webm
 docs/motion/.tmp-*
+dist/*.zip

@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyEdit } from '../../src/core/model.js';
 import { exportHtml, renderPage } from '../../src/core/render.js';
-import { checkProject, gates, collectTexts } from '../../src/core/editorial.js';
+import { checkProject, gates, collectTexts, fvTextOf } from '../../src/core/editorial.js';
 import { ingestGenerated, chooseAngle, buildPrompt } from '../../src/core/generate.js';
 import { serializeProject, validateProject } from '../../src/core/schema.js';
 import { seed, seed2, brief, RESPONSE } from './helpers.mjs';
@@ -89,9 +89,19 @@ test('criticalSemantic: デモは見える場所に表示され、登録・予�
     const notice = p.display.demoNotice;
     const plain = text(html).replace(/\s/g, '');
     assert.ok(plain.split(notice.replace(/\s/g, '').slice(0, 12)).length - 1 >= 2, notice); // 上部・フッター
-    const heroCta = text(html.match(/<div class="hero-cta">([\s\S]*?)<\/div><\/header>/)[1]);
-    assert.match(heroCta.replace(/\s/g, ''), /デモ/); // CTA の直近にもデモで申し込めないことを書く
-    assert.match(html, /class="demo-bar"/);
+    // FV v3: FV の中は「架空デモ」バッジだけ。デモで申し込めないことは FV のすぐ下（after-fv）の注意書きと、無効の予約ボタンの直近に書く
+    const hero = html.match(/<header class="hero[\s\S]*?<\/header>/)[0];
+    assert.match(text(hero), /架空デモ/);
+    assert.doesNotMatch(hero, /disabled|予約する/);
+    const after = html.slice(html.indexOf('</header>')).match(/<section class="after-fv"[\s\S]*?<\/section>/);
+    assert.ok(after, 'FV の直後に after-fv がある');
+    assert.ok(text(after[0]).replace(/\s/g, '').includes(notice.replace(/\s/g, '').slice(0, 12)));
+    const disabled = [...html.matchAll(/<span class="btn btn-disabled"[\s\S]*?<\/div>\s*<p class="cta-note">([\s\S]*?)<\/p>/g)];
+    assert.equal(disabled.length, p.sections.filter((x) => x.commercialPreview).length, p.id); // 無効の予約ボタンは commercialPreview の数だけ・すべてに注記
+    for (const m of disabled) assert.match(text(m[1]).replace(/\s/g, ''), /デモ/); // 無効の予約ボタンの直近にデモの旨
+    assert.equal((html.match(/class="btn btn-disabled"/g) || []).length, disabled.length); // すべての無効ボタンに注記
+    // v3: 上部の帯（demo-bar）はユーザー指示で FV 内の小さな「架空デモ」バッジに置き換え。詳細は FV 直下とフッター
+    assert.match(hero, /<span class="demo-badge">架空デモ<\/span>/);
     assert.doesNotMatch(html, /<form|<input|fetch\(|XMLHttpRequest|sendBeacon/);
     assert.match(html, /form-action 'none'/);
     assert.match(html, /noindex/);
@@ -111,7 +121,9 @@ test('criticalSemantic: 別の業種のブリーフでは、場面・仕組み�
   for (const w of ['見積もり', '担当者', '案件']) assert.ok(!ta.includes(w), `簿記に「${w}」`);
   const heroA = a.sections.find((s) => s.role === 'hero');
   const heroB = b.sections.find((s) => s.role === 'hero');
-  assert.notEqual(heroA.visual.kind, heroB.visual.kind);
+  // FV の主役: 簿記は顔写真（図なし）、見積もり番は架空データの一覧。仕組みの図も別の種類
+  assert.ok(a.assets.heroPortrait && !heroA.visual && heroB.visual.kind === 'table' && !b.assets.heroPortrait);
+  assert.notEqual(a.sections.find((s) => s.role === 'mechanism').visual.kind, b.sections.find((s) => s.role === 'mechanism').visual.kind);
   assert.notEqual(heroA.cta.label, heroB.cta.label);
   assert.ok(heroA.sourceRefs.every((r) => r.startsWith('s1-')) && heroB.sourceRefs.every((r) => r.startsWith('s2-')));
   // 両方とも、関係ない空の起源・推薦・価格理由セクションを持たない
@@ -154,7 +166,10 @@ test('停止条件: 言わないこと・口コミの創作・未展開の差込
 });
 
 test('一般化: 両ケースとも仮説は仮説のまま・FVは仕組みを具体的に説明・見出しは指定の改行候補', () => {
-  for (const [p, phrases] of [[seed(), ['「何からやろう」で、', '今夜を終わらせない。']], [seed2(), ['返事待ちの見積もりを、', 'チームで追える一覧に。']]]) {
+  // 改行候補の期待値は fixture にハードコードせず、Claude Code が書いた response.json（入力）から取る
+  for (const [p, id] of [[seed(), 'michishirube'], [seed2(), 'mitsumoriban']]) {
+    const phrases = JSON.parse(RESPONSE(id)).sections.find((s) => s.role === 'hero').headingPhrases;
+    assert.ok(phrases.length >= 2 && phrases.length <= 3, id); // H1 は意味の区切りで 2〜3 句（表示は E2E で2行以内を確認）
     assert.ok(p.insights.length && p.insights.every((i) => i.status === 'hypothesis'));
     const hero = p.sections.find((s) => s.role === 'hero');
     assert.deepEqual(hero.headingPhrases, phrases);
@@ -193,7 +208,9 @@ test('保存→再読込でv2の全レイヤーが一致（roundtrip）、v1 か
 test('中間レビューの指摘: 存在しない並べ替えを見せない・締め帯の統一・和文ゴシック・簿記の繰り返しを減らす', () => {
   const tb = text(review(seed2()).html);
   for (const w of ['近い順', '今週確認する案件だけ', '並べ替え', 'ソート']) assert.ok(!tb.includes(w), w);
-  assert.ok(tb.includes('確認したい案件を絞り込めます'));
+  // rev3（監査役の指摘）で文言を「記録した案件は、担当者や状況で絞り込めます」に変更。存在する操作（絞り込み）だけを見せる
+  assert.ok(tb.includes('担当者や状況で絞り込めます'));
+  assert.match(seed2().sections.find((s) => s.role === 'mechanism').visual.title, /^絞り込み/);
   const { html } = review(seed());
   assert.match(html, /\.closing\{background:linear-gradient\(160deg,var\(--ink\)/);
   assert.match(html, /"IPAPGothic","IPAGothic"[^;]*,sans-serif/);
@@ -203,4 +220,47 @@ test('中間レビューの指摘: 存在しない並べ替えを見せない・
   assert.ok(!seed().sections.some((s) => s.role === 'illustration'));
   assert.equal(seed().sections.find((s) => s.role === 'mechanism').visual.kind, 'flow');
   assert.equal(seed().sections.find((s) => s.role === 'hero').cta.target, 'mechanism');
+});
+
+test('FV の汎用仕様: SP基準・文字量・主CTA1つ・顔素材が無ければ必要素材として示す・研究は設計メモだけ', () => {
+  const a = seed();
+  assert.equal(a.fvDesign.viewportFirst, 'sp');
+  assert.equal(a.fvDesign.primaryCtas, 1);
+  assert.ok(fvTextOf(a).length <= a.fvDesign.maxChars);
+  assert.ok(!checkProject(a).some((i) => ['fv-long', 'asset-missing', 'research-in-copy'].includes(i.code)));
+  // 研究・仮説・設計条件を分ける。出典の無い research は仮説へ落とす
+  assert.deepEqual([...new Set(a.fvDesign.researchNotes.map((n) => n.status))].sort(), ['design-condition', 'hypothesis', 'research']);
+  assert.ok(a.fvDesign.researchNotes.filter((n) => n.status === 'research').every((n) => n.source && n.caveat));
+  const v = validateProject({ ...a, fvDesign: { ...a.fvDesign, researchNotes: [{ claim: '顔があると離脱が減る', status: 'research' }] } });
+  assert.equal(v.project.fvDesign.researchNotes[0].status, 'hypothesis');
+  // 研究や CVR を FV の文で主張したら停止
+  const bad = applyEdit(a, { type: 'setField', id: 'hero', field: 'body', value: '心理学の研究で、離脱率が下がると分かっています。' });
+  assert.ok(checkProject(bad).some((i) => i.code === 'research-in-copy' && i.level === 'stop'));
+  // 研究の文言は LP 本文に出さない
+  const html = renderPage(a, { kind: 'review' }).html;
+  for (const n of a.fvDesign.researchNotes) assert.ok(!html.includes(n.claim), n.claim);
+  assert.doesNotMatch(html, /Hutton|Sajjacholapunt|Tuch|Palcu|CVR|離脱率/);
+  // 顔素材が無い2つ目のケース: 必要素材として示し、写真は出さない（無関係な写真・肩書・証言で埋めない）
+  const b = seed2();
+  assert.equal(b.assets.heroPortrait, null);
+  assert.ok(checkProject(b).some((i) => i.code === 'asset-missing'));
+  assert.doesNotMatch(renderPage(b, { kind: 'review' }).html, /<img\b/);
+  // 架空と記録されていない顔写真はデモで停止
+  const real = { ...a, assets: { heroPortrait: { ...a.assets.heroPortrait, fictional: false } } };
+  assert.ok(checkProject(real).some((i) => i.code === 'portrait-not-fictional' && i.level === 'stop'));
+  // FV の文字が多すぎると警告（説明は FV の下へ）
+  const long = applyEdit(a, { type: 'setDisplay', key: 'audienceLabel', value: '仕事と家事の合間に、簿記2級の合格を目指して毎日少しずつ勉強を続けたいと考えている社会人のみなさんへ' });
+  assert.ok(checkProject(long).some((i) => i.code === 'fv-long'));
+  // 生成指示に FV の汎用仕様が入っている
+  const prompt = buildPrompt(brief('michishirube'), 'full');
+  for (const w of ['SP（幅400px前後）を基準', 'maxChars', '主CTA は1つ', 'requiredAssets', '無関係な写真・架空の肩書・顧客の証言で穴埋めしない', 'researchNotes', 'design-condition', 'evaluationPlan', 'CVR の改善を約束しない']) assert.ok(prompt.includes(w), w);
+});
+
+test('FV の補助カードはユーザー差し戻しで撤去（顔・見出し・CTA だけ）。具体例は下のセクション', () => {
+  const p = seed();
+  const hero = p.sections.find((s) => s.role === 'hero');
+  assert.equal(hero.visual, null);
+  const h = renderPage(p, { kind: 'review' }).html.match(/<header class="hero[\s\S]*?<\/header>/)[0];
+  assert.doesNotMatch(h, /hero-visual|class="plan|class="ring/);
+  assert.ok(p.sections.find((s) => s.role === 'mechanism').visual); // 仕組みの図は下に残る
 });

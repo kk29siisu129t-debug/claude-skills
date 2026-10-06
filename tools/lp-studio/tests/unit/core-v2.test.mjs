@@ -9,7 +9,7 @@ import { renderPage, renderWireframe, exportHtml, HEAD_SCRIPT, RUNTIME_SCRIPT } 
 import { checkProject } from '../../src/core/editorial.js';
 import { autoPhrases, headingPhrases } from '../../src/core/segment.js';
 import { sha256Base64 } from '../../src/core/util.js';
-import { seed, SEED_TEXT, brief } from './helpers.mjs';
+import { seed, seed2, SEED_TEXT, brief } from './helpers.mjs';
 
 test('schema: 不正なJSON・HTML・巨大入力・配列・未対応版を拒否', () => {
   assert.equal(parseProjectJson('{bad').ok, false);
@@ -82,7 +82,8 @@ test('model: 必須の削除禁止・改行候補の一致・図のラベル・U
   const p = seed();
   assert.throws(() => applyEdit(p, { type: 'removeSection', id: 'hero' }), /削除できません/);
   assert.throws(() => applyEdit(p, { type: 'setPhrases', id: 'hero', value: '何から/やろう' }), /一致/);
-  assert.throws(() => applyEdit(p, { type: 'setVisual', id: 'hero', key: 'label', value: '受講生の実績' }), /イメージ/);
+  assert.throws(() => applyEdit(p, { type: 'setVisual', id: 'mechanism', key: 'label', value: '受講生の実績' }), /イメージ/); // FV の図は撤去したので仕組みの図で確認
+  assert.throws(() => applyEdit(p, { type: 'setVisual', id: 'hero', key: 'label', value: 'x' }), /図はありません/);
   assert.throws(() => applyEdit(p, { type: 'setAction', key: 'url', value: 'javascript:alert(1)' }), /https/);
   assert.throws(() => applyEdit(p, { type: 'confirmAction', key: 'price', value: true }), /空の値/);
   assert.throws(() => applyEdit(p, { type: 'addQuote', text: 'よかった', speakerId: '', method: '', date: '2026-10-01' }), /必須/);
@@ -173,12 +174,38 @@ test('render: CSP は固定スクリプトの hash と一致し、アプリの C
   assert.match(html, /default-src 'none'/);
 });
 
-test('render: 視覚仕様の契約（文字・見出し・CTA・固定CTA・動き）', () => {
+test('render: 視覚仕様の契約（文字・見出し・CTA・固定CTA・動き）— FV v3（1訴求・主役1つ・CTA1つ）', () => {
+  // 旧 v2 仕様（H1 52/31/28/26px・2カラム 1.35fr）はユーザーレビューで FV が不合格になったため v3 に置き換えた。
+  // 実際に効いている値（cascade の結果）は E2E の getComputedStyle で 320/360/400/1280 ごとに確認する。
+  for (const p of [seed(), seed2()]) {
+    const { html } = renderPage(p, { kind: 'review' });
+    const css = html.match(/<style>[\s\S]*?<\/style>/)[0];
+    for (const s of [
+      'font-size:16px;line-height:1.8;font-weight:400', // 本文
+      '.hero h1{font-size:64px;line-height:1.22;font-weight:800;letter-spacing:-.03em', // PC H1
+      '.hero h1{font-size:36px;line-height:1.25}', // SP H1
+      '.hero h1{font-size:30px}', // 〜359px
+      '.sec h2{font-size:36px;line-height:1.35', 'font-size:28px;line-height:1.4', // H2 PC / SP
+      'max-width:1160px', 'max-width:640px', 'scroll-padding-bottom:96px',
+      'height:56px', 'bottom:max(12px,env(safe-area-inset-bottom))', // 固定CTA
+      'prefers-reduced-motion', '.hl{animation:hl .4s ease .7s both}', '.btn-hero{min-width:300px;min-height:64px',
+    ]) assert.ok(css.includes(s), `${p.id}: ${s}`);
+    // 旧 FV の上書きされた H1 指定を残さない（指定の出どころを1つにする）
+    for (const dead of ['.hero h1{font-size:52px', '.hero h1{font-size:31px', '.hero h1{font-size:28px}', '.hero h1{font-size:26px}', '.hero h1{font-size:42px}']) assert.ok(!css.includes(dead), dead);
+    assert.doesNotMatch(html, /data-count|infinite|rotate\(3/); // カウントアップ・無限の動き・飾りの回転なし
+    assert.match(html, /<html lang="ja"><head>[\s\S]*<script>[^<]*classList\.add\('js'\)/); // js クラスは head で付ける
+    assert.doesNotMatch(css, /\.js \.hero h1|\.js \.lead|\.js \.btn|\.js \.hero-copy|\.js \.hero-cta|\.js \.hero-photo/); // 文字・CTA・顔写真は動かさない（図だけ登場）
+    // FV: CTA は1つだけ・無効の予約ボタンは FV に置かない
+    const hero = html.match(/<header class="hero[\s\S]*?<\/header>/)[0];
+    assert.equal((hero.match(/class="btn /g) || []).length, 1, p.id);
+    assert.doesNotMatch(hero, /disabled|aria-disabled/);
+    assert.equal((hero.match(/<h1>/g) || []).length, 1);
+  }
+  // 顔写真版は写真の上に文字を重ねない SP 配置と、PC での見出し 56px
   const { html } = renderPage(seed(), { kind: 'review' });
-  for (const s of ['font-size:16px;line-height:1.8;font-weight:400', '.hero h1{font-size:52px;line-height:1.3;font-weight:800;letter-spacing:-.02em', '.hero h1{font-size:31px', '@media (max-width:399px){.hero h1{font-size:28px}}', '.hero h1{font-size:26px}', '.sec h2{font-size:36px;line-height:1.35', 'font-size:28px;line-height:1.4', 'max-width:1160px', 'minmax(0,1.35fr) minmax(0,1fr)', 'column-gap:40px', 'scroll-padding-bottom:96px', 'height:56px', 'bottom:max(12px,env(safe-area-inset-bottom))', 'prefers-reduced-motion', 'animation:vin .6s cubic-bezier(.2,.7,.2,1) .28s both', '.hl{animation:hl .4s ease .7s both}', 'max-width:640px']) assert.ok(html.includes(s), s);
-  assert.doesNotMatch(html, /data-count|infinite|rotate\(3/); // カウントアップ・無限の動き・飾りの回転なし
-  assert.match(html, /<html lang="ja"><head>[\s\S]*<script>[^<]*classList\.add\('js'\)/); // js クラスは head で付ける
-  assert.doesNotMatch(html.match(/<style>[\s\S]*?<\/style>/)[0], /\.js \.hero h1|\.js \.lead|\.js \.btn/); // 文字とCTAは動かさない
+  assert.match(html, /\.hero-portrait h1\{font-size:56px\}/);
+  assert.match(html, /\.hero-portrait h1\{font-size:32px\}/);
+  assert.match(html, /\.js \.hero-visual\{animation:vin \.6s cubic-bezier\(\.2,\.7,\.2,1\) \.28s both\}/);
 });
 
 test('segment: 意味のまとまりで区切り、語の途中で切らない', () => {

@@ -5,7 +5,7 @@
 // 生成物は常に「仮説・未承認・未検証」で入る。顧客の原文（quotes）は生成では作れない。
 
 import { ROLES, ROLE_IDS, ANGLE_DEPENDENT } from './roles.js';
-import { validateShape, VISUAL_SPEC, VISUAL_KINDS, CONFIDENCE } from './schema.js';
+import { validateShape, validateProject, VISUAL_SPEC, VISUAL_KINDS, CONFIDENCE, PROJECT_SPEC } from './schema.js';
 import { checkProject } from './editorial.js';
 import { clone } from './util.js';
 
@@ -53,7 +53,7 @@ const SYSTEM_TEXT = `あなたは、入力資料からLPの訴求と日本語コ
 
 見出しと本文は自然な日本語に書き直してください。入力文章を{{audience}}や{{promise}}でそのまま結合しないでください。価格、条件、URLなどの正確な値は参照元とひも付け、公開用コピーの自由な言い換えと分けてください。公開文の各主張にsourceRefsを付けて、意味が入力より強くなっていないか検査してください。
 
-FVでは、対象者の具体的な詰まりと、サービスが手伝う内容を短く伝えてください。デザイン上の小見出し、H1の意味ごとの改行候補、本文、CTA文言、隣接注記、必要な図解の内容を別フィールドで出してください。SPで語を途中分割してまで大きく見せる前提にしないでください。
+FVはSP（幅400px前後）を基準に設計し、PCはSPの構成を広げる順で考えてください。FVでは、対象者の具体的な詰まりと、サービスが手伝う内容を短い1訴求で伝え、主CTAは1つにしてください。説明文・注意書き・無効の申込ボタンはFVの下に置きます。デザイン上の小見出し、H1の意味ごとの改行候補、本文、CTA文言、隣接注記、必要な図解の内容を別フィールドで出してください。SPで語を途中分割してまで大きく見せる前提にしないでください。
 
 CTAが何をするか、料金、時間、提供方法、契約条件に未確認項目があれば、実販売の公開を止める理由を出してください。別の数字や『無料』『お気軽に』で穴埋めしないでください。説明用の例は例と明記し、成果や実物の証拠として使わないでください。
 
@@ -69,6 +69,10 @@ const RULES = [
   '本文の無い見出しだけ・CTAだけのセクションを作らない。該当する事実が無い役割（創業話・お客様の声・価格の理由・根拠など）は省く',
   '各セクションと各項目に sourceRefs（台帳の id）を付ける。unknown 種別の id は根拠に使わない',
   'です・ます調を基本にし、句点で文を終える。同じ話の繰り返し、入力文の貼り付け、意味の取り違え、不自然な助詞を声に出して点検する',
+  'FV は SP 基準。FV 内の文字（呼びかけ・H1・図の文字・CTA・写真の注記・デモ表示）は fvDesign.maxChars（既定80字）以内、H1 は2行以内、主CTA は1つ',
+  'FV の主役は顔のビジュアルを基本にする（assets.heroPortrait。人が用意した架空・由来明記の写真）。fvDesign に、顔の役割（visualRole）・視線の向き（gaze: 見出し／CTA の方へ）・商材と対象者への適合（fit）を書く。素材が無いときは fvDesign.requiredAssets に「顔写真（架空・由来明記・対象者に合う年代と場面）」と書き、無関係な写真・架空の肩書・顧客の証言で穴埋めしない。人物を講師・受講生・推薦者として紹介しない',
+  'FV の補助の図（hero.visual）は、それだけで意味が伝わる場合にだけ置く。伝わらないなら null にし、具体例は下のセクションに置く',
+  '心理学などの研究は fvDesign.researchNotes に「research（出典あり）／hypothesis（未検証）／design-condition（今回の設計条件）」を分けて書き、限界（caveat）を添える。FV 本文には入れない。離脱率・CVR の改善を約束しない。fvDesign.evaluationPlan に将来の比較方法（1要素だけ変える・定義を固定した CVR 等）を書く',
   'section の id は役割名（hero, empathy, mechanism, illustration, process, scope, faq, fit, closing など）にする',
 ];
 
@@ -137,6 +141,7 @@ export function buildPrompt(project, mode = 'full', target = {}) {
       cta: { label: '', behavior: 'anchor', target: 'illustration' },
       commercialPreview: { label: '実際の申込ボタンの文言', note: 'デモのため使えない旨' },
     }],
+    fvDesign: { viewportFirst: 'sp', visualRole: '顔写真の役割', gaze: 'toward-copy', fit: '商材・対象者との適合', maxChars: 80, primaryCtas: 1, requiredAssets: ['不足している素材'], researchNotes: [{ claim: '', source: '出典', status: 'research', caveat: '限界' }], evaluationPlan: '将来の比較検証の方法と指標' },
     selfCheck: { readAloud: ['声に出して直した点'], consistency: 'FV→共感→仕組み→裏づけ→CTA が同じ話か', missing: ['重要情報の不足'], spLength: 'SPでの文字量', openQuestions: ['残る要確認事項'] },
   }, null, 2), '```');
   return L.join('\n');
@@ -171,6 +176,7 @@ const RESPONSE_SPEC = {
     angles: { t: 'array', max: 6, of: { t: 'object', fields: { id: { t: 'string', max: 40, pattern: /^[A-Za-z0-9_-]{1,40}$/ }, statement: { t: 'string', max: 200 }, insightId: { t: 'string', max: 40 }, sourceRefs: STR_LIST(20, 40), rationale: { t: 'string', max: 400 }, scores: { t: 'object', fields: { evidence: { t: 'number', min: 0, max: 3, int: true }, fit: { t: 'number', min: 0, max: 3, int: true }, specificity: { t: 'number', min: 0, max: 3, int: true }, nextAction: { t: 'number', min: 0, max: 3, int: true } }, required: [] } }, required: ['id', 'statement', 'sourceRefs'] } },
     chosenAngleId: { t: 'string', max: 40 },
     sections: { t: 'array', of: GEN_SECTION, max: 14 },
+    fvDesign: PROJECT_SPEC.fields.fvDesign,
     selfCheck: { t: 'object', fields: { readAloud: STR_LIST(12, 200), consistency: { t: 'string', max: 400 }, missing: STR_LIST(12, 200), spLength: { t: 'string', max: 300 }, openQuestions: STR_LIST(12, 200) }, required: [] },
   },
   required: ['generator', 'mode', 'sections'],
@@ -238,6 +244,10 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
     p.angles = r.angles.map((x) => ({ ...x, sourceRefs: checkRefs(x.sourceRefs, `angle ${x.id}`), insightId: x.insightId || '', rationale: x.rationale || '', scores: x.scores || {} }));
     if (r.chosenAngleId && p.angles.some((a) => a.id === r.chosenAngleId)) p.chosenAngleId = r.chosenAngleId;
     report.added.push(`訴求候補 ${p.angles.length} 件（選択: ${p.chosenAngleId || 'なし'}）`);
+  }
+  if (r.fvDesign && r.mode !== 'section') {
+    const v = validateProject({ ...p, fvDesign: r.fvDesign });
+    p.fvDesign = v.ok ? v.project.fvDesign : p.fvDesign;
   }
   if (r.selfCheck) p.selfCheck = { readAloud: [], consistency: '', missing: [], spLength: '', openQuestions: [], ...r.selfCheck };
   if (r.analysis?.objections?.length && p.selfCheck) p.selfCheck.openQuestions = [...new Set([...(p.selfCheck.openQuestions || []), ...r.analysis.objections.map((o) => `読者の疑問: ${o}`)])].slice(0, 12);

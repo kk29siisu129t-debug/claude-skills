@@ -340,23 +340,7 @@
         "s1-mechanism"
       ],
       "items": [],
-      "visual": {
-        "title": "今夜の15分",
-        "task": "間違えた問題を見直す",
-        "from": "",
-        "to": "",
-        "review": "",
-        "columns": [],
-        "rows": [],
-        "highlight": -1,
-        "sourceRefs": [
-          "s1-mechanism"
-        ],
-        "kind": "task-card",
-        "label": "学習計画の例",
-        "note": "内容の例です。学習計画は面談で一緒につくります。",
-        "notEvidence": true
-      },
+      "visual": null,
       "cta": {
         "label": "学習プランを見る",
         "behavior": "anchor",
@@ -534,7 +518,8 @@
       "FV本文は『分け』『決めます』『見直します』の3つの動作だけにして、名詞の連結を避けた",
       "rev2: 説明と図解を「仕組み」1セクションにまとめ、15分と週ごとの見直しを、FV・仕組みの図・流れ・FAQ1問だけに減らした。締めは面談で何をするかだけにした",
       "rev3（監査役の指摘）: FVで15分が面談の時間に読めないよう「面談で学習内容を15分ずつに分け」と主語を明示。FAQは「必要な学習時間を保証」という成り立たない言い方をやめた。見出しの文体（常体）と「今夜」「学習計画」の語をそろえた。締めに押せる行動（計画の例を見る）を置いた",
-      "FV再設計（ユーザー差し戻し「文字が多すぎる」）: FV内は呼びかけ・H1・計画の図・CTAだけ。説明文・デモの注意書き・無効の予約ボタンはFVの下へ"
+      "FV再設計（ユーザー差し戻し「文字が多すぎる」）: FV内は呼びかけ・H1・計画の図・CTAだけ。説明文・デモの注意書き・無効の予約ボタンはFVの下へ",
+      "FV再設計（ユーザー差し戻し「左のイラストの意味が分からない」）: FV の補助カード（今夜の15分）を外した。具体的な計画例は、意味が明確になってから下のセクションに置く。見出しは調査ブリーフを受けてから決める"
     ],
     "consistency": "FV（今夜を終わらせない）→ 共感（平日に迷う）→ 仕組み＋図（予定を今夜の内容まで具体化）→ 流れ → FAQ（15分の意味）→ 締め（今の状況を整理）",
     "missing": [
@@ -720,5 +705,47 @@
       "focusYPc": 22,
       "focusXSp": 100
     }
+  },
+  "fvDesign": {
+    "viewportFirst": "sp",
+    "visualRole": "夜に自宅で学ぶ大人の顔を主役にし、読者が自分の場面として想像できる入口にする。人物は講師・受講生・推薦者ではない（AI生成の架空の人物）",
+    "gaze": "toward-copy",
+    "fit": "対象は働きながら簿記2級を学ぶ大人。仕事後の夜・自宅の机・ノートとペンという場面が、確認済みの仕様（学習を15分単位で計画し、週ごとに見直す）と矛盾しない",
+    "maxChars": 80,
+    "primaryCtas": 1,
+    "requiredAssets": [],
+    "researchNotes": [
+      {
+        "source": "Hutton & Nolte (2011); Sajjacholapunt & Ball (2014)",
+        "caveat": "注視・記憶の研究。離脱率・CVRの改善を示すものではない",
+        "claim": "広告内の人物の視線を商品・情報へ向けると、その対象への注視配分や記憶に影響した",
+        "status": "research"
+      },
+      {
+        "source": "Tuch et al. (2012) https://research.google/pubs/the-role-of-visual-complexity-and-prototypicality-regarding-first-impression-of-websites-working-towards-understanding-aesthetic-judgments/",
+        "caveat": "第一印象の美的評価。成果指標ではない",
+        "claim": "視覚的な複雑さが低く、見慣れた配置のサイトほど第一印象の評価が良かった",
+        "status": "research"
+      },
+      {
+        "source": "Palcu et al. (2017) https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2017.00881/full",
+        "caveat": "顔の効果は条件に依存する",
+        "claim": "顔を置けば広告の見られ方が一律に良くなるとは限らない",
+        "status": "research"
+      },
+      {
+        "source": "",
+        "caveat": "この LP では未検証",
+        "claim": "この読者には、顔の視線が見出しへ向く構図が FV の内容理解を助ける",
+        "status": "hypothesis"
+      },
+      {
+        "source": "",
+        "caveat": "今回のデザイン条件であり、科学的な万能値ではない",
+        "claim": "FV の文字は80字以内、主CTAは1つ",
+        "status": "design-condition"
+      }
+    ],
+    "evaluationPlan": "同じ人物・同じ配置のまま1要素（例: 視線が見出しへ向く／正面）だけを変えて比べる。注視だけで判断せず、事前に定義を固定した指標（例: 主CTAのクリック率、説明セクションへの到達率）で判断する。"
   }
 }

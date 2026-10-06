@@ -21,7 +21,7 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .hero-meta{font-size:13px;line-height:1.5;color:var(--sub);margin:0 0 18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hero-meta b{color:var(--ink);font-weight:700;margin-right:.6em}
 .aud{font-size:15px;line-height:1.5;font-weight:700;color:var(--accent-ink);margin:0 0 12px}
-.hero h1{font-size:52px;line-height:1.3;font-weight:800;letter-spacing:-.02em;margin:0 0 20px;text-wrap:balance}
+.hero h1{text-wrap:balance}
 .lead{font-size:17px;line-height:1.8;max-width:34em;margin:0}
 .cta-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
 .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:56px;padding:12px 28px;border-radius:12px;font-size:17px;line-height:1.4;font-weight:700;text-decoration:none;text-align:center}
@@ -97,12 +97,10 @@ tr.hl td{background-color:var(--hl)}
 @keyframes hlc{from{background-color:#fff}to{background-color:var(--hl)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
 @media print{.reveal{opacity:1!important;transform:none!important}.sticky-cta{display:none}}
-@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:42px}}
 @media (max-width:767px){
 .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";padding:16px 20px 24px}
 .hero-meta{margin-bottom:12px;font-size:12px}
 .aud{font-size:14px;margin-bottom:8px}
-.hero h1{font-size:31px;margin-bottom:12px}
 .lead{font-size:16px}
 .hero-visual{margin-top:14px;align-self:stretch}
 .hero-visual .vis{padding:14px 16px;border-radius:14px}
@@ -141,8 +139,8 @@ tr.hl td{background-color:var(--hl)}
 .vis-table tr.hl td{font-weight:700}
 .sticky-cta{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;height:56px}
 }
-@media (max-width:399px){.hero h1{font-size:28px}.hero-meta{white-space:normal}}
-@media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}.hero h1{font-size:26px}}
+@media (max-width:399px){.hero-meta{white-space:normal}}
+@media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}}
 /* ---- FV（v3: 1訴求・大きな図・1CTA） ---- */
 @property --p{syntax:'<number>';inherits:false;initial-value:25}
 .hero{background:var(--paper);border-bottom:0;overflow:hidden}
@@ -192,52 +190,50 @@ tr.hl td{background-color:var(--hl)}
 .after-fv .lead{font-size:16px}
 }
 @media (max-width:359px){.hero-bar{padding:10px 16px 0}.hero-in{padding:16px 16px 24px}.hero h1{font-size:30px}.plan-title{font-size:24px}.ring{width:84px;height:84px}}
-/* ---- FV 人物写真版: 写真を全面に敷き、顔が主役。見出し・小さな計画カード・CTA を視線の先（余白側）に置く ---- */
-.hero-portrait{position:relative;background:#f4ece4;isolation:isolate}
-.hero-photo{position:absolute;inset:0;z-index:-1;overflow:hidden;margin:0}
-.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp);display:block}
+/* ---- FV 人物写真版（SP基準で書き、PC は min-width で広げる）: 顔が主役・短い1訴求・CTA1つ。補助の図は任意 ---- */
+.hero-portrait{position:relative;background:var(--paper);isolation:isolate}
+.hero-portrait .hero-bar{position:absolute;top:0;left:0;right:0;z-index:2;padding:12px 20px 0}
+.hero-portrait .logo{background:rgba(255,255,255,.86);border-radius:999px;padding:4px 10px}
+.hero-photo{position:relative;margin:0;overflow:hidden;height:300px}
+.hero-photo img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
+.hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
+.photo-cap{position:absolute;right:10px;top:270px;margin:0;font-size:10px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
+.hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";min-height:0;padding:0 20px 24px;row-gap:0}
+.hero-portrait .hero-copy{margin-top:20px;align-self:auto}
+.hero-portrait h1{font-size:32px}
+.hero-portrait .hero-cta{margin-top:20px}
+.hero-visual.mini{grid-area:visual;margin:16px 0 0;max-width:236px}
+.hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px;box-shadow:0 18px 40px color-mix(in srgb,var(--ink) 18%,transparent)}
+.hero-visual.mini .vis-label{font-size:11px;margin-bottom:8px;padding:2px 6px}
+.hero-visual.mini .plan-main{gap:10px;margin-bottom:10px}
+.hero-visual.mini .ring{width:40px;height:40px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
+.hero-visual.mini .plan-title{font-size:18px}
+.hero-visual.mini .plan-task{font-size:14px;padding:8px 10px;gap:10px}
+@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px;margin-top:10px}}
+@media (min-width:768px){
+.hero-portrait{background:#f4ece4}
+.hero-portrait .hero-bar{position:static;padding:16px 32px 0}
+.hero-portrait .logo{background:none;padding:0}
+.hero-photo{position:absolute;inset:0;z-index:-1;height:auto}
+.hero-photo img{object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp)}
 .hero-photo img.flip{transform:scale(var(--zp)) scaleX(-1)}
 .gaze-left .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
 .gaze-right .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
-.hero-portrait .hero-in{grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:"copy ." "visual ." "cta .";min-height:min(640px,calc(100vh - 56px));align-content:center;padding-top:24px;padding-bottom:56px;row-gap:0}
+.hero-portrait .hero-in{grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:"copy ." "visual ." "cta .";min-height:min(640px,calc(100vh - 56px));align-content:center;padding:24px 32px 56px}
 .gaze-right .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,500px);grid-template-areas:". copy" ". visual" ". cta"}
-.hero-portrait .hero-copy{align-self:auto}
+.hero-portrait .hero-copy{margin-top:0}
 .hero-portrait h1{font-size:56px}
-.hero-visual.mini{grid-area:visual;margin:28px 0 0;max-width:340px;align-self:start}
-.hero-visual.mini .plan{padding:16px 18px 18px;border-radius:18px;box-shadow:0 18px 40px color-mix(in srgb,var(--ink) 18%,transparent)}
+.hero-portrait .hero-cta{margin-top:32px}
+.hero-visual.mini{margin:28px 0 0;max-width:340px}
+.hero-visual.mini .plan{padding:16px 18px 18px;border-radius:18px}
 .hero-visual.mini .vis-label{font-size:12px;margin-bottom:10px}
-.hero-visual.mini .plan-main{gap:12px;margin-bottom:12px}
-.hero-visual.mini .ring{width:56px;height:56px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
+.hero-visual.mini .ring{width:56px;height:56px}
 .hero-visual.mini .plan-title{font-size:22px}
-.hero-visual.mini .plan-task{font-size:15px;padding:10px 12px;gap:10px}
-.hero-visual.mini .plan-task .vis-box{width:18px;height:18px;margin-top:2px}
-.hero-portrait .hero-cta{margin-top:28px}
-.photo-cap{position:absolute;right:16px;bottom:12px;margin:0;font-size:11px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
-@media (max-width:767px){
-.hero-portrait{background:var(--paper)}
-.hero-portrait .hero-bar{position:absolute;top:0;left:0;right:0;z-index:2}
-.hero-portrait .logo{background:rgba(255,255,255,.86);border-radius:999px;padding:4px 10px}
-.hero-photo{position:relative;inset:auto;z-index:auto;height:300px}
-.hero-photo img{object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
-.hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
-.gaze-left .hero-photo::after,.gaze-right .hero-photo::after{display:none}
-.hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"visual" "copy" "cta";min-height:0;padding:0 20px 24px}
-.hero-visual.mini{margin:14px 0 0;max-width:236px;position:relative;z-index:1}
-.gaze-right .hero-visual.mini{justify-self:end}
-.hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px}
-.hero-visual.mini .vis-label{font-size:11px;margin-bottom:8px;padding:2px 6px}
-.hero-visual.mini .plan-main{gap:10px;margin-bottom:10px}
-.hero-visual.mini .ring{width:40px;height:40px}
-.hero-visual.mini .plan-title{font-size:18px}
-.hero-visual.mini .plan-task{font-size:14px;padding:8px 10px}
-.hero-portrait .hero-copy{margin-top:18px}
-.hero-portrait h1{font-size:32px}
-.hero-portrait .hero-cta{margin-top:18px}
-.photo-cap{bottom:auto;right:10px;top:270px;font-size:10px}
+.hero-visual.mini .plan-task{font-size:15px;padding:10px 12px}
+.photo-cap{top:auto;bottom:12px;right:16px;font-size:11px}
 }
-@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding-bottom:16px}.hero-portrait .hero-visual.mini{margin-top:10px}.hero-portrait .hero-copy{margin-top:12px}.hero-portrait .hero-cta{margin-top:14px}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px}}
 </style></head>
-<body data-kind="draft" data-demo="synthetic-demo"><div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 0 件 / 要確認 0 件。</div>
+<body data-kind="draft" data-demo="synthetic-demo"><div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 0 件 / 要確認 2 件。</div>
 <main><header class="hero cta-zone" id="hero"><div class="hero-bar"><span class="logo">見積もり番</span><span class="demo-badge">架空デモ</span></div><div class="hero-in">
 <div class="hero-copy"><p class="draft-meta">FV / 未承認 / 参照: s2-target, s2-input, s2-list, s2-demo</p><p class="aud">少人数で案件を進める制作会社へ</p><h1><span class="ph">返事待ちの見積もりを、</span><span class="ph">チームで追える一覧に。</span></h1></div>
 <figure class="hero-visual" aria-label="共有一覧のイメージ・架空データ"><div class="vis vis-tablebox"><span class="vis-label">共有一覧のイメージ・架空データ</span><table class="vis-table"><thead><tr><th scope="col">案件</th><th scope="col">状況</th><th scope="col">担当者</th><th scope="col">次回確認日</th></tr></thead><tbody><tr class="hl"><td data-label="案件">サイト制作A</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月8日</td></tr><tr><td data-label="案件">バナー制作B</td><td data-label="状況"><span class="tag">条件を確認中</span></td><td data-label="担当者">担当B</td><td data-label="次回確認日">10月9日</td></tr></tbody></table></div></figure>

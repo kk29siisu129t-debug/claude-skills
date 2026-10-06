@@ -169,11 +169,31 @@ export function checkProject(project) {
     const d = project.display;
     if (d.brandName && canon(hero.heading).includes(canon(d.brandName))) issues.push(ISSUE('warn', 'brand-in-headline', 'FV見出しにブランド名が入っています（見出しは読者の場面と変化に使う）', { sectionId: hero.id }));
     if (d.audienceLabel && heroText.includes(d.audienceLabel)) issues.push(ISSUE('warn', 'repeat-audience', 'FVで対象者の呼びかけを繰り返しています（呼びかけは1回）', { sectionId: hero.id }));
+    // FV は SP 基準で短く: FV 内に出る文字（説明文・注記は FV の下に出るので数えない）
+    const fv = fvTextOf(project, hero);
+    const max = project.fvDesign?.maxChars || 80;
+    if (fv.length > max) issues.push(ISSUE('warn', 'fv-long', `FV の文字が${fv.length}字です（目安${max}字以内。説明は FV の下へ）`, { sectionId: hero.id }));
+    // 顔のビジュアルは人が用意する素材。無ければ必要素材として示し、無関係な写真や架空の肩書・証言で埋めない
+    const pt = project.assets?.heroPortrait;
+    if (!pt) issues.push(ISSUE('warn', 'asset-missing', `必要素材: FV の顔写真（架空・由来明記・対象者に合う場面）が未設定です${project.fvDesign?.requiredAssets?.length ? `（${project.fvDesign.requiredAssets.join(' / ')}）` : ''}`, { sectionId: hero.id }));
+    else if (pt.fictional !== true && d.demoMode !== 'live') issues.push(ISSUE('stop', 'portrait-not-fictional', 'デモの顔写真が架空と記録されていません（実在の人物をデモに使わない）', { sectionId: hero.id }));
+    // 研究・心理学・CVR を FV の本文で主張しない（設計メモ fvDesign.researchNotes に書く）
+    if (/心理学|研究で|研究によ|CVR|離脱率|コンバージョン/.test(heroText)) issues.push(ISSUE('stop', 'research-in-copy', 'FV の本文で研究・心理学・CVR を主張しています（設計メモに書き、効果を約束しない）', { sectionId: hero.id }));
   }
   if (!project.chosenAngleId) issues.push(ISSUE('warn', 'no-angle', '訴求が選ばれていません'));
   if (project.display.demoMode !== 'live' && !project.display.demoNotice.trim()) issues.push(ISSUE('stop', 'demo-unlabelled', 'デモ・試作の表示がありません'));
   for (const ins of project.insights) if (ins.status === 'hypothesis') issues.push(ISSUE('info', 'hypothesis', `インサイト「${ins.statement.slice(0, 30)}…」は仮説です（顧客の原文・観察で未確認）`));
   return issues;
+}
+
+/** FV 内に表示される文字（空白を除く）。render の FV と同じ要素を数える */
+export function fvTextOf(project, hero = project.sections.find((s) => s.role === 'hero')) {
+  if (!hero) return '';
+  const d = project.display;
+  const v = hero.visual;
+  const vis = !v ? [] : v.kind === 'task-card' ? [v.label, v.title, v.task] : v.kind === 'table' ? [v.label, v.title, ...(v.rows || []).flat()] : v.kind === 'flow' ? [v.label, v.from, v.to, v.review] : [v.label, v.title, ...(v.items || [])];
+  const parts = [d.brandName, d.demoMode !== 'live' ? (d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作') : '', d.audienceLabel, hero.heading, ...vis, hero.cta?.label, project.assets?.heroPortrait?.caption];
+  return parts.filter(Boolean).join('').replace(/\s/g, '');
 }
 
 const EXAMPLE_HOST = /(^|\.)example\.(com|org|net)$/i;

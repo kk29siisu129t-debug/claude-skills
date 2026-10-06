@@ -198,6 +198,19 @@ export const PROJECT_SPEC = {
     },
     chosenAngleId: str(40),
     sections: { t: 'array', of: SECTION_SPEC, max: 20 },
+    // FV の設計メモ（生成・人が書く）。研究の参照は「設計の根拠」であり効果の保証ではない。FV の本文には出さない
+    fvDesign: {
+      t: 'object', nullable: true,
+      fields: {
+        viewportFirst: { t: 'string', enum: ['sp', 'pc'] },
+        visualRole: str(200), gaze: { t: 'string', enum: ['toward-copy', 'toward-cta', 'front', 'none'] }, fit: str(300),
+        maxChars: { t: 'number', min: 20, max: 200, int: true }, primaryCtas: { t: 'number', min: 1, max: 1, int: true },
+        requiredAssets: strList(200, 8),
+        researchNotes: { t: 'array', max: 12, of: { t: 'object', fields: { claim: str(300), source: str(300), status: { t: 'string', enum: ['research', 'hypothesis', 'design-condition'] }, caveat: str(300) }, required: ['claim', 'status'] } },
+        evaluationPlan: str(500),
+      },
+      required: [],
+    },
     selfCheck: {
       t: 'object', nullable: true,
       fields: { readAloud: strList(200, 12), consistency: str(400), missing: strList(200, 12), spLength: str(300), openQuestions: strList(200, 12) },
@@ -400,6 +413,12 @@ export function validateProject(input) {
   p.angles = p.angles || [];
   p.chosenAngleId = p.chosenAngleId || '';
   if (p.selfCheck === undefined) p.selfCheck = null;
+  if (p.fvDesign === undefined) p.fvDesign = null;
+  if (p.fvDesign) {
+    p.fvDesign = { viewportFirst: 'sp', visualRole: '', gaze: 'none', fit: '', maxChars: 80, primaryCtas: 1, requiredAssets: [], researchNotes: [], evaluationPlan: '', ...p.fvDesign };
+    // 出典の無い「研究」は仮説として扱う
+    p.fvDesign.researchNotes = p.fvDesign.researchNotes.map((n) => ({ source: '', caveat: '', ...n, status: n.status === 'research' && !String(n.source || '').trim() ? 'hypothesis' : n.status }));
+  }
 
   if (p.inputs.action.url && !safeUrl(p.inputs.action.url)) {
     warnings.push('$.inputs.action.url: 許可されないURLのため除去しました（https / mailto / tel / #id のみ）');

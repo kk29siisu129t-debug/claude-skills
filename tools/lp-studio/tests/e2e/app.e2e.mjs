@@ -315,19 +315,39 @@ test('LP: 2ケース × 320/375/390/400/430/1280px — 横スクロールなし�
         const p = document.querySelector('.sec .body p');
         const cs = getComputedStyle(p);
         const cta = document.querySelector('.hero .btn-primary').getBoundingClientRect();
-        const vis = document.querySelector('.hero-visual').getBoundingClientRect();
-        return { sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, broken, fs: cs.fontSize, lh: parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), h1: parseFloat(getComputedStyle(document.querySelector('h1')).fontSize), ctaBottom: cta.bottom, visBottom: vis.bottom, heroBottom: document.querySelector('.hero').getBoundingClientRect().bottom, fw: getComputedStyle(document.querySelector('.ph')).fontWeight, bodyW: getComputedStyle(document.body).fontWeight };
+        const r = (sel) => { const el = document.querySelector(sel); if (!el) return null; const b = el.getBoundingClientRect(); return { l: b.left, t: b.top, r: b.right, b: b.bottom }; };
+        const h1el = document.querySelector('.hero h1');
+        const hero = document.querySelector('.hero');
+        return { sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, broken, fs: cs.fontSize, lh: parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), h1: parseFloat(getComputedStyle(h1el).fontSize), h1Lines: Math.round(h1el.getBoundingClientRect().height / parseFloat(getComputedStyle(h1el).lineHeight)), ctaBottom: cta.bottom, heroBottom: hero.getBoundingClientRect().bottom, fw: getComputedStyle(document.querySelector('.ph')).fontWeight, bodyW: getComputedStyle(document.body).fontWeight,
+          portrait: hero.classList.contains('hero-portrait'), ctas: hero.querySelectorAll('.btn').length, disabled: hero.querySelectorAll('[aria-disabled],[disabled]').length,
+          chars: hero.innerText.replace(/\s/g, '').length, vis: r('.hero-visual'), h1r: r('.hero h1'), ctar: r('.hero .btn-primary'), photo: r('.hero-photo'), cap: r('.photo-cap'), badge: hero.querySelector('.demo-badge')?.textContent };
       });
       assert.ok(m.sw <= m.cw, `${id} ${w}: h-scroll`);
       assert.deepEqual(m.broken, [], `${id} ${w}: 見出しの文節が途中で割れた`);
-      assert.equal(m.fs, w >= 768 ? '16px' : '16px');
+      assert.equal(m.fs, '16px');
       assert.ok(Math.abs(m.lh - 1.8) < 0.05);
       assert.equal(m.bodyW, '400');
-      const expectH1 = w < 360 ? 26 : w < 400 ? 28 : w < 768 ? 31 : 52;
+      // FV v3（ユーザーレビューで旧 FV は不合格）: H1 は顔写真版 PC 56 / SP 32 / 〜359px 28、図版 PC 64 / SP 36 / 〜359px 30
+      const expectH1 = m.portrait ? (w < 360 ? 28 : w < 768 ? 32 : 56) : (w < 360 ? 30 : w < 768 ? 36 : 64);
       assert.equal(m.h1, expectH1, `${id} ${w}: h1 ${m.h1}`);
+      assert.ok(m.h1Lines <= 2, `${id} ${w}: H1 ${m.h1Lines}行`);
+      assert.equal(m.ctas, 1, `${id} ${w}: FV の CTA は1つ`);
+      assert.equal(m.disabled, 0, `${id} ${w}: FV に無効の予約ボタンを置かない`);
+      assert.ok(m.chars <= 80, `${id} ${w}: FV の文字 ${m.chars}字`);
+      assert.equal(m.badge, '架空デモ');
       assert.ok(m.ctaBottom <= hgt, `${id} ${w}: 主CTAが最初の画面に無い`);
-      if (w === 400) assert.ok(m.heroBottom <= 680 + 40 && m.visBottom < m.ctaBottom, `${id} 400: FV ${m.heroBottom}`); // デモ帯を除くFVは約680px以内
-      if (w === 360 || w === 375) assert.ok(m.heroBottom <= 760);
+      assert.ok(m.h1r.b <= hgt, `${id} ${w}: 見出しが最初の画面に無い`);
+      const overlap = (x, y) => !!(x && y) && x.l < y.r && y.l < x.r && x.t < y.b && y.t < x.b;
+      assert.ok(!overlap(m.vis, m.h1r) && !overlap(m.vis, m.ctar) && !overlap(m.h1r, m.ctar), `${id} ${w}: 図・見出し・CTA が重なった`);
+      if (m.portrait) {
+        // 顔が主役。SP は 写真 → 見出し → （補助の図）→ CTA の順で、写真に文字を重ねない。PC は顔の反対側（視線の先）の余白に置く
+        assert.ok(m.h1r.t >= m.photo.b || w >= 768, `${id} ${w}: SP で見出しが写真に重なった`);
+        if (w < 768) assert.ok(m.ctar.t >= m.h1r.b && (!m.vis || (m.vis.t >= m.h1r.b && m.ctar.t >= m.vis.b)), `${id} ${w}: SP の順序`);
+        else assert.ok(m.h1r.r <= w * 0.5 && (!m.vis || m.vis.r <= w * 0.5), `${id} ${w}: PC の見出しと図は左の余白側`);
+        if (m.vis) assert.ok((m.vis.r - m.vis.l) * (m.vis.b - m.vis.t) < (m.photo.r - m.photo.l) * (m.photo.b - m.photo.t) * 0.5, '補助の図は写真より小さい');
+        assert.ok(m.cap && m.cap.b <= m.photo.b + 1 && !overlap(m.cap, m.vis) && !overlap(m.cap, m.h1r), `${id} ${w}: 写真の注記`);
+        assert.ok(m.photo.b - m.photo.t >= (w < 360 ? 250 : w < 768 ? 290 : 600), `${id} ${w}: 顔写真が小さすぎる`);
+      } else if (w === 400) assert.ok(m.heroBottom <= 720 && m.vis.b < m.ctaBottom, `${id} 400: FV ${m.heroBottom}`);
       assert.deepEqual(errors, []);
       await context.close();
     }
@@ -378,8 +398,8 @@ test('LP: 文字とCTAは最初の描画から読める／reduced-motion・JS無
   const page = await ctx.newPage();
   await page.goto(`file://${file}`, { waitUntil: 'commit' });
   await page.waitForSelector('h1');
-  const op = await page.evaluate(() => ['h1', '.lead', '.hero .btn-primary'].map((s) => { let o = 1; for (let n = document.querySelector(s); n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity); return o; }));
-  assert.deepEqual(op, [1, 1, 1]);
+  const op = await page.evaluate(() => ['.hero h1', '.hero .btn-primary', '.demo-badge', '.hero-photo img', '.photo-cap', '.after-fv .lead'].map((s) => { let o = 1; for (let n = document.querySelector(s); n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity); return o; }));
+  assert.deepEqual(op, [1, 1, 1, 1, 1, 1]); // 見出し・CTA・デモ表示・顔写真・写真の注記は最初の描画から見える（動くのは計画カードだけ）
   await ctx.close();
   for (const opts of [{ reducedMotion: 'reduce' }, { javaScriptEnabled: false }]) {
     const c = await browser.newContext({ viewport: { width: 400, height: 760 }, ...opts });
@@ -412,4 +432,77 @@ test('自己完結版（dist/lp-studio-standalone.html）を file:// で開い�
   assert.match(review.text, /返事待ちの見積もりを/);
   assert.deepEqual(errors, []);
   await context.close();
+});
+
+test('LP: 主CTAのクリックと Enter で図解へ移動し、無効の予約は遷移・送信・外部通信をしない', async () => {
+  for (const id of ['michishirube', 'mitsumoriban']) {
+    const file = await exportReview(id);
+    for (const [w, h] of [[1280, 800], [400, 760]]) {
+      const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      await ctx.addInitScript(() => { window.__submits = 0; addEventListener('submit', () => { window.__submits++; }, true); });
+      const p = await ctx.newPage();
+      const external = []; const popups = [];
+      p.on('request', (r) => { if (!/^(file|data):/.test(r.url())) external.push(r.url()); });
+      ctx.on('page', (np) => popups.push(np.url()));
+      await p.goto(`file://${file}`);
+      await p.waitForTimeout(1300);
+      const target = await p.getAttribute('.hero .btn-primary', 'href');
+      assert.match(target, /^#[a-z0-9-]+$/);
+      const inView = () => p.evaluate((t) => { const el = document.querySelector(`${t} .vis`) || document.querySelector(t); const r = el.getBoundingClientRect(); return r.top < innerHeight && r.bottom > 0; }, target);
+      await p.click('.hero .btn-primary');
+      await p.waitForTimeout(1000);
+      assert.equal(await p.evaluate(() => location.hash), target, `${id} ${w} click`);
+      assert.ok(await inView(), `${id} ${w}: クリック後に図解が見える`);
+      await p.evaluate(() => { history.replaceState(null, '', location.pathname); window.scrollTo({ top: 0, behavior: 'instant' }); });
+      await p.waitForTimeout(300);
+      assert.equal(await p.evaluate(() => scrollY), 0, 'Enter の前に先頭へ戻す');
+      await p.focus('.hero .btn-primary');
+      await p.keyboard.press('Enter');
+      await p.waitForTimeout(1000);
+      assert.equal(await p.evaluate(() => location.hash), target, `${id} ${w} Enter`);
+      assert.ok(await inView(), `${id} ${w}: Enter 後に図解が見える`);
+      const dis = p.locator('.btn-disabled');
+      const n = await dis.count();
+      await p.evaluate(() => { history.replaceState(null, '', location.pathname + '#before'); window.scrollTo({ top: 0, behavior: 'instant' }); });
+      const before = await p.evaluate(() => location.href);
+      for (let i = 0; i < n; i++) { await dis.nth(i).scrollIntoViewIfNeeded(); await dis.nth(i).click({ force: true }); await p.waitForTimeout(200); }
+      assert.equal(await p.evaluate(() => location.href), before, `${id} ${w}: 無効の予約で遷移した`);
+      for (let i = 0; i < n; i++) {
+        const a = await dis.nth(i).evaluate((el) => ({ tag: el.tagName, href: el.getAttribute('href'), tabindex: el.tabIndex, aria: el.getAttribute('aria-disabled') }));
+        assert.deepEqual([a.tag, a.href, a.aria], ['SPAN', null, 'true']);
+        assert.ok(a.tabindex < 0, 'フォーカスが乗らない');
+      }
+      assert.equal(await p.evaluate(() => window.__submits), 0);
+      assert.deepEqual(external, []);
+      assert.deepEqual(popups, []);
+      await ctx.close();
+    }
+  }
+});
+
+test('ZIP を展開しても同じ版が動く（自己完結版・書き出し済みLP・VERSION）', async () => {
+  const zip = join(TMP, 'pkg.zip');
+  const r = spawn(process.execPath, ['pack.mjs', '--out', zip, '--allow-dirty'], { cwd: ROOT });
+  assert.equal(await new Promise((res) => r.on('exit', res)), 0);
+  const dir = join(TMP, 'unz');
+  const u = spawn('unzip', ['-q', zip, '-d', dir]);
+  assert.equal(await new Promise((res) => u.on('exit', res)), 0);
+  const base = join(dir, 'lp-studio');
+  const head = await new Promise((res) => { let o = ''; const g = spawn('git', ['rev-parse', 'HEAD'], { cwd: ROOT }); g.stdout.on('data', (d) => { o += d; }); g.on('exit', () => res(o.trim())); });
+  assert.match(readFileSync(join(base, 'VERSION.txt'), 'utf8'), new RegExp(`^commit ${head}`));
+  for (const f of ['dist/lp-studio-standalone.html', 'examples/v2/michishirube/review.html', 'examples/v2/mitsumoriban/review.html', 'seed/michishirube.project.json', 'src/core/render.js']) assert.equal(readFileSync(join(base, f), 'utf8'), readFileSync(join(ROOT, f), 'utf8'), `ZIP の ${f} が作業ツリーと一致`);
+  const ctx = await browser.newContext({ viewport: { width: 400, height: 760 } });
+  const p = await ctx.newPage();
+  const errors = [];
+  p.on('pageerror', (e) => errors.push(e.message));
+  p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
+  await p.goto(`file://${join(base, 'dist/lp-studio-standalone.html')}`);
+  await p.waitForSelector('body[data-ready="1"]');
+  await p.click('#tab-design');
+  await p.waitForTimeout(600);
+  assert.equal(await p.frameLocator('#sp-frame').locator('.hero-portrait').count(), 1, '展開後の自己完結版でも顔主体FV');
+  await p.goto(`file://${join(base, 'examples/v2/michishirube/review.html')}`);
+  assert.equal(await p.locator('.hero-portrait img[src^="data:image/webp;base64,"]').count(), 1);
+  assert.deepEqual(errors, []);
+  await ctx.close();
 });
