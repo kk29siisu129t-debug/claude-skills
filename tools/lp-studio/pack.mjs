@@ -19,8 +19,9 @@ const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : nu
 const die = (msg) => { console.error(msg); process.exit(1); };
 const LITE_EXCLUDED = LITE_EXCLUDABLE;
 
+// git モードは、この pack.mjs がその repo で追跡されているときだけ（展開先がたまたま別の repo の中にあるときは、配布物の再梱包として扱う）
 let inGit = false;
-try { inGit = execFileSync('git', ['rev-parse', '--is-inside-work-tree'], { cwd: root, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim() === 'true'; } catch { inGit = false; }
+try { execFileSync('git', ['ls-files', '--error-unmatch', 'pack.mjs'], { cwd: root, stdio: 'pipe' }); inGit = true; } catch { inGit = false; }
 
 try { execFileSync(process.execPath, ['build-standalone.mjs', '--check'], { cwd: root, stdio: 'pipe' }); } catch { die('dist/lp-studio-standalone.html がソースと一致しません。node build-standalone.mjs を実行してください'); }
 

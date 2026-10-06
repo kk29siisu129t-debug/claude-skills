@@ -116,6 +116,9 @@ export function verifyDist(dir, { git = true, gitDir } = {}) {
   }
   // 実際に走査した一覧と manifest のキーを突き合わせる（キーで直接開かない）
   const walked = walk(dir);
+  if (walked.length > 5000) return fail(`ファイルが多すぎます（${walked.length} > 5000）`);
+  const total = walked.reduce((n, f) => n + (f.bad ? 0 : lstatSync(join(dir, f.rel)).size), 0);
+  if (total > 512 * 1024 * 1024) return fail(`合計サイズが大きすぎます（${total} bytes > 512MB）`);
   const real = realpathSync(dir);
   const present = new Map();
   const warnings = [];
@@ -133,7 +136,8 @@ export function verifyDist(dir, { git = true, gitDir } = {}) {
     if (!rel) { errors.push(`ファイルがありません: ${p}`); continue; }
     if (sha256(readFileSync(join(dir, rel))) !== h) errors.push(`内容が違います: ${p}`);
   }
-  const gitCheck = git && errors.length === 0 ? checkAgainstGit(dir, m, errors, gitDir || dir) : 'not-run';
+  // git との照合は --git <repo> を指定したときだけ（展開先がたまたま別の repo の中にあっても、その repo とは照合しない）
+  const gitCheck = git && gitDir && errors.length === 0 ? checkAgainstGit(dir, m, errors, gitDir) : 'no-git';
   return { ok: errors.length === 0, errors, warnings, commit: m.commit, branch: m.branch, dirty: !!m.dirty, lite: !!m.lite, excluded: m.excluded || [], files: Object.keys(m.files).length, gitCheck, manifest: m };
 }
 
@@ -142,7 +146,7 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   const gi = a.indexOf('--git');
   const gitDir = gi >= 0 ? resolve(a[gi + 1]) : undefined; // 展開先が repo の外でも、この repo の commit と照合する
   const dir = resolve(a.find((x, i) => !x.startsWith('--') && a[i - 1] !== '--git') || dirname(fileURLToPath(import.meta.url)));
-  const r = verifyDist(dir, { gitDir });
+  const r = verifyDist(dir, { gitDir, git: !!gitDir });
   if (!r.ok) { console.error(`検証に失敗しました（${dir}）:\n- ${r.errors.slice(0, 30).join('\n- ')}`); process.exit(1); }
   for (const w of r.warnings) console.error(`注意: ${w}`);
   const g = { ok: 'git の commit の内容（blob）とも一致', 'no-git': '整合のみ確認。commit の真正性は未検証（git が無い）', 'skipped-dirty': '未コミットの変更を含むため、git の blob 照合はしていない' }[r.gitCheck];

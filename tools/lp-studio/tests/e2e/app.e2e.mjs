@@ -4,7 +4,7 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, readdirSync, existsSync, rmSync, symlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, readdirSync, existsSync, rmSync, symlinkSync, linkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launch } from './pw.mjs';
@@ -603,6 +603,28 @@ test('ZIP を展開しても同じ版が動く（git の無い展開先で版と
       assert.match(g2.o, /宣言外の欠落.*docs\/motion/);
     } else assert.match(g2.o, /整合のみ確認。commit の真正性は未検証（git が無い）/); // git が無い場所の限界（明記済み）
     assert.equal((await node(['verify-dist.mjs'], d2)).code, dirtyTree ? 2 : 0, 'git が無い場所では、許可された除外の範囲の欠落は整合のみ（限界: PACKAGING-NOTES と README に明記）');
+  }
+  // ハードリンク（既存ファイルの置き換え）も不可
+  {
+    const d = await fresh('hardlink');
+    rmSync(join(d, 'QUICKSTART.txt')); linkSync(join(d, 'README.md'), join(d, 'QUICKSTART.txt'));
+    assert.equal((await node(['verify-dist.mjs'], d)).code, 1);
+    assert.equal((await node(['pack.mjs', '--out', join(TMP, 'never.zip')], d)).code, 1);
+  }
+  // 別の git リポジトリの中に展開しても、正しい配布物は検証に通り、再梱包できる（その repo とは照合しない）
+  {
+    const outer = join(TMP, 'other-repo');
+    await sh('git', ['init', '-q', outer], TMP);
+    await sh('cp', ['-r', lite, join(outer, 'lp-studio')], TMP);
+    const inner = join(outer, 'lp-studio');
+    const v = await node(['verify-dist.mjs'], inner);
+    assert.equal(v.code, dirtyTree ? 2 : 0, v.o);
+    assert.match(v.o, /整合のみ確認/);
+    const rp = await node(['pack.mjs', '--out', join(TMP, 're-other.zip')], inner);
+    assert.equal(rp.code, 0, rp.o);
+    assert.match(rp.o, /検証済みの配布物から再梱包/);
+    const again = await unzipTo(join(TMP, 're-other.zip'), join(TMP, 'unz-re-other'));
+    assert.equal((await sh('diff', ['-r', lite, again], TMP)).code, 0);
   }
   // 7) 展開した自己完結版がブラウザで動く
   const ctx = await browser.newContext({ viewport: { width: 400, height: 760 } });
