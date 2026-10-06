@@ -1101,6 +1101,11 @@ details.cond .small{margin:4px 0}
 .pcf .kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
 .pcf .kpi{padding:6px 8px}.pcf .rates{margin:6px 0;font-size:14px}
 .pcf h2{margin:12px 0 6px}
+.fsteps{display:flex;align-items:stretch;gap:6px;margin:8px 0}
+.fstep{flex:1;border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--card)}
+.fstep .val{font-size:20px;color:var(--acc)}.frate{margin-top:6px;font-size:13px}
+.farrow{align-self:center;color:var(--mut);font-size:18px}
+@media (max-width:560px){.fsteps{flex-direction:column}.farrow{text-align:center;transform:rotate(90deg);align-self:center}}
 @media (max-width:560px){.pcf .kpi .val{font-size:18px}h1{font-size:16px;margin:10px 0 2px}}
 .notice{background:var(--soft);border-left:3px solid var(--acc);padding:6px 10px;font-size:13px;border-radius:4px}
 .js .biz{display:none}.js .biz.on{display:block}

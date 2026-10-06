@@ -569,10 +569,23 @@ TABS = [('s0', 'S0 全体'), ('s1', 'S1 導線'), ('s2', 'S2 CR・LP'), ('s3', '
 
 
 def _banner(v):
+    # 架空・未接続はページ最上部の帯で明示済み。画面ごとの説明文は「集計条件・根拠」の中（_basis_text）に置く
+    return ''
+
+
+def _basis_text(v):
     src = v.res.doc['source'] if isinstance(v.res.doc, dict) and isinstance(v.res.doc.get('source'), dict) else {}
-    # 短く1回だけ。出典などの詳細は「集計条件・根拠」の開閉に置く
-    return ('<p class="notice">架空データ（PASSCAL の実データ・会計・広告・LINE・API に未接続）。定義は架空仕様で、'
-            '実事業の確定定義ではありません。<span class="small">出典 <code>%s</code></span></p>' % e(src.get('ref')))
+    return ('<p class="small">架空データ（PASSCAL の実データ・実在の応募者・会計・広告・LINE・API に未接続）。定義は架空データ仕様で、'
+            '実事業の確定定義ではありません。出典 <code>%s</code>（synthetic）</p>' % e(src.get('ref')))
+
+
+def _basis(v):
+    """コホートの条件を持たない画面（S3〜S5）の「集計条件・根拠」"""
+    src = v.res.doc['source']
+    return ('<details class="cond"><summary>集計条件・根拠</summary>%s<p class="small">定義版 %s ／ timezone %s ／ '
+            'データ cutoff %s ／ 取得 %s</p><p class="small"><a href="#%s">定義の全文</a>・<a href="#%s">除外・保留の一覧</a>'
+            '</p></details>' % (_basis_text(v), e(v.res.doc['definition_version']), e(src['timezone']),
+                                e(src['data_cutoff']), e(src['fetched_at']), e(v.a('def')), e(v.a('s4-excl'))))
 
 
 def _link(v, name, text='根拠'):
@@ -623,10 +636,10 @@ def _cond(v, c):
     o, _ = v.obs('O-APP-%s' % c['id'])
     im, why = v.ds.maturity(o)
     # 条件の全文は開閉の中（意味もデータも削らない）
-    return ('%s<details class="cond"><summary>集計条件・根拠</summary><p class="small">応募日コホート %s〜%s（%s）／ '
+    return ('%s<details class="cond"><summary>集計条件・根拠</summary>%s<p class="small">応募日コホート %s〜%s（%s）／ '
             '観察窓 各応募日から %s まで ／ データ cutoff %s ／ 取得 %s ／ 定義版 %s ／ 単位 %s（人数ではありません）／ 出典 %s ／ %s</p>'
             '<p class="small"><a href="#%s">定義の全文</a>・<a href="#%s">除外・保留の一覧</a></p></details>' % (
-                '',
+                '', _basis_text(v),
                 e(c['start']), e(c['end']), e(src['timezone']), e(c['observation_end']), e(src['data_cutoff']),
                 e(src['fetched_at']), e(v.res.doc['definition_version']), e(M.UNITS['application_ids']), e(src['ref']),
                 '観察窓は cutoff までに閉じています' if not im else '観察窓は閉じていません',
@@ -673,13 +686,19 @@ def render_s1(v):
     h = [_banner(v)]
     for c in v.cohorts():
         cid = c['id']
-        h.append('<div class="panel"><h3>%s の導線</h3>%s<ol class="funnel">' % (e(c['label']), _warn(v, c)))
-        h.append('<li>フォーム回答 %s</li>' % _num(v, 'O-APP-%s' % cid, 'tr-app-%s' % cid))
-        h.append('<li>面談到達 %s <span class="small">分母: 同じコホートのフォーム回答</span><br>%s</li>' % (
-            _num(v, 'O-INT-%s' % cid, 'tr-int-%s' % cid), _ratio_html(v, 'R-INT-%s' % cid, _rate_links(cid, 'int'))))
-        h.append('<li>入塾到達 %s <span class="small">分母: 同じコホートのフォーム回答（面談到達ではない）</span><br>%s</li>' % (
-            _num(v, 'O-ENR-%s' % cid, 'tr-enr-%s' % cid), _ratio_html(v, 'R-ENR-%s' % cid, _rate_links(cid, 'enr'))))
-        h.append('</ol>%s' % _cond(v, c))
+        # ステップ図: 応募 → 面談 → 入塾。率の分母はどちらも同じコホートの応募（隣のステップではない）
+        _, napp = v.obs('O-APP-%s' % cid)
+        den = '{:,}'.format(int(napp['value'])) if napp['state'] in M.MEASURED else M.STATE_JA[napp['state']]
+        h.append('<div class="panel"><h3>%s の導線</h3>%s<div class="fsteps">' % (e(c['label']), _warn(v, c)))
+        h.append('<div class="fstep"><div class="small">応募（フォーム回答）</div>%s'
+                 '<div class="small">率の分母</div></div>' % _num(v, 'O-APP-%s' % cid, 'tr-app-%s' % cid))
+        for m, lab in (('int', '面談到達'), ('enr', '入塾到達（入金ではない）')):
+            h.append('<div class="farrow" aria-hidden="true">→</div><div class="fstep"><div class="small">%s</div>%s'
+                     '<div class="frate"><span class="small">応募 %s のうち</span><br>%s</div></div>' % (
+                         e(lab), _num(v, 'O-%s-%s' % (m.upper(), cid), 'tr-%s-%s' % (m, cid)), e(den),
+                         _ratio_html(v, 'R-%s-%s' % (m.upper(), cid), _rate_links(cid, m))))
+        h.append('</div><p class="small">面談到達率・入塾到達率の分母は、どちらも同じコホートの応募 %s です。'
+                 '入塾到達率は「面談到達のうち入塾した割合」ではありません。</p>%s' % (e(den), _cond(v, c)))
         apps = sorted(v.res.cohort_apps.get(cid, []))
         attr = {}
         for (kind, key), lst in part_items(v.res.partition.get(cid, {})):
@@ -770,6 +789,7 @@ def render_s3(v):
     h.append('</tbody></table></div><p class="small">未接続の %d 項目は会計・請求に接続していないため値がありません（0円ではありません）。'
              '入塾到達（入塾手続き完了）から売上・着金は作りません。入金イベントは取り込んでいません（S4 の除外に記録）。</p></div>'
              % len(v.res.doc['unconnected']))
+    h.append(_basis(v))
     return ''.join(h)
 
 
@@ -823,6 +843,7 @@ def render_s4(v):
             e(o['id']), e(o['period']['start']), e(o['period']['end']), e(why) if im else '締め済み'))
     h.append('</tbody></table></div><p class="small">timezone %s（%s）／ cutoff %s ／ 取得 %s</p></div>' % (
         e(src['timezone']), e(M.TZ_JA[M.tz_status(src['timezone'])[0]]), e(src['data_cutoff']), e(src['fetched_at'])))
+    h.append(_basis(v))
     return ''.join(h)
 
 
@@ -867,6 +888,7 @@ def render_s5(v):
                 '<li>%s: %s</li>' % (e(rid), _ratio_html(v, rid)) if any(r['id'] == rid for r in v.res.dataset['ratios'])
                 else '<li>%s: <span class="unk">参照先がありません</span></li>' % e(rid) for rid in ev))
         h.append('<dt>次の1案</dt><dd>%s</dd></dl></div>' % e(d.get('next')))
+    h.append(_basis(v))
     return ''.join(h)
 
 
@@ -879,6 +901,7 @@ def render_all(views):
     for fn, v in views:
         name = v.res.doc.get('business', {}).get('name') if isinstance(v.res.doc, dict) and isinstance(
             v.res.doc.get('business'), dict) else fn
+        name = str(name).split(' ')[0]   # 見出しは「S0 全体 PASSCAL」程度に。架空であることは最上部の帯で明示
         for sid, lab in TABS:
             try:
                 body = RENDER[sid](v) if v.ok else _stop(v.errors)

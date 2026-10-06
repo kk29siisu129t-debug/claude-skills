@@ -490,6 +490,19 @@ class Screens(unittest.TestCase):
                   'conversion rate（確定）', '暫定比（未成熟・CVRではない）', '入塾到達（入金ではない）'):
             self.assertIn(x, s0, x)
         self.assertIn('実事業の確定定義ではありません', s0)
+        # 架空・未接続の長文は画面上部に出さず「集計条件・根拠」の中だけ（最上部の帯で明示済み）
+        for sid in ('pc-s0', 'pc-s1', 'pc-s2', 'pc-s3', 'pc-s4', 'pc-s5'):
+            sec = section(self.html, sid)
+            self.assertNotIn('<p class="notice">架空データ', sec, sid)
+            body = re.sub(r'<details class="cond">.*?</details>', '', sec, flags=re.S)
+            self.assertNotIn('実事業の確定定義ではありません', body, sid)
+            self.assertIn('実事業の確定定義ではありません', sec, sid)
+        # S1 のステップ図: 率の分母はどちらも応募 40
+        s1 = section(self.html, 'pc-s1').split('2026年9月応募')[0]
+        self.assertEqual(s1.count('応募 40 のうち'), 2)
+        self.assertIn('入塾到達率は「面談到達のうち入塾した割合」ではありません', s1)
+        self.assertLess(s1.index('data-obs="O-APP-C-2026-08"'), s1.index('data-obs="O-INT-C-2026-08"'))
+        self.assertLess(s1.index('data-obs="O-INT-C-2026-08"'), s1.index('data-obs="O-ENR-C-2026-08"'))
 
     def test_traceability(self):
         hrefs = set(re.findall(r'href="#([^"]+)"', self.html))
