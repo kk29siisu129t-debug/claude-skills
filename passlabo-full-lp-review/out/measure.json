@@ -1,6 +1,6 @@
 {
  "360": {
-  "height": 5916,
+  "height": 5762,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -22,28 +22,6 @@
   "consoleErrors": []
  },
  "400": {
-  "height": 5930,
-  "hscroll": false,
-  "clippedText": [],
-  "minFont": 12,
-  "ctas": [
-   "button",
-   "button",
-   "button"
-  ],
-  "forms": 0,
-  "links": [
-   "https://www.kadokawa.co.jp/product/322003000286/",
-   "https://passlabo.jp/",
-   "https://utage-system.com/p/jFyT8LCb2fti",
-   "https://utage-system.com/p/S4us61iIRJc4"
-  ],
-  "imgsWithoutAlt": 0,
-  "ctaNoNav": true,
-  "externalRequests": [],
-  "consoleErrors": []
- },
- "1280": {
   "height": 5753,
   "hscroll": false,
   "clippedText": [],
@@ -65,8 +43,30 @@
   "externalRequests": [],
   "consoleErrors": []
  },
+ "1280": {
+  "height": 5728,
+  "hscroll": false,
+  "clippedText": [],
+  "minFont": 12,
+  "ctas": [
+   "button",
+   "button",
+   "button"
+  ],
+  "forms": 0,
+  "links": [
+   "https://www.kadokawa.co.jp/product/322003000286/",
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
+  "imgsWithoutAlt": 0,
+  "ctaNoNav": true,
+  "externalRequests": [],
+  "consoleErrors": []
+ },
  "400-1x": {
-  "height": 5930,
+  "height": 5753,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,

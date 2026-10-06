@@ -64,7 +64,9 @@ const fonts = fontFaces(strip(BODY), fvText, [500, 700, 900]);
 const asideRe = /\n<aside class="review" id="cta-note" role="note">[\s\S]*?<\/aside>\n/;
 let html = fvHtml.replace(asideRe, `\n${BODY}</footer>\n`);
 html = html.replace(/<title>[^<]*<\/title>/, '<title>PASSLABO 共テ数学 特別講義（未公開の確認用 LP・仮置き数値あり）</title>');
-html = html.replace('</style></head>', `\n${fonts}\n${LP_CSS}</style></head>`);
+// 実績面の数字だけの表示書体: Titan One（SIL OFL 1.1、@fontsource/titan-one 5.3.0 の latin 分割。fonts-num/LICENSE-OFL.txt）。数字・カンマのみに使う
+const numFace = `@font-face{font-family:"PL Num";font-weight:400;font-display:block;src:url(data:font/woff2;base64,${readFileSync(join(root, 'fonts-num/titan-one-latin-400-normal.woff2')).toString('base64')}) format("woff2");unicode-range:U+0030-0039,U+002C}`;
+html = html.replace('</style></head>', `\n${fonts}\n${numFace}\n${LP_CSS}</style></head>`);
 const scriptHash = createHash('sha256').update(script).digest('base64');
 const cspOld = "default-src 'none'; img-src data:; font-src data:; style-src 'unsafe-inline'; form-action 'none'; base-uri 'none'";
 if (!html.includes(cspOld)) throw new Error('FV の CSP が見つかりません');

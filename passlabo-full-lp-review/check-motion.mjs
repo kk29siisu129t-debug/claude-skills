@@ -30,7 +30,7 @@ for (const w of [360, 400, 1280]) {
   p.on('console', (m) => { if (m.type() === 'error') errs.push(m.text()); }); p.on('pageerror', (e) => errs.push(String(e)));
   await p.goto(url); await p.evaluate(() => document.fonts.ready);
   r.jsClass = await p.evaluate(() => document.documentElement.classList.contains('js'));
-  r.stepsOpacityBeforeScroll = await p.evaluate(() => [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity));
+  r.stepsOpacityBeforeScroll = await p.evaluate(() => [...document.querySelectorAll('.lp-role')].map((el) => getComputedStyle(el).opacity));
   // 通常スクロール（160px ずつ、各 120ms）
   const H = await p.evaluate(() => document.documentElement.scrollHeight - innerHeight);
   const log = [];
@@ -41,9 +41,9 @@ for (const w of [360, 400, 1280]) {
   r.stickyHiddenSections = [...new Set(log.filter((s) => !s.sticky).map((s) => s.section))];
   r.stickyFirstShownAtY = (log.find((s) => s.sticky) || {}).y ?? null;
   r.allRevealedAfterScroll = await p.evaluate(() => [...document.querySelectorAll('[data-reveal]')].every((el) => el.classList.contains('is-in')));
-  r.stepsOpacityAfter = await p.evaluate(() => [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity));
+  r.stepsOpacityAfter = await p.evaluate(() => [...document.querySelectorAll('.lp-role')].map((el) => getComputedStyle(el).opacity));
   // 演出の長さ（宣言値）
-  r.transitions = await p.evaluate(() => ['.lp-mark', '.lp-step', '.lp-mat img'].map((s) => { const c = getComputedStyle(document.querySelector(s)); return `${s}: ${c.transitionDuration} / delay ${c.transitionDelay}`; }));
+  r.transitions = await p.evaluate(() => ['.lp-mark', '.lp-role', '.lp-mat img'].map((s) => { const c = getComputedStyle(document.querySelector(s)); return `${s}: ${c.transitionDuration} / delay ${c.transitionDelay}`; }));
   r.infiniteAnimations = await p.evaluate(() => [...document.querySelectorAll('*')].filter((el) => getComputedStyle(el).animationIterationCount === 'infinite').length);
   // 追従 CTA がフッター・最終 CTA を覆っていないか（最下部）
   await p.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await p.waitForTimeout(200);
@@ -95,7 +95,7 @@ for (const w of [360, 400, 1280]) {
     document.documentElement.classList.add('js');
     document.querySelectorAll('.is-in').forEach((el) => el.classList.remove('is-in'));
     const hidden = [...document.querySelectorAll('.lp *')].filter((el) => { const c = getComputedStyle(el); return +c.opacity < 1 || c.visibility === 'hidden' || (c.display === 'none' && !el.closest('[hidden]')); }).map((el) => el.className || el.tagName);
-    return { jsClass: document.documentElement.classList.contains('js'), hiddenOrTransparent: hidden, stepsOpacity: [...document.querySelectorAll('.lp-step,.lp-step h3,.lp-q')].map((el) => getComputedStyle(el).opacity).join('') };
+    return { jsClass: document.documentElement.classList.contains('js'), hiddenOrTransparent: hidden, stepsOpacity: [...document.querySelectorAll('.lp-role,.lp-role dt,.lp-role dd')].map((el) => getComputedStyle(el).opacity).join('') };
   });
   await c6.close();
   // 高速スクロール: 読み込み直後に最下部へ飛ぶ → 上にある演出対象も全部表示状態
@@ -103,17 +103,17 @@ for (const w of [360, 400, 1280]) {
   await p2.goto(url); await p2.evaluate(() => scrollTo(0, document.documentElement.scrollHeight)); await p2.waitForTimeout(80);
   r.fastScrollAllRevealed = await p2.evaluate(() => [...document.querySelectorAll('[data-reveal]')].every((el) => el.classList.contains('is-in')));
   await p2.waitForTimeout(700);
-  r.fastScrollStepsOpacity = await p2.evaluate(() => [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity));
+  r.fastScrollStepsOpacity = await p2.evaluate(() => [...document.querySelectorAll('.lp-role')].map((el) => getComputedStyle(el).opacity));
   await c2.close();
   // 動きを減らす設定
   const c3 = await b.newContext({ viewport: { width: w, height: 700 }, reducedMotion: 'reduce' }); const p3 = await c3.newPage();
   await p3.goto(url);
-  r.reducedMotion = await p3.evaluate(() => ({ jsClass: document.documentElement.classList.contains('js'), stepsOpacity: [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity), matTransform: getComputedStyle(document.querySelector('.lp-mat img')).transform, markSize: getComputedStyle(document.querySelector('.lp-mark')).backgroundSize }));
+  r.reducedMotion = await p3.evaluate(() => ({ jsClass: document.documentElement.classList.contains('js'), stepsOpacity: [...document.querySelectorAll('.lp-role')].map((el) => getComputedStyle(el).opacity), matTransform: getComputedStyle(document.querySelector('.lp-mat img')).transform, markSize: getComputedStyle(document.querySelector('.lp-mark')).backgroundSize }));
   await c3.close();
   // JS 無効
   const c4 = await b.newContext({ viewport: { width: w, height: 700 }, javaScriptEnabled: false }); const p4 = await c4.newPage();
   await p4.goto(url);
-  r.noJs = await p4.evaluate(() => ({ stepsOpacity: [...document.querySelectorAll('.lp-step')].map((el) => getComputedStyle(el).opacity), stickyHidden: document.querySelector('.lp-sticky').hidden, markSize: getComputedStyle(document.querySelector('.lp-mark')).backgroundSize }));
+  r.noJs = await p4.evaluate(() => ({ stepsOpacity: [...document.querySelectorAll('.lp-role')].map((el) => getComputedStyle(el).opacity), stickyHidden: document.querySelector('.lp-sticky').hidden, markSize: getComputedStyle(document.querySelector('.lp-mark')).backgroundSize }));
   await c4.close();
 }
 await b.close();

@@ -1,5 +1,5 @@
 // 本文（固定 FV の後ろ）・本文用 CSS・表示用の最小 JS。v3（67f4b72 の後の全体改訂）
-// 流れ: 講義の概要（見る／配布／案内の3層）→ 悩み → 太い S 字の矢印 → 講師の実話 → 青い大きな数字の実績面
+// 流れ: 講義の概要（講義／教材／あわせてご案内の役割ラベル）→ 悩み → 太い S 字の矢印 → 講師の実話 → 青い大きな数字の実績面
 //       → 板書と設問で見る学習体験 → 講義参加者向けの配布教材 → 補足のプログラム特別案内 → 無料講義と CTA。
 // 事実は REVIEW.md の出典表の範囲だけ。架空の引用・受講者の声・保証・数の追加・配布時期や形式などの運用条件は書かない。
 
@@ -13,20 +13,20 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
 <main class="lp" aria-label="講義の案内">
   <section class="lp-sec lp-about" aria-labelledby="h-about">
     <div class="lp-in">
-      <p class="lp-about-goal">目指すのは、時間内に解き切ること。</p>
-      <h2 id="h-about" class="lp-about-h">共テ数学の時短戦略と思考プロセスを、<span class="nb">宇佐見天彗の</span><span class="nb">板書と手元で学ぶ。</span></h2>
-      <p class="lp-text">共通テスト数学に取り組むときに必要な「時短戦略・思考法・問題の取り組み方」を、講師の手元をお見せしながら解説する無料の特別講義です。</p>
-      <ol class="lp-layers">
-        <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">1</span><div><p class="lp-layer-k">講義で見る</p><p class="lp-layer-v">講師の板書と手元での解説</p></div></li>
-        <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">2</span><div><p class="lp-layer-k">講義参加者向けの教材</p><p class="lp-layer-v">特別テキスト<small>（全員に配布）</small>・講義板書／解説PDF<small>（参加特典）</small></p></div></li>
-        <li class="lp-step lp-step--sub" data-reveal><span class="lp-no" aria-hidden="true">3</span><div><p class="lp-layer-k">あわせて</p><p class="lp-layer-v">共テ数学プログラムの特別案内</p></div></li>
-      </ol>
+      <p class="lp-about-tag"><span>無料</span>共テ数学 特別講義</p>
+      <h2 id="h-about" class="lp-about-h">共テ数学の解き方を、<br>宇佐見の板書で学ぶ。</h2>
+      <p class="lp-text">時短戦略・思考法・問題の取り組み方を、解答の手元を見せながら解説します。</p>
+      <dl class="lp-roles">
+        <div class="lp-role"><dt>講義</dt><dd>講師の板書と手元での解説</dd></div>
+        <div class="lp-role"><dt>教材</dt><dd>特別テキスト<small>（全員に配布）</small>・講義板書／解説PDF<small>（参加特典）</small></dd></div>
+        <div class="lp-role lp-role--sub"><dt>あわせてご案内</dt><dd>共テ数学プログラムの特別案内</dd></div>
+      </dl>
     </div>
   </section>
 
   <section class="lp-sec lp-feel" aria-labelledby="h-feel">
     <div class="lp-in">
-      <h2 id="h-feel" class="lp-feel-h">時間が足りない。<br>点数が上がらない。</h2>
+      <h2 id="h-feel" class="lp-feel-h">共テ数学で、<br>時間が足りない。<br>演習しても、<br>点数が伸びない。</h2>
       <ul class="lp-feel-list">
         <li>最後の問題まで、手が回らないまま時間が終わる。</li>
         <li>演習を続けているのに、点数が思うように上がらない。</li>
@@ -40,7 +40,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
     <div class="lp-in lp-story-in">
       <div class="lp-story-body">
         <p class="lp-kicker">講師 宇佐見 天彗</p>
-        <h2 id="h-story" class="lp-story-h">高校入学時は、学年最下位。<br>宇佐見天彗は、そこから<br class="sp">東大に現役合格。</h2>
+        <h2 id="h-story" class="lp-story-h">学年最下位から1位へ。<br>そして、東大に現役合格。</h2>
         <p class="lp-text">地方の公立高校に入学したときの成績は、学年最下位。独自の勉強法を確立して学年1位になり、<strong>東京大学理科Ⅱ類に現役合格</strong>しました。</p>
         <p class="lp-text">東京大学医学部医学科を卒業後は教育の道へ。自身の経験をもとに、勉強法や受験戦略を発信しています。</p>
       </div>
@@ -52,13 +52,14 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
   </section>
 
   <section class="lp-sec lp-nums" aria-label="数字で見る取り組み">
+    <svg class="lp-nums-bg" aria-hidden="true" focusable="false" viewBox="0 0 400 560" preserveAspectRatio="xMidYMid slice"><defs><pattern id="lp-grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" stroke="#3294c1" stroke-width=".6"/></pattern></defs><rect width="400" height="560" fill="url(#lp-grid)"/><path d="M0 300H400M200 0V560" stroke="#3294c1" stroke-width="1.4"/><path d="M40 60Q200 620 360 60" fill="none" stroke="#3294c1" stroke-width="2.4"/><path d="M0 470C90 410 150 520 230 450S350 380 400 420" fill="none" stroke="#3294c1" stroke-width="2"/></svg>
     <div class="lp-in">
       <div class="lp-num-row">
-        <p class="lp-num"><span class="lp-num-v">7</span><span class="lp-num-u">年</span></p>
+        <p class="lp-num"><span class="lp-num-v" lang="en">7</span><span class="lp-num-u">年</span></p>
         <p class="lp-num-l">「高校数学解法大全」の構想期間</p>
       </div>
       <div class="lp-num-row">
-        <p class="lp-num"><span class="lp-num-v">3,000</span><span class="lp-num-u">人</span></p>
+        <p class="lp-num"><span class="lp-num-v" lang="en">3,000</span><span class="lp-num-u">人</span></p>
         <p class="lp-num-note">※仮置き・実績未確認</p>
         <p class="lp-num-l">累計受講者数</p>
       </div>
@@ -68,7 +69,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
   <section class="lp-sec lp-mats" aria-labelledby="h-mats">
     <div class="lp-in">
       <p class="lp-kicker lp-kicker--on-dark">講義で見ること</p>
-      <h2 id="h-mats" class="lp-h2 lp-h2--on-dark">答えだけでなく、<br><span class="lp-mark" data-reveal>解く途中が見える。</span></h2>
+      <h2 id="h-mats" class="lp-h2 lp-h2--on-dark">共テ数学の解答過程を、<br><span class="lp-mark" data-reveal>板書で解説。</span></h2>
       <figure class="lp-mat lp-mat--board" data-reveal>
         <figcaption class="lp-mat-h">グラフと式を、講師の板書で追う。</figcaption>
         <img src="${board}" alt="講義の板書。二次関数のグラフを描き、式を変形しながら解説している" width="628" height="570">
@@ -81,7 +82,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
 
   <section class="lp-sec lp-gift" aria-labelledby="h-gift">
     <div class="lp-in">
-      <p class="lp-kicker">講義参加者向けの教材</p>
+      <p class="lp-kicker">講義参加者向け教材</p>
       <h2 id="h-gift" class="lp-h2">講義参加者全員に、<br class="sp">特別テキストを配布。</h2>
       <div class="lp-kit">
         <figure class="lp-kit-item">
@@ -140,15 +141,14 @@ export const css = `
 .lp-text{margin:16px 0 0;font-size:17px;font-weight:500;line-height:1.85}
 /* 概要: FV 直下。何の講義かを一文で。下に「見る／配布／あわせて」の3層 */
 .lp-about{background:#fff;padding-top:40px}
-.lp-about-goal{margin:0;font-size:18px;font-weight:900;color:var(--b)}
-.lp-about-h{margin:10px 0 0;font-size:29px;font-weight:900;line-height:1.38;color:var(--n)}
-.lp-layers{list-style:none;margin:22px 0 0;padding:0;border-top:2px solid var(--n)}
-.lp-step{position:relative;display:grid;grid-template-columns:44px 1fr;align-items:center;padding:14px 0;border-bottom:1px solid #d6e4ec}
-.lp-no{font-size:30px;font-weight:900;line-height:1;color:var(--b)}
-.lp-layer-k{margin:0;font-size:14px;font-weight:700;color:#3d4a52}
-.lp-layer-v{margin:2px 0 0;font-size:19px;font-weight:900;line-height:1.45;color:var(--n)}
-.lp-layer-v small{font-size:13px;font-weight:700;color:#3d4a52}
-.lp-step--sub .lp-no{font-size:22px;color:#8fb6c9}.lp-step--sub .lp-layer-v{font-size:16px;font-weight:700}
+.lp-about-tag{margin:0;display:flex;align-items:center;gap:10px;font-size:18px;font-weight:900;color:var(--n)}.lp-about-tag span{background:var(--b);color:#fff;border-radius:4px;padding:1px 10px}
+.lp-about-h{margin:12px 0 0;font-size:31px;font-weight:900;line-height:1.38;color:var(--n)}
+.lp-roles{margin:22px 0 0;border-top:2px solid var(--n)}
+.lp-role{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid #d6e4ec}
+.lp-role dt{font-size:15px;font-weight:900;color:var(--b)}
+.lp-role dd{margin:0;font-size:17px;font-weight:900;line-height:1.5;color:var(--n)}
+.lp-role dd small{font-size:13px;font-weight:700;color:#3d4a52}
+.lp-role--sub dd{font-size:15px;font-weight:700}
 /* 悩み: 紺の面に大きな白い文字 */
 .lp-feel{background:var(--n);color:#fff;padding-bottom:40px}
 .lp-feel-h{margin:0;font-size:36px;font-weight:900;line-height:1.3}
@@ -163,7 +163,7 @@ export const css = `
 .lp-s-head{fill:var(--b)}
 /* 講師の実話 */
 .lp-story-in{display:grid;gap:22px}
-.lp-story-h{margin:0;font-size:31px;font-weight:900;line-height:1.38;color:var(--n)}
+.lp-story-h{margin:0;font-size:32px;font-weight:900;line-height:1.38;color:var(--n)}
 .lp-story strong{font-weight:900;color:var(--n);background:linear-gradient(transparent 62%,#cfe9f5 62%)}
 .lp-story-fig{margin:0;display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:center}
 .lp-story-fig img{width:96px;height:96px;border-radius:50%;object-fit:cover;box-shadow:0 0 0 4px var(--pale)}
@@ -174,11 +174,13 @@ export const css = `
 .lp-quote a{color:var(--n);text-decoration:underline;text-underline-offset:2px}
 .lp-quote a:focus-visible{outline:2px solid var(--b);outline-offset:2px}
 /* 実績面: 参照 IMG_7509 の型。白い全幅の面に、青い大きな数字 → 単位 → 黒い太字の意味 → 注記。細い区切り線で縦に積む */
-.lp-nums{background:#fff;padding-top:8px;padding-bottom:40px}
+.lp-nums{background:#fff;padding:8px 10px 40px;overflow:hidden}
+.lp-nums-bg{position:absolute;inset:0;width:100%;height:100%;opacity:.09;pointer-events:none}
+.lp-nums .lp-in{position:relative}
 .lp-num-row{padding:30px 0 28px;border-top:1px solid #cfe3ee;text-align:center}
 .lp-num-row:last-child{border-bottom:1px solid #cfe3ee}
 .lp-num{margin:0;display:flex;justify-content:center;align-items:baseline;gap:6px;color:var(--b);line-height:1}
-.lp-num-v{font-size:min(116px,28vw);font-weight:900;letter-spacing:-.04em;line-height:.9}
+.lp-num-v{font-family:"PL Num","PL Sans",sans-serif;font-weight:400;font-size:min(116px,29vw);letter-spacing:-.04em;line-height:1;display:inline-block;transform:skewX(-6deg)}
 .lp-num-u{font-size:30px;font-weight:900}
 .lp-num-l{margin:16px 0 0;font-size:24px;font-weight:900;line-height:1.4;color:var(--ink)}
 .lp-num-note{margin:10px auto 0;display:inline-block;padding:3px 12px;background:var(--ink);color:#fff;font-size:15px;font-weight:700;border-radius:4px}
@@ -234,20 +236,16 @@ html.has-sticky{scroll-padding-bottom:96px}
 @media (prefers-reduced-motion:no-preference){
 .js .lp-mark{background-size:0 6px;transition:background-size .55s cubic-bezier(.2,.7,.2,1) .15s}
 .js .lp-mark.is-in{background-size:100% 6px}
-.js .lp-step .lp-no{display:inline-block;transform:translateY(6px);color:#b9d3df;transition:color .45s ease-out,transform .45s ease-out}
-.js .lp-step:nth-child(2) .lp-no{transition-delay:.1s}.js .lp-step:nth-child(3) .lp-no{transition-delay:.2s}
-.js .lp-step.is-in .lp-no{color:var(--b);transform:none}.js .lp-step--sub.is-in .lp-no{color:#8fb6c9}
 .js .lp-mat.is-in,.js .lp-mat{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .js .lp-mat:not(.is-in){transform:translateY(12px)}
 }
-@media (max-width:389px){.lp-about-h{font-size:26px}.lp-story-h{font-size:28px}.lp-h2{font-size:28px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-num-l{font-size:22px}.lp-story-fig{grid-template-columns:1fr}.lp-story-fig img{width:88px;height:88px}}
+@media (max-width:389px){.lp-about-h{font-size:28px}.lp-role{grid-template-columns:96px 1fr}.lp-story-h{font-size:28px}.lp-h2{font-size:28px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-num-l{font-size:22px}.lp-story-fig{grid-template-columns:1fr}.lp-story-fig img{width:88px;height:88px}}
 @media (min-width:900px){
 .lp .sp{display:none}
 .lp-sec{padding:80px 40px}
 .lp-kicker{font-size:16px}
 .lp-h2{font-size:40px}
 .lp-about-h{font-size:40px}
-.lp-layers{display:grid;grid-template-columns:1fr 1fr 1fr;column-gap:28px}
 .lp-feel-h{font-size:52px}
 .lp-feel .lp-in{display:grid;grid-template-columns:1fr 1fr;column-gap:48px;align-items:center}
 .lp-feel-list{margin:0}
@@ -257,7 +255,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .lp-story-fig{grid-template-columns:160px 1fr;gap:20px}.lp-story-fig img{width:160px;height:160px}
 .lp-nums .lp-in{display:grid;grid-template-columns:1fr 1fr;column-gap:40px}
 .lp-num-row:last-child{border-bottom:0}.lp-num-row{border-bottom:1px solid #cfe3ee}
-.lp-num-v{font-size:150px}
+.lp-num-v{font-size:120px}
 .lp-mat--board{max-width:760px}
 .lp-kit{grid-template-columns:1fr 1fr;align-items:start}
 .lp-final{text-align:center}.lp-final-h{font-size:48px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}

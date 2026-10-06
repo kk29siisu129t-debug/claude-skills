@@ -30,7 +30,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0s / delay 0s",
+   ".lp-role: 0s / delay 0s",
    ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
@@ -127,9 +127,10 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
+    {},
     "IMG"
    ],
-   "stepsOpacity": "111"
+   "stepsOpacity": "111111111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
@@ -188,7 +189,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0s / delay 0s",
+   ".lp-role: 0s / delay 0s",
    ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
@@ -285,9 +286,10 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
+    {},
     "IMG"
    ],
-   "stepsOpacity": "111"
+   "stepsOpacity": "111111111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
@@ -343,7 +345,7 @@
   ],
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
-   ".lp-step: 0s / delay 0s",
+   ".lp-role: 0s / delay 0s",
    ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
@@ -390,11 +392,11 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
-    "sp",
+    {},
     "sp",
     "IMG"
    ],
-   "stepsOpacity": "111"
+   "stepsOpacity": "111111111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [

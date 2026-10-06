@@ -21,34 +21,34 @@
  ],
  "mineNumbers": [
   {
-   "top": 55,
-   "height": 83,
+   "top": 66,
+   "height": 82,
    "left": 156,
-   "width": 93
+   "width": 90
   },
   {
-   "top": 163,
+   "top": 178,
    "height": 22,
    "left": 38,
    "width": 329
   },
   {
-   "top": 263,
-   "height": 117,
-   "left": 41,
-   "width": 320
+   "top": 288,
+   "height": 101,
+   "left": 14,
+   "width": 370
   },
   {
-   "top": 404,
+   "top": 396,
+   "height": 13,
+   "left": 132,
+   "width": 135
+  },
+  {
+   "top": 433,
    "height": 22,
    "left": 134,
    "width": 138
-  },
-  {
-   "top": 550,
-   "height": 10,
-   "left": 22,
-   "width": 98
   }
  ],
  "refS": [
