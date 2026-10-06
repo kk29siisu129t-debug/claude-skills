@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 400px の実画面を約20秒収録（要所で止める）: 転換の下線 → 3テーマ → 教材の浮上 → 追従 CTA の出現/退避 → 最終 CTA・フッター
+// 400px の実画面を収録（要所で止める）: 共感 → 矢印が伸びる → 本人の実話 → 転換の下線 → 3テーマ → 教材の浮上 → 追従 CTA の出現/退避 → 最終 CTA・フッター
 import { launch } from '../tools/lp-studio/tests/e2e/pw.mjs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,7 +15,9 @@ async function glide(to, ms) { const from = await p.evaluate(() => scrollY); con
 await p.waitForTimeout(1500);                                   // FV（追従 CTA なし）
 await glide(await top('.lp-goal', 60), 1200); await p.waitForTimeout(1300);   // 目標・追従 CTA が出る
 await glide(await top('.lp-feel', 40), 1000); await p.waitForTimeout(1300);   // 共感
-await glide(await top('.lp-turn', 80), 1000); await p.waitForTimeout(1600);   // 下線が走る
+{ const g = await top('.lp-guide'); await glide(g - 700 * 0.6, 1100); await p.waitForTimeout(900); await glide(g - 700 * 0.3, 900); await p.waitForTimeout(900); } // 矢印が伸びる
+await glide(await top('.lp-story', 30), 1000); await p.waitForTimeout(1800); // 本人の実話
+await glide(await top('.lp-turn', 80), 1100); await p.waitForTimeout(1600);   // 下線が走る
 await glide(await top('.lp-themes', 20), 1000); await p.waitForTimeout(1600); // 3テーマが順に
 await glide(await top('.lp-mats', 0), 1000); await p.waitForTimeout(1600);    // 教材が浮上
 await glide(await top('.lp-prof', 0), 1000); await p.waitForTimeout(1200);    // 講師

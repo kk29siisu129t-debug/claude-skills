@@ -8,8 +8,8 @@
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
-   "lp-goal",
    "lp-feel",
+   "lp-story",
    "lp-turn",
    "lp-themes",
    "lp-mats",
@@ -44,6 +44,11 @@
   "keyboard": [
    {
     "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "AKADOKAWA 商品ペ",
     "covered": false,
     "visible": true
    },
@@ -122,6 +127,9 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
+    "lp-guide-track",
+    "lp-guide-track",
+    "lp-guide-track",
     "IMG"
    ],
    "stepsOpacity": "111111111"
@@ -161,8 +169,8 @@
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
-   "lp-goal",
    "lp-feel",
+   "lp-story",
    "lp-turn",
    "lp-themes",
    "lp-mats",
@@ -197,6 +205,11 @@
   "keyboard": [
    {
     "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "AKADOKAWA 商品ペ",
     "covered": false,
     "visible": true
    },
@@ -275,6 +288,9 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
+    "lp-guide-track",
+    "lp-guide-track",
+    "lp-guide-track",
     "IMG"
    ],
    "stepsOpacity": "111111111"
@@ -318,6 +334,7 @@
    "fv",
    "lp-goal",
    "lp-feel",
+   "lp-story",
    "lp-turn",
    "lp-themes",
    "lp-mats",
@@ -342,6 +359,11 @@
   "keyboard": [
    {
     "el": "cta f-ctaLINEで無料講義を受け",
+    "covered": false,
+    "visible": true
+   },
+   {
+    "el": "AKADOKAWA 商品ペ",
     "covered": false,
     "visible": true
    },
@@ -376,7 +398,10 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
+    "lp-guide-track",
+    "lp-guide-track",
     "sp",
+    "lp-guide-track",
     "sp",
     "sp",
     "sp",
