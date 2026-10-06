@@ -24,7 +24,7 @@ for (const v of (process.env.VARIANTS || 'a,b,a2').split(',')) {
   // 選定用の画像は FV 本体だけ（HTML 内の確認用注記は残すが、撮影では隠す。下は同じページ背景）
   const hideNote = await p.addStyleTag({ content: '.review{display:none!important}' });
   await p.screenshot({ path: out(`passlabo-fv-${v}-sp400.png`) });
-  if (v === 'a3') { await p.setViewportSize({ width: 360, height: H }); await p.screenshot({ path: out(`passlabo-fv-${v}-sp360.png`) }); await p.setViewportSize({ width: 400, height: H }); }
+  if (/^a[34]/.test(v)) { await p.setViewportSize({ width: 360, height: H }); await p.screenshot({ path: out(`passlabo-fv-${v}-sp360.png`) }); await p.setViewportSize({ width: 400, height: H }); }
   await hideNote.evaluate((el) => el.remove());
   measure[v] = await p.evaluate(() => {
     const r = (s) => { const el = document.querySelector(s); if (!el) return null; const b = el.getBoundingClientRect(); return [Math.round(b.top), Math.round(b.bottom)]; };
@@ -60,5 +60,7 @@ if (existsSync(oldA) && existsSync(newA)) {
   const stack = (inputs, dst) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...inputs.flatMap((p) => ['-i', p]), '-filter_complex', `${inputs.map((_, i) => `[${i}:v]pad=iw+24:ih:0:0:white[p${i}]`).join(';')};${inputs.map((_, i) => `[p${i}]`).join('')}hstack=inputs=${inputs.length}`, dst]);
   stack([oldA, newA], out('compare-a-old-new.png'));
   if (existsSync(out('passlabo-fv-a3-sp400.png'))) stack([newA, out('passlabo-fv-a3-sp400.png')], out('compare-a2-a3.png'));
+  const a4 = ['a3', 'a4p', 'a4n'].map((v) => out(`passlabo-fv-${v}-sp400.png`));
+  if (a4.every((f) => existsSync(f))) stack(a4, out('compare-a3-a4.png'));
   if (existsSync(out('_ref.png'))) stack([out('_ref.png'), oldA, newA], out('compare-ref-a-old-new.png'));
 }

@@ -70,5 +70,38 @@
   "fonts": 53,
   "ctaNoNav": true,
   "externalRequests": []
+ },
+ "a4p": {
+  "ctaBottom": 624,
+  "h1": 74,
+  "h1Box": [
+   89,
+   240
+  ],
+  "photo": [
+   234,
+   474
+  ],
+  "material": null,
+  "hscroll": false,
+  "minFont": 12,
+  "fonts": 56,
+  "ctaNoNav": true,
+  "externalRequests": []
+ },
+ "a4n": {
+  "ctaBottom": 616,
+  "h1": 86,
+  "h1Box": [
+   89,
+   265
+  ],
+  "photo": null,
+  "material": null,
+  "hscroll": false,
+  "minFont": 12,
+  "fonts": 55,
+  "ctaNoNav": true,
+  "externalRequests": []
  }
 }

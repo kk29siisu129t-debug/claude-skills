@@ -360,6 +360,124 @@ body[data-variant="a3"] .cta{font-size:17px}
 .s-badge{position:static;grid-column:3;grid-row:1/3}.s-note{color:#fff}
 }`;
 
+// ---- 案A4（未公開のレビュー稿）: 減光した実教材を背景に敷いた1枚の濃紺グラフィック。白い極太の講座名 → 本人/教材 → 無料オファー → 単一の緑 CTA。人物あり(a4p)/なし(a4n) ----
+const A4 = (withPerson) => `
+<div class="f-stage${withPerson ? ' f-with' : ' f-without'}">
+  <div class="f-bg" aria-hidden="true"><img class="f-bg1" src="${board.uri}" alt=""><img class="f-bg2" src="${sheet.uri}" alt=""></div>
+  <header class="f-top"><span class="f-brand">${e(C.brand)}</span><p class="f-target">${e(C.target)}</p></header>
+  <section class="f-hero" aria-label="ファーストビュー">
+    <p class="f-cred">${e(C.credential)}</p>
+    <h1 class="f-title"><span>共テ数学</span><span>特別講義</span></h1>
+    <p class="f-sub">${phrases(C.subA)}</p>
+    ${withPerson ? `<figure class="f-person"><img src="${portrait.uri}" alt="${e(portrait.alt)}" width="1330" height="1183"></figure>` : ''}
+    <figure class="f-mats" aria-label="${e(C.materialLabel)}">
+      <span class="f-paper f-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
+      <span class="f-paper f-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
+      <figcaption>${e(C.materialLabel)}</figcaption>
+    </figure>
+    <p class="f-sign"><span class="f-role">${e(C.instructorRole)}</span><span class="f-nm">${e(C.instructorName)}</span><span class="f-cr">${e(C.instructorCred)}</span></p>
+    <div class="f-badge" role="img" aria-label="${e(C.badgeLabel)} ${e(C.badgeValue + C.badgeUnit)}（${e(C.badgeNote.join('・').replace(/^※/, ''))}）">
+      <span class="f-medal" aria-hidden="true"><span class="f-ml">${e(C.badgeLabel)}</span><span class="f-mv">${e(C.badgeValue)}<small>${e(C.badgeUnit)}</small></span></span>
+      <span class="f-note" aria-hidden="true">${C.badgeNote.map((x) => `<span>${e(x)}</span>`).join('')}</span>
+    </div>
+  </section>
+  <section class="f-offer">
+    <p class="f-main"><span class="f-free">無料</span>特別講義</p>
+    <p class="f-gift">${e(C.offerSub)}</p>
+    ${cta('f-cta')}
+  </section>
+</div>
+<aside class="review" id="cta-note" role="note"><b>未公開のレビュー稿（案A4・${withPerson ? '人物あり' : '人物なし'}）</b>：バッジの「${e(C.badgeLabel)} ${e(C.badgeValue + C.badgeUnit)}」はユーザー指定の<b>仮置きの数値で、実績集計は未確認</b>（公開・本番反映はしない）。構図は参照 LP の考え方（減光した実物の背景・白い極太見出し・単一 CTA）に沿うが、参照の作字・ロゴ・実績・作品・人物は使っていない。「${e(C.ctaLabel)}」は${e(C.ctaNote)}。LINE の実 URL は未確認。${withPerson ? '講師写真はユーザー提供のレタッチ済み透過写真。' : ''}板書・配布テキストは現行 LP の画像から必要な範囲だけを切り出したもの（出典は REVIEW.md）。</aside>`;
+const A4_CSS = `
+body[data-variant^="a4"]{--f-ink:#0d1a22;--f-navy:#193c51;--f-blue:#3294c1;--f-pale:#ebf7fb;background:#0d1a22}
+.f-stage{position:relative;overflow:hidden;background:#0d1a22;color:#fff}
+/* 背景: 現行の板書・配布テキスト（2点だけ）を大きく敷き、ぼかして減光。文字の邪魔をしない */
+.f-bg{position:absolute;inset:0;z-index:0}
+.f-bg img{position:absolute;max-width:none;opacity:.5;filter:grayscale(.35) blur(1.5px)}
+.f-bg1{left:-40px;top:-20px;width:300px;transform:rotate(-6deg)}
+.f-bg2{right:-60px;top:150px;width:300px;transform:rotate(5deg)}
+.f-bg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(13,26,34,.80) 0%,rgba(25,60,81,.80) 45%,rgba(13,26,34,.93) 78%,#0d1a22 100%)}
+.f-top,.f-hero,.f-offer{position:relative;z-index:1}
+.f-top{padding:12px 22px 0}
+.f-brand{display:block;font-size:13px;font-weight:700;letter-spacing:.18em;color:#9fd3ea;line-height:1.2}
+.f-target{margin:3px 0 0;font-size:16px;font-weight:700;color:#fff;letter-spacing:.04em;line-height:1.35}
+.f-hero{position:relative;padding:0 22px}
+.f-cred{margin:12px 0 0;font-size:15px;font-weight:700;color:#9fd3ea;letter-spacing:.08em}
+.f-title{position:relative;z-index:3;margin:4px 0 0;font-weight:900;line-height:1.02;letter-spacing:-.04em;color:#fff;-webkit-text-stroke:1.2px #fff;text-shadow:0 4px 0 rgba(0,0,0,.35),0 10px 24px rgba(0,0,0,.45)}
+.f-title span{display:block;white-space:nowrap}
+.f-sub{position:relative;z-index:3;margin:10px 0 0;font-size:15px;font-weight:500;line-height:1.6;color:var(--f-pale);letter-spacing:.03em}
+.f-paper{position:absolute;background:#fff;padding:3px;box-shadow:6px 10px 20px rgba(0,0,0,.5)}
+.f-paper img{width:100%;height:100%;object-fit:cover;object-position:0 0}
+.f-mats{position:absolute;z-index:2;margin:0}
+.f-mats figcaption{position:absolute;left:0;font-size:13px;font-weight:500;color:var(--f-pale);white-space:nowrap}
+.f-sign{position:absolute;z-index:3;margin:0;display:flex;flex-wrap:wrap;align-items:baseline;column-gap:6px;color:#fff;font-weight:700}
+.f-role{font-size:13px;font-weight:500;color:#9fd3ea}.f-nm{font-size:16px;letter-spacing:.06em}.f-cr{font-size:13px;font-weight:500;color:var(--f-pale)}
+.f-badge{position:absolute;z-index:4;width:88px;display:flex;flex-direction:column;align-items:center}
+.f-medal{width:88px;height:88px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fffdf6 0%,#f4e7c6 55%,#dcc48a 100%);box-shadow:inset 0 0 0 3px #c39a45,inset 0 0 0 5px #fffaf0,inset 0 0 0 6px rgba(195,154,69,.55),4px 8px 16px rgba(0,0,0,.5);color:#3b2f17}
+.f-ml{font-size:12px;font-weight:700;letter-spacing:-.03em;line-height:1.1}
+.f-mv{font-size:23px;font-weight:900;line-height:1.05;letter-spacing:-.02em}.f-mv small{font-size:13px;font-weight:700;margin-left:1px}
+.f-note{margin-top:4px;display:flex;flex-direction:column;align-items:center;font-size:13px;font-weight:700;line-height:1.3;color:#fff;background:rgba(13,26,34,.78);padding:2px 6px;border-radius:4px}
+.f-offer{padding:0 22px 22px}
+.f-main{margin:0;font-size:34px;font-weight:900;line-height:1.15;letter-spacing:.01em}
+.f-free{display:inline-block;background:var(--f-blue);color:#fff;border-radius:6px;padding:0 7px;margin-right:6px}
+.f-gift{margin:4px 0 12px;font-size:15px;font-weight:500;color:var(--f-pale);letter-spacing:.02em}
+body[data-variant^="a4"] .cta{background:var(--line);box-shadow:0 4px 0 #04913d,0 10px 24px rgba(6,199,85,.25);border-radius:12px;min-height:66px;font-size:19px;font-weight:900}
+body[data-variant^="a4"] .cta:active{background:var(--line-d);box-shadow:none;transform:translateY(3px)}
+body[data-variant^="a4"] .cta:focus-visible{outline:3px solid #fff;outline-offset:3px}
+body[data-variant^="a4"] .review{background:#f4f7f9}
+/* 人物あり: タイトルの下に頭を置き、顔とタイトルを重ねない。教材は左で腕の手前 */
+.f-with .f-hero{height:410px}
+.f-with .f-title{font-size:74px}
+.f-with .f-sub .nb{display:block}
+.f-person{position:absolute;z-index:1;right:-66px;bottom:0;height:240px;margin:0;aspect-ratio:1330/1183}
+.f-person::before{content:"";position:absolute;inset:18% 4% -10% 8%;background:radial-gradient(closest-side,rgba(50,148,193,.45),rgba(50,148,193,0));z-index:-1}
+.f-person img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(6px 10px 18px rgba(0,0,0,.55))}
+.f-with .f-mats{left:18px;top:252px;width:196px;height:112px}
+.f-with .f-board{left:0;top:6px;width:104px;height:92px;transform:rotate(-3deg)}
+.f-with .f-sheet{left:86px;top:0;width:104px;height:92px;transform:rotate(2deg)}
+.f-with .f-mats figcaption{top:102px}
+.f-with .f-sign{left:22px;bottom:6px;flex-wrap:nowrap}
+.f-with .f-badge{right:10px;bottom:-20px}
+.f-with .f-offer{padding-top:8px}
+/* 人物なし: タイトルをさらに大きく、教材を前景の主役に。講師名と肩書は残す */
+.f-without .f-hero{height:398px}
+.f-without .f-title{font-size:86px}
+.f-without .f-sub .nb{display:inline}
+.f-without .f-mats{left:22px;top:276px;width:250px;height:118px}
+.f-without .f-board{left:0;top:4px;width:128px;height:96px;transform:rotate(-3deg)}
+.f-without .f-sheet{left:112px;top:0;width:128px;height:96px;transform:rotate(2deg)}
+.f-without .f-mats figcaption{top:102px}
+.f-without .f-sign{left:22px;top:244px}
+.f-without .f-badge{right:14px;top:262px}
+.f-without .f-offer{padding-top:12px}
+@media (max-width:389px){
+.f-with .f-title{font-size:67px}.f-without .f-title{font-size:78px}
+.f-person{height:226px;right:-70px}
+.f-with .f-mats{transform:scale(.92);transform-origin:0 0}
+.f-without .f-mats{transform:scale(.9);transform-origin:0 0}
+.f-main{font-size:31px}.f-gift{font-size:14px}
+body[data-variant^="a4"] .cta{font-size:17px;padding:0 12px;gap:8px;letter-spacing:0}
+.f-nm{font-size:15px}.f-sign{column-gap:5px}
+}
+@media (min-width:900px){
+.f-top{display:flex;align-items:baseline;gap:20px;padding:18px max(24px,calc((100% - 1160px)/2)) 0}
+.f-target{margin:0;font-size:22px}
+.f-bg1{left:4%;top:-40px;width:560px}.f-bg2{right:6%;top:60px;width:560px}
+.f-hero{max-width:1160px;margin:0 auto;padding:0 24px}
+.f-with .f-hero,.f-without .f-hero{height:470px}
+.f-cred{font-size:22px;margin-top:22px}
+.f-with .f-title,.f-without .f-title{font-size:120px}.f-title span{display:inline-block;margin-right:.12em}
+.f-sub .nb,.f-with .f-sub .nb{display:inline}.f-sub{font-size:22px;margin-top:16px}
+.f-person{right:24px;height:430px}
+.f-with .f-mats,.f-without .f-mats{left:24px;top:300px;width:420px;height:140px}
+.f-with .f-board,.f-without .f-board{width:190px;height:120px}.f-with .f-sheet,.f-without .f-sheet{left:170px;width:190px;height:120px}
+.f-with .f-mats figcaption,.f-without .f-mats figcaption{top:132px}
+.f-with .f-sign,.f-without .f-sign{left:420px;top:auto;bottom:40px;max-width:none}
+.f-with .f-badge{right:420px;bottom:20px}.f-without .f-badge{right:auto;left:760px;top:auto;bottom:34px;transform:scale(1.2);transform-origin:50% 100%}
+.f-offer{display:grid;grid-template-columns:auto minmax(0,460px);justify-content:center;align-items:center;column-gap:48px;padding:20px 24px 30px;max-width:1160px;margin:0 auto}
+.f-main,.f-gift{grid-column:1}.f-main{align-self:end;font-size:40px}.f-gift{margin:6px 0 0;align-self:start}.f-offer .cta{grid-column:2;grid-row:1/3}
+}`;
+
 function page(id, title, body, css) {
   const text = body.replace(/<[^>]+>/g, '') + C.ctaLabel + '×';
   const fonts = fontFaces(text, [500, 700, 900]);
@@ -383,3 +501,6 @@ writeFileSync(join(root, 'out/passlabo-fv-a2.html'), page('a2', 'PASSLABO FV 案
 console.log('out/passlabo-fv-a.html, out/passlabo-fv-b.html, out/passlabo-fv-a2.html（現行 LP 由来の素材を内包）');
 writeFileSync(join(root, 'out/passlabo-fv-a3.html'), page('a3', 'PASSLABO FV 案A3（未公開レビュー稿・仮置き数値あり）', A3(), A3_CSS));
 console.log('out/passlabo-fv-a3.html（未公開レビュー稿。バッジの数値は仮置き）');
+writeFileSync(join(root, 'out/passlabo-fv-a4p.html'), page('a4p', 'PASSLABO FV 案A4 人物あり（未公開レビュー稿・仮置き数値あり）', A4(true), A4_CSS));
+writeFileSync(join(root, 'out/passlabo-fv-a4n.html'), page('a4n', 'PASSLABO FV 案A4 人物なし（未公開レビュー稿・仮置き数値あり）', A4(false), A4_CSS));
+console.log('out/passlabo-fv-a4p.html・out/passlabo-fv-a4n.html（未公開レビュー稿。バッジの数値は仮置き）');
