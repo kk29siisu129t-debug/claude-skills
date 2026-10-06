@@ -212,6 +212,26 @@ export const PROJECT_SPEC = {
       required: ['activeVariant', 'variants'],
     },
     lpo: { t: 'object', fields: { dataset: { ...DATASET_SPEC, nullable: true } }, required: [] },
+    // 人が用意した素材。生成では作らない・上書きしない
+    assets: {
+      t: 'object',
+      fields: {
+        // FV の人物写真（架空のイメージ人物）。実在の顧客・講師・推薦者として扱わない
+        heroPortrait: {
+          t: 'object', nullable: true,
+          fields: {
+            dataUri: str(1600000, { pattern: /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/ }),
+            alt: str(80), caption: str(40), gaze: { t: 'string', enum: ['left', 'right'] }, flip: { t: 'bool' },
+            focusX: { t: 'number', min: 0, max: 100 }, focusY: { t: 'number', min: 0, max: 100 },
+            zoomSp: { t: 'number', min: 1, max: 3 }, focusYPc: { t: 'number', min: 0, max: 100 }, zoomPc: { t: 'number', min: 1, max: 3 },
+            origin: { t: 'string', enum: ['ai_generated', 'stock', 'own_photo'] }, fictional: { t: 'bool' },
+            source: str(200),
+          },
+          required: ['dataUri', 'alt', 'caption'],
+        },
+      },
+      required: [],
+    },
   },
   required: ['schemaVersion', 'id', 'name', 'display', 'brand', 'inputs', 'ledger', 'evidence', 'sections', 'cta'],
 };
@@ -474,6 +494,12 @@ export function validateProject(input) {
   }
   for (const [i, x] of (p.lpo?.dataset?.experiments || []).entries()) {
     for (const k of ['start', 'end', 'plannedEnd']) if (!isRealDate(x[k])) errors.push(`$.lpo.dataset.experiments[${i}].${k}: 実在しない日付です`);
+  }
+  p.assets = { heroPortrait: null, ...(p.assets || {}) };
+  const hp = p.assets.heroPortrait;
+  if (hp) {
+    p.assets.heroPortrait = { gaze: 'left', flip: false, focusX: 50, focusY: 30, zoomSp: 1, zoomPc: 1, origin: 'ai_generated', fictional: true, source: '', ...hp };
+    if (!/架空|イメージ/.test(hp.caption)) { p.assets.heroPortrait.caption = '写真はイメージ（架空の人物）'; warnings.push('$.assets.heroPortrait.caption: 架空のイメージ人物である表示に置き換えました'); }
   }
   if (!p.lpo) p.lpo = { dataset: null };
   if (p.lpo.dataset === undefined) p.lpo.dataset = null;

@@ -547,5 +547,8 @@
   },
   "lpo": {
     "dataset": null
+  },
+  "assets": {
+    "heroPortrait": null
   }
 }

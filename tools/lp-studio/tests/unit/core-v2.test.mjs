@@ -132,13 +132,33 @@ test('render: XSS — どの入力からもタグ・属性・スクリプトが�
   for (const s of p.sections) for (const f of ['heading', 'body', 'note']) p = applyEdit(p, { type: 'setField', id: s.id, field: f, value: payload });
   p = applyEdit(p, { type: 'setItems', id: 'process', value: [{ heading: payload, body: payload }] });
   p = applyEdit(p, { type: 'setCtaLabel', id: 'hero', value: payload.slice(0, 40) });
+  // FV の人物写真: alt / caption も escape。画像は data:image の1枚だけ
+  p.assets.heroPortrait = { ...p.assets.heroPortrait, alt: payload.slice(0, 80), caption: `イメージ${payload}`.slice(0, 40) };
   for (const kind of ['draft', 'review']) {
     const { html } = renderPage(p, { kind });
     assert.equal((html.match(/<script\b/gi) || []).length, 2, kind); // head と runtime の固定スクリプトだけ
-    assert.doesNotMatch(html, /<img/i);
-    assert.doesNotMatch(html, /<[a-z][^>]*\sonerror\s*=/i);
+    const imgs = html.match(/<img\b[^>]*>/gi) || [];
+    assert.equal(imgs.length, 1, kind);
+    assert.match(imgs[0], /^<img src="data:image\/webp;base64,[A-Za-z0-9+/=]+" alt="&quot;&gt;&lt;script&gt;/);
+    assert.doesNotMatch(html.replace(/="[^"]*"/g, '=""'), /<[a-z][^>]*\sonerror\s*=/i); // 引用符内の escape 済み文字列は属性にならない
+    assert.doesNotMatch(html, /alt="[^"]*"[^>]*onerror/i);
   }
   assert.doesNotMatch(renderWireframe(p), /<script|<img/i);
+});
+
+test('assets.heroPortrait: data:image 以外は拒否し、架空のイメージである表示と由来を必ず持つ', () => {
+  const base = seed();
+  const hp = base.assets.heroPortrait;
+  assert.equal(hp.origin, 'ai_generated');
+  assert.equal(hp.fictional, true);
+  assert.match(hp.caption, /イメージ|架空/);
+  for (const bad of ['https://example.com/a.jpg', 'data:image/svg+xml;base64,PHN2Zz4=', 'javascript:alert(1)', 'data:text/html;base64,PGI+']) {
+    const r = validateProject({ ...base, assets: { heroPortrait: { ...hp, dataUri: bad } } });
+    assert.equal(r.ok, false, bad);
+  }
+  const r = validateProject({ ...base, assets: { heroPortrait: { ...hp, caption: '受講生の田中さん' } } });
+  assert.ok(r.ok);
+  assert.match(r.project.assets.heroPortrait.caption, /架空|イメージ/); // 口コミ・肩書のような表示にはしない
 });
 
 test('render: CSP は固定スクリプトの hash と一致し、アプリの CSP にも同じ hash', () => {

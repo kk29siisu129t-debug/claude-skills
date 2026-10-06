@@ -253,6 +253,50 @@ tr.hl td{background-color:var(--hl)}
 .after-fv .lead{font-size:16px}
 }
 @media (max-width:359px){.hero-bar{padding:10px 16px 0}.hero-in{padding:16px 16px 24px}.hero h1{font-size:30px}.plan-title{font-size:24px}.ring{width:84px;height:84px}}
+/* ---- FV 人物写真版: 写真を全面に敷き、顔が主役。見出し・小さな計画カード・CTA を視線の先（余白側）に置く ---- */
+.hero-portrait{position:relative;background:#f4ece4;isolation:isolate}
+.hero-photo{position:absolute;inset:0;z-index:-1;overflow:hidden;margin:0}
+.hero-photo img{width:100%;height:100%;object-fit:cover;object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp);display:block}
+.hero-photo img.flip{transform:scale(var(--zp)) scaleX(-1)}
+.gaze-left .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
+.gaze-right .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
+.hero-portrait .hero-in{grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:"copy ." "visual ." "cta .";min-height:min(640px,calc(100vh - 56px));align-content:center;padding-top:24px;padding-bottom:56px;row-gap:0}
+.gaze-right .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,500px);grid-template-areas:". copy" ". visual" ". cta"}
+.hero-portrait .hero-copy{align-self:auto}
+.hero-portrait h1{font-size:56px}
+.hero-visual.mini{grid-area:visual;margin:28px 0 0;max-width:340px;align-self:start}
+.hero-visual.mini .plan{padding:16px 18px 18px;border-radius:18px;box-shadow:0 18px 40px color-mix(in srgb,var(--ink) 18%,transparent)}
+.hero-visual.mini .vis-label{font-size:12px;margin-bottom:10px}
+.hero-visual.mini .plan-main{gap:12px;margin-bottom:12px}
+.hero-visual.mini .ring{width:56px;height:56px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
+.hero-visual.mini .plan-title{font-size:22px}
+.hero-visual.mini .plan-task{font-size:15px;padding:10px 12px;gap:10px}
+.hero-visual.mini .plan-task .vis-box{width:18px;height:18px;margin-top:2px}
+.hero-portrait .hero-cta{margin-top:28px}
+.photo-cap{position:absolute;right:16px;bottom:12px;margin:0;font-size:11px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
+@media (max-width:767px){
+.hero-portrait{background:var(--paper)}
+.hero-portrait .hero-bar{position:absolute;top:0;left:0;right:0;z-index:2}
+.hero-portrait .logo{background:rgba(255,255,255,.86);border-radius:999px;padding:4px 10px}
+.hero-photo{position:relative;inset:auto;z-index:auto;height:min(380px,52vh)}
+.hero-photo img{object-position:var(--fx) var(--fy);transform:scale(var(--zs));transform-origin:var(--fx) var(--fy)}
+.hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
+.gaze-left .hero-photo::after,.gaze-right .hero-photo::after{display:none}
+.hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"visual" "copy" "cta";min-height:0;padding:0 20px 24px}
+.hero-visual.mini{margin:-64px 0 0;max-width:236px;position:relative;z-index:1}
+.gaze-right .hero-visual.mini{justify-self:end}
+.hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px}
+.hero-visual.mini .vis-label{font-size:11px;margin-bottom:8px;padding:2px 6px}
+.hero-visual.mini .plan-main{gap:10px;margin-bottom:10px}
+.hero-visual.mini .ring{width:40px;height:40px}
+.hero-visual.mini .plan-title{font-size:18px}
+.hero-visual.mini .plan-task{font-size:14px;padding:8px 10px}
+.hero-portrait .hero-copy{margin-top:18px}
+.hero-portrait h1{font-size:32px}
+.hero-portrait .hero-cta{margin-top:18px}
+.photo-cap{top:auto;bottom:auto;right:10px;top:calc(min(380px,52vh) - 30px);font-size:10px}
+}
+@media (max-width:359px){.hero-photo{height:min(320px,50vh)}.photo-cap{top:calc(min(320px,50vh) - 30px)}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px}}
 `;
 }
 
@@ -330,13 +374,24 @@ function sectionHtml(project, s, mode) {
   const meta = draftMeta(s, mode);
   switch (s.role) {
     case 'hero': {
-      // FV は 1つの訴求・大きな図・1つのCTA。説明・デモの注意書き・実際の申込ボタンは FV の下（renderPage の after-fv）に置く
+      // FV は 1つの訴求・大きな主役（人物写真 または 計画の図）・1つのCTA。説明・デモの注意書き・実際の申込ボタンは FV の下（after-fv）
       const d = project.display;
       const badge = d.demoMode !== 'live' ? `<span class="demo-badge">${d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作'}</span>` : '';
       const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>` : '';
+      const pt = project.assets?.heroPortrait;
+      const copy = `<div class="hero-copy">${meta}${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1></div>`;
+      if (pt && pt.dataUri) {
+        // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
+        const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
+        const vars = `--fx:${num(pt.focusX, 50)}%;--fy:${num(pt.focusY, 30)}%;--fyp:${num(pt.focusYPc, num(pt.focusY, 30))}%;--zs:${num(pt.zoomSp, 1)};--zp:${num(pt.zoomPc, 1)}`;
+        return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"></figure><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
+${copy}
+${s.visual ? `<div class="hero-visual mini" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</div>` : ''}
+<div class="hero-cta">${cta}</div>
+</div><p class="photo-cap">${e(pt.caption)}</p></header>`;
+      }
       return `<header class="hero cta-zone" id="${id}"><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
-<div class="hero-copy">${meta}${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}
-<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1></div>
+${copy}
 ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</figure>` : ''}
 <div class="hero-cta">${cta}</div>
 </div></header>`;

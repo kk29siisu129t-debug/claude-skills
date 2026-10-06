@@ -133,3 +133,36 @@
 - 句読点の後で新しい塊を始める
 
 BudouX に近い方式で、外部依存は無い。
+
+## FV 再設計 3: 顔主体（レビュー対象・未完成）
+
+経緯: 文字の多い FV はユーザーレビューで不合格（10/100）。次の計画カード主体の FV（`docs/screenshots/v3/`）は比較用に残す。現在のレビュー対象は顔主体の FV（`docs/screenshots/v3-face/`）。
+
+**構成**
+- 写真を全面に敷き、顔を主役にする。SP は顔を 1.7 倍に寄せ、写真の下端に小さな計画カードを重ねる。PC では左側の余白に見出し・カード・CTA を置く。
+- 人物の視線（左下）の先に、見出しと「今夜の15分」カードが来るように配置する。
+- FV 内の要素:
+  - ブランド名
+  - 「架空デモ」バッジ
+  - 呼びかけ
+  - H1（2行）
+  - 計画カード
+  - CTA 1つ
+  - 写真の注記「写真はAI生成のイメージ」（約78字）
+- 説明文・デモの注意書き・無効の予約ボタンは FV の下に置く。
+- 写真の扱い: 実績・口コミ・講師・肩書とは結び付けない。
+  - `assets.heroPortrait` に `origin: ai_generated` と `fictional: true` を記録する。
+  - 注記は「架空 / イメージ」を必須とし、満たさない場合は置き換える。
+  - 画像は `data:image/(jpeg|png|webp)` だけを受け付ける。
+
+**設計根拠として参照した研究（FV 本文には入れない。効果の保証ではない）**
+- Hutton & Nolte (2011), Sajjacholapunt & Ball (2014): 広告内の人物の視線を商品・情報へ向けると、その対象への注視配分や記憶に影響した。注意を顔だけに集めず、提供価値（見出し・計画カード）へつなぐ配置の根拠として使う。
+- Tuch et al. (2012): 視覚的な複雑さが低く、見慣れた配置（prototypicality が高い）のサイトほど、第一印象の評価が良かった。 https://research.google/pubs/the-role-of-visual-complexity-and-prototypicality-regarding-first-impression-of-websites-working-towards-understanding-aesthetic-judgments/
+- Palcu et al. (2017): 顔を置けば広告の見られ方が一律に良くなるとは限らない。 https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2017.00881/full
+
+**限界**
+- 上記はいずれも注視・記憶・印象の研究で、離脱率や CVR の改善を示すものではない。この LP での効果も保証しない。
+- FV の文字量 60〜80字・CTA 1つは今回のデザイン条件で、科学的な万能値ではない。
+- 将来の比較検証の進め方:
+  - 同じ人物・同じ配置のまま、視線の向き（カードへ / 正面）などの1要素だけを変えて比べる。
+  - 注視だけで判断せず、事前に定義を固定した CVR 等で判断する。
