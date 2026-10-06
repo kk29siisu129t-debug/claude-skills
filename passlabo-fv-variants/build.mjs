@@ -192,6 +192,77 @@ const B_CSS = `
 .b-gift{grid-column:1;margin:0}.b-offer .cta{grid-column:2;grid-row:1/3}
 }`;
 
+// ---- 案A 磨き直し（a2）: 白地＋濃紺〜青の1系統。講座名 → 本人＋板書/教材の一群 → 無料講義オファー → 緑の CTA（緑は CTA だけ） ----
+const A2 = () => `
+<header class="x-top"><span class="x-brand">${e(C.brand)}</span><p class="x-target">${e(C.target)}</p></header>
+<section class="x-hero" aria-label="ファーストビュー">
+  <div class="x-copy">
+    <p class="x-cred">${e(C.credential)}</p>
+    <h1 class="x-title"><span>共テ数学</span><span class="x-accent">特別講義</span></h1>
+    <p class="x-sub">${phrases(C.subA)}</p>
+  </div>
+  <div class="x-panel"><figure class="x-photo"><img src="${photo.uri}" alt="${e(photo.alt)}"></figure></div>
+  <p class="x-sign"><span>${e(C.instructorRole)}</span>${e(C.instructorName)}</p>
+  <figure class="x-mats" aria-label="${e(C.materialLabel)}">
+    <span class="x-paper x-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
+    <span class="x-paper x-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
+    <figcaption>${e(C.materialLabel)}</figcaption>
+  </figure>
+</section>
+<section class="x-offer">
+  <p class="x-main"><span class="x-free">無料</span>特別講義</p>
+  <p class="x-gift">${e(C.offerSub)}</p>
+  ${cta('x-cta')}
+</section>
+${reviewNote}`;
+const A2_CSS = `
+body[data-variant="a2"]{--x-navy:#0b1f5c;--x-blue:#1d4ed8;--x-text:#1f2a44;--x-mute:#4a5670;--x-rule:#d7e0f0;background:#fff}
+.x-top{padding:12px 16px 10px;border-bottom:1px solid var(--x-rule)}
+.x-brand{display:block;font-size:13px;font-weight:700;letter-spacing:.16em;color:var(--x-blue);line-height:1.2}
+.x-target{margin:4px 0 0;font-size:18px;font-weight:700;color:var(--x-navy);letter-spacing:.02em;line-height:1.35;padding-left:10px;border-left:4px solid var(--x-blue)}
+.x-hero{position:relative;height:350px;overflow:hidden;background:#fff}
+.x-copy{position:absolute;z-index:3;left:16px;top:16px;width:230px}
+.x-cred{margin:0;font-size:16px;font-weight:600;color:var(--x-blue);letter-spacing:.02em}
+.x-title{margin:4px 0 0;font-size:50px;line-height:1.08;font-weight:900;letter-spacing:-.02em;color:var(--x-navy)}
+.x-title span{display:block;white-space:nowrap}.x-title .x-accent{color:var(--x-blue)}
+.x-sub{margin:10px 0 0;font-size:16px;font-weight:500;line-height:1.6;color:var(--x-text)}
+.x-sub .nb{display:block}
+/* 写真の濃紺の背景を、斜めに切った面としてそのまま背景につなぐ（白地に矩形写真を貼らない） */
+.x-panel{position:absolute;z-index:1;right:0;top:0;bottom:0;width:46%;overflow:hidden;background:linear-gradient(90deg,#0c2f8e 0%,#0b2672 45%,#0e1a45 80%,#13151d 100%);clip-path:polygon(22% 0,100% 0,100% 100%,0 100%)}
+.x-photo{position:absolute;right:-70px;bottom:0;height:300px;margin:0;aspect-ratio:656/585}
+.x-photo img{width:100%;height:100%;object-fit:cover}
+.x-sign{position:absolute;z-index:4;right:14px;top:12px;margin:0;font-size:15px;font-weight:600;color:#fff;letter-spacing:.06em}
+.x-sign span{font-size:13px;font-weight:500;margin-right:8px;opacity:.85}
+.x-mats{position:absolute;z-index:3;left:16px;bottom:14px;width:214px;height:118px;margin:0}
+.x-paper{position:absolute;background:#fff;padding:3px;border:1px solid var(--x-rule);box-shadow:0 2px 6px rgba(11,31,92,.14)}
+.x-paper img{width:100%;height:100%;object-fit:cover;object-position:0 0}
+.x-board{left:0;top:0;width:112px;height:96px;transform:rotate(-1.5deg)}
+.x-sheet{left:96px;top:4px;width:112px;height:96px;transform:rotate(1.5deg)}
+.x-mats figcaption{position:absolute;left:0;bottom:-2px;font-size:13px;font-weight:500;color:var(--x-mute);white-space:nowrap}
+.x-offer{padding:12px 16px 18px;border-top:1px solid var(--x-rule);text-align:center}
+.x-main{margin:0;font-size:38px;font-weight:900;line-height:1.15;color:var(--x-navy);letter-spacing:-.01em}
+.x-free{color:var(--x-blue)}
+.x-gift{margin:4px 0 12px;font-size:15px;font-weight:500;color:var(--x-mute)}
+body[data-variant="a2"] .cta{background:var(--line);box-shadow:none;border-radius:12px;min-height:60px;font-size:19px;font-weight:700}
+body[data-variant="a2"] .cta:hover{background:#05b84e}
+body[data-variant="a2"] .cta:active{background:var(--line-d)}
+body[data-variant="a2"] .cta:focus-visible{outline:3px solid var(--x-navy);outline-offset:3px;box-shadow:none}
+@media (min-width:900px){
+.x-top{display:flex;align-items:baseline;gap:20px;padding:14px max(24px,calc((100% - 1160px)/2))}
+.x-target{margin:0;font-size:22px}
+.x-hero{height:460px}
+.x-copy{left:max(24px,calc((100% - 1160px)/2));top:34px;width:720px}
+.x-cred{font-size:22px}.x-title{font-size:80px}.x-title span{display:inline-block;margin-right:.2em}.x-sub{font-size:22px;margin-top:16px}.x-sub .nb{display:inline}
+.x-panel{width:46%}
+.x-photo{right:-40px;height:100%;-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 120px);mask-image:linear-gradient(90deg,transparent 0,#000 120px)}
+.x-mats{left:max(24px,calc((100% - 1160px)/2));bottom:30px;width:420px;height:150px}
+.x-board{width:190px;height:122px}.x-sheet{left:176px;width:190px;height:122px}
+.x-mats figcaption{left:0;bottom:-24px}
+.x-sign{right:max(24px,calc((100% - 1160px)/2));top:20px;font-size:20px}
+.x-offer{display:grid;grid-template-columns:auto minmax(0,440px);justify-content:center;align-items:center;column-gap:48px;padding:22px;text-align:left}
+.x-gift{grid-column:1;margin:4px 0 0}.x-offer .cta{grid-column:2;grid-row:1/3}
+}`;
+
 function page(id, title, body, css) {
   const text = body.replace(/<[^>]+>/g, '') + C.ctaLabel + '×';
   const fonts = fontFaces(text, [500, 700, 900]);
@@ -211,4 +282,5 @@ ${body}
 mkdirSync(join(root, 'out'), { recursive: true });
 writeFileSync(join(root, 'out/passlabo-fv-a.html'), page('a', 'PASSLABO FV 案A（確認用）', A(), A_CSS));
 writeFileSync(join(root, 'out/passlabo-fv-b.html'), page('b', 'PASSLABO FV 案B（確認用）', B(), B_CSS));
-console.log('out/passlabo-fv-a.html, out/passlabo-fv-b.html（現行 LP 由来の素材を内包）');
+writeFileSync(join(root, 'out/passlabo-fv-a2.html'), page('a2', 'PASSLABO FV 案A 磨き直し（確認用）', A2(), A2_CSS));
+console.log('out/passlabo-fv-a.html, out/passlabo-fv-b.html, out/passlabo-fv-a2.html（現行 LP 由来の素材を内包）');

@@ -13,7 +13,7 @@ const H = 640; // A/B 共通の SP 画像の高さ（FV の目安 620px を含�
 const ref = process.argv[2];
 const b = await launch();
 const measure = {};
-for (const v of ['a', 'b']) {
+for (const v of (process.env.VARIANTS || 'a,b,a2').split(',')) {
   const file = `file://${out(`passlabo-fv-${v}.html`)}`;
   const ctx = await b.newContext({ viewport: { width: 400, height: H }, deviceScaleFactor: 2 });
   const p = await ctx.newPage();
@@ -52,3 +52,11 @@ if (ref && existsSync(ref)) { scale(ref, out('_ref.png')); parts.push(out('_ref.
 for (const v of ['a', 'b']) parts.push(out(`passlabo-fv-${v}-sp400.png`));
 execFileSync('ffmpeg', ['-v', 'error', '-y', ...parts.flatMap((p) => ['-i', p]), '-filter_complex', `${parts.map((_, i) => `[${i}:v]pad=iw+24:ih:0:0:white[p${i}]`).join(';')};${parts.map((_, i) => `[p${i}]`).join('')}hstack=inputs=${parts.length}`, out('compare-sp400.png')]);
 console.log(JSON.stringify(measure, null, 1));
+// 案A 磨き直し: 旧A（afb6dab の保存版）と新A、参照・旧A・新Aの同寸比較
+const oldA = join(root, 'out/archive-a-afb6dab/passlabo-fv-a-sp400.png');
+const newA = out('passlabo-fv-a2-sp400.png');
+if (existsSync(oldA) && existsSync(newA)) {
+  const stack = (inputs, dst) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...inputs.flatMap((p) => ['-i', p]), '-filter_complex', `${inputs.map((_, i) => `[${i}:v]pad=iw+24:ih:0:0:white[p${i}]`).join(';')};${inputs.map((_, i) => `[p${i}]`).join('')}hstack=inputs=${inputs.length}`, dst]);
+  stack([oldA, newA], out('compare-a-old-new.png'));
+  if (existsSync(out('_ref.png'))) stack([out('_ref.png'), oldA, newA], out('compare-ref-a-old-new.png'));
+}
