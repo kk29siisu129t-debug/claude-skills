@@ -5,6 +5,7 @@
 // - デモ（live 以外）では、行動ボタンはページ内の例へのアンカーだけ。実際の申込ボタンは無効表示。
 
 import { escapeHtml as e, safeUrl, safeColor, contrastRatio, readableOn, inkFor, sha256Base64 } from './util.js';
+import { detectClaims } from './claims.js';
 import { ROLES } from './roles.js';
 import { headingPhrases } from './segment.js';
 import { checkProject, gates } from './editorial.js';
@@ -21,10 +22,13 @@ var bar=document.querySelector('.sticky-cta');if(!bar)return;var zones=document.
 function upd(){var any=false;for(var i=0;i<vis.length;i++)if(vis[i])any=true;var show=!any;bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
 if(io){var z=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(zones,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(zones,function(x,i){vis[i]=true;z.observe(x)});upd()}else{bar.classList.add('show');bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}})();`;
 
+// 日本語ゴシックを OS ごとに指定し、最後にこの検証環境に実在する IPA ゴシックを置く。
+// 名前を並べるだけでは描画を保証しないため、実際の描画フォントは docs/fonts.mjs（CDP の getPlatformFontsForNode）で確認する。
+const JA_SANS = '"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","YuGothic","Meiryo","Noto Sans JP","Noto Sans CJK JP","Source Han Sans JP","IPAPGothic","IPAGothic","IPAexGothic"';
 const FONT_STACK = {
-  sans: '"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI","Meiryo",system-ui,sans-serif',
-  serif: '"Hiragino Mincho ProN","Noto Serif JP","Noto Serif CJK JP","Yu Mincho",serif',
-  rounded: '"Hiragino Maru Gothic ProN","M PLUS Rounded 1c","Noto Sans JP",system-ui,sans-serif',
+  sans: `${JA_SANS},sans-serif`,
+  serif: '"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP","Noto Serif CJK JP","IPAPMincho","IPAMincho",serif',
+  rounded: `"Hiragino Maru Gothic ProN","M PLUS Rounded 1c",${JA_SANS},sans-serif`,
 };
 
 function mixHex(a, b, t) {
@@ -53,8 +57,9 @@ export function contrastChecks(project) {
     { name: '強調（メイン色 / 白）', ratio: contrastRatio(t.primaryInk, '#ffffff') },
     { name: '呼びかけ（アクセント色 / 白）', ratio: contrastRatio(t.accentInk, '#ffffff') },
     { name: 'CTA（文字 / ボタン色）', ratio: contrastRatio(t.ctaText, t.cta) },
-    { name: '締めの帯（文字 / メイン色）', ratio: contrastRatio(t.bandText, t.primary) },
-    { name: '締めの帯（文字 / 帯の終端）', ratio: contrastRatio(t.bandText, mixHex(t.primary, '#000000', 0.28)) },
+    { name: '締めの帯（白文字 / 文字色の帯）', ratio: contrastRatio('#ffffff', t.ink) },
+    { name: '締めの帯（白文字 / 帯の終端）', ratio: contrastRatio('#ffffff', mixHex(t.ink, t.primary, 0.22)) },
+    { name: '締めの帯（注記 / 帯）', ratio: contrastRatio('#e6e8ee', mixHex(t.ink, t.primary, 0.22)) },
   ].map((c) => ({ ...c, ok: c.ratio >= 4.5 }));
 }
 
@@ -91,8 +96,6 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .vis-title{font-size:20px;line-height:1.4;font-weight:800;margin:0 0 12px;font-variant-numeric:tabular-nums}
 .vis-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px 14px;font-size:16px;line-height:1.6;font-weight:700}
 .vis-box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--primary-ink);margin-top:2px}
-.vis-ghost{height:10px;border-radius:5px;background:var(--line);margin:12px 0 0;width:72%}
-.vis-ghost+.vis-ghost{width:54%;margin-top:8px}
 .vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0}
 .vis-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
 .vis-table th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -111,7 +114,7 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .sec-in.wide{max-width:1040px}
 .sec h2{font-size:36px;line-height:1.35;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-wrap:balance}
 .sec .body{max-width:640px}
-.sec-empathy .body{font-size:17px;border-left:4px solid var(--accent);padding-left:20px}
+.sec-empathy .body{border-left:4px solid var(--accent);padding-left:20px}
 .points{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
 .points li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px}
 .points b{display:block;font-size:17px}
@@ -127,12 +130,12 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .faq dt::before{content:"Q.";color:var(--primary-ink);margin-right:.4em}
 .faq dd{margin:0}
 .illus .vis{padding:28px 32px}
-.closing{background:linear-gradient(135deg,var(--primary),${mixHex(t.primary, '#000000', 0.28)});color:var(--band-text);padding:80px 0}
+.closing{background:linear-gradient(160deg,var(--ink),${mixHex(t.ink, t.primary, 0.22)});color:#fff;padding:80px 0;border-top:4px solid var(--accent)}
 .closing h2{color:inherit;font-size:36px;line-height:1.35;font-weight:800;margin:0 0 20px;text-wrap:balance}
 .closing .body{max-width:640px;margin-bottom:28px}
-.closing .btn-primary{background:#fff;color:var(--primary-ink);box-shadow:0 8px 20px rgba(0,0,0,.18)}
-.closing .btn-disabled{background:transparent;color:var(--band-text);border-color:color-mix(in srgb,var(--band-text) 55%,transparent)}
-.closing .cta-note{color:var(--band-text)}
+.closing .btn-primary{background:var(--cta);color:var(--cta-text);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.closing .btn-disabled{background:transparent;color:#e6e8ee;border-color:rgba(255,255,255,.5)}
+.closing .cta-note{color:#e6e8ee}
 footer{padding:32px 0;font-size:14px;line-height:1.7;color:var(--sub);border-top:1px solid var(--line)}
 footer .sec-in{max-width:1040px}
 .sticky-cta{position:fixed;right:24px;bottom:24px;width:340px;height:60px;z-index:50;visibility:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s}
@@ -165,7 +168,6 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual .vis-label{margin-bottom:8px}
 .hero-visual .vis-title{font-size:17px;margin-bottom:8px}
 .hero-visual .vis-row{padding:10px 12px;font-size:15px}
-.hero-visual .vis-ghost{display:none}
 .hero-visual .vis-note{margin-top:6px;font-size:12px;line-height:1.5}
 .hero-visual .vis-table tr{padding:6px 6px}
 .hero-cta{margin-top:14px}
@@ -217,7 +219,7 @@ function visualHtml(v, { hero = false } = {}) {
   const label = `<span class="vis-label">${e(v.label)}</span>`;
   const note = v.note ? `<p class="vis-note">${e(v.note)}</p>` : '';
   if (v.kind === 'task-card') {
-    return `<div class="vis vis-taskcard">${label}${v.title ? `<p class="vis-title">${e(v.title)}</p>` : ''}<div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div>${hero ? '<div class="vis-ghost" aria-hidden="true"></div><div class="vis-ghost" aria-hidden="true"></div>' : ''}${note}</div>`;
+    return `<div class="vis vis-taskcard">${label}${v.title ? `<p class="vis-title">${e(v.title)}</p>` : ''}<div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div>${note}</div>`;
   }
   if (v.kind === 'flow') {
     const steps = [v.from, v.to, v.review].filter(Boolean);
@@ -252,6 +254,7 @@ function ctaHtml(s, mode) {
 }
 
 function hasContent(s) {
+  if (s.role === 'proof') return true; // 出せる根拠があるかは sectionHtml が判断する
   return !!(s.body.trim() || s.items.some((i) => (i.heading || i.body).trim()) || s.visual);
 }
 
@@ -269,7 +272,7 @@ function sectionHtml(project, s, mode) {
   switch (s.role) {
     case 'hero': {
       const d = project.display;
-      return `<header class="hero" id="${id}"><div class="hero-in">
+      return `<header class="hero cta-zone" id="${id}"><div class="hero-in">
 <div class="hero-copy">${meta}<p class="hero-meta"><b>${e(d.brandName)}</b>${e(d.serviceDescriptor)}</p>
 ${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}
 <h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>
@@ -290,7 +293,7 @@ ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${vi
       return `<section class="sec sec-scope" id="${id}"><div class="sec-in">${meta}${h2}<div class="scope-box reveal">${paras(s.body)}${s.items.length ? `<ul>${s.items.map((it) => `<li>${e(it.heading)}${it.body ? `：${e(it.body)}` : ''}</li>`).join('')}</ul>` : ''}</div>${ctaHtml(s, mode)}</div></section>`;
     case 'proof': {
       const idx = refIndex(project);
-      const ev = s.sourceRefs.map((r) => idx.get(r)).filter((x) => x && x.type === 'evidence' && x.reality === 'real' && x.item.status === 'verified' && x.item.kind !== 'illustrative');
+      const ev = s.sourceRefs.map((r) => idx.get(r)).filter((x) => x && x.type === 'evidence' && x.reality === 'real' && x.item.status === 'verified' && !['illustrative', 'hypothesis'].includes(x.item.kind) && !(x.item.kind === 'customer-quote' && !x.item.consent) && ![x.item.claim, x.item.source].some((t) => detectClaims(t, project.display.category).some((c) => c.severity === 'block')));
       if (!ev.length) return '';
       return `<section class="sec sec-proof" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<ul class="points">${ev.map((x) => `<li class="reveal">${e(x.text)}<br><small>出典: ${e(x.item.source)}</small></li>`).join('')}</ul></div></section>`;
     }

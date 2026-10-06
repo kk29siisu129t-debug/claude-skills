@@ -4,7 +4,7 @@
 <meta name="generator" content="lp-studio v2 (review)">
 <title>見積もり番｜見積もりの返事待ちを共有する、チーム用管理ツール</title>
 <script>(function(){try{var d=document.documentElement;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);if(!rm&&!d.hasAttribute('data-reduce-motion')&&'IntersectionObserver' in window)d.classList.add('js')}catch(e){}})();</script>
-<style>:root{--primary:#1f5f57;--accent:#d0672b;--ink:#182226;--paper:#f7f8f6;--cta:#1f5f57;--cta-text:#ffffff;--primary-ink:#1f5f57;--accent-ink:#b15825;--band-text:#ffffff;--sub:#52595c;--line:#dfe0e1;--tint:#eff4f3;--hl:#f8eae1;--font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI","Meiryo",system-ui,sans-serif}
+<style>:root{--primary:#1f5f57;--accent:#d0672b;--ink:#182226;--paper:#f7f8f6;--cta:#1f5f57;--cta-text:#ffffff;--primary-ink:#1f5f57;--accent-ink:#b15825;--band-text:#ffffff;--sub:#52595c;--line:#dfe0e1;--tint:#eff4f3;--hl:#f8eae1;--font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","YuGothic","Meiryo","Noto Sans JP","Noto Sans CJK JP","Source Han Sans JP","IPAPGothic","IPAGothic","IPAexGothic",sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:96px;scroll-behavior:smooth}
 body{margin:0;font-family:var(--font);color:var(--ink);background:#fff;font-size:16px;line-height:1.8;font-weight:400;overflow-wrap:break-word;line-break:strict;padding-bottom:96px}
@@ -35,8 +35,6 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .vis-title{font-size:20px;line-height:1.4;font-weight:800;margin:0 0 12px;font-variant-numeric:tabular-nums}
 .vis-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px 14px;font-size:16px;line-height:1.6;font-weight:700}
 .vis-box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--primary-ink);margin-top:2px}
-.vis-ghost{height:10px;border-radius:5px;background:var(--line);margin:12px 0 0;width:72%}
-.vis-ghost+.vis-ghost{width:54%;margin-top:8px}
 .vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0}
 .vis-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
 .vis-table th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -55,7 +53,7 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .sec-in.wide{max-width:1040px}
 .sec h2{font-size:36px;line-height:1.35;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-wrap:balance}
 .sec .body{max-width:640px}
-.sec-empathy .body{font-size:17px;border-left:4px solid var(--accent);padding-left:20px}
+.sec-empathy .body{border-left:4px solid var(--accent);padding-left:20px}
 .points{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
 .points li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px}
 .points b{display:block;font-size:17px}
@@ -71,12 +69,12 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .faq dt::before{content:"Q.";color:var(--primary-ink);margin-right:.4em}
 .faq dd{margin:0}
 .illus .vis{padding:28px 32px}
-.closing{background:linear-gradient(135deg,var(--primary),#16443f);color:var(--band-text);padding:80px 0}
+.closing{background:linear-gradient(160deg,var(--ink),#1a2f31);color:#fff;padding:80px 0;border-top:4px solid var(--accent)}
 .closing h2{color:inherit;font-size:36px;line-height:1.35;font-weight:800;margin:0 0 20px;text-wrap:balance}
 .closing .body{max-width:640px;margin-bottom:28px}
-.closing .btn-primary{background:#fff;color:var(--primary-ink);box-shadow:0 8px 20px rgba(0,0,0,.18)}
-.closing .btn-disabled{background:transparent;color:var(--band-text);border-color:color-mix(in srgb,var(--band-text) 55%,transparent)}
-.closing .cta-note{color:var(--band-text)}
+.closing .btn-primary{background:var(--cta);color:var(--cta-text);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.closing .btn-disabled{background:transparent;color:#e6e8ee;border-color:rgba(255,255,255,.5)}
+.closing .cta-note{color:#e6e8ee}
 footer{padding:32px 0;font-size:14px;line-height:1.7;color:var(--sub);border-top:1px solid var(--line)}
 footer .sec-in{max-width:1040px}
 .sticky-cta{position:fixed;right:24px;bottom:24px;width:340px;height:60px;z-index:50;visibility:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s}
@@ -109,7 +107,6 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual .vis-label{margin-bottom:8px}
 .hero-visual .vis-title{font-size:17px;margin-bottom:8px}
 .hero-visual .vis-row{padding:10px 12px;font-size:15px}
-.hero-visual .vis-ghost{display:none}
 .hero-visual .vis-note{margin-top:6px;font-size:12px;line-height:1.5}
 .hero-visual .vis-table tr{padding:6px 6px}
 .hero-cta{margin-top:14px}
@@ -146,7 +143,7 @@ tr.hl td{background-color:var(--hl)}
 @media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}.hero h1{font-size:26px}}
 </style></head>
 <body data-kind="review" data-demo="synthetic-demo"><div class="demo-bar" role="note"><b>デモ</b> <span class="ph">架空サービスの</span><span class="ph">デモです。</span><span class="ph">登録やお</span><span class="ph">申し込みはできません。</span></div>
-<main><header class="hero" id="hero"><div class="hero-in">
+<main><header class="hero cta-zone" id="hero"><div class="hero-in">
 <div class="hero-copy"><p class="hero-meta"><b>見積もり番</b>見積もりの返事待ちを共有する、チーム用管理ツール</p>
 <p class="aud">少人数で案件を進める制作会社へ</p>
 <h1><span class="ph">返事待ちの見積もりを、</span><span class="ph">チームで追える一覧に。</span></h1>
@@ -156,7 +153,7 @@ tr.hl td{background-color:var(--hl)}
 </div></header>
 <section class="sec sec-empathy" id="empathy"><div class="sec-in"><h2><span class="ph">「あの見積もり、</span><span class="ph">その後どうなった？」から</span><span class="ph">始まる会議。</span></h2><div class="body reveal"><p>返事は担当者のメールに、次の予定はそれぞれのメモに。案件の状況をそろえるために、担当者へ一つずつ聞いていませんか。</p></div></div></section>
 <section class="sec sec-mechanism" id="mechanism"><div class="sec-in"><h2><span class="ph">返事待ちと</span><span class="ph">次の確認日を、</span><span class="ph">同じ場所に。</span></h2><div class="body reveal"><p>見積もり番では、見積もりの状況と担当者、次回確認日を手入力で記録します。チームで同じ一覧を見ながら、次に確認する案件を探せます。</p></div></div></section>
-<section class="sec sec-illus illus" id="illustration"><div class="sec-in wide"><h2><span class="ph">次に確認する案件が、</span><span class="ph">一覧で分かる。</span></h2><div class="body"><p>担当者、状況、次回確認日で絞り込むと、今週確認する案件だけを並べられます。</p></div><div class="reveal"><div class="vis vis-tablebox"><span class="vis-label">共有一覧のイメージ・架空データ（次回確認日の近い順）</span><table class="vis-table"><thead><tr><th scope="col">案件</th><th scope="col">状況</th><th scope="col">担当者</th><th scope="col">次回確認日</th></tr></thead><tbody><tr class="hl"><td data-label="案件">サイト制作A</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月8日</td></tr><tr><td data-label="案件">バナー制作B</td><td data-label="状況"><span class="tag">条件を確認中</span></td><td data-label="担当者">担当B</td><td data-label="次回確認日">10月9日</td></tr><tr><td data-label="案件">パンフレット制作C</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月10日</td></tr><tr><td data-label="案件">動画制作D</td><td data-label="状況"><span class="tag">再見積もり</span></td><td data-label="担当者">担当C</td><td data-label="次回確認日">10月14日</td></tr></tbody></table><p class="vis-note">画面と案件データは説明用のイメージです。実際の製品画面ではありません。</p></div></div></div></section>
+<section class="sec sec-illus illus" id="illustration"><div class="sec-in wide"><h2><span class="ph">次に確認する案件が、</span><span class="ph">一覧で分かる。</span></h2><div class="body"><p>担当者、状況、次回確認日で、確認したい案件を絞り込めます。</p></div><div class="reveal"><div class="vis vis-tablebox"><span class="vis-label">共有一覧のイメージ・架空データ</span><table class="vis-table"><thead><tr><th scope="col">案件</th><th scope="col">状況</th><th scope="col">担当者</th><th scope="col">次回確認日</th></tr></thead><tbody><tr class="hl"><td data-label="案件">サイト制作A</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月8日</td></tr><tr><td data-label="案件">バナー制作B</td><td data-label="状況"><span class="tag">条件を確認中</span></td><td data-label="担当者">担当B</td><td data-label="次回確認日">10月9日</td></tr><tr><td data-label="案件">パンフレット制作C</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月10日</td></tr><tr><td data-label="案件">動画制作D</td><td data-label="状況"><span class="tag">再見積もり</span></td><td data-label="担当者">担当C</td><td data-label="次回確認日">10月14日</td></tr></tbody></table><p class="vis-note">画面と案件データは説明用のイメージです。実際の製品画面ではありません。</p></div></div></div></section>
 <section class="sec sec-process" id="process"><div class="sec-in"><h2><span class="ph">記録して、</span><span class="ph">共有して、</span><span class="ph">確認する。</span></h2><ol class="steps"><li class="reveal"><div><h3><span class="ph">送った</span><span class="ph">見積もりを</span><span class="ph">記録</span></h3><p>案件名、状況、担当者、次回確認日を入力します。</p></div></li><li class="reveal"><div><h3><span class="ph">チームの</span><span class="ph">一覧で</span><span class="ph">共有</span></h3><p>担当者ごとに分かれていた状況を、同じ一覧で確認します。</p></div></li><li class="reveal"><div><h3><span class="ph">次に</span><span class="ph">確認する</span><span class="ph">案件を</span><span class="ph">絞り込む</span></h3><p>担当者、状況、次回確認日で案件を探せます。</p></div></li></ol></div></section>
 <section class="sec sec-scope" id="scope"><div class="sec-in"><h2><span class="ph">手入力で、</span><span class="ph">見積もりの状況を</span><span class="ph">共有するツールです。</span></h2><div class="scope-box reveal"><p>メールの自動取り込みや自動送信、会計処理には対応していません。共有したい案件を記録して使います。</p></div></div></section>
 <section class="closing" id="closing"><div class="sec-in"><h2><span class="ph">チームで見る一覧を、</span><span class="ph">画面イメージで</span><span class="ph">確かめる。</span></h2><div class="body"><p>架空の案件を使って、状況と担当者、次回確認日の並びを確認できます。</p></div><div class="cta-row cta-zone"><a class="btn btn-primary" href="#illustration">一覧画面のイメージを見る<span class="arw" aria-hidden="true"></span></a></div><p class="cta-note"><span class="ph">架空サービスの</span><span class="ph">デモです。</span><span class="ph">登録やお</span><span class="ph">申し込みはできません。</span></p></div></section></main>

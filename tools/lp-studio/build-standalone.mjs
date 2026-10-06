@@ -4,14 +4,16 @@
 //   node build-standalone.mjs
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { RUNTIME_SCRIPT } from './src/core/render.js';
+import { HEAD_SCRIPT, RUNTIME_SCRIPT } from './src/core/render.js';
 
 const root = new URL('.', import.meta.url);
 const read = (p) => readFileSync(new URL(p, root), 'utf8');
 
 const FILES = {
   util: 'src/core/util.js',
-  sections: 'src/core/sections.js',
+  roles: 'src/core/roles.js',
+  segment: 'src/core/segment.js',
+  editorial: 'src/core/editorial.js',
   claims: 'src/core/claims.js',
   schema: 'src/core/schema.js',
   generate: 'src/core/generate.js',
@@ -61,14 +63,17 @@ function transform(name, src) {
   return `__mods.${name} = (() => {\n${out}\nreturn { ${exports.join(', ')} };\n})();\n`;
 }
 
-const seed = read('seed/project.fictional.json');
-const dataset = read('seed/lpo-dataset.fictional.json');
+const embed = {
+  michishirube: read('seed/michishirube.project.json'),
+  mitsumoriban: read('seed/mitsumoriban.project.json'),
+  dataset: read('seed/lpo-dataset.fictional.json'),
+};
 const js = [
   '(() => {',
   '"use strict";',
   'const __mods = {};',
   // seed を埋め込み（fetch の代わり）。JSON は script 内で </ を壊さないよう escape
-  `window.__LP_STUDIO_EMBED__ = { seed: ${JSON.stringify(seed).replace(/</g, '\\u003c')}, dataset: ${JSON.stringify(dataset).replace(/</g, '\\u003c')} };`,
+  `window.__LP_STUDIO_EMBED__ = ${JSON.stringify(embed).replace(/</g, '\\u003c')};`,
   ...MODULES.map(([n, p]) => transform(n, read(p))),
   '})();',
 ].join('\n').replace(/<\/(script|style)/gi, '<\\/$1'); // 埋め込み先の </script> で途切れないように（JS内では同じ意味）
@@ -76,7 +81,7 @@ const js = [
 const hash = (s) => createHash('sha256').update(s).digest('base64');
 const css = read('src/app/styles.css');
 let html = read('src/app/index.html');
-const csp = `default-src 'none'; script-src 'sha256-${hash(js)}' 'sha256-${hash(RUNTIME_SCRIPT)}'; style-src 'unsafe-inline'; img-src data:; frame-src 'self' about:; child-src 'self' about: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
+const csp = `default-src 'none'; script-src 'sha256-${hash(js)}' 'sha256-${hash(HEAD_SCRIPT)}' 'sha256-${hash(RUNTIME_SCRIPT)}'; style-src 'unsafe-inline'; img-src data:; frame-src 'self' about:; child-src 'self' about: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'`;
 html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, `<meta http-equiv="Content-Security-Policy" content="${csp}">`);
 html = html.replace('<link rel="stylesheet" href="./styles.css">', () => `<style>${css}</style>`);
 html = html.replace('<script type="module" src="./app.js"></script>', () => `<script>${js}</script>`);

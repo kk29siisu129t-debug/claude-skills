@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "id": "michishirube-study-support",
   "name": "ミチシルベ簿記（架空デモ）",
-  "updatedAt": "",
+  "updatedAt": "2026-10-06T00:00:00.000Z",
   "display": {
     "demoNotice": "架空サービスのデモです。お申し込みは受け付けていません。",
     "operator": "",
@@ -561,6 +561,140 @@
     ]
   },
   "lpo": {
-    "dataset": null
+    "dataset": {
+      "fictional": true,
+      "name": "【架空】ミチシルベ簿記 デモ集計 2026年8〜9月",
+      "experiments": [
+        {
+          "id": "exp-fv-aug",
+          "name": "FV訴求 A/B（8月前半・小規模）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-08-01",
+          "end": "2026-08-14",
+          "plannedEnd": "2026-08-14",
+          "missingDays": 0,
+          "notes": "架空データ。各群の分母が必要サンプルに届いていない例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 現行FV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 4200,
+              "ctaClicks": 520,
+              "conversions": 126
+            },
+            {
+              "id": "b",
+              "name": "B: 約束先出しFV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 4150,
+              "ctaClicks": 610,
+              "conversions": 168
+            }
+          ]
+        },
+        {
+          "id": "exp-fv-full",
+          "name": "FV訴求 A/B（8〜9月・本計測）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-08-15",
+          "end": "2026-09-11",
+          "plannedEnd": "2026-09-11",
+          "missingDays": 0,
+          "notes": "架空データ。必要サンプルに到達した例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 現行FV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 16020,
+              "ctaClicks": 1990,
+              "conversions": 481
+            },
+            {
+              "id": "b",
+              "name": "B: 約束先出しFV",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 15980,
+              "ctaClicks": 2240,
+              "conversions": 607
+            }
+          ]
+        },
+        {
+          "id": "exp-cta-sep",
+          "name": "固定CTA 表示タイミング（実施中）",
+          "page": "/lp/boki",
+          "timezone": "Asia/Tokyo",
+          "start": "2026-09-15",
+          "end": "2026-09-30",
+          "plannedEnd": "2026-10-12",
+          "missingDays": 2,
+          "notes": "架空データ。期間未了・計測欠損日ありの例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: FV後に表示",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 6100,
+              "ctaClicks": 810,
+              "conversions": 170
+            },
+            {
+              "id": "b",
+              "name": "B: 常時表示",
+              "expectedShare": 0.5,
+              "unit": "users",
+              "conversionDefinition": "無料相談フォームの送信完了（完了ページ到達）",
+              "measurement": "架空: 同意済みユーザーのみ・サーバー側集計",
+              "visitors": 5400,
+              "ctaClicks": null,
+              "conversions": null
+            }
+          ]
+        },
+        {
+          "id": "exp-ad-sessions",
+          "name": "広告流入別の参考集計（定義が異なる）",
+          "page": "/lp/boki-ad",
+          "timezone": "UTC",
+          "start": "2026-09-01",
+          "end": "2026-09-30",
+          "plannedEnd": "2026-09-30",
+          "missingDays": 0,
+          "notes": "架空データ。分母がセッション・TZがUTC・CV定義がクリックのため他実験と比較しない例",
+          "variants": [
+            {
+              "id": "a",
+              "name": "A: 広告LP",
+              "expectedShare": 1,
+              "unit": "sessions",
+              "conversionDefinition": "CTAボタンのクリック",
+              "measurement": "架空: タグ計測（同意前も含む）",
+              "visitors": 9800,
+              "ctaClicks": 1300,
+              "conversions": 1300
+            }
+          ]
+        }
+      ]
+    }
   }
 }

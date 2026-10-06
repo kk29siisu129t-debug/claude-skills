@@ -4,7 +4,7 @@
 <meta name="generator" content="lp-studio v2 (draft)">
 <title>ミチシルベ簿記｜学習計画の作成・見直しサポート</title>
 <script>(function(){try{var d=document.documentElement;var rm=!!(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches);if(!rm&&!d.hasAttribute('data-reduce-motion')&&'IntersectionObserver' in window)d.classList.add('js')}catch(e){}})();</script>
-<style>:root{--primary:#2741b8;--accent:#c42f57;--ink:#1b1f2b;--paper:#fbf8f3;--cta:#c42f57;--cta-text:#ffffff;--primary-ink:#2741b8;--accent-ink:#c42f57;--band-text:#ffffff;--sub:#545760;--line:#dfe0e1;--tint:#f0f2fa;--hl:#f7e2e7;--font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","Noto Sans CJK JP","Yu Gothic UI","Meiryo",system-ui,sans-serif}
+<style>:root{--primary:#2741b8;--accent:#c42f57;--ink:#1b1f2b;--paper:#fbf8f3;--cta:#c42f57;--cta-text:#ffffff;--primary-ink:#2741b8;--accent-ink:#c42f57;--band-text:#ffffff;--sub:#545760;--line:#dfe0e1;--tint:#f0f2fa;--hl:#f7e2e7;--font:"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic UI","Yu Gothic","YuGothic","Meiryo","Noto Sans JP","Noto Sans CJK JP","Source Han Sans JP","IPAPGothic","IPAGothic","IPAexGothic",sans-serif}
 *,*::before,*::after{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;scroll-padding-bottom:96px;scroll-behavior:smooth}
 body{margin:0;font-family:var(--font);color:var(--ink);background:#fff;font-size:16px;line-height:1.8;font-weight:400;overflow-wrap:break-word;line-break:strict;padding-bottom:96px}
@@ -35,8 +35,6 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .vis-title{font-size:20px;line-height:1.4;font-weight:800;margin:0 0 12px;font-variant-numeric:tabular-nums}
 .vis-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px 14px;font-size:16px;line-height:1.6;font-weight:700}
 .vis-box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--primary-ink);margin-top:2px}
-.vis-ghost{height:10px;border-radius:5px;background:var(--line);margin:12px 0 0;width:72%}
-.vis-ghost+.vis-ghost{width:54%;margin-top:8px}
 .vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0}
 .vis-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
 .vis-table th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
@@ -55,7 +53,7 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .sec-in.wide{max-width:1040px}
 .sec h2{font-size:36px;line-height:1.35;font-weight:800;letter-spacing:-.01em;margin:0 0 24px;text-wrap:balance}
 .sec .body{max-width:640px}
-.sec-empathy .body{font-size:17px;border-left:4px solid var(--accent);padding-left:20px}
+.sec-empathy .body{border-left:4px solid var(--accent);padding-left:20px}
 .points{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
 .points li{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 20px}
 .points b{display:block;font-size:17px}
@@ -71,12 +69,12 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .faq dt::before{content:"Q.";color:var(--primary-ink);margin-right:.4em}
 .faq dd{margin:0}
 .illus .vis{padding:28px 32px}
-.closing{background:linear-gradient(135deg,var(--primary),#1c2f84);color:var(--band-text);padding:80px 0}
+.closing{background:linear-gradient(160deg,var(--ink),#1e264a);color:#fff;padding:80px 0;border-top:4px solid var(--accent)}
 .closing h2{color:inherit;font-size:36px;line-height:1.35;font-weight:800;margin:0 0 20px;text-wrap:balance}
 .closing .body{max-width:640px;margin-bottom:28px}
-.closing .btn-primary{background:#fff;color:var(--primary-ink);box-shadow:0 8px 20px rgba(0,0,0,.18)}
-.closing .btn-disabled{background:transparent;color:var(--band-text);border-color:color-mix(in srgb,var(--band-text) 55%,transparent)}
-.closing .cta-note{color:var(--band-text)}
+.closing .btn-primary{background:var(--cta);color:var(--cta-text);box-shadow:0 8px 20px rgba(0,0,0,.3)}
+.closing .btn-disabled{background:transparent;color:#e6e8ee;border-color:rgba(255,255,255,.5)}
+.closing .cta-note{color:#e6e8ee}
 footer{padding:32px 0;font-size:14px;line-height:1.7;color:var(--sub);border-top:1px solid var(--line)}
 footer .sec-in{max-width:1040px}
 .sticky-cta{position:fixed;right:24px;bottom:24px;width:340px;height:60px;z-index:50;visibility:hidden;opacity:0;transform:translateY(10px);transition:opacity .25s,transform .25s,visibility .25s}
@@ -109,7 +107,6 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual .vis-label{margin-bottom:8px}
 .hero-visual .vis-title{font-size:17px;margin-bottom:8px}
 .hero-visual .vis-row{padding:10px 12px;font-size:15px}
-.hero-visual .vis-ghost{display:none}
 .hero-visual .vis-note{margin-top:6px;font-size:12px;line-height:1.5}
 .hero-visual .vis-table tr{padding:6px 6px}
 .hero-cta{margin-top:14px}
@@ -145,23 +142,22 @@ tr.hl td{background-color:var(--hl)}
 @media (max-width:399px){.hero h1{font-size:28px}}
 @media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}.hero h1{font-size:26px}}
 </style></head>
-<body data-kind="draft" data-demo="synthetic-demo"><div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 0 件 / 要確認 1 件。</div><div class="demo-bar" role="note"><b>デモ</b> <span class="ph">架空サービスの</span><span class="ph">デモです。</span><span class="ph">お</span><span class="ph">申し込みは</span><span class="ph">受け付けていません。</span></div>
-<main><header class="hero" id="hero"><div class="hero-in">
+<body data-kind="draft" data-demo="synthetic-demo"><div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 0 件 / 要確認 0 件。</div><div class="demo-bar" role="note"><b>デモ</b> <span class="ph">架空サービスの</span><span class="ph">デモです。</span><span class="ph">お</span><span class="ph">申し込みは</span><span class="ph">受け付けていません。</span></div>
+<main><header class="hero cta-zone" id="hero"><div class="hero-in">
 <div class="hero-copy"><p class="draft-meta">FV / 未承認 / 参照: s1-target, s1-scene, s1-mechanism</p><p class="hero-meta"><b>ミチシルベ簿記</b>学習計画の作成・見直しサポート</p>
 <p class="aud">仕事をしながら、簿記2級を目指す方へ</p>
 <h1><span class="ph">「何からやろう」で、</span><span class="ph">今夜を終わらせない。</span></h1>
 <p class="lead">学習内容を15分ずつに分け、今夜取り組むことを一緒に決めます。進み具合に合わせて、計画は週ごとに見直します。</p></div>
-<figure class="hero-visual" aria-label="学習計画のイメージ"><div class="vis vis-taskcard"><span class="vis-label">学習計画のイメージ</span><p class="vis-title">今夜の15分</p><div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>前回、間違えた問題を見直す</span></div><div class="vis-ghost" aria-hidden="true"></div><div class="vis-ghost" aria-hidden="true"></div><p class="vis-note">内容の例です。学習計画は面談で一緒につくります。</p></div></figure>
-<div class="hero-cta"><div class="cta-row cta-zone"><a class="btn btn-primary" href="#illustration">学習プランの例を見る<span class="arw" aria-hidden="true"></span></a><span class="btn btn-disabled" role="link" aria-disabled="true">学習設計面談を予約する</span></div><p class="cta-note"><span class="ph">デモのため</span><span class="ph">予約できません。</span></p></div>
+<figure class="hero-visual" aria-label="学習計画のイメージ"><div class="vis vis-taskcard"><span class="vis-label">学習計画のイメージ</span><p class="vis-title">今夜の15分</p><div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>前回、間違えた問題を見直す</span></div><p class="vis-note">内容の例です。学習計画は面談で一緒につくります。</p></div></figure>
+<div class="hero-cta"><div class="cta-row cta-zone"><a class="btn btn-primary" href="#mechanism">学習プランの例を見る<span class="arw" aria-hidden="true"></span></a><span class="btn btn-disabled" role="link" aria-disabled="true">学習設計面談を予約する</span></div><p class="cta-note"><span class="ph">デモのため</span><span class="ph">予約できません。</span></p></div>
 </div></header>
 <section class="sec sec-empathy" id="empathy"><div class="sec-in"><p class="draft-meta">共感（場面） / 未承認 / 参照: s1-scene</p><h2><span class="ph">平日は迷う。</span><span class="ph">週末には、</span><span class="ph">やることがたまる。</span></h2><div class="body reveal"><p>教材を開いても、今日はどこから始めるかが決まらない。平日に進まなかった分は、週末にまとめてやろうと思う。けれど、予定していた分を終えられず、また次の週へ。そんな流れに、心当たりはありませんか。</p></div></div></section>
-<section class="sec sec-mechanism" id="mechanism"><div class="sec-in"><p class="draft-meta">仕組み / 未承認 / 参照: s1-mechanism</p><h2><span class="ph">勉強を始める前に、</span><span class="ph">今日やることを</span><span class="ph">決めておく。</span></h2><div class="body reveal"><p>ミチシルベ簿記は、学習計画を一緒につくるサポートです。取り組む内容を毎晩15分の単位に分け、今夜はどこから始めるかを具体的にします。計画は、進み具合に合わせて週ごとに見直します。</p></div></div></section>
-<section class="sec sec-illus illus" id="illustration"><div class="sec-in wide"><p class="draft-meta">図解（説明用の例） / 未承認 / 参照: s1-mechanism</p><h2><span class="ph">「勉強する予定」を、</span><span class="ph">「今日やること」まで</span><span class="ph">具体的に。</span></h2><div class="reveal"><div class="vis vis-flow"><span class="vis-label">学習計画のイメージ</span><div class="flow" role="list"><div class="flow-step">平日の夜に簿記を勉強する</div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-step main">今夜の15分で、前回間違えた問題を見直す</div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-step">進み具合を確認して、次の週の計画へ</div></div><p class="vis-note">上記は内容の例です。実際の計画は面談で一緒につくります。</p></div></div></div></section>
+<section class="sec sec-mechanism" id="mechanism"><div class="sec-in"><p class="draft-meta">仕組み / 未承認 / 参照: s1-mechanism</p><h2><span class="ph">勉強を始める前に、</span><span class="ph">今日やることを</span><span class="ph">決めておく。</span></h2><div class="body reveal"><p>ミチシルベ簿記は、学習計画を一緒につくるサポートです。「平日に勉強する」という予定を、今夜取り組む内容まで具体的にします。</p></div><div class="reveal"><div class="vis vis-flow"><span class="vis-label">学習計画のイメージ</span><div class="flow" role="list"><div class="flow-step">平日の夜に簿記を勉強する</div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-step main">今夜の15分で、前回間違えた問題を見直す</div><span class="flow-arrow" aria-hidden="true"></span><div class="flow-step">進み具合を確認して、次の週の計画へ</div></div><p class="vis-note">上記は内容の例です。実際の計画は面談で一緒につくります。</p></div></div></div></section>
 <section class="sec sec-process" id="process"><div class="sec-in"><p class="draft-meta">流れ / 未承認 / 参照: s1-process, s1-mechanism</p><h2><span class="ph">今の状況に合わせて、</span><span class="ph">学習の予定をつくります。</span></h2><ol class="steps"><li class="reveal"><div><h3><span class="ph">今の</span><span class="ph">進み</span><span class="ph">具合を</span><span class="ph">整理する</span></h3><p>面談で、学習がどこまで進んでいるか、平日にどのくらい時間を使えるかを一緒に確認します。</p></div></li><li class="reveal"><div><h3><span class="ph">取り組む</span><span class="ph">内容を</span><span class="ph">15分ずつに</span><span class="ph">分ける</span></h3><p>毎晩取り組むことを決め、学習計画にまとめます。</p></div></li><li class="reveal"><div><h3><span class="ph">週ごとに</span><span class="ph">計画を</span><span class="ph">見直す</span></h3><p>進み具合や予定の変化を確認し、次の週の計画を調整します。</p></div></li></ol></div></section>
-<section class="sec sec-faq" id="faq"><div class="sec-in"><p class="draft-meta">よくある質問 / 未承認 / 参照: s1-mechanism, s1-boundary</p><h2>よくある質問</h2><dl class="faq"><div class="reveal"><dt>15分で合格を目指せるということですか？</dt><dd>15分は、学習計画を分ける単位です。合格までに必要な学習時間や試験の結果を保証するものではありません。</dd></div><div class="reveal"><dt>計画どおりに進まなかったら？</dt><dd>計画は週ごとに見直します。進み具合を確認し、次の週の計画を調整します。</dd></div></dl></div></section>
-<section class="closing" id="closing"><div class="sec-in"><p class="draft-meta">締め / 未承認 / 参照: s1-process, s1-mechanism</p><h2><span class="ph">まずは、</span><span class="ph">今の勉強と使える時間を</span><span class="ph">整理しよう。</span></h2><div class="body"><p>仕事のある日にも取り組めるように、学習内容を15分の単位に分けます。続け方を、一緒に考えましょう。</p></div><div class="cta-row cta-zone"><span class="btn btn-disabled" role="link" aria-disabled="true">学習設計面談を予約する</span></div><p class="cta-note"><span class="ph">デモのため</span><span class="ph">予約できません。</span><span class="ph">料金・所要時間・実施方法は</span><span class="ph">未確定です。</span></p></div></section></main>
+<section class="sec sec-faq" id="faq"><div class="sec-in"><p class="draft-meta">よくある質問 / 未承認 / 参照: s1-mechanism, s1-boundary</p><h2>よくある質問</h2><dl class="faq"><div class="reveal"><dt>15分で合格を目指せるということですか？</dt><dd>15分は、学習計画を分ける単位です。合格までに必要な学習時間や試験の結果を保証するものではありません。</dd></div></dl></div></section>
+<section class="closing" id="closing"><div class="sec-in"><p class="draft-meta">締め / 未承認 / 参照: s1-process</p><h2><span class="ph">まずは、</span><span class="ph">今の勉強と使える時間を</span><span class="ph">整理しよう。</span></h2><div class="body"><p>面談で今の進み具合を確認し、続け方を一緒に考えます。</p></div><div class="cta-row cta-zone"><span class="btn btn-disabled" role="link" aria-disabled="true">学習設計面談を予約する</span></div><p class="cta-note"><span class="ph">デモのため</span><span class="ph">予約できません。</span><span class="ph">料金・所要時間・実施方法は</span><span class="ph">未確定です。</span></p></div></section></main>
 <footer><div class="sec-in"><b>ミチシルベ簿記</b><br>架空サービスのデモです。お申し込みは受け付けていません。</div></footer>
-<div class="sticky-cta" aria-hidden="true" inert><a href="#illustration">学習プランの例を見る<span class="arw" aria-hidden="true"></span></a></div>
+<div class="sticky-cta" aria-hidden="true" inert><a href="#mechanism">学習プランの例を見る<span class="arw" aria-hidden="true"></span></a></div>
 <script>(function(){var d=document.documentElement;var io='IntersectionObserver' in window;
 var els=document.querySelectorAll('.reveal');function showAll(){for(var i=0;i<els.length;i++)els[i].classList.add('in')}
 if(!d.classList.contains('js')||!io){showAll()}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -6% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}

@@ -246,25 +246,26 @@ export function buildHypotheses(project, analyses) {
   ];
   const guardBase = [`主要CVの定義を途中で変えない（${cvDef}）`, '直帰率・ページ滞在の極端な悪化（計測できる範囲で）'];
 
-  const proof = project.sections.find((s) => s.type === 'proof');
-  const verifiedInProof = proof ? project.evidence.filter((e) => proof.claimRefs.includes(e.id) && e.status === 'verified').length : 0;
+  const proof = project.sections.find((s) => s.role === 'proof');
+  const verifiedInProof = proof ? project.evidence.filter((e) => proof.sourceRefs.includes(e.id) && e.status === 'verified' && e.reality === 'real').length : 0;
   if (!proof || verifiedInProof === 0) {
     H.push({
       id: 'h-proof', title: '根拠セクションを検証済みの事実で埋める', evidenceType: 'project-audit',
-      basis: ['LP監査: 根拠セクションに検証済みの根拠が 0 件（safe export では根拠セクションが出せない）'],
+      basis: ['LP監査: 実在・検証済みの根拠が 0 件（根拠セクションは出力されない）'],
       hypothesis: '申込を迷う人が判断材料を見つけられず、離脱しているかもしれない。検証済みの事実を足すと申込率が上がる可能性がある',
       metric: `主要: ${cvDef}（分母 ${unit}）`, guardrails: [...guardBase, '問い合わせ内容の質（申込後の不一致が増えていないか）'],
       stopConditions: stopBase, priority: priority(3, 2, 2),
       caution: 'テストの前に、出典を人が確認すること。未検証の数字を出して改善しても、それは改善ではない',
     });
   }
-  const unconfirmed = ['promise', 'offer', 'ctaLabel'].filter((k) => project.brief[k].status !== 'confirmed');
+  const conf = project.inputs?.action?.confirmed || {};
+  const unconfirmed = ['offer', 'price', 'duration', 'method', 'url'].filter((k) => !conf[k]);
   if (unconfirmed.length) {
     H.push({
-      id: 'h-brief', title: '約束・オファー・CTAの確定（テスト前の前提づくり）', evidenceType: 'project-audit',
-      basis: [`ブリーフ未確定: ${unconfirmed.join(', ')}`],
-      hypothesis: '訴求の中身が決まっていない状態でABを回しても、何を比べたのか後から説明できない。先に確定させる',
-      metric: '（テストではない。確定作業）', guardrails: [], stopConditions: ['3項目が confirmed になったら完了'], priority: priority(2, 3, 1),
+      id: 'h-brief', title: 'オファーと行動条件の確定（テスト前の前提づくり）', evidenceType: 'project-audit',
+      basis: [`行動条件の未確定: ${unconfirmed.join(', ')}`],
+      hypothesis: '申込後に何が起きるかが決まっていない状態でABを回しても、何を比べたのか後から説明できない。先に確定させる',
+      metric: '（テストではない。確定作業）', guardrails: [], stopConditions: ['オファー・料金・所要時間・方法・リンク先が確定したら完了'], priority: priority(2, 3, 1),
       caution: 'これは検証計画の前提。結果指標は無い',
     });
   }
@@ -283,7 +284,8 @@ export function buildHypotheses(project, analyses) {
     }
   }
   if (project.cta.variants.length > 1) {
-    const vs = project.cta.variants.map((v) => `${v.id}: 「${v.label || project.brief.ctaLabel.value}」/ ${v.color} / ${v.timing}`);
+    const heroCta = project.sections.find((s) => s.role === 'hero')?.cta?.label || '';
+    const vs = project.cta.variants.map((v) => `${v.id}: 「${v.label || heroCta}」/ ${v.color} / ${v.timing}`);
     H.push({
       id: 'h-cta', title: 'CTAの文言・色・表示タイミングの比較', evidenceType: 'heuristic',
       basis: ['プレビュー上のCTA案（実配信はしていない）', ...vs],

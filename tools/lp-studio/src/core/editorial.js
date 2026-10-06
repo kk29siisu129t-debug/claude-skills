@@ -36,10 +36,13 @@ export function clauses(text) {
 /** 公開用コピーを、参照IDつきで列挙する */
 export function collectTexts(project) {
   const out = [];
+  const d = project.display;
+  for (const k of ['brandName', 'serviceDescriptor', 'audienceLabel']) if (d[k]) out.push({ sectionId: null, role: 'display', field: `display.${k}`, text: d[k], refs: [] });
   for (const s of project.sections) {
     const base = s.sourceRefs || [];
+    const itemRefs = s.items.flatMap((i) => i.sourceRefs || []);
     const push = (field, text, refs = []) => { if (text && String(text).trim()) out.push({ sectionId: s.id, role: s.role, field, text: String(text), refs: [...new Set([...refs, ...base])] }); };
-    push('heading', s.heading);
+    push('heading', s.heading, [...itemRefs, ...(s.visual?.sourceRefs || [])]); // 見出しは項目・図の参照もあわせて判断
     push('body', s.body);
     push('note', s.note);
     s.items.forEach((it, i) => { push(`items[${i}].heading`, it.heading, it.sourceRefs); push(`items[${i}].body`, it.body, it.sourceRefs); });
@@ -84,7 +87,7 @@ export function checkProject(project) {
 
   for (const t of texts) {
     const where = { sectionId: t.sectionId, field: t.field };
-    const label = `${ROLES[t.role]?.label || t.role}/${t.field}`;
+    const label = t.role === 'display' ? `表示名/${t.field.slice(8)}` : `${ROLES[t.role]?.label || t.role}/${t.field}`;
     if (TOKEN_RE.test(t.text)) issues.push(ISSUE('stop', 'token', `${label}: 未展開の差込「${t.text.match(TOKEN_RE)[0]}」があります`, where));
     if (PLACEHOLDER_RE.test(t.text)) issues.push(ISSUE('stop', 'placeholder', `${label}: 【要記入】が残っています`, where));
     const refTexts = [];
@@ -149,7 +152,7 @@ export function checkProject(project) {
   if (!project.sections.some((s) => s.role === 'closing')) issues.push(ISSUE('warn', 'no-closing', '締め（closing）がありません'));
   for (const s of project.sections) {
     const hasContent = s.body.trim() || s.items.some((i) => i.heading || i.body) || s.visual;
-    if (!hasContent) issues.push(ISSUE('warn', 'empty-section', `${ROLES[s.role].label}: 本文が無いため出力しません（見出し・CTAだけを残さない）`, { sectionId: s.id }));
+    if (!hasContent && s.role !== 'proof') issues.push(ISSUE('warn', 'empty-section', `${ROLES[s.role].label}: 本文が無いため出力しません（見出し・CTAだけを残さない）`, { sectionId: s.id }));
     if (s.heading) {
       const hp = headingPhrases(s.heading, s.headingPhrases);
       if (hp.source === 'fallback-mismatch') issues.push(ISSUE('warn', 'phrases-mismatch', `${ROLES[s.role].label}: 改行候補が見出しと一致しないため自動で区切ります`, { sectionId: s.id }));
@@ -192,5 +195,7 @@ export function gates(project, issues = checkProject(project)) {
   for (const l of project.ledger.filter((x) => x.kind === 'unknown')) reasons.push(`未確定: ${l.text}`);
   if (project.ledger.some((l) => l.reality !== 'real') || project.evidence.some((e) => e.reality !== 'real')) reasons.push('台帳・根拠に実在でない（合成・不明）項目があります');
   for (const s of project.sections) if (!s.approved) reasons.push(`未承認: ${ROLES[s.role].label}`);
+  const v = project.cta.variants.find((x) => x.id === project.cta.activeVariant);
+  if (v && v.timing !== 'spec') reasons.push('固定CTAの表示タイミングが比較用の案です（公開は仕様どおりの案だけ）');
   return { reviewPreview: review, commercialReady: { ok: reasons.length === 0, reasons: [...new Set(reasons)] } };
 }

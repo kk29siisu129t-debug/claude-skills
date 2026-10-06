@@ -4,23 +4,10 @@
   "analysis": {
     "factClasses": {
       "verifiedSpec": [],
-      "providerClaims": [
-        "s1-target",
-        "s1-scene",
-        "s1-mechanism",
-        "s1-process",
-        "s1-boundary"
-      ],
+      "providerClaims": ["s1-target", "s1-scene", "s1-mechanism", "s1-process", "s1-boundary"],
       "customerObservations": [],
       "hypotheses": [],
-      "unknowns": [
-        "u1-fee",
-        "u1-duration",
-        "u1-method",
-        "u1-booking",
-        "u1-contract",
-        "u1-materials"
-      ]
+      "unknowns": ["u1-fee", "u1-duration", "u1-method", "u1-booking", "u1-contract", "u1-materials"]
     },
     "readerBrief": "仕事を終えた平日の夜、簿記2級の教材を開くが、今日はどこから始めるかを決めるところで止まる。平日に進まなかった分は週末にまとめようとするが、週末も予定の分を終えられず次の週へ持ち越す。欲しいのは、机に向かった時点で今夜やることが決まっている状態。サービスは、面談で進み具合と使える時間を確認し、学習内容を毎晩15分の単位に分けた計画をつくり、週ごとに見直す。申込前の不安は、15分で足りるのか（合格の約束ではないか）、計画が崩れたらどうなるか、面談の料金・時間・方法（いずれも未確定）。",
     "objections": [
@@ -36,34 +23,20 @@
       "statement": "仕事後の限られた時間に、学ぶ内容と量を毎回決める負担が、学習を始める妨げになっているのではないか。",
       "readFromSource": "平日の夜に何から手をつけるか決められない（s1-scene）",
       "inferred": "止まっているのは学習そのものより、始める前の「何をやるか決める」段階だという推測",
-      "sourceRefs": [
-        "s1-scene"
-      ],
+      "sourceRefs": ["s1-scene"],
       "confidence": "medium",
-      "alternatives": [
-        "教材の難しさで止まっている",
-        "そもそも平日に使える時間が足りない"
-      ],
-      "questions": [
-        "机に向かってから学習を始めるまでに何が起きているか",
-        "週末にまとめた日は、何がどこまで終わったか"
-      ]
+      "alternatives": ["教材の難しさで止まっている", "そもそも平日に使える時間が足りない"],
+      "questions": ["机に向かってから学習を始めるまでに何が起きているか", "週末にまとめた日は、何がどこまで終わったか"]
     },
     {
       "id": "i2",
       "statement": "平日の遅れを週末で取り戻す前提が、週末の負担を大きくし、翌週に持ち越す流れをつくっているのではないか。",
       "readFromSource": "週末にまとめてやろうとして崩れる（s1-scene）",
       "inferred": "週単位の帳尻合わせが負担の集中を生むという推測",
-      "sourceRefs": [
-        "s1-scene"
-      ],
+      "sourceRefs": ["s1-scene"],
       "confidence": "low",
-      "alternatives": [
-        "週末の予定が読めないことが主因"
-      ],
-      "questions": [
-        "週末に予定していた量と、実際に終えた量"
-      ]
+      "alternatives": ["週末の予定が読めないことが主因"],
+      "questions": ["週末に予定していた量と、実際に終えた量"]
     }
   ],
   "angles": [
@@ -71,49 +44,25 @@
       "id": "a1",
       "statement": "今夜取り組む内容を決めた、15分の計画を用意する。",
       "insightId": "i1",
-      "sourceRefs": [
-        "s1-scene",
-        "s1-mechanism"
-      ],
+      "sourceRefs": ["s1-scene", "s1-mechanism"],
       "rationale": "止まる瞬間（何から始めるか決まらない）と、仕組み（15分の単位に分けて決めておく）が直接つながる。読者が今夜の場面で想像でき、次の行動（計画の例を見る）も明確。",
-      "scores": {
-        "evidence": 2,
-        "fit": 3,
-        "specificity": 3,
-        "nextAction": 3
-      }
+      "scores": { "evidence": 2, "fit": 3, "specificity": 3, "nextAction": 3 }
     },
     {
       "id": "a2",
       "statement": "週末に取り戻す勉強から、毎晩少しずつ進める勉強へ。",
       "insightId": "i2",
-      "sourceRefs": [
-        "s1-scene",
-        "s1-mechanism"
-      ],
+      "sourceRefs": ["s1-scene", "s1-mechanism"],
       "rationale": "場面は合うが「続けられる」方向の約束に寄りやすく、言わないこと（必ず続けられる・週末の遅れを解消できる）に近づくため選ばない。",
-      "scores": {
-        "evidence": 1,
-        "fit": 2,
-        "specificity": 2,
-        "nextAction": 1
-      }
+      "scores": { "evidence": 1, "fit": 2, "specificity": 2, "nextAction": 1 }
     },
     {
       "id": "a3",
       "statement": "働きながらでも、簿記2級の学習計画を一緒につくる。",
       "insightId": "i1",
-      "sourceRefs": [
-        "s1-target",
-        "s1-mechanism"
-      ],
+      "sourceRefs": ["s1-target", "s1-mechanism"],
       "rationale": "事実には忠実だが、どの瞬間の詰まりを助けるかが伝わらず一般論になるため選ばない。",
-      "scores": {
-        "evidence": 3,
-        "fit": 2,
-        "specificity": 1,
-        "nextAction": 1
-      }
+      "scores": { "evidence": 3, "fit": 2, "specificity": 1, "nextAction": 1 }
     }
   ],
   "chosenAngleId": "a1",
@@ -122,17 +71,10 @@
       "id": "hero",
       "role": "hero",
       "heading": "「何からやろう」で、今夜を終わらせない。",
-      "headingPhrases": [
-        "「何からやろう」で、",
-        "今夜を終わらせない。"
-      ],
+      "headingPhrases": ["「何からやろう」で、", "今夜を終わらせない。"],
       "body": "学習内容を15分ずつに分け、今夜取り組むことを一緒に決めます。進み具合に合わせて、計画は週ごとに見直します。",
       "note": "",
-      "sourceRefs": [
-        "s1-target",
-        "s1-scene",
-        "s1-mechanism"
-      ],
+      "sourceRefs": ["s1-target", "s1-scene", "s1-mechanism"],
       "items": [],
       "visual": {
         "kind": "task-card",
@@ -140,34 +82,19 @@
         "title": "今夜の15分",
         "task": "前回、間違えた問題を見直す",
         "note": "内容の例です。学習計画は面談で一緒につくります。",
-        "sourceRefs": [
-          "s1-mechanism"
-        ]
+        "sourceRefs": ["s1-mechanism"]
       },
-      "cta": {
-        "label": "学習プランの例を見る",
-        "behavior": "anchor",
-        "target": "mechanism"
-      },
-      "commercialPreview": {
-        "label": "学習設計面談を予約する",
-        "note": "デモのため予約できません。"
-      }
+      "cta": { "label": "学習プランの例を見る", "behavior": "anchor", "target": "illustration" },
+      "commercialPreview": { "label": "学習設計面談を予約する", "note": "デモのため予約できません。" }
     },
     {
       "id": "empathy",
       "role": "empathy",
       "heading": "平日は迷う。週末には、やることがたまる。",
-      "headingPhrases": [
-        "平日は迷う。",
-        "週末には、",
-        "やることがたまる。"
-      ],
+      "headingPhrases": ["平日は迷う。", "週末には、", "やることがたまる。"],
       "body": "教材を開いても、今日はどこから始めるかが決まらない。平日に進まなかった分は、週末にまとめてやろうと思う。けれど、予定していた分を終えられず、また次の週へ。そんな流れに、心当たりはありませんか。",
       "note": "",
-      "sourceRefs": [
-        "s1-scene"
-      ],
+      "sourceRefs": ["s1-scene"],
       "items": [],
       "visual": null,
       "cta": null,
@@ -177,16 +104,23 @@
       "id": "mechanism",
       "role": "mechanism",
       "heading": "勉強を始める前に、今日やることを決めておく。",
-      "headingPhrases": [
-        "勉強を始める前に、",
-        "今日やることを",
-        "決めておく。"
-      ],
-      "body": "ミチシルベ簿記は、学習計画を一緒につくるサポートです。「平日に勉強する」という予定を、今夜取り組む内容まで具体的にします。",
+      "headingPhrases": ["勉強を始める前に、", "今日やることを", "決めておく。"],
+      "body": "ミチシルベ簿記は、学習計画を一緒につくるサポートです。取り組む内容を毎晩15分の単位に分け、今夜はどこから始めるかを具体的にします。計画は、進み具合に合わせて週ごとに見直します。",
       "note": "",
-      "sourceRefs": [
-        "s1-mechanism"
-      ],
+      "sourceRefs": ["s1-mechanism"],
+      "items": [],
+      "visual": null,
+      "cta": null,
+      "commercialPreview": null
+    },
+    {
+      "id": "illustration",
+      "role": "illustration",
+      "heading": "「勉強する予定」を、「今日やること」まで具体的に。",
+      "headingPhrases": ["「勉強する予定」を、", "「今日やること」まで", "具体的に。"],
+      "body": "",
+      "note": "",
+      "sourceRefs": ["s1-mechanism"],
       "items": [],
       "visual": {
         "kind": "flow",
@@ -195,9 +129,7 @@
         "to": "今夜の15分で、前回間違えた問題を見直す",
         "review": "進み具合を確認して、次の週の計画へ",
         "note": "上記は内容の例です。実際の計画は面談で一緒につくります。",
-        "sourceRefs": [
-          "s1-mechanism"
-        ]
+        "sourceRefs": ["s1-mechanism"]
       },
       "cta": null,
       "commercialPreview": null
@@ -206,35 +138,14 @@
       "id": "process",
       "role": "process",
       "heading": "今の状況に合わせて、学習の予定をつくります。",
-      "headingPhrases": [
-        "今の状況に合わせて、",
-        "学習の予定をつくります。"
-      ],
+      "headingPhrases": ["今の状況に合わせて、", "学習の予定をつくります。"],
       "body": "",
       "note": "",
       "sourceRefs": [],
       "items": [
-        {
-          "heading": "今の進み具合を整理する",
-          "body": "面談で、学習がどこまで進んでいるか、平日にどのくらい時間を使えるかを一緒に確認します。",
-          "sourceRefs": [
-            "s1-process"
-          ]
-        },
-        {
-          "heading": "取り組む内容を15分ずつに分ける",
-          "body": "毎晩取り組むことを決め、学習計画にまとめます。",
-          "sourceRefs": [
-            "s1-mechanism"
-          ]
-        },
-        {
-          "heading": "週ごとに計画を見直す",
-          "body": "進み具合や予定の変化を確認し、次の週の計画を調整します。",
-          "sourceRefs": [
-            "s1-mechanism"
-          ]
-        }
+        { "heading": "今の進み具合を整理する", "body": "面談で、学習がどこまで進んでいるか、平日にどのくらい時間を使えるかを一緒に確認します。", "sourceRefs": ["s1-process"] },
+        { "heading": "取り組む内容を15分ずつに分ける", "body": "毎晩取り組むことを決め、学習計画にまとめます。", "sourceRefs": ["s1-mechanism"] },
+        { "heading": "週ごとに計画を見直す", "body": "進み具合や予定の変化を確認し、次の週の計画を調整します。", "sourceRefs": ["s1-mechanism"] }
       ],
       "visual": null,
       "cta": null,
@@ -249,14 +160,8 @@
       "note": "",
       "sourceRefs": [],
       "items": [
-        {
-          "heading": "15分で合格を目指せるということですか？",
-          "body": "15分は、学習計画を分ける単位です。合格までに必要な学習時間や試験の結果を保証するものではありません。",
-          "sourceRefs": [
-            "s1-mechanism",
-            "s1-boundary"
-          ]
-        }
+        { "heading": "15分で合格を目指せるということですか？", "body": "15分は、学習計画を分ける単位です。合格までに必要な学習時間や試験の結果を保証するものではありません。", "sourceRefs": ["s1-mechanism", "s1-boundary"] },
+        { "heading": "計画どおりに進まなかったら？", "body": "計画は週ごとに見直します。進み具合を確認し、次の週の計画を調整します。", "sourceRefs": ["s1-mechanism"] }
       ],
       "visual": null,
       "cta": null,
@@ -266,44 +171,24 @@
       "id": "closing",
       "role": "closing",
       "heading": "まずは、今の勉強と使える時間を整理しよう。",
-      "headingPhrases": [
-        "まずは、",
-        "今の勉強と使える時間を",
-        "整理しよう。"
-      ],
-      "body": "面談で今の進み具合を確認し、続け方を一緒に考えます。",
+      "headingPhrases": ["まずは、", "今の勉強と使える時間を", "整理しよう。"],
+      "body": "仕事のある日にも取り組めるように、学習内容を15分の単位に分けます。続け方を、一緒に考えましょう。",
       "note": "",
-      "sourceRefs": [
-        "s1-process"
-      ],
+      "sourceRefs": ["s1-process", "s1-mechanism"],
       "items": [],
       "visual": null,
       "cta": null,
-      "commercialPreview": {
-        "label": "学習設計面談を予約する",
-        "note": "デモのため予約できません。料金・所要時間・実施方法は未確定です。"
-      }
+      "commercialPreview": { "label": "学習設計面談を予約する", "note": "デモのため予約できません。料金・所要時間・実施方法は未確定です。" }
     }
   ],
   "selfCheck": {
     "readAloud": [
       "「入力文の『何から手をつけるか決められず』をそのまま使わず、『今日はどこから始めるかが決まらない』に言い換えた」",
-      "FV本文は『分け』『決めます』『見直します』の3つの動作だけにして、名詞の連結を避けた",
-      "rev2: 説明と図解を「仕組み」1セクションにまとめ、15分と週ごとの見直しを、FV・仕組みの図・流れ・FAQ1問だけに減らした。締めは面談で何をするかだけにした"
+      "FV本文は『分け』『決めます』『見直します』の3つの動作だけにして、名詞の連結を避けた"
     ],
-    "consistency": "FV（今夜を終わらせない）→ 共感（平日に迷う）→ 仕組み＋図（予定を今夜の内容まで具体化）→ 流れ → FAQ（15分の意味）→ 締め（今の状況を整理）",
-    "missing": [
-      "面談料金",
-      "面談の所要時間",
-      "実施方法",
-      "予約方法",
-      "継続契約の条件",
-      "教材への対応範囲"
-    ],
+    "consistency": "FV（今夜を終わらせない）→ 共感（平日に迷う）→ 仕組み（始める前に決めておく）→ 図解（予定を今日やることまで具体化）→ 流れ → FAQ（15分の意味）→ 締め（今の勉強と時間を整理）が、すべて『始める前に今夜やることを決める』に沿っている",
+    "missing": ["面談料金", "面談の所要時間", "実施方法", "予約方法", "継続契約の条件", "教材への対応範囲"],
     "spLength": "H1は2行（意味の区切りで改行）。FV本文は2文で、400px幅で約4行",
-    "openQuestions": [
-      "手持ちの教材のまま使えるか（教材への対応範囲）",
-      "面談の料金・時間・方法が決まったら、締めの注記とCTAを実際の条件に差し替える"
-    ]
+    "openQuestions": ["手持ちの教材のまま使えるか（教材への対応範囲）", "面談の料金・時間・方法が決まったら、締めの注記とCTAを実際の条件に差し替える"]
   }
 }

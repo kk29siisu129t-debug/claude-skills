@@ -3,34 +3,36 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-FxCFpUaTOz6ZgNEZUfS/AR1kT6RZVFdJ87Bg12F5xkg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self' about:; child-src 'self' about:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-EFmGrBMmkr1LDmcyE012V4RD4+YNFEvjKEfxL5XEoRI=' 'sha256-Uouqewngjfe6HYTGZPsHHiXdVjhJFAYxZpxRdNnNSQg='; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-src 'self' about: blob:; child-src 'self' about: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>LP Studio</title>
 <link rel="stylesheet" href="./styles.css">
 </head>
 <body>
 <header class="topbar">
-  <div class="brand">LP Studio <span class="ver">schema v1</span></div>
+  <div class="brand">LP Studio <span class="ver">v2</span></div>
   <label class="pname"><span class="sr">プロジェクト名</span><input id="project-name" type="text" maxlength="120"></label>
+  <span id="ai-status" class="ai-status" title="">AI: Claude Code 経由のみ</span>
   <div class="actions" role="toolbar" aria-label="プロジェクト操作">
     <button id="btn-undo" type="button" title="元に戻す (Ctrl+Z)">↶ 戻す</button>
     <button id="btn-redo" type="button" title="やり直す (Ctrl+Shift+Z)">↷ やり直す</button>
     <button id="btn-save" type="button">JSON保存</button>
     <label class="btn" for="file-load" tabindex="0" id="btn-load">JSON読込</label>
     <input id="file-load" type="file" accept=".json,application/json" class="sr">
-    <button id="btn-seed" type="button">架空seed</button>
+    <label class="sr" for="seed-pick">架空seed</label>
+    <select id="seed-pick" title="架空seedを開く"><option value="">架空seed…</option><option value="michishirube">簿記の学習計画（架空）</option><option value="mitsumoriban">見積もり共有ツール（架空）</option></select>
     <button id="btn-new" type="button">新規</button>
   </div>
 </header>
-<div id="ai-status" class="ai-status" role="note"></div>
 <div id="toast" class="toast" role="status" aria-live="polite"></div>
 <nav class="tabs" role="tablist" aria-label="工程">
-  <button role="tab" id="tab-brief" aria-controls="panel" data-tab="brief">1 ブリーフ</button>
-  <button role="tab" id="tab-plan" aria-controls="panel" data-tab="plan">2 構成・WF</button>
-  <button role="tab" id="tab-design" aria-controls="panel" data-tab="design">3 デザイン PC/SP</button>
-  <button role="tab" id="tab-cta" aria-controls="panel" data-tab="cta">4 CTA比較</button>
-  <button role="tab" id="tab-export" aria-controls="panel" data-tab="export">5 根拠・検証・Export</button>
-  <button role="tab" id="tab-lpo" aria-controls="panel" data-tab="lpo">6 LPO</button>
-  <button role="tab" id="tab-gen" aria-controls="panel" data-tab="gen">7 生成（Claude Code）</button>
+  <button role="tab" id="tab-inputs" aria-controls="panel" data-tab="inputs">1 入力・台帳</button>
+  <button role="tab" id="tab-insight" aria-controls="panel" data-tab="insight">2 インサイト・訴求</button>
+  <button role="tab" id="tab-plan" aria-controls="panel" data-tab="plan">3 構成・コピー</button>
+  <button role="tab" id="tab-design" aria-controls="panel" data-tab="design">4 プレビュー</button>
+  <button role="tab" id="tab-export" aria-controls="panel" data-tab="export">5 検証・公開判定</button>
+  <button role="tab" id="tab-cta" aria-controls="panel" data-tab="cta">6 CTA比較</button>
+  <button role="tab" id="tab-lpo" aria-controls="panel" data-tab="lpo">7 LPO</button>
+  <button role="tab" id="tab-gen" aria-controls="panel" data-tab="gen">8 生成</button>
 </nav>
 <main id="panel" role="tabpanel" tabindex="-1"></main>
 <script type="module" src="./app.js"></script>

@@ -4,24 +4,10 @@
   "analysis": {
     "factClasses": {
       "verifiedSpec": [],
-      "providerClaims": [
-        "s2-target",
-        "s2-scene",
-        "s2-input",
-        "s2-list",
-        "s2-filter",
-        "s2-boundary",
-        "s2-demo"
-      ],
+      "providerClaims": ["s2-target", "s2-scene", "s2-input", "s2-list", "s2-filter", "s2-boundary", "s2-demo"],
       "customerObservations": [],
       "hypotheses": [],
-      "unknowns": [
-        "u2-price",
-        "u2-seats",
-        "u2-contract",
-        "u2-security",
-        "u2-apply"
-      ]
+      "unknowns": ["u2-price", "u2-seats", "u2-contract", "u2-security", "u2-apply"]
     },
     "readerBrief": "少人数の制作会社。見積もりを送ったあと、返事の状況は担当者それぞれのメールとメモに残る。定例会議では、誰がどの案件の返事を待っているかを担当者に一つずつ聞き直している。欲しいのは、次に誰がいつ確認するかを、チームが同じ一覧から判断できる状態。ツールは、案件名・状況・担当者・次回確認日を手入力で記録し、共有一覧で見て、担当者・状況・確認日で絞り込める。メールの自動取り込みや自動送信はしない。申込前の不安は、メールと連携するのか、入力の手間、料金・人数・契約・セキュリティ（いずれも未確定）。",
     "objections": [
@@ -36,18 +22,10 @@
       "statement": "案件の状況を担当者だけが把握していると、次に誰がいつ確認するかをチームで判断しにくい。担当者の記憶をたどらず、返事待ちと次回確認日を一覧で共有したいのではないか。",
       "readFromSource": "状況が各担当者のメールとメモに分かれ、定例会議で確認し直している（s2-scene）",
       "inferred": "困っているのは情報の量ではなく、次の確認の担当と日付がチームから見えないことだという推測",
-      "sourceRefs": [
-        "s2-scene"
-      ],
+      "sourceRefs": ["s2-scene"],
       "confidence": "medium",
-      "alternatives": [
-        "会議そのものの進め方が原因",
-        "見積もりの数が多すぎて追えない"
-      ],
-      "questions": [
-        "会議で状況を聞き直すのに、どのくらい時間を使っているか",
-        "返事の確認日を、今は誰がどこに記録しているか"
-      ]
+      "alternatives": ["会議そのものの進め方が原因", "見積もりの数が多すぎて追えない"],
+      "questions": ["会議で状況を聞き直すのに、どのくらい時間を使っているか", "返事の確認日を、今は誰がどこに記録しているか"]
     }
   ],
   "angles": [
@@ -55,49 +33,25 @@
       "id": "a1",
       "statement": "返事待ちの状況と次の確認日を、チームの共通一覧にする。",
       "insightId": "i1",
-      "sourceRefs": [
-        "s2-scene",
-        "s2-input",
-        "s2-list"
-      ],
+      "sourceRefs": ["s2-scene", "s2-input", "s2-list"],
       "rationale": "散らばった状況（メールとメモ）と、仕組み（同じ一覧に記録して共有）が直接つながる。読者は会議の場面で想像でき、次の行動（一覧のイメージを見る）も明確。",
-      "scores": {
-        "evidence": 2,
-        "fit": 3,
-        "specificity": 3,
-        "nextAction": 3
-      }
+      "scores": { "evidence": 2, "fit": 3, "specificity": 3, "nextAction": 3 }
     },
     {
       "id": "a2",
       "statement": "見積もりの確認漏れをなくす。",
       "insightId": "i1",
-      "sourceRefs": [
-        "s2-scene"
-      ],
+      "sourceRefs": ["s2-scene"],
       "rationale": "強く聞こえるが、言わないこと（確認漏れゼロ）に当たり、根拠も無いため選ばない。",
-      "scores": {
-        "evidence": 0,
-        "fit": 2,
-        "specificity": 1,
-        "nextAction": 1
-      }
+      "scores": { "evidence": 0, "fit": 2, "specificity": 1, "nextAction": 1 }
     },
     {
       "id": "a3",
       "statement": "会議の前に、案件の状況をそろえておく。",
       "insightId": "i1",
-      "sourceRefs": [
-        "s2-scene",
-        "s2-list"
-      ],
+      "sourceRefs": ["s2-scene", "s2-list"],
       "rationale": "場面には合うが、会議の時短という成果の約束に寄りやすい（工数削減は言わないこと）。軸は一覧の共有に置き、会議の場面は共感で使う。",
-      "scores": {
-        "evidence": 1,
-        "fit": 2,
-        "specificity": 2,
-        "nextAction": 2
-      }
+      "scores": { "evidence": 1, "fit": 2, "specificity": 2, "nextAction": 2 }
     }
   ],
   "chosenAngleId": "a1",
@@ -106,70 +60,31 @@
       "id": "hero",
       "role": "hero",
       "heading": "返事待ちの見積もりを、チームで追える一覧に。",
-      "headingPhrases": [
-        "返事待ちの見積もりを、",
-        "チームで追える一覧に。"
-      ],
+      "headingPhrases": ["返事待ちの見積もりを、", "チームで追える一覧に。"],
       "body": "見積もりの状況、担当者、次回の確認日をまとめて記録。誰が、どの案件を、いつ確認するかをチームで共有できます。",
       "note": "",
-      "sourceRefs": [
-        "s2-target",
-        "s2-input",
-        "s2-list"
-      ],
+      "sourceRefs": ["s2-target", "s2-input", "s2-list"],
       "items": [],
       "visual": {
         "kind": "table",
         "label": "共有一覧のイメージ・架空データ",
-        "columns": [
-          "案件",
-          "状況",
-          "担当者",
-          "次回確認日"
-        ],
-        "rows": [
-          [
-            "サイト制作A",
-            "返事待ち",
-            "担当A",
-            "10月8日"
-          ],
-          [
-            "バナー制作B",
-            "条件を確認中",
-            "担当B",
-            "10月9日"
-          ]
-        ],
+        "columns": ["案件", "状況", "担当者", "次回確認日"],
+        "rows": [["サイト制作A", "返事待ち", "担当A", "10月8日"], ["バナー制作B", "条件を確認中", "担当B", "10月9日"]],
         "highlight": 0,
         "note": "画面と案件データは説明用のイメージです。実際の製品画面ではありません。",
-        "sourceRefs": [
-          "s2-input",
-          "s2-list",
-          "s2-demo"
-        ]
+        "sourceRefs": ["s2-input", "s2-list", "s2-demo"]
       },
-      "cta": {
-        "label": "一覧画面のイメージを見る",
-        "behavior": "anchor",
-        "target": "illustration"
-      },
+      "cta": { "label": "一覧画面のイメージを見る", "behavior": "anchor", "target": "illustration" },
       "commercialPreview": null
     },
     {
       "id": "empathy",
       "role": "empathy",
       "heading": "「あの見積もり、その後どうなった？」から始まる会議。",
-      "headingPhrases": [
-        "「あの見積もり、",
-        "その後どうなった？」から",
-        "始まる会議。"
-      ],
+      "headingPhrases": ["「あの見積もり、", "その後どうなった？」から", "始まる会議。"],
       "body": "返事は担当者のメールに、次の予定はそれぞれのメモに。案件の状況をそろえるために、担当者へ一つずつ聞いていませんか。",
       "note": "",
-      "sourceRefs": [
-        "s2-scene"
-      ],
+      "sourceRefs": ["s2-scene"],
       "items": [],
       "visual": null,
       "cta": null,
@@ -179,17 +94,10 @@
       "id": "mechanism",
       "role": "mechanism",
       "heading": "返事待ちと次の確認日を、同じ場所に。",
-      "headingPhrases": [
-        "返事待ちと",
-        "次の確認日を、",
-        "同じ場所に。"
-      ],
+      "headingPhrases": ["返事待ちと", "次の確認日を、", "同じ場所に。"],
       "body": "見積もり番では、見積もりの状況と担当者、次回確認日を手入力で記録します。チームで同じ一覧を見ながら、次に確認する案件を探せます。",
       "note": "",
-      "sourceRefs": [
-        "s2-input",
-        "s2-list"
-      ],
+      "sourceRefs": ["s2-input", "s2-list"],
       "items": [],
       "visual": null,
       "cta": null,
@@ -199,59 +107,19 @@
       "id": "illustration",
       "role": "illustration",
       "heading": "次に確認する案件が、一覧で分かる。",
-      "headingPhrases": [
-        "次に確認する案件が、",
-        "一覧で分かる。"
-      ],
-      "body": "担当者、状況、次回確認日で、確認したい案件を絞り込めます。",
+      "headingPhrases": ["次に確認する案件が、", "一覧で分かる。"],
+      "body": "担当者、状況、次回確認日で絞り込むと、今週確認する案件だけを並べられます。",
       "note": "",
-      "sourceRefs": [
-        "s2-list",
-        "s2-filter"
-      ],
+      "sourceRefs": ["s2-list", "s2-filter"],
       "items": [],
       "visual": {
         "kind": "table",
-        "label": "共有一覧のイメージ・架空データ",
-        "columns": [
-          "案件",
-          "状況",
-          "担当者",
-          "次回確認日"
-        ],
-        "rows": [
-          [
-            "サイト制作A",
-            "返事待ち",
-            "担当A",
-            "10月8日"
-          ],
-          [
-            "バナー制作B",
-            "条件を確認中",
-            "担当B",
-            "10月9日"
-          ],
-          [
-            "パンフレット制作C",
-            "返事待ち",
-            "担当A",
-            "10月10日"
-          ],
-          [
-            "動画制作D",
-            "再見積もり",
-            "担当C",
-            "10月14日"
-          ]
-        ],
+        "label": "共有一覧のイメージ・架空データ（次回確認日の近い順）",
+        "columns": ["案件", "状況", "担当者", "次回確認日"],
+        "rows": [["サイト制作A", "返事待ち", "担当A", "10月8日"], ["バナー制作B", "条件を確認中", "担当B", "10月9日"], ["パンフレット制作C", "返事待ち", "担当A", "10月10日"], ["動画制作D", "再見積もり", "担当C", "10月14日"]],
         "highlight": 0,
         "note": "画面と案件データは説明用のイメージです。実際の製品画面ではありません。",
-        "sourceRefs": [
-          "s2-list",
-          "s2-filter",
-          "s2-demo"
-        ]
+        "sourceRefs": ["s2-list", "s2-filter", "s2-demo"]
       },
       "cta": null,
       "commercialPreview": null
@@ -260,36 +128,14 @@
       "id": "process",
       "role": "process",
       "heading": "記録して、共有して、確認する。",
-      "headingPhrases": [
-        "記録して、",
-        "共有して、",
-        "確認する。"
-      ],
+      "headingPhrases": ["記録して、", "共有して、", "確認する。"],
       "body": "",
       "note": "",
       "sourceRefs": [],
       "items": [
-        {
-          "heading": "送った見積もりを記録",
-          "body": "案件名、状況、担当者、次回確認日を入力します。",
-          "sourceRefs": [
-            "s2-input"
-          ]
-        },
-        {
-          "heading": "チームの一覧で共有",
-          "body": "担当者ごとに分かれていた状況を、同じ一覧で確認します。",
-          "sourceRefs": [
-            "s2-list"
-          ]
-        },
-        {
-          "heading": "次に確認する案件を絞り込む",
-          "body": "担当者、状況、次回確認日で案件を探せます。",
-          "sourceRefs": [
-            "s2-filter"
-          ]
-        }
+        { "heading": "送った見積もりを記録", "body": "案件名、状況、担当者、次回確認日を入力します。", "sourceRefs": ["s2-input"] },
+        { "heading": "チームの一覧で共有", "body": "担当者ごとに分かれていた状況を、同じ一覧で確認します。", "sourceRefs": ["s2-list"] },
+        { "heading": "次に確認する案件を絞り込む", "body": "担当者、状況、次回確認日で案件を探せます。", "sourceRefs": ["s2-filter"] }
       ],
       "visual": null,
       "cta": null,
@@ -299,17 +145,10 @@
       "id": "scope",
       "role": "scope",
       "heading": "手入力で、見積もりの状況を共有するツールです。",
-      "headingPhrases": [
-        "手入力で、",
-        "見積もりの状況を",
-        "共有するツールです。"
-      ],
+      "headingPhrases": ["手入力で、", "見積もりの状況を", "共有するツールです。"],
       "body": "メールの自動取り込みや自動送信、会計処理には対応していません。共有したい案件を記録して使います。",
       "note": "",
-      "sourceRefs": [
-        "s2-input",
-        "s2-boundary"
-      ],
+      "sourceRefs": ["s2-input", "s2-boundary"],
       "items": [],
       "visual": null,
       "cta": null,
@@ -319,43 +158,21 @@
       "id": "closing",
       "role": "closing",
       "heading": "チームで見る一覧を、画面イメージで確かめる。",
-      "headingPhrases": [
-        "チームで見る一覧を、",
-        "画面イメージで",
-        "確かめる。"
-      ],
+      "headingPhrases": ["チームで見る一覧を、", "画面イメージで", "確かめる。"],
       "body": "架空の案件を使って、状況と担当者、次回確認日の並びを確認できます。",
       "note": "",
-      "sourceRefs": [
-        "s2-demo"
-      ],
+      "sourceRefs": ["s2-demo"],
       "items": [],
       "visual": null,
-      "cta": {
-        "label": "一覧画面のイメージを見る",
-        "behavior": "anchor",
-        "target": "illustration"
-      },
+      "cta": { "label": "一覧画面のイメージを見る", "behavior": "anchor", "target": "illustration" },
       "commercialPreview": null
     }
   ],
   "selfCheck": {
-    "readAloud": [
-      "『メールとメモに分かれ』を『返事は担当者のメールに、次の予定はそれぞれのメモに』と場面の言葉にした",
-      "『効率化』『手間いらず』などの一般論を使わず、記録する4項目と一覧を具体的に書いた",
-      "rev2: 図の本文「今週確認する案件だけを並べられます」とラベル「次回確認日の近い順」は、仕様に無い並べ替えを示すため、絞り込み（s2-filter）だけを言う文に直した"
-    ],
+    "readAloud": ["『メールとメモに分かれ』を『返事は担当者のメールに、次の予定はそれぞれのメモに』と場面の言葉にした", "『効率化』『手間いらず』などの一般論を使わず、記録する4項目と一覧を具体的に書いた"],
     "consistency": "FV（チームで追える一覧）→ 共感（会議で聞き直す）→ 仕組み（同じ場所に記録）→ 図解（次に確認する案件）→ 流れ → 提供範囲（手入力・自動化なし）→ 締め（画面イメージで確かめる）が同じ話をしている",
-    "missing": [
-      "実販売価格",
-      "ユーザー数上限",
-      "契約条件",
-      "セキュリティ仕様",
-      "実販売の申込先"
-    ],
+    "missing": ["実販売価格", "ユーザー数上限", "契約条件", "セキュリティ仕様", "実販売の申込先"],
     "spLength": "H1は2行。表はSPでは1件2行の並びにする",
-    "openQuestions": [
-      "セキュリティ仕様と契約条件が決まるまで、実販売の申込ボタンは置かない"
-    ]
+    "openQuestions": ["セキュリティ仕様と契約条件が決まるまで、実販売の申込ボタンは置かない"]
   }
 }
