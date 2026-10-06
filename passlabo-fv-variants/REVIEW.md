@@ -1,0 +1,43 @@
+# PASSLABO 共テ数学 特別講義: SP ファーストビュー A/B（レビュー用）
+
+対象: 現行 LP https://utage-system.com/p/IyDWey4w9kRg 。本番 UTAGE は書き換えず、公開もしていない。確認用 HTML はオフラインで開ける（素材・書体を内包）。
+
+## 案の違い（配置と視線の順）
+- **案A（濃紺の1枚の広告）**: 対象の帯「共テ数学で時間が足りない人へ」→ 東大医学部卒が教える → 商品名「共テ数学／特別講義」（48px）→ 学ぶこと（16px）→ 右の講師本人と名札 → 左下の板書・配布テキスト → 無料＋特別テキスト配布 → 緑の CTA。商品名と講師が主役。
+- **案B（白地で悩みから入る縦の流れ）**: ブランドと講義名 → 悩み「×時間が足りない」「×点数が伸びない」→ 学ぶこと「関数を『3〜5分』で解く手順を学ぶ」（36px）→ 配布テキストと板書＋講師本人 → 無料「共テ数学 特別講義」＋特別テキスト配布 → 緑の CTA。悩みと変化が主役。
+- 400px 幅で CTA の下端: 案A 561px・案B 600px（目安 620px 以内）。最小の文字 13px（名札の補足）。横スクロールなし。
+
+## 文言の根拠（架空の実績・受講者数・点数保証・未検証の数値は入れていない）
+| FV の文言 | 根拠 |
+|---|---|
+| 共テ数学 特別講義 | 現行 FV の講義名 |
+| 共テ数学で時間が足りない人へ | 現行 FV の対象 |
+| 東大医学部卒が教える／講師 宇佐見 天彗・東大医学部卒 | 現行 FV・講師プロフィール |
+| 時間が足りない・点数が伸びない | 承認済み仕様の悩み（「点数が伸びない」は現行 FV には無い） |
+| 関数を「3〜5分」で解く手順を学ぶ／関数の問題を「3〜5分」で解く手順を、板書で解説 | 配布テキスト「共通テスト対策 数学特別講義（関数の徹底攻略）」の【スピード勝負】（3分〜5分）と、板書の画像。**講義内容の正確な本文は取得担当が確認中のため、確認後に要再確認** |
+| 講義参加者全員に特別テキストを配布 | 現行 LP の教材の見出し |
+| 無料 | 承認済み仕様（無料特別講義） |
+- 現行掲載の 38万人・1億回・全国50校などの数値は、最新性が未検証のため入れていない。顔を置けば申込が増えるとは書いていない。
+- 教材は 2024 共通テスト本試の問題。「新年度版」とは書いていない。
+
+## 素材の出典（現行 LP の画像から必要な範囲だけを切り出し。人相・数式は加工していない）
+| ファイル | 元画像 | 切り出し |
+|---|---|---|
+| assets/instructor-from-current-fv.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/jtoJuKaUYxdEyDggrnb65Mhs4wg7BGVIIOkVunvF.png （現行 FV） | 人物部分だけ（x1050–1706, y0–585）。旧見出し・金帯は含めない |
+| assets/board-from-current-lp.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/OhTR9cBO4uh7lAsoDtfgD7emcnTeUQACQr4xYfZ6.png （教材） | 左の板書だけ（x30–658, y142–712）。見出しは含めない |
+| assets/text-from-current-lp.webp | 同上 | 右の配布テキストだけ（x730–1314, y146–712） |
+| assets/profile-circle-from-current-lp.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/ebTsOzDgIZTyBdRKIDLF0XmmySYZ9nY3FnbwPO05.png （講師プロフィール） | 丸写真だけ。今回の2案では未使用 |
+素材はユーザーが現行 LP から取得して添付したもの（この環境から現行ページへの接続はネットワーク方針で拒否されるため）。参考ページの人物・キャラクター・書籍・実績は使っていない。
+
+## CTA（動作しない確認用）
+「LINEで無料講義を見る」は `<button type="button">` で、**押しても外部送信・外部遷移はしない**。LINE の実 URL は未確認。HTML に form・外部 URL・スクリプトは無く、CSP（default-src 'none'、form-action 'none'）で外部通信と送信を禁止している。撮影時に、クリックと Enter で URL が変わらないこと・外部リクエストが 0 件であることを確認した（out/measure.json）。
+
+## 書体
+Noto Sans JP（SIL Open Font License 1.1、@fontsource/noto-sans-jp 5.3.0）。使う文字を含む分割ファイルだけを HTML に内包。日本語の字形で表示される。
+
+## ファイル
+- out/passlabo-fv-a.html・out/passlabo-fv-b.html … 確認用 HTML
+- out/passlabo-fv-a-sp400.png・out/passlabo-fv-b-sp400.png … 400×640（@2x）。同じ高さ
+- out/compare-sp400.png … 左から参照（デザイン参考の 400px 実画面）・案A・案B を同じ高さで並べたもの
+- out/passlabo-fv-a-pc1280.png・out/passlabo-fv-b-pc1280.png … PC 1280px の確認
+- 再生成: `node build.mjs && node shoot.mjs <参照画像>`

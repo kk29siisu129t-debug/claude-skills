@@ -1,0 +1,38 @@
+{
+ "a": {
+  "ctaBottom": 561,
+  "h1": 48,
+  "h1Box": [
+   90,
+   192
+  ],
+  "photo": [
+   45,
+   417
+  ],
+  "material": null,
+  "hscroll": false,
+  "minFont": 13,
+  "fonts": 45,
+  "ctaNoNav": true,
+  "externalRequests": []
+ },
+ "b": {
+  "ctaBottom": 600,
+  "h1": 36,
+  "h1Box": [
+   123,
+   210
+  ],
+  "photo": [
+   222,
+   436
+  ],
+  "material": null,
+  "hscroll": false,
+  "minFont": 13,
+  "fonts": 47,
+  "ctaNoNav": true,
+  "externalRequests": []
+ }
+}

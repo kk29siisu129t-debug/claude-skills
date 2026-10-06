@@ -1,37 +1,51 @@
 {
-  "_note": "FV の文言と素材。【確認待ち】は現行ページ（https://utage-system.com/p/IyDWey4w9kRg）を read-only で確認してから確定する。架空の実績・受講者数・点数保証・未検証の数値は入れない",
+  "_note": "FV の文言と素材。出典は現行 LP（https://utage-system.com/p/IyDWey4w9kRg）。架空の実績・受講者数・点数保証・未検証の数値は入れない。教材は 2024 共通テスト本試の問題なので『新年度版』とは書かない",
   "brand": "PASSLABO",
-  "audience": "共通テスト数学で、時間が足りない・点数が伸びない人へ",
-  "subject": "共通テスト数学",
-  "product": "無料特別講義",
+  "target": "共テ数学で時間が足りない人へ",
+  "credential": "東大医学部卒が教える",
+  "productA": [
+    "共テ数学",
+    "特別講義"
+  ],
+  "product": "共テ数学 特別講義",
   "pains": [
     "時間が足りない",
     "点数が伸びない"
   ],
-  "change": "【確認待ち】受講後に変わること（現行ページの講義内容から）",
+  "change": "関数を「3〜5分」で解く手順を学ぶ",
   "changePhrases": [
-    "【確認待ち】受講後に",
-    "変わること"
+    "関数を「3〜5分」で",
+    "解く手順を学ぶ"
+  ],
+  "subA": [
+    "関数の問題を「3〜5分」で",
+    "解く手順を、板書で解説"
   ],
   "instructorRole": "講師",
   "instructorName": "宇佐見 天彗",
-  "materialLabel": "講義の板書・教材（現行ページより）",
+  "instructorCred": "東大医学部卒",
+  "materialLabel": "講義の板書と配布テキスト",
+  "offerText": [
+    "講義参加者全員に",
+    "特別テキストを配布"
+  ],
   "ctaLabel": "LINEで無料講義を見る",
   "ctaNote": "確認用ボタン（外部送信・外部遷移はしません）",
   "assets": {
     "instructor": {
-      "file": "",
-      "source": "【確認待ち】現行ページの講師写真の URL",
+      "file": "instructor-from-current-fv.webp",
+      "source": "現行 FV 画像 https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/jtoJuKaUYxdEyDggrnb65Mhs4wg7BGVIIOkVunvF.png の人物部分のみ（x1050–1706, y0–585。旧見出し・金帯は含めない）",
       "alt": "講師の宇佐見天彗さん"
     },
-    "material": {
-      "file": "",
-      "source": "【確認待ち】現行ページの板書・教材見本の URL",
-      "alt": "講義の板書・教材の見本"
+    "board": {
+      "file": "board-from-current-lp.webp",
+      "source": "現行 LP 教材画像 https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/OhTR9cBO4uh7lAsoDtfgD7emcnTeUQACQr4xYfZ6.png の左（板書）のみ（見出しは含めない）",
+      "alt": "講義の板書（関数の問題の解説）"
+    },
+    "text": {
+      "file": "text-from-current-lp.webp",
+      "source": "同じ教材画像の右（配布テキスト）のみ。2024 共通テスト本試の問題",
+      "alt": "配布テキスト（関数の徹底攻略・2024 共通テスト本試の問題）"
     }
-  },
-  "offerVia": [
-    "【確認待ち】LINEから",
-    "そのまま受講"
-  ]
+  }
 }
