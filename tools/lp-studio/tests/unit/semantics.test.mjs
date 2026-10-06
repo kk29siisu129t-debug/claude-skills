@@ -176,7 +176,9 @@ test('一般化: 両ケースとも仮説は仮説のまま・FVは仕組みを�
     const { html } = renderPage(p, { kind: 'review' });
     const h1 = html.match(/<h1>([\s\S]*?)<\/h1>/)[1];
     assert.deepEqual([...h1.matchAll(/<span class="ph">([^<]*)<\/span>/g)].map((m) => m[1].replace(/&#39;|&quot;/g, '')), phrases.map((x) => x.replace(/["']/g, '')));
-    assert.ok(hero.body.length > 30 && /記録|分け|決め/.test(hero.body)); // 一般的な「サポート」「効率化」ではなく動作を書く
+    // FV の補助文（無ければ本文）は、一般的な「サポート」「効率化」ではなく提供内容の動作を書く
+    const support = hero.sub || hero.body;
+    assert.ok(support.length >= 15 && /計画|見直|記録|分け|決め/.test(support), support);
   }
 });
 
@@ -184,8 +186,9 @@ test('表示名・業態・試作表示を分け、対象者の呼びかけはFV
   for (const p of [seed(), seed2()]) {
     const { html } = review(p);
     const t = text(html);
-    const n = t.split(p.display.audienceLabel).length - 1;
-    assert.equal(n, 1, p.display.audienceLabel);
+    // FV のラベルは商品ラベル（あれば）か対象者の呼びかけ。どちらも1回だけ
+    const label = p.display.productLabel || p.display.audienceLabel;
+    assert.equal(t.split(label).length - 1, 1, label);
     assert.ok(!collectTexts(p).some((x) => x.role !== 'display' && x.text.includes(p.display.serviceDescriptor)));
   }
 });
@@ -219,7 +222,11 @@ test('中間レビューの指摘: 存在しない並べ替えを見せない・
   assert.ok((ta.match(/15分/g) || []).length <= 6, `15分 x${(ta.match(/15分/g) || []).length}`);
   assert.ok(!seed().sections.some((s) => s.role === 'illustration'));
   assert.equal(seed().sections.find((s) => s.role === 'mechanism').visual.kind, 'flow');
-  assert.equal(seed().sections.find((s) => s.role === 'hero').cta.target, 'mechanism');
+  // 調査ブリーフ版: FV の CTA は直下の提供内容の説明（process）へ移動する
+  const ss = seed().sections;
+  const heroI = ss.findIndex((s) => s.role === 'hero');
+  assert.equal(ss[heroI].cta.target, ss[heroI + 1].id);
+  assert.ok(ss[heroI + 1].items.length >= 3);
 });
 
 test('FV の汎用仕様: SP基準・文字量・主CTA1つ・顔素材が無ければ必要素材として示す・研究は設計メモだけ', () => {
@@ -249,7 +256,7 @@ test('FV の汎用仕様: SP基準・文字量・主CTA1つ・顔素材が無け
   const real = { ...a, assets: { heroPortrait: { ...a.assets.heroPortrait, fictional: false } } };
   assert.ok(checkProject(real).some((i) => i.code === 'portrait-not-fictional' && i.level === 'stop'));
   // FV の文字が多すぎると警告（説明は FV の下へ）
-  const long = applyEdit(a, { type: 'setDisplay', key: 'audienceLabel', value: '仕事と家事の合間に、簿記2級の合格を目指して毎日少しずつ勉強を続けたいと考えている社会人のみなさんへ' });
+  const long = applyEdit(a, { type: 'setField', id: 'hero', field: 'sub', value: '面談で進み具合と使える時間を確認し、学習計画を一緒につくり、取り組む内容を細かく分けて、週ごとに見直します。' });
   assert.ok(checkProject(long).some((i) => i.code === 'fv-long'));
   // 生成指示に FV の汎用仕様が入っている
   const prompt = buildPrompt(brief('michishirube'), 'full');
@@ -263,4 +270,51 @@ test('FV の補助カードはユーザー差し戻しで撤去（顔・見出�
   const h = renderPage(p, { kind: 'review' }).html.match(/<header class="hero[\s\S]*?<\/header>/)[0];
   assert.doesNotMatch(h, /hero-visual|class="plan|class="ring/);
   assert.ok(p.sections.find((s) => s.role === 'mechanism').visual); // 仕組みの図は下に残る
+});
+
+test('公開資料（学習者の体験・競合）は課題理解とインサイト仮説だけ。LP の根拠・口コミ・優位性にしない', () => {
+  const p = seed();
+  assert.ok(p.publicSources.length >= 3 && p.publicSources.every((x) => x.url.startsWith('https://') && x.caveat));
+  assert.ok(p.publicSources.some((x) => x.kind === 'competitor' && /優位性/.test(x.caveat)));
+  // インサイト仮説は公開資料を参照できる（仮説のまま）
+  assert.ok(p.insights.some((i) => i.sourceRefs.some((r) => r.startsWith('pub-')) && i.status === 'hypothesis'));
+  // LP 本文の参照には使わない
+  assert.ok(p.sections.every((s) => [...s.sourceRefs, ...s.items.flatMap((i) => i.sourceRefs), ...(s.visual?.sourceRefs || [])].every((r) => !r.startsWith('pub-'))));
+  // 編集 UI からは付けられない（台帳・根拠・原文の id だけ）
+  assert.deepEqual(applyEdit(p, { type: 'setRefs', id: 'empathy', value: ['s1-scene', 'pub-funda-31'] }).sections.find((s) => s.role === 'empathy').sourceRefs, ['s1-scene']);
+  // JSON を直接書き換えて付けても停止条件になる
+  const bad = JSON.parse(JSON.stringify(p));
+  bad.sections.find((s) => s.role === 'empathy').sourceRefs.push('pub-funda-31');
+  assert.ok(checkProject(bad).some((i) => i.code === 'public-as-evidence' && i.level === 'stop'));
+  // 取り込み時にも、セクションの参照から外す
+  const r = JSON.parse(RESPONSE('michishirube'));
+  r.sections.find((s) => s.role === 'empathy').sourceRefs.push('pub-crear-2kyu');
+  const g = ingestGenerated(brief('michishirube'), JSON.stringify(r), { mode: 'full' });
+  assert.ok(g.ok);
+  assert.ok(!g.project.sections.find((s) => s.role === 'empathy').sourceRefs.includes('pub-crear-2kyu'));
+  assert.ok(g.report.warnings.some((w) => /公開資料/.test(w)));
+  assert.ok(g.project.insights.some((i) => i.sourceRefs.includes('pub-crear-2kyu')));
+  // 描画に出さない（URL・体験談の要約・競合名）
+  const html = renderPage(p, { kind: 'review' }).html;
+  for (const x of p.publicSources) { assert.ok(!html.includes(x.url)); assert.ok(!html.includes(x.observation.slice(0, 20))); }
+  assert.doesNotMatch(html, /スタディング|CREAR|Funda|合格体験|このサービスだけ|他社/);
+  // 生成指示には、限界つきで入る
+  const prompt = buildPrompt(brief('michishirube'), 'full');
+  assert.ok(prompt.includes('pub-funda-31') && prompt.includes('LP の根拠・口コミ・実績・優位性には使わない'));
+  // https 以外は記録しない
+  const v = validateProject({ ...p, publicSources: [{ ...p.publicSources[0], url: 'javascript:alert(1)' }] });
+  assert.ok(v.ok && v.project.publicSources.length === 0);
+});
+
+test('調査ブリーフ版の FV: 内心の問い＋提供内容で答える補助文＋CTA1つ。言わないことを守る', () => {
+  const p = seed();
+  const hero = p.sections.find((s) => s.role === 'hero');
+  assert.equal(p.display.productLabel.length > 0, true);
+  assert.ok(!hero.sub.includes('簿記2級')); // 商品ラベルの語を補助文で繰り返さない
+  assert.equal(hero.visual, null);
+  const t = text(review(p).html);
+  for (const w of ['毎週面談', '専任講師', 'いつでも相談', 'し放題', '学力診断', '間に合う', '短期で合格', '得点が上がる', 'このサービスだけ', '合格率', 'お客様の声']) assert.ok(!t.includes(w), w);
+  assert.ok(p.ledger.some((l) => l.id === 'u1-review' && l.kind === 'unknown'));
+  assert.ok(!gates(p).commercialReady.ok);
+  assert.ok(gates(p).commercialReady.reasons.some((r) => r.includes('週ごとの見直しの担当者')));
 });

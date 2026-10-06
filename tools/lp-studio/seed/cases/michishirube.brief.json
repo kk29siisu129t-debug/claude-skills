@@ -10,7 +10,8 @@
     "demoMode": "synthetic-demo",
     "demoNotice": "架空サービスのデモです。お申し込みは受け付けていません。",
     "operator": "",
-    "category": "education"
+    "category": "education",
+    "productLabel": "簿記2級 学習サポート"
   },
   "brand": {
     "primary": "#2741b8",
@@ -99,7 +100,18 @@
       "意志が弱い",
       "必ず続けられる",
       "15分で合格できる",
-      "週末の遅れを解消できる"
+      "週末の遅れを解消できる",
+      "毎週面談する",
+      "専任講師",
+      "いつでも相談できる",
+      "チャットし放題",
+      "学力診断",
+      "問題を解説する",
+      "試験日までに間に合う",
+      "短期で合格できる",
+      "得点が上がる",
+      "このサービスだけ",
+      "他社にはない"
     ]
   },
   "ledger": [
@@ -176,6 +188,13 @@
     {
       "id": "u1-materials",
       "text": "教材への対応範囲",
+      "kind": "unknown",
+      "reality": "synthetic",
+      "origin": "未確定"
+    },
+    {
+      "id": "u1-review",
+      "text": "週ごとの見直しの担当者・方法・面談の頻度",
       "kind": "unknown",
       "reality": "synthetic",
       "origin": "未確定"
@@ -264,5 +283,43 @@
       "focusYPc": 22,
       "focusXSp": 100
     }
-  }
+  },
+  "publicSources": [
+    {
+      "id": "pub-funda-31",
+      "url": "https://boki.funda.jp/blog/article/fundaboki_goukaku31",
+      "title": "Funda簿記 合格体験記（育児と学習の両立）",
+      "kind": "learner-story",
+      "use": "context",
+      "observation": "社会人になってから学習した人の、育児と学習の両立の事例。チャットサポートは使わずに合格し、コミュニティのメンターからスケジュールの提案を受けた。",
+      "caveat": "提供会社が選んだ体験談で、自社の顧客調査ではない。仕事帰りの会社員そのものの観察ではない。無料コミュニティでの経験は、有料の週ごとの支援に払う意思の証拠にならない。"
+    },
+    {
+      "id": "pub-crear-2kyu",
+      "url": "https://www.crear-ac.co.jp/boki/taikenki/2kilyuu-220824-1/",
+      "title": "CREAR 簿記2級 体験記（仕事と学習の中断・再開）",
+      "kind": "learner-story",
+      "use": "supporting-hypothesis",
+      "observation": "仕事と学習の両立で、学習が中断し、再開した経緯が公表されている。",
+      "caveat": "計画の組み直し・再開に関する補助的な仮説の材料。ミチシルベの実績や効果には転用しない。"
+    },
+    {
+      "id": "pub-studying-news",
+      "url": "https://studying.jp/news/20251225_boki.html",
+      "title": "スタディング 簿記講座のお知らせ",
+      "kind": "competitor",
+      "use": "competitor-check",
+      "observation": "競合も学習計画・見直し・相談に関わる機能を提供している。",
+      "caveat": "「このサービスだけ」「教材には計画支援がない」などの優位性を作らない。"
+    },
+    {
+      "id": "pub-studying-course",
+      "url": "https://studying.jp/boki/itempage/course2-26.html",
+      "title": "スタディング 簿記2級コース",
+      "kind": "competitor",
+      "use": "competitor-check",
+      "observation": "競合のコースページ。計画・見直し・相談の支援を含む。",
+      "caveat": "競合の機能と比べた優位性は主張しない。"
+    }
+  ]
 }

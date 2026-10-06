@@ -47,7 +47,7 @@ export function applyEdit(project, op) {
   switch (op.type) {
     case 'setName': p.name = txt(op.value, 120); break;
     case 'setDisplay': {
-      const lim = { brandName: 40, serviceDescriptor: 60, audienceLabel: 60, demoNotice: 100, operator: 80 };
+      const lim = { brandName: 40, serviceDescriptor: 60, audienceLabel: 60, productLabel: 30, demoNotice: 100, operator: 80 };
       if (op.key === 'demoMode') { if (!DEMO_MODES.includes(op.value)) throw new Error('不明なデモ区分'); p.display.demoMode = op.value; }
       else if (op.key === 'category') { if (!CATEGORIES.includes(op.value)) throw new Error('不明なカテゴリ'); p.display.category = op.value; }
       else if (lim[op.key]) p.display[op.key] = txt(op.value, lim[op.key]);
@@ -162,7 +162,7 @@ export function applyEdit(project, op) {
     case 'chooseAngle': return chooseAngle(p, op.id);
     case 'setField': {
       const s = sec(p, op.id);
-      if (!['heading', 'body', 'note'].includes(op.field)) throw new Error('不明なフィールド');
+      if (!['heading', 'body', 'sub', 'note'].includes(op.field)) throw new Error('不明なフィールド');
       s[op.field] = txt(op.value, op.field === 'body' ? 1200 : op.field === 'heading' ? 120 : 200);
       if (op.field === 'heading') s.headingPhrases = []; // 見出しを変えたら改行候補は作り直し
       touch(s);

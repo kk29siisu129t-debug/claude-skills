@@ -10,7 +10,8 @@
     "brandName": "ミチシルベ簿記",
     "serviceDescriptor": "学習計画の作成・見直しサポート",
     "audienceLabel": "働きながら、簿記2級へ。",
-    "demoMode": "synthetic-demo"
+    "demoMode": "synthetic-demo",
+    "productLabel": "簿記2級 学習サポート"
   },
   "brand": {
     "primary": "#2741b8",
@@ -99,7 +100,18 @@
       "意志が弱い",
       "必ず続けられる",
       "15分で合格できる",
-      "週末の遅れを解消できる"
+      "週末の遅れを解消できる",
+      "毎週面談する",
+      "専任講師",
+      "いつでも相談できる",
+      "チャットし放題",
+      "学力診断",
+      "問題を解説する",
+      "試験日までに間に合う",
+      "短期で合格できる",
+      "得点が上がる",
+      "このサービスだけ",
+      "他社にはない"
     ]
   },
   "ledger": [
@@ -179,6 +191,13 @@
       "kind": "unknown",
       "reality": "synthetic",
       "origin": "未確定"
+    },
+    {
+      "id": "u1-review",
+      "text": "週ごとの見直しの担当者・方法・面談の頻度",
+      "kind": "unknown",
+      "reality": "synthetic",
+      "origin": "未確定"
     }
   ],
   "quotes": [],
@@ -231,38 +250,41 @@
   "insights": [
     {
       "id": "i1",
-      "statement": "仕事後の限られた時間に、学ぶ内容と量を毎回決める負担が、学習を始める妨げになっているのではないか。",
-      "readFromSource": "平日の夜に何から手をつけるか決められない（s1-scene）",
-      "inferred": "止まっているのは学習そのものより、始める前の「何をやるか決める」段階だという推測",
+      "statement": "今の進み方でよいのか分からないこと（進み具合の不確実さ）が、学習を続けるうえでの不安になっているのではないか。",
+      "readFromSource": "平日に進まず週末にまとめようとして崩れる（s1-scene）。公開の体験記には、学習の中断と再開、スケジュールの提案を受けた事例がある（pub-crear-2kyu, pub-funda-31）",
+      "inferred": "不安の中心は「始め方」より「今のペースで足りているか」が分からないことだという推測。公開体験は一般的な課題理解の材料で、この架空サービスの顧客調査ではない",
       "sourceRefs": [
-        "s1-scene"
+        "s1-scene",
+        "pub-crear-2kyu",
+        "pub-funda-31"
       ],
-      "confidence": "medium",
+      "confidence": "low",
       "alternatives": [
         "教材の難しさで止まっている",
-        "そもそも平日に使える時間が足りない"
+        "そもそも使える時間が足りない"
       ],
       "questions": [
-        "机に向かってから学習を始めるまでに何が起きているか",
-        "週末にまとめた日は、何がどこまで終わったか"
+        "今のペースが足りているかを、どうやって判断しているか",
+        "予定が崩れた週に、何を基準に計画を組み直したか"
       ],
       "status": "hypothesis",
       "provenance": "claude-code"
     },
     {
       "id": "i2",
-      "statement": "平日の遅れを週末で取り戻す前提が、週末の負担を大きくし、翌週に持ち越す流れをつくっているのではないか。",
-      "readFromSource": "週末にまとめてやろうとして崩れる（s1-scene）",
-      "inferred": "週単位の帳尻合わせが負担の集中を生むという推測",
+      "statement": "予定が崩れた後、どう計画を組み直せばよいか分からないことが、学習の中断につながっているのではないか。",
+      "readFromSource": "週末にまとめようとして予定の分を終えられない（s1-scene）。仕事と学習の中断・再開の公開体験（pub-crear-2kyu）",
+      "inferred": "崩れた後の組み直しの手間が負担だという推測",
       "sourceRefs": [
-        "s1-scene"
+        "s1-scene",
+        "pub-crear-2kyu"
       ],
       "confidence": "low",
       "alternatives": [
         "週末の予定が読めないことが主因"
       ],
       "questions": [
-        "週末に予定していた量と、実際に終えた量"
+        "予定が崩れた週の翌週、計画をどう変えたか"
       ],
       "status": "hypothesis",
       "provenance": "claude-code"
@@ -271,49 +293,49 @@
   "angles": [
     {
       "id": "a1",
-      "statement": "今夜取り組む内容を決めた、15分の計画を用意する。",
+      "statement": "「このペースで大丈夫か」という問いに、一緒につくる計画と週ごとの見直しで答える。",
       "insightId": "i1",
       "sourceRefs": [
         "s1-scene",
         "s1-mechanism"
       ],
-      "rationale": "止まる瞬間（何から始めるか決まらない）と、仕組み（15分の単位に分けて決めておく）が直接つながる。読者が今夜の場面で想像でき、次の行動（計画の例を見る）も明確。",
+      "rationale": "読者の内心の問い（進み具合の不確実さ）と、確認済みの提供内容（一緒に計画をつくる・週ごとに見直す）が直接つながる。開始手順の案内ではなく、進み方を確かめ組み直す支援として伝わる。合格や期限の保証には触れない。",
       "scores": {
         "evidence": 2,
         "fit": 3,
-        "specificity": 3,
+        "specificity": 2,
         "nextAction": 3
       }
     },
     {
       "id": "a2",
-      "statement": "週末に取り戻す勉強から、毎晩少しずつ進める勉強へ。",
+      "statement": "今夜の勉強を、迷わず始める。",
+      "insightId": "i1",
+      "sourceRefs": [
+        "s1-scene",
+        "s1-mechanism"
+      ],
+      "rationale": "前回の訴求。始める瞬間の迷いに寄っていて、週ごとの見直しという提供内容の中心が伝わりにくいため選ばない。",
+      "scores": {
+        "evidence": 2,
+        "fit": 2,
+        "specificity": 3,
+        "nextAction": 2
+      }
+    },
+    {
+      "id": "a3",
+      "statement": "予定が崩れても、次の週に組み直せる。",
       "insightId": "i2",
       "sourceRefs": [
         "s1-scene",
         "s1-mechanism"
       ],
-      "rationale": "場面は合うが「続けられる」方向の約束に寄りやすく、言わないこと（必ず続けられる・週末の遅れを解消できる）に近づくため選ばない。",
+      "rationale": "組み直しは提供内容に合うが、「必ず立て直せる」と読まれやすく、言わないことに近づくため主訴求にはしない。",
       "scores": {
-        "evidence": 1,
+        "evidence": 2,
         "fit": 2,
         "specificity": 2,
-        "nextAction": 1
-      }
-    },
-    {
-      "id": "a3",
-      "statement": "働きながらでも、簿記2級の学習計画を一緒につくる。",
-      "insightId": "i1",
-      "sourceRefs": [
-        "s1-target",
-        "s1-mechanism"
-      ],
-      "rationale": "事実には忠実だが、どの瞬間の詰まりを助けるかが伝わらず一般論になるため選ばない。",
-      "scores": {
-        "evidence": 3,
-        "fit": 2,
-        "specificity": 1,
         "nextAction": 1
       }
     }
@@ -327,29 +349,77 @@
       "approvedHash": "",
       "needsReview": false,
       "origin": "claude-code",
-      "heading": "今夜の勉強、迷わず始める。",
+      "heading": "このペースで、大丈夫かな。",
       "headingPhrases": [
-        "今夜の勉強、",
-        "迷わず始める。"
+        "このペースで、",
+        "大丈夫かな。"
       ],
-      "body": "学習内容を15分ずつに分けた計画を、面談で一緒につくります。進み具合に合わせて、計画は週ごとに見直します。",
+      "body": "",
+      "sub": "学習計画を一緒につくり、週ごとに見直す。",
       "note": "",
       "sourceRefs": [
         "s1-target",
-        "s1-scene",
         "s1-mechanism"
       ],
       "items": [],
       "visual": null,
       "cta": {
-        "label": "学習プランを見る",
+        "label": "学習サポートを見る",
         "behavior": "anchor",
-        "target": "mechanism"
+        "target": "process"
       },
       "commercialPreview": {
-        "note": "デモのため予約できません。",
+        "note": "デモのため予約できません。料金・所要時間・実施方法は未確定です。",
         "label": "学習設計面談を予約する"
       }
+    },
+    {
+      "id": "process",
+      "role": "process",
+      "approved": false,
+      "approvedHash": "",
+      "needsReview": false,
+      "origin": "claude-code",
+      "heading": "今の進み具合から、次にやることを整理します。",
+      "headingPhrases": [
+        "今の進み具合から、",
+        "次にやることを",
+        "整理します。"
+      ],
+      "body": "ここに並べたのは、サービスで行う内容です。実績や効果を示すものではありません。",
+      "sub": "",
+      "note": "",
+      "sourceRefs": [
+        "s1-process",
+        "s1-mechanism",
+        "s1-boundary"
+      ],
+      "items": [
+        {
+          "heading": "面談で、進み具合と使える時間を確認",
+          "body": "",
+          "sourceRefs": [
+            "s1-process"
+          ]
+        },
+        {
+          "heading": "学習計画をつくり、取り組む内容を15分の単位へ",
+          "body": "",
+          "sourceRefs": [
+            "s1-mechanism"
+          ]
+        },
+        {
+          "heading": "進み具合に合わせて、週ごとに計画を見直し",
+          "body": "",
+          "sourceRefs": [
+            "s1-mechanism"
+          ]
+        }
+      ],
+      "visual": null,
+      "cta": null,
+      "commercialPreview": null
     },
     {
       "id": "empathy",
@@ -358,13 +428,14 @@
       "approvedHash": "",
       "needsReview": false,
       "origin": "claude-code",
-      "heading": "平日は迷う。週末には、やることがたまる。",
+      "heading": "予定が崩れると、どこから組み直すか迷う。",
       "headingPhrases": [
-        "平日は迷う。",
-        "週末には、",
-        "やることがたまる。"
+        "予定が崩れると、",
+        "どこから組み直すか",
+        "迷う。"
       ],
-      "body": "教材を開いても、どこから始めるかが決まらない。平日に進まなかった分は、週末にまとめてやろうと思う。けれど、予定していた分を終えられず、また次の週へ。そんな流れに、心当たりはありませんか。",
+      "body": "平日に進まなかった分は、週末にまとめてやろうと思う。けれど、予定していた分を終えられないまま次の週へ。今の進み方でよいのかも、分からなくなっていきます。",
+      "sub": "",
       "note": "",
       "sourceRefs": [
         "s1-scene"
@@ -381,13 +452,14 @@
       "approvedHash": "",
       "needsReview": false,
       "origin": "claude-code",
-      "heading": "勉強を始める前に、今夜やることを決めておく。",
+      "heading": "計画は、週ごとに見直す前提でつくる。",
       "headingPhrases": [
-        "勉強を始める前に、",
-        "今夜やることを",
-        "決めておく。"
+        "計画は、",
+        "週ごとに見直す",
+        "前提でつくる。"
       ],
-      "body": "「平日に勉強する」という予定を、今夜取り組む内容まで決めておきます。",
+      "body": "取り組む内容を15分の単位に分けておき、進み具合に合わせて、次の週の計画を調整します。",
+      "sub": "",
       "note": "",
       "sourceRefs": [
         "s1-mechanism"
@@ -396,9 +468,9 @@
       "visual": {
         "title": "",
         "task": "",
-        "from": "平日の夜に簿記を勉強する",
-        "to": "今夜の15分で取り組む内容を決める",
-        "review": "進み具合を確認して、次の週の計画へ",
+        "from": "今週の計画（15分の単位に分ける）",
+        "to": "進み具合を確認する",
+        "review": "次の週の計画を調整する",
         "columns": [],
         "rows": [],
         "highlight": -1,
@@ -414,48 +486,6 @@
       "commercialPreview": null
     },
     {
-      "id": "process",
-      "role": "process",
-      "approved": false,
-      "approvedHash": "",
-      "needsReview": false,
-      "origin": "claude-code",
-      "heading": "今の状況に合わせて、学習計画をつくる。",
-      "headingPhrases": [
-        "今の状況に合わせて、",
-        "学習計画をつくる。"
-      ],
-      "body": "",
-      "note": "",
-      "sourceRefs": [],
-      "items": [
-        {
-          "heading": "今の進み具合を整理する",
-          "body": "面談で、学習がどこまで進んでいるか、平日にどのくらい時間を使えるかを一緒に確認します。",
-          "sourceRefs": [
-            "s1-process"
-          ]
-        },
-        {
-          "heading": "取り組む内容を15分ずつに分ける",
-          "body": "毎晩取り組むことを決め、学習計画にまとめます。",
-          "sourceRefs": [
-            "s1-mechanism"
-          ]
-        },
-        {
-          "heading": "週ごとに計画を見直す",
-          "body": "進み具合や予定の変化を確認し、次の週の計画を調整します。",
-          "sourceRefs": [
-            "s1-mechanism"
-          ]
-        }
-      ],
-      "visual": null,
-      "cta": null,
-      "commercialPreview": null
-    },
-    {
       "id": "faq",
       "role": "faq",
       "approved": false,
@@ -465,6 +495,7 @@
       "heading": "",
       "headingPhrases": [],
       "body": "",
+      "sub": "",
       "note": "",
       "sourceRefs": [],
       "items": [
@@ -494,17 +525,19 @@
         "今の進み具合と",
         "使える時間から。"
       ],
-      "body": "面談で今の進み具合を確認し、続け方を一緒に考えます。",
+      "body": "面談で今の進み具合を確認し、学習計画を一緒につくります。",
+      "sub": "",
       "note": "",
       "sourceRefs": [
-        "s1-process"
+        "s1-process",
+        "s1-mechanism"
       ],
       "items": [],
       "visual": null,
       "cta": {
-        "label": "計画の例を見る",
+        "label": "学習サポートを見る",
         "behavior": "anchor",
-        "target": "mechanism"
+        "target": "process"
       },
       "commercialPreview": {
         "note": "デモのため予約できません。料金・所要時間・実施方法は未確定です。",
@@ -519,24 +552,27 @@
       "rev2: 説明と図解を「仕組み」1セクションにまとめ、15分と週ごとの見直しを、FV・仕組みの図・流れ・FAQ1問だけに減らした。締めは面談で何をするかだけにした",
       "rev3（監査役の指摘）: FVで15分が面談の時間に読めないよう「面談で学習内容を15分ずつに分け」と主語を明示。FAQは「必要な学習時間を保証」という成り立たない言い方をやめた。見出しの文体（常体）と「今夜」「学習計画」の語をそろえた。締めに押せる行動（計画の例を見る）を置いた",
       "FV再設計（ユーザー差し戻し「文字が多すぎる」）: FV内は呼びかけ・H1・計画の図・CTAだけ。説明文・デモの注意書き・無効の予約ボタンはFVの下へ",
-      "FV再設計（ユーザー差し戻し「左のイラストの意味が分からない」）: FV の補助カード（今夜の15分）を外した。具体的な計画例は、意味が明確になってから下のセクションに置く。見出しは調査ブリーフを受けてから決める"
+      "FV再設計（ユーザー差し戻し「左のイラストの意味が分からない」）: FV の補助カード（今夜の15分）を外した。具体的な計画例は、意味が明確になってから下のセクションに置く。見出しは調査ブリーフを受けてから決める",
+      "調査ブリーフ反映（ユーザー確定の文言）: H1 を内心の問い「このペースで、大丈夫かな。」にし、直下の補助文「学習計画を一緒につくり、週ごとに見直す。」で答える。FV は商品ラベル・H1・補助文・CTA1つ・顔写真だけ。FV 直下に提供内容の3ステップとデモの声明"
     ],
-    "consistency": "FV（今夜を終わらせない）→ 共感（平日に迷う）→ 仕組み＋図（予定を今夜の内容まで具体化）→ 流れ → FAQ（15分の意味）→ 締め（今の状況を整理）",
+    "consistency": "FV（このペースで大丈夫か → 計画を一緒につくり週ごとに見直す）→ 提供内容の3ステップ → 共感（予定が崩れて組み直しに迷う）→ 仕組み＋図（見直す前提の計画）→ FAQ（15分の意味）→ 締め（今の進み具合から）",
     "missing": [
       "面談料金",
       "面談の所要時間",
       "実施方法",
       "予約方法",
       "継続契約の条件",
-      "教材への対応範囲"
+      "教材への対応範囲",
+      "週ごとの見直しの担当者・方法・面談の頻度"
     ],
-    "spLength": "H1は2行（意味の区切りで改行）。FV本文は2文で、400px幅で約4行",
+    "spLength": "FV は商品ラベル・H1（2行）・補助文1行・CTA・写真の注記で約70字",
     "openQuestions": [
+      "週ごとの見直しは誰が・どの方法で・どの頻度で行うか",
       "手持ちの教材のまま使えるか（教材への対応範囲）",
       "面談の料金・時間・方法が決まったら、締めの注記とCTAを実際の条件に差し替える",
-      "読者の疑問: 15分で合格できるという意味なのか",
-      "読者の疑問: 計画どおりに進まなかったらどうなるのか",
-      "読者の疑問: 面談の料金・所要時間・実施方法（未確定のため本文では答えない）",
+      "読者の疑問: この計画で合格できるという意味なのか",
+      "読者の疑問: 週ごとの見直しは誰が、どうやって行うのか（未確定のため本文では答えない）",
+      "読者の疑問: 面談の料金・所要時間・実施方法（未確定）",
       "読者の疑問: 手持ちの教材のまま使えるのか（未確定）"
     ]
   },
@@ -572,9 +608,47 @@
       "focusXSp": 100
     }
   },
+  "publicSources": [
+    {
+      "id": "pub-funda-31",
+      "url": "https://boki.funda.jp/blog/article/fundaboki_goukaku31",
+      "title": "Funda簿記 合格体験記（育児と学習の両立）",
+      "kind": "learner-story",
+      "use": "context",
+      "observation": "社会人になってから学習した人の、育児と学習の両立の事例。チャットサポートは使わずに合格し、コミュニティのメンターからスケジュールの提案を受けた。",
+      "caveat": "提供会社が選んだ体験談で、自社の顧客調査ではない。仕事帰りの会社員そのものの観察ではない。無料コミュニティでの経験は、有料の週ごとの支援に払う意思の証拠にならない。"
+    },
+    {
+      "id": "pub-crear-2kyu",
+      "url": "https://www.crear-ac.co.jp/boki/taikenki/2kilyuu-220824-1/",
+      "title": "CREAR 簿記2級 体験記（仕事と学習の中断・再開）",
+      "kind": "learner-story",
+      "use": "supporting-hypothesis",
+      "observation": "仕事と学習の両立で、学習が中断し、再開した経緯が公表されている。",
+      "caveat": "計画の組み直し・再開に関する補助的な仮説の材料。ミチシルベの実績や効果には転用しない。"
+    },
+    {
+      "id": "pub-studying-news",
+      "url": "https://studying.jp/news/20251225_boki.html",
+      "title": "スタディング 簿記講座のお知らせ",
+      "kind": "competitor",
+      "use": "competitor-check",
+      "observation": "競合も学習計画・見直し・相談に関わる機能を提供している。",
+      "caveat": "「このサービスだけ」「教材には計画支援がない」などの優位性を作らない。"
+    },
+    {
+      "id": "pub-studying-course",
+      "url": "https://studying.jp/boki/itempage/course2-26.html",
+      "title": "スタディング 簿記2級コース",
+      "kind": "competitor",
+      "use": "competitor-check",
+      "observation": "競合のコースページ。計画・見直し・相談の支援を含む。",
+      "caveat": "競合の機能と比べた優位性は主張しない。"
+    }
+  ],
   "fvDesign": {
     "viewportFirst": "sp",
-    "visualRole": "夜に自宅で学ぶ大人の顔を主役にし、読者が自分の場面として想像できる入口にする。人物は講師・受講生・推薦者ではない（AI生成の架空の人物）",
+    "visualRole": "夜に自宅で学ぶ大人の顔を主役にし、H1 の内心の問いを、読者が自分の場面として受け取れる入口にする。人物は講師・受講生・推薦者ではない（AI生成の架空の人物）",
     "gaze": "toward-copy",
     "fit": "対象は働きながら簿記2級を学ぶ大人。仕事後の夜・自宅の机・ノートとペンという場面が、確認済みの仕様（学習を15分単位で計画し、週ごとに見直す）と矛盾しない",
     "maxChars": 80,
@@ -598,6 +672,12 @@
         "caveat": "顔の効果は条件に依存する",
         "claim": "顔を置けば広告の見られ方が一律に良くなるとは限らない",
         "status": "research"
+      },
+      {
+        "source": "pub-crear-2kyu, pub-funda-31（公開資料。自社の顧客調査ではない）",
+        "caveat": "一般的な課題理解の材料。顧客心理として万人に共通・有料の需要があるとは扱わない",
+        "claim": "公開の学習者体験には、学習の中断と再開、スケジュールの提案を受けた事例がある",
+        "status": "hypothesis"
       },
       {
         "source": "",

@@ -30,12 +30,15 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 - FV の主役は顔のビジュアルを基本にする（assets.heroPortrait。人が用意した架空・由来明記の写真）。fvDesign に、顔の役割（visualRole）・視線の向き（gaze: 見出し／CTA の方へ）・商材と対象者への適合（fit）を書く。素材が無いときは fvDesign.requiredAssets に「顔写真（架空・由来明記・対象者に合う年代と場面）」と書き、無関係な写真・架空の肩書・顧客の証言で穴埋めしない。人物を講師・受講生・推薦者として紹介しない
 - FV の補助の図（hero.visual）は、それだけで意味が伝わる場合にだけ置く。伝わらないなら null にし、具体例は下のセクションに置く
 - 心理学などの研究は fvDesign.researchNotes に「research（出典あり）／hypothesis（未検証）／design-condition（今回の設計条件）」を分けて書き、限界（caveat）を添える。FV 本文には入れない。離脱率・CVR の改善を約束しない。fvDesign.evaluationPlan に将来の比較方法（1要素だけ変える・定義を固定した CVR 等）を書く
+- 公開資料（publicSources）は insights の sourceRefs にだけ使える。体験談を口コミ・実績として転載しない。競合も同じ支援を提供しているなら「このサービスだけ」などの優位性を作らない
+- H1 は読者の内心の問いや場面でもよい。その場合、直下の補助文（hero.sub）が提供内容でその問いに答える構成にする。補助文で商品ラベル（display.productLabel）の語を繰り返さない
 - section の id は役割名（hero, empathy, mechanism, illustration, process, scope, faq, fit, closing など）にする
 
 ## 表示用の名前（display）
 - brandName: 見積もり番
 - serviceDescriptor: 見積もりの返事待ちを共有する、チーム用管理ツール
 - audienceLabel: 少人数で案件を進める制作会社へ
+- productLabel: （なし）
 - demoMode: synthetic-demo
 - demoNotice: 架空サービスのデモです。登録やお申し込みはできません。
 
@@ -58,6 +61,9 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 
 ## 顧客の原文（quotes）
 - （なし。引用・口コミは作らない）
+
+## 公開資料（課題理解とインサイト仮説の材料。LP の根拠・口コミ・実績・優位性には使わない。sections の sourceRefs に入れない）
+- （なし）
 
 ## A 読者と場面
 - who: 少人数の制作会社で、見積もり送付後の確認を担当する人とチーム責任者
@@ -177,6 +183,7 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
       "headingPhrases": [
         ""
       ],
+      "sub": "FV の補助文（H1 の問い・場面に、提供内容で答える短い1行）",
       "body": "",
       "note": "",
       "sourceRefs": [],

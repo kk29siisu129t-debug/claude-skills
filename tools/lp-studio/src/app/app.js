@@ -4,7 +4,7 @@ import { parseProjectJson, serializeProject, refIndex, SCHEMA_VERSION, DEMO_MODE
 import { ROLES, ROLE_IDS, ANGLE_DEPENDENT } from '../core/roles.js';
 import { applyEdit, emptyProject } from '../core/model.js';
 import { buildPrompt, ingestGenerated, applySkeleton, ADAPTERS } from '../core/generate.js';
-import { checkProject, gates } from '../core/editorial.js';
+import { checkProject, gates, fvTextOf } from '../core/editorial.js';
 import { renderPage, renderWireframe, exportHtml, contrastChecks } from '../core/render.js';
 import { analyzeLpo } from '../core/lpo.js';
 
@@ -215,6 +215,25 @@ function renderInputs(p) {
 }
 
 // ---------------- 2 インサイト・訴求 ----------------
+function renderFvDesign(p) {
+  const f = p.fvDesign;
+  const pt = p.assets?.heroPortrait;
+  const STATUS = { research: ['ok', '研究（出典あり）'], hypothesis: ['warn', '仮説（未検証）'], 'design-condition': ['info', '今回の設計条件'] };
+  const GAZE = { 'toward-copy': '見出しの方へ', 'toward-cta': 'CTA の方へ', front: '正面', none: '指定なし' };
+  return h('section', { class: 'card', id: 'fv-design' }, h('h2', { text: 'FV の設計メモ（LP には出しません）' }),
+    h('p', { class: 'muted small', text: '研究は設計の根拠で、離脱率・CVR の改善を約束するものではありません。研究・仮説・設計条件を分けて記録します。' }),
+    h('dl', { class: 'kv' },
+      h('dt', { text: '基準の画面' }), h('dd', { text: f ? (f.viewportFirst === 'sp' ? 'SP（400px 前後）' : 'PC') : '—' }),
+      h('dt', { text: '顔写真' }), h('dd', {}, pt ? `${pt.caption}（由来: ${pt.origin === 'ai_generated' ? 'AI生成' : pt.origin}・${pt.fictional ? '架空' : '架空ではない'}）` : badge('warn', '必要素材: 顔写真が未設定（無関係な写真・肩書・証言で埋めない）')),
+      h('dt', { text: '顔の役割' }), h('dd', { text: f?.visualRole || '—' }),
+      h('dt', { text: '視線' }), h('dd', { text: f ? GAZE[f.gaze] : '—' }),
+      h('dt', { text: '商材・対象者との適合' }), h('dd', { text: f?.fit || '—' }),
+      h('dt', { text: 'FV の文字量・CTA' }), h('dd', { text: `${fvTextOf(p).length}字 / 目安 ${f?.maxChars || 80}字、主CTA ${f?.primaryCtas || 1}つ` }),
+      h('dt', { text: '不足している素材' }), h('dd', { text: (f?.requiredAssets || []).join(' / ') || (pt ? 'なし' : '顔写真') }),
+      h('dt', { text: '将来の比較検証' }), h('dd', { text: f?.evaluationPlan || '—' })),
+    f?.researchNotes?.length ? h('ul', { class: 'research' }, ...f.researchNotes.map((n) => h('li', {}, badge(...STATUS[n.status]), ` ${n.claim}`, n.source ? h('div', { class: 'small muted', text: `出典: ${n.source}` }) : '', n.caveat ? h('div', { class: 'small muted', text: `限界: ${n.caveat}` }) : ''))) : '');
+}
+
 function renderInsight(p) {
   const ins = p.insights.map((x) => h('article', { class: 'card hyp', 'data-insight': x.id },
     h('h3', {}, badge(x.status === 'hypothesis' ? 'warn' : 'ok', x.status === 'hypothesis' ? '仮説（顧客の原文・観察で未確認）' : '原文・観察で裏づけあり'), ` ${x.statement}`),
@@ -242,6 +261,10 @@ function renderInsight(p) {
     h('section', { class: 'card' }, h('h2', { text: '訴求の候補と選択' }),
       h('p', { class: 'muted small', text: '根拠・サービス適合・場面の具体性・次の行動で比べます。訴求を変えると、共感・仕組み・図解・根拠・締めを再検討の対象にします（手動編集した他のセクションは保持）。' }),
       angles.length ? h('div', { class: 'table-wrap' }, h('table', {}, h('thead', {}, h('tr', {}, ...['訴求と理由', '根拠ID', '評価', ''].map((t) => h('th', { text: t })))), h('tbody', {}, ...angles))) : h('p', { text: '候補がありません。' })),
+    h('section', { class: 'card', id: 'public-sources' }, h('h2', { text: '公開資料（課題理解・仮説の材料。LP には出しません）' }),
+      h('p', { class: 'muted small', text: '学習者の公開体験や競合のページは、自社の顧客調査ではありません。LP の根拠・口コミ・実績・優位性には使わず、インサイト仮説の参照だけに使います。' }),
+      (p.publicSources || []).length ? h('ul', { class: 'research' }, ...p.publicSources.map((x) => h('li', {}, badge(x.kind === 'competitor' ? 'info' : 'warn', { 'learner-story': '学習者の公開体験', competitor: '競合', article: '記事' }[x.kind]), ` ${x.title || x.id}`, h('div', { class: 'small mono', text: `${x.id} ・ ${x.url}` }), h('div', { class: 'small', text: `観察: ${x.observation}` }), h('div', { class: 'small muted', text: `限界: ${x.caveat}` })))) : h('p', { class: 'small', text: 'なし' })),
+    renderFvDesign(p),
     sc ? h('section', { class: 'card' }, h('h2', { text: '生成時の自己点検' }),
       h('dl', { class: 'kv' },
         h('dt', { text: '声に出して直した点' }), h('dd', { text: (sc.readAloud || []).join(' / ') || '—' }),
@@ -310,7 +333,7 @@ function renderDesign(p) {
   const { html, report } = renderPage(p, { kind: pv.kind, reduceMotion: pv.reduce });
   const stops = report.issues.filter((x) => x.level === 'stop').length;
   const toolbar = h('div', { class: 'pv-toolbar', role: 'toolbar', 'aria-label': 'プレビュー操作' },
-    h('div', { class: 'seg', role: 'radiogroup', 'aria-label': '表示する端末' }, ...[['both', 'PC＋SP'], ['pc', 'PC 1280'], ['sp', 'SP 400']].map(([k, t]) => h('label', { class: `mode${pv.device === k ? ' on' : ''}` }, h('input', { type: 'radio', name: 'dev', id: `dev-${k}`, checked: pv.device === k, onchange: () => { pv.device = k; render(); } }), t))),
+    h('div', { class: 'seg', role: 'radiogroup', 'aria-label': '表示する端末' }, ...[['both', 'SP＋PC'], ['sp', 'SP 400（基準）'], ['pc', 'PC 1280']].map(([k, t]) => h('label', { class: `mode${pv.device === k ? ' on' : ''}` }, h('input', { type: 'radio', name: 'dev', id: `dev-${k}`, checked: pv.device === k, onchange: () => { pv.device = k; render(); } }), t))),
     h('div', { class: 'seg', role: 'radiogroup', 'aria-label': '描画の種類' }, ...[['review', 'レビュー用'], ['draft', '社内確認（参照ID表示）']].map(([k, t]) => h('label', { class: `mode${pv.kind === k ? ' on' : ''}` }, h('input', { type: 'radio', name: 'pkind', id: `pkind-${k}`, checked: pv.kind === k, onchange: () => { pv.kind = k; render(); } }), t))),
     h('label', { class: 'inline' }, h('input', { type: 'checkbox', id: 'pv-reduce', checked: pv.reduce, onchange: (e) => { pv.reduce = e.target.checked; render(); } }), '動きを減らす'),
     h('button', { type: 'button', id: 'pv-replay', onclick: () => { pv.nonce++; render(); } }, '▶ 登場アニメーションを再生'),
@@ -318,8 +341,9 @@ function renderDesign(p) {
     h('span', { class: `pv-status ${stops ? 'ng' : 'ok'}`, text: stops ? `停止条件 ${stops} 件（5で確認）` : 'レビュー用に描画できます' }));
   const frames = [];
   const tagged = html.replace('<body', `<body data-nonce="${pv.nonce}"`);
+  // SP を設計・レビューの基準にする（先に表示）。PC は SP の構成を広げたもの
+  if (pv.device !== 'pc') frames.push(h('section', { class: 'card sp pv-card' }, previewFrame(tagged, { width: 400, height: 760, title: 'SPプレビュー（基準）', id: 'sp-frame', label: 'SP 400×760（基準）' })));
   if (pv.device !== 'sp') frames.push(h('section', { class: 'card pc pv-card' }, previewFrame(tagged, { width: 1280, height: 800, title: 'PCプレビュー', id: 'pc-frame', label: 'PC 1280×800' })));
-  if (pv.device !== 'pc') frames.push(h('section', { class: 'card sp pv-card' }, previewFrame(tagged, { width: 400, height: 760, title: 'SPプレビュー', id: 'sp-frame', label: 'SP 400×760' })));
   return h('div', {}, toolbar, h('div', { class: `design dev-${pv.device}` }, ...frames));
 }
 

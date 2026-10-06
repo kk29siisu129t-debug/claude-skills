@@ -38,7 +38,7 @@ main{padding:12px 16px 16px;max-width:1600px;margin:0 auto;outline:none}
 .span-all{grid-column:1/-1}
 .plan-layout{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr) minmax(0,1fr);gap:16px;align-items:start}
 .plan-layout .card{margin-bottom:0}
-.design{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1fr);gap:16px;align-items:start}
+.design{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.2fr);gap:16px;align-items:start}
 .design .card{margin-bottom:0}
 .field{margin:10px 0;display:grid;gap:4px}
 .field>label{font-weight:700;font-size:14px}
@@ -123,3 +123,6 @@ tr.synthetic td{background:#fff8f0}
 .pv-card{padding:10px 12px}
 .pv-toolbar{margin-bottom:8px;padding:6px 10px}
 .design{gap:12px}
+#fv-design dd,#fv-design li,#fv-design .small{overflow-wrap:anywhere;min-width:0}
+#fv-design .research{padding-left:18px;margin:12px 0 0}#fv-design .research li{margin-bottom:8px}
+#public-sources li,#public-sources .small{overflow-wrap:anywhere;min-width:0}#public-sources .research{padding-left:18px}

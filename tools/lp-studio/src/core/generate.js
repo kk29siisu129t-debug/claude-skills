@@ -73,6 +73,8 @@ const RULES = [
   'FV の主役は顔のビジュアルを基本にする（assets.heroPortrait。人が用意した架空・由来明記の写真）。fvDesign に、顔の役割（visualRole）・視線の向き（gaze: 見出し／CTA の方へ）・商材と対象者への適合（fit）を書く。素材が無いときは fvDesign.requiredAssets に「顔写真（架空・由来明記・対象者に合う年代と場面）」と書き、無関係な写真・架空の肩書・顧客の証言で穴埋めしない。人物を講師・受講生・推薦者として紹介しない',
   'FV の補助の図（hero.visual）は、それだけで意味が伝わる場合にだけ置く。伝わらないなら null にし、具体例は下のセクションに置く',
   '心理学などの研究は fvDesign.researchNotes に「research（出典あり）／hypothesis（未検証）／design-condition（今回の設計条件）」を分けて書き、限界（caveat）を添える。FV 本文には入れない。離脱率・CVR の改善を約束しない。fvDesign.evaluationPlan に将来の比較方法（1要素だけ変える・定義を固定した CVR 等）を書く',
+  '公開資料（publicSources）は insights の sourceRefs にだけ使える。体験談を口コミ・実績として転載しない。競合も同じ支援を提供しているなら「このサービスだけ」などの優位性を作らない',
+  'H1 は読者の内心の問いや場面でもよい。その場合、直下の補助文（hero.sub）が提供内容でその問いに答える構成にする。補助文で商品ラベル（display.productLabel）の語を繰り返さない',
   'section の id は役割名（hero, empathy, mechanism, illustration, process, scope, faq, fit, closing など）にする',
 ];
 
@@ -81,7 +83,7 @@ function dumpInputs(project) {
   const i = project.inputs;
   const L = [];
   L.push('## 表示用の名前（display）');
-  L.push(`- brandName: ${d.brandName}`, `- serviceDescriptor: ${d.serviceDescriptor}`, `- audienceLabel: ${d.audienceLabel}`, `- demoMode: ${d.demoMode}`, `- demoNotice: ${d.demoNotice}`, '');
+  L.push(`- brandName: ${d.brandName}`, `- serviceDescriptor: ${d.serviceDescriptor}`, `- audienceLabel: ${d.audienceLabel}`, `- productLabel: ${d.productLabel || '（なし）'}`, `- demoMode: ${d.demoMode}`, `- demoNotice: ${d.demoNotice}`, '');
   L.push('## 事実台帳（id / 種別 / 実在or合成 / 内容）');
   for (const l of project.ledger) L.push(`- ${l.id} [${l.kind} / ${l.reality}] ${l.text}`);
   L.push('');
@@ -89,6 +91,10 @@ function dumpInputs(project) {
   if (!project.evidence.length) L.push('- （なし）');
   for (const e of project.evidence) L.push(`- ${e.id} [${e.kind} / ${e.reality} / ${e.status}] ${e.claim}`);
   L.push('', '## 顧客の原文（quotes）', project.quotes.length ? project.quotes.map((q) => `- ${q.id} ${q.text}（${q.method} ${q.date}）`).join('\n') : '- （なし。引用・口コミは作らない）', '');
+  L.push('## 公開資料（課題理解とインサイト仮説の材料。LP の根拠・口コミ・実績・優位性には使わない。sections の sourceRefs に入れない）');
+  if (!(project.publicSources || []).length) L.push('- （なし）');
+  for (const ps of project.publicSources || []) L.push(`- ${ps.id} [${ps.kind} / ${ps.use}] ${ps.title} ${ps.url}\n  観察: ${ps.observation}\n  限界: ${ps.caveat}`);
+  L.push('');
   L.push('## A 読者と場面');
   for (const [k, v] of Object.entries(i.scene || {})) if (v) L.push(`- ${k}: ${v}`);
   L.push('## B 既存の努力と詰まり');
@@ -135,7 +141,7 @@ export function buildPrompt(project, mode = 'full', target = {}) {
     angles: [{ id: 'a1', statement: '訴求', insightId: 'i1', sourceRefs: ['s1-...'], rationale: '選んだ・選ばなかった理由', scores: { evidence: 0, fit: 0, specificity: 0, nextAction: 0 } }],
     chosenAngleId: 'a1',
     sections: [{
-      id: 'hero', role: 'hero', heading: '', headingPhrases: [''], body: '', note: '', sourceRefs: [],
+      id: 'hero', role: 'hero', heading: '', headingPhrases: [''], sub: 'FV の補助文（H1 の問い・場面に、提供内容で答える短い1行）', body: '', note: '', sourceRefs: [],
       items: [{ heading: '', body: '', sourceRefs: [] }],
       visual: { kind: 'task-card', label: '〜のイメージ', title: '', task: '', note: '例であり実物・成果ではない旨', sourceRefs: [] },
       cta: { label: '', behavior: 'anchor', target: 'illustration' },
@@ -156,7 +162,7 @@ const GEN_SECTION = {
     id: { t: 'string', max: 40, pattern: /^[a-z][a-z0-9_-]{0,39}$/ },
     role: { t: 'string', enum: ROLE_IDS },
     heading: { t: 'string', max: 120 }, headingPhrases: { t: 'array', of: { t: 'string', max: 60 }, max: 8 },
-    body: { t: 'string', max: 1200 }, note: { t: 'string', max: 200 },
+    body: { t: 'string', max: 1200 }, sub: { t: 'string', max: 60 }, note: { t: 'string', max: 200 },
     sourceRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 },
     items: { t: 'array', of: item, max: 10 },
     visual: VISUAL_SPEC,
@@ -199,7 +205,7 @@ function toSection(g, idFor, report) {
   const s = {
     id: idFor(g), role: g.role, approved: false, approvedHash: '', needsReview: false, origin: 'claude-code',
     heading: clean(g.heading || '', `${g.role}.heading`), headingPhrases: (g.headingPhrases || []).map((x) => clean(x, `${g.role}.headingPhrases`)),
-    body: clean(g.body || '', `${g.role}.body`), note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
+    body: clean(g.body || '', `${g.role}.body`), sub: g.role === 'hero' ? clean(g.sub || '', 'hero.sub') : '', note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
     items: (g.items || []).map((it, i) => ({ heading: clean(it.heading || '', `${g.role}.items[${i}]`), body: clean(it.body || '', `${g.role}.items[${i}]`), sourceRefs: it.sourceRefs || [] })),
     visual: g.visual ? { title: '', task: '', from: '', to: '', review: '', columns: [], rows: [], highlight: -1, sourceRefs: [], ...g.visual, notEvidence: true } : null,
     cta: g.cta || null,
@@ -232,7 +238,10 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
   const r = shape.value;
   if (mode && r.mode !== mode) { report.errors.push(`mode が一致しません（期待: ${mode} / 応答: ${r.mode}）`); return { ok: false, project, report }; }
   const p = clone(project);
-  const known = new Set([...p.ledger.map((l) => l.id), ...p.evidence.map((e) => e.id), ...p.quotes.map((q) => q.id)]);
+  const known = new Set([...p.ledger.map((l) => l.id), ...p.evidence.map((e) => e.id), ...p.quotes.map((q) => q.id), ...(p.publicSources || []).map((x) => x.id)]);
+  const publicIds = new Set((p.publicSources || []).map((x) => x.id));
+  // LP 本文の根拠に公開資料は使わない（インサイト仮説の材料だけ）
+  const copyRefs = (list, where) => checkRefs(list, where).filter((id) => { if (publicIds.has(id)) { report.warnings.push(`${where}: 公開資料 "${id}" は LP の根拠に使えないため外しました`); return false; } return true; });
   const checkRefs = (list, where) => list.filter((id) => { if (!known.has(id)) { report.warnings.push(`${where}: 参照 "${id}" は台帳に無いため外しました`); return false; } return true; });
 
   if (r.insights && r.mode !== 'section') {
@@ -261,9 +270,9 @@ export function ingestGenerated(project, responseText, { mode, sectionId } = {})
   };
   const gen = r.sections.map((g) => {
     const s = toSection(g, idFor, report);
-    s.sourceRefs = checkRefs(s.sourceRefs, `${s.id}.sourceRefs`);
-    s.items = s.items.map((it, i) => ({ ...it, sourceRefs: checkRefs(it.sourceRefs, `${s.id}.items[${i}]`) }));
-    if (s.visual) s.visual.sourceRefs = checkRefs(s.visual.sourceRefs, `${s.id}.visual`);
+    s.sourceRefs = copyRefs(s.sourceRefs, `${s.id}.sourceRefs`);
+    s.items = s.items.map((it, i) => ({ ...it, sourceRefs: copyRefs(it.sourceRefs, `${s.id}.items[${i}]`) }));
+    if (s.visual) s.visual.sourceRefs = copyRefs(s.visual.sourceRefs, `${s.id}.visual`);
     return s;
   });
 

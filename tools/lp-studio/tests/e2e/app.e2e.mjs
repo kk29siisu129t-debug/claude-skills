@@ -327,8 +327,8 @@ test('LP: 2ケース × 320/375/390/400/430/1280px — 横スクロールなし�
       assert.equal(m.fs, '16px');
       assert.ok(Math.abs(m.lh - 1.8) < 0.05);
       assert.equal(m.bodyW, '400');
-      // FV v3（ユーザーレビューで旧 FV は不合格）: H1 は顔写真版 PC 56 / SP 32 / 〜359px 28、図版 PC 64 / SP 36 / 〜359px 30
-      const expectH1 = m.portrait ? (w < 360 ? 28 : w < 768 ? 32 : 56) : (w < 360 ? 30 : w < 768 ? 36 : 64);
+      // FV v3（ユーザーレビューで旧 FV は不合格）: H1 は顔写真版 PC 56 / SP 40 / 〜359px 36、図版 PC 64 / SP 36 / 〜359px 30
+      const expectH1 = m.portrait ? (w < 360 ? 36 : w < 768 ? 40 : 56) : (w < 360 ? 30 : w < 768 ? 36 : 64);
       assert.equal(m.h1, expectH1, `${id} ${w}: h1 ${m.h1}`);
       assert.ok(m.h1Lines <= 2, `${id} ${w}: H1 ${m.h1Lines}行`);
       assert.equal(m.ctas, 1, `${id} ${w}: FV の CTA は1つ`);

@@ -98,6 +98,7 @@ export const SECTION_SPEC = {
     heading: str(120),
     headingPhrases: strList(60, 8),
     body: str(1200),
+    sub: str(60), // FV の補助文（hero だけ。H1 の直下に1行）
     note: str(200),
     sourceRefs: refs,
     items: { t: 'array', of: itemSpec, max: 10 },
@@ -118,7 +119,7 @@ export const PROJECT_SPEC = {
     display: {
       t: 'object',
       fields: {
-        brandName: str(40), serviceDescriptor: str(60), audienceLabel: str(60),
+        brandName: str(40), serviceDescriptor: str(60), audienceLabel: str(60), productLabel: str(30),
         demoMode: { t: 'string', enum: DEMO_MODES }, demoNotice: str(100), operator: str(80),
         category: { t: 'string', enum: CATEGORIES },
       },
@@ -198,6 +199,11 @@ export const PROJECT_SPEC = {
     },
     chosenAngleId: str(40),
     sections: { t: 'array', of: SECTION_SPEC, max: 20 },
+    // 公開資料（学習者の公開体験・競合のページ）。課題理解とインサイト仮説の材料だけに使い、LP の根拠・口コミ・実績には使わない
+    publicSources: {
+      t: 'array', max: 20,
+      of: { t: 'object', fields: { id: ID, url: str(300), title: str(120), kind: { t: 'string', enum: ['learner-story', 'competitor', 'article'] }, observation: str(400), use: { t: 'string', enum: ['context', 'supporting-hypothesis', 'competitor-check'] }, caveat: str(400) }, required: ['id', 'url', 'kind', 'observation', 'caveat'] },
+    },
     // FV の設計メモ（生成・人が書く）。研究の参照は「設計の根拠」であり効果の保証ではない。FV の本文には出さない
     fvDesign: {
       t: 'object', nullable: true,
@@ -414,6 +420,11 @@ export function validateProject(input) {
   p.chosenAngleId = p.chosenAngleId || '';
   if (p.selfCheck === undefined) p.selfCheck = null;
   if (p.fvDesign === undefined) p.fvDesign = null;
+  p.publicSources = (p.publicSources || []).filter((x) => {
+    if (/^https:\/\//.test(x.url)) return true;
+    warnings.push(`$.publicSources.${x.id}: https の URL だけを記録します`);
+    return false;
+  });
   if (p.fvDesign) {
     p.fvDesign = { viewportFirst: 'sp', visualRole: '', gaze: 'none', fit: '', maxChars: 80, primaryCtas: 1, requiredAssets: [], researchNotes: [], evaluationPlan: '', ...p.fvDesign };
     // 出典の無い「研究」は仮説として扱う
@@ -497,7 +508,7 @@ export function validateProject(input) {
   // セクション
   for (const s of p.sections) {
     s.approved = !!s.approved; s.approvedHash = s.approvedHash || ''; s.needsReview = !!s.needsReview; s.origin = s.origin || 'manual';
-    for (const k of ['heading', 'body', 'note']) s[k] = s[k] || '';
+    for (const k of ['heading', 'body', 'sub', 'note']) s[k] = s[k] || '';
     s.headingPhrases = s.headingPhrases || []; s.sourceRefs = s.sourceRefs || [];
     s.items = (s.items || []).map((it) => ({ heading: it.heading || '', body: it.body || '', sourceRefs: it.sourceRefs || [] }));
     if (s.visual === undefined) s.visual = null;
@@ -554,6 +565,7 @@ export function refIndex(project) {
   for (const l of project.ledger) map.set(l.id, { type: 'ledger', text: l.text, kind: l.kind, reality: l.reality, item: l });
   for (const e of project.evidence) map.set(e.id, { type: 'evidence', text: e.claim, kind: e.kind, reality: e.reality, item: e });
   for (const q of project.quotes) map.set(q.id, { type: 'quote', text: q.text, kind: 'customer-quote', reality: 'real', item: q });
+  for (const ps of project.publicSources || []) map.set(ps.id, { type: 'public', text: ps.observation, kind: ps.kind, reality: 'public', item: ps });
   const a = project.inputs.action;
   for (const k of ['price', 'duration', 'method', 'continuation']) {
     if (a[k] && a.confirmed[k]) map.set(`action.${k}`, { type: 'action', text: a[k], kind: 'verified-spec', reality: project.display.demoMode === 'live' ? 'real' : 'synthetic', item: a });

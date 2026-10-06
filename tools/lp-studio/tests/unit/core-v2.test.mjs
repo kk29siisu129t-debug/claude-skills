@@ -61,7 +61,7 @@ test('model: 編集は純関数で、結果は常に schema に通る。編集�
     { type: 'setAction', key: 'price', value: '未定' },
     { type: 'addLedger', text: '面談の場所', kind: 'unknown', reality: 'synthetic' },
     { type: 'setField', id: 'empathy', field: 'body', value: '平日の夜、どこから始めるかが決まらない。' },
-    { type: 'setPhrases', id: 'empathy', value: '平日は迷う。/週末には、/やることがたまる。' },
+    { type: 'setPhrases', id: 'empathy', value: ((hp) => [hp[0], hp.slice(1).join('')].join('/'))(seed().sections.find((s) => s.role === 'empathy').headingPhrases) }, // 現在の見出しを別の区切りに
     { type: 'setItems', id: 'process', value: '今の進み具合を整理する｜面談で一緒に確認します。' },
     { type: 'addSection', role: 'fit', at: 3 },
     { type: 'moveSection', id: 'faq', delta: -1 },
@@ -204,7 +204,9 @@ test('render: 視覚仕様の契約（文字・見出し・CTA・固定CTA・動
   // 顔写真版は写真の上に文字を重ねない SP 配置と、PC での見出し 56px
   const { html } = renderPage(seed(), { kind: 'review' });
   assert.match(html, /\.hero-portrait h1\{font-size:56px\}/);
-  assert.match(html, /\.hero-portrait h1\{font-size:32px\}/);
+  assert.match(html, /\.hero-portrait h1\{font-size:40px;line-height:1\.25\}/); // 内心の問いを SP で2行・大きく（調査ブリーフ版）
+  assert.match(html, /\.hero-portrait h1\{font-size:36px\}/);
+  assert.match(html, /\.hero-sub\{font-size:16px/);
   assert.match(html, /\.js \.hero-visual\{animation:vin \.6s cubic-bezier\(\.2,\.7,\.2,1\) \.28s both\}/);
 });
 

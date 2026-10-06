@@ -37,13 +37,14 @@ export function clauses(text) {
 export function collectTexts(project) {
   const out = [];
   const d = project.display;
-  for (const k of ['brandName', 'serviceDescriptor', 'audienceLabel']) if (d[k]) out.push({ sectionId: null, role: 'display', field: `display.${k}`, text: d[k], refs: [] });
+  for (const k of ['brandName', 'serviceDescriptor', 'audienceLabel', 'productLabel']) if (d[k]) out.push({ sectionId: null, role: 'display', field: `display.${k}`, text: d[k], refs: [] });
   for (const s of project.sections) {
     const base = s.sourceRefs || [];
     const itemRefs = s.items.flatMap((i) => i.sourceRefs || []);
     const push = (field, text, refs = []) => { if (text && String(text).trim()) out.push({ sectionId: s.id, role: s.role, field, text: String(text), refs: [...new Set([...refs, ...base])] }); };
     push('heading', s.heading, [...itemRefs, ...(s.visual?.sourceRefs || [])]); // 見出しは項目・図の参照もあわせて判断
     push('body', s.body);
+    push('sub', s.sub);
     push('note', s.note);
     s.items.forEach((it, i) => { push(`items[${i}].heading`, it.heading, it.sourceRefs); push(`items[${i}].body`, it.body, it.sourceRefs); });
     if (s.visual) {
@@ -94,6 +95,7 @@ export function checkProject(project) {
     for (const r of t.refs) {
       const hit = idx.get(r);
       if (!hit) { issues.push(ISSUE('stop', 'ref-missing', `${label}: 参照ID「${r}」が台帳にありません`, where)); continue; }
+      if (hit.type === 'public') { issues.push(ISSUE('stop', 'public-as-evidence', `${label}: 公開資料「${hit.item.title || hit.item.id}」を LP の根拠にしています（公開体験・競合資料は課題理解とインサイト仮説だけに使う）`, where)); continue; }
       if (hit.type === 'ledger' && hit.kind === 'unknown') issues.push(ISSUE('stop', 'unknown-as-fact', `${label}: 不明な項目「${hit.text}」を根拠にしています`, where));
       if (hit.type === 'evidence' && hit.kind === 'outcome-aggregate' && hit.reality !== 'real') issues.push(ISSUE('stop', 'synthetic-outcome', `${label}: 合成・未確認の成果データ「${hit.text.slice(0, 30)}」を根拠にしています（成果としては出せません）`, where));
       refTexts.push(hit.text);
@@ -151,7 +153,7 @@ export function checkProject(project) {
   if (!hero) issues.push(ISSUE('stop', 'no-hero', 'FV（hero）がありません'));
   if (!project.sections.some((s) => s.role === 'closing')) issues.push(ISSUE('warn', 'no-closing', '締め（closing）がありません'));
   for (const s of project.sections) {
-    const hasContent = s.body.trim() || s.items.some((i) => i.heading || i.body) || s.visual;
+    const hasContent = s.body.trim() || (s.role === 'hero' && s.sub?.trim()) || s.items.some((i) => i.heading || i.body) || s.visual;
     if (!hasContent && s.role !== 'proof') issues.push(ISSUE('warn', 'empty-section', `${ROLES[s.role].label}: 本文が無いため出力しません（見出し・CTAだけを残さない）`, { sectionId: s.id }));
     if (s.heading) {
       const hp = headingPhrases(s.heading, s.headingPhrases);
@@ -165,7 +167,7 @@ export function checkProject(project) {
     }
   }
   if (hero) {
-    const heroText = [hero.heading, hero.body].join('\n');
+    const heroText = [hero.heading, hero.sub, hero.body].join('\n');
     const d = project.display;
     if (d.brandName && canon(hero.heading).includes(canon(d.brandName))) issues.push(ISSUE('warn', 'brand-in-headline', 'FV見出しにブランド名が入っています（見出しは読者の場面と変化に使う）', { sectionId: hero.id }));
     if (d.audienceLabel && heroText.includes(d.audienceLabel)) issues.push(ISSUE('warn', 'repeat-audience', 'FVで対象者の呼びかけを繰り返しています（呼びかけは1回）', { sectionId: hero.id }));
@@ -192,7 +194,7 @@ export function fvTextOf(project, hero = project.sections.find((s) => s.role ===
   const d = project.display;
   const v = hero.visual;
   const vis = !v ? [] : v.kind === 'task-card' ? [v.label, v.title, v.task] : v.kind === 'table' ? [v.label, v.title, ...(v.rows || []).flat()] : v.kind === 'flow' ? [v.label, v.from, v.to, v.review] : [v.label, v.title, ...(v.items || [])];
-  const parts = [d.brandName, d.demoMode !== 'live' ? (d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作') : '', d.audienceLabel, hero.heading, ...vis, hero.cta?.label, project.assets?.heroPortrait?.caption];
+  const parts = [d.brandName, d.demoMode !== 'live' ? (d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作') : '', d.productLabel || d.audienceLabel, hero.heading, hero.sub, ...vis, hero.cta?.label, project.assets?.heroPortrait?.caption];
   return parts.filter(Boolean).join('').replace(/\s/g, '');
 }
 

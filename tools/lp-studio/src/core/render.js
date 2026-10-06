@@ -261,7 +261,8 @@ tr.hl td{background-color:var(--hl)}
 .photo-cap{position:absolute;right:10px;top:270px;margin:0;font-size:10px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
 .hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";min-height:0;padding:0 20px 24px;row-gap:0}
 .hero-portrait .hero-copy{margin-top:20px;align-self:auto}
-.hero-portrait h1{font-size:32px}
+.hero-portrait h1{font-size:40px;line-height:1.25}
+.hero-sub{font-size:16px;line-height:1.7;font-weight:700;color:var(--ink);margin:12px 0 0}
 .hero-portrait .hero-cta{margin-top:20px}
 .hero-visual.mini{grid-area:visual;margin:16px 0 0;max-width:236px}
 .hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px;box-shadow:0 18px 40px color-mix(in srgb,var(--ink) 18%,transparent)}
@@ -270,7 +271,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual.mini .ring{width:40px;height:40px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
 .hero-visual.mini .plan-title{font-size:18px}
 .hero-visual.mini .plan-task{font-size:14px;padding:8px 10px;gap:10px}
-@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px;margin-top:10px}}
+@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
 @media (min-width:768px){
 .hero-portrait{background:#f4ece4}
 .hero-portrait .hero-bar{position:static;padding:16px 32px 0}
@@ -284,6 +285,7 @@ tr.hl td{background-color:var(--hl)}
 .gaze-right .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,500px);grid-template-areas:". copy" ". visual" ". cta"}
 .hero-portrait .hero-copy{margin-top:0}
 .hero-portrait h1{font-size:56px}
+.hero-sub{font-size:20px;margin-top:18px}
 .hero-portrait .hero-cta{margin-top:32px}
 .hero-visual.mini{margin:28px 0 0;max-width:340px}
 .hero-visual.mini .plan{padding:16px 18px 18px;border-radius:18px}
@@ -354,7 +356,7 @@ function ctaHtml(s, mode) {
 
 function hasContent(s) {
   if (s.role === 'proof') return true; // 出せる根拠があるかは sectionHtml が判断する
-  return !!(s.body.trim() || s.items.some((i) => (i.heading || i.body).trim()) || s.visual);
+  return !!(s.body.trim() || (s.role === 'hero' && (s.sub || '').trim()) || s.items.some((i) => (i.heading || i.body).trim()) || s.visual);
 }
 
 function draftMeta(s, mode) {
@@ -375,7 +377,8 @@ function sectionHtml(project, s, mode) {
       const badge = d.demoMode !== 'live' ? `<span class="demo-badge">${d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作'}</span>` : '';
       const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>` : '';
       const pt = project.assets?.heroPortrait;
-      const copy = `<div class="hero-copy">${meta}${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1></div>`;
+      const label = d.productLabel || d.audienceLabel;
+      const copy = `<div class="hero-copy">${meta}${label ? `<p class="aud">${e(label)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>${s.sub ? `<p class="hero-sub">${phrasesHtml(s.sub)}</p>` : ''}</div>`;
       if (pt && pt.dataUri) {
         // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
         const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
@@ -433,14 +436,22 @@ export function renderPage(project, { kind = 'review', reduceMotion = false } = 
   };
   const removed = [];
   const parts = [];
+  // デモの声明・無効の申込は FV の直下に置く。FV の CTA の移動先が直後のセクションなら、その説明の後に置く（CTA で移動した先で読める）
+  const heroIdx = project.sections.findIndex((s) => s.role === 'hero');
+  const heroSec = project.sections[heroIdx];
+  const nextSec = project.sections[heroIdx + 1];
+  const afterAt = heroSec?.cta && nextSec && heroSec.cta.target === nextSec.id && hasContent(nextSec) ? nextSec.id : heroSec?.id;
+  let afterFv = '';
   for (const s of project.sections) {
     if (!hasContent(s) && s.role !== 'hero') { removed.push({ id: s.id, role: s.role, reason: '本文が無い（見出し・CTAだけを残さない）' }); continue; }
     let html = sectionHtml(project, s, mode);
+    if (s.id === afterAt && afterFv) { html += afterFv; afterFv = ''; }
     if (s.role === 'hero') {
       const notice = d.demoMode !== 'live' ? `<p class="after-notice" role="note"><b>${d.demoMode === 'synthetic-demo' ? '架空サービスのデモです。' : '試作のページです。'}</b>${phrasesHtml(d.demoNotice.replace(/^.*?デモです。|^.*?ページです。/, ''))}</p>` : '';
       const cp = s.commercialPreview ? `<div class="after-cp">${ctaHtml({ ...s, cta: null }, mode)}</div>` : '';
       const note = s.visual?.note ? `<p class="after-note">図: ${phrasesHtml(s.visual.note)}</p>` : '';
-      html += `<section class="after-fv" aria-label="このページについて"><div class="sec-in">${notice}${s.body ? `<p class="lead">${e(s.body)}</p>` : ''}${note}${cp}</div></section>`;
+      afterFv = `<section class="after-fv" aria-label="このページについて"><div class="sec-in">${notice}${s.body ? `<p class="lead">${e(s.body)}</p>` : ''}${note}${cp}</div></section>`;
+      if (afterAt === s.id) { html += afterFv; afterFv = ''; }
     }
     if (!html) { removed.push({ id: s.id, role: s.role, reason: '出せる根拠が無い' }); continue; }
     parts.push(html);
