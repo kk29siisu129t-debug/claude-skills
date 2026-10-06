@@ -98,7 +98,7 @@ function dumpInputs(project) {
   L.push('## FV の顔写真（assets.heroPortrait。人が用意する素材。画像そのものは渡さない）');
   const pt = project.assets?.heroPortrait;
   if (!pt) L.push('- なし（必要素材として fvDesign.requiredAssets に書く。無関係な写真・肩書・証言で埋めない）');
-  else L.push(`- あり / alt: ${pt.alt} / 注記: ${pt.caption} / 由来: ${pt.origin} / 架空: ${pt.fictional ? 'はい' : 'いいえ'} / 視線: ${pt.gaze === 'right' ? '右' : '左'}向き`, '- 写真の中身について書けるのは alt に書かれたことだけ。人物を講師・受講生・推薦者・実績として紹介しない');
+  else L.push(`- あり / alt: ${pt.alt} / 注記: ${pt.caption} / 由来: ${pt.origin} / 架空: ${pt.fictional ? 'はい' : 'いいえ'} / 視線: ${pt.gaze === 'right' ? '右' : '左'}向き`, '- 写真の中身について書けるのは alt に書かれたことだけ。人物を講師・受講生・推薦者・実績として紹介しない', '- alt・注記は場面の説明だけにする（例: 夜、自宅の机でノートに書き込む大人）。職業・資格・役割・人名・経歴を書かない');
   L.push('');
   L.push('## A 読者と場面');
   for (const [k, v] of Object.entries(i.scene || {})) if (v) L.push(`- ${k}: ${v}`);

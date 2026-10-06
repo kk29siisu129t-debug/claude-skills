@@ -24,7 +24,7 @@ const PROBE = `(() => {
   const t0 = performance.now();
   const log = { visible: {}, cls: 0, sticky: [], ctaGap: [] };
   try { new PerformanceObserver((l) => { for (const e of l.getEntries()) if (!e.hadRecentInput) log.cls += e.value; }).observe({ type: 'layout-shift', buffered: true }); } catch (e) {}
-  const pick = () => ({ h1: document.querySelector('.hero h1'), lead: document.querySelector('.hero .lead'), cta: document.querySelector('.hero .btn-primary'), visual: document.querySelector('.hero-visual'), highlight: document.querySelector('.hero-visual .hl') });
+  const pick = () => ({ h1: document.querySelector('.hero h1'), lead: document.querySelector('.hero .hero-sub, .hero .lead'), photo: document.querySelector('.hero-photo img'), cta: document.querySelector('.hero .btn-primary'), visual: document.querySelector('.hero-visual'), highlight: document.querySelector('.hero-visual .hl') });
   const op = (el) => { let o = 1; for (let n = el; n && n.nodeType === 1; n = n.parentElement) o *= parseFloat(getComputedStyle(n).opacity); return o; };
   let last = null, gapOpen = null;
   function tick() {

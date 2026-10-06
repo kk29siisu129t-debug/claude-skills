@@ -1,0 +1,170 @@
+{
+  "input": "examples/v2/michishirube/review.html",
+  "htmlSha256": "195e027c65e6",
+  "reduced": true,
+  "recordedAt": "2026-10-06T02:02:39.152Z",
+  "runs": [
+    {
+      "tag": "pc",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "visible": {
+        "h1": {
+          "first": 9,
+          "full": 9
+        },
+        "lead": {
+          "first": 9,
+          "full": 9
+        },
+        "photo": {
+          "first": 9,
+          "full": 9
+        },
+        "cta": {
+          "first": 9,
+          "full": 9
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 9,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3437,
+          "shown": true,
+          "scrollY": 1453
+        },
+        {
+          "t": 5136,
+          "shown": false,
+          "scrollY": 2001
+        },
+        {
+          "t": 7103,
+          "shown": true,
+          "scrollY": 1944
+        },
+        {
+          "t": 7470,
+          "shown": false,
+          "scrollY": 1353
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp400",
+      "viewport": {
+        "width": 400,
+        "height": 760
+      },
+      "visible": {
+        "h1": {
+          "first": 8,
+          "full": 8
+        },
+        "lead": {
+          "first": 8,
+          "full": 8
+        },
+        "photo": {
+          "first": 8,
+          "full": 8
+        },
+        "cta": {
+          "first": 8,
+          "full": 8
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 8,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3350,
+          "shown": true,
+          "scrollY": 1401
+        },
+        {
+          "t": 5367,
+          "shown": false,
+          "scrollY": 2267
+        },
+        {
+          "t": 7017,
+          "shown": true,
+          "scrollY": 2245
+        },
+        {
+          "t": 7550,
+          "shown": false,
+          "scrollY": 1310
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp360",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "visible": {
+        "h1": {
+          "first": 9,
+          "full": 9
+        },
+        "lead": {
+          "first": 9,
+          "full": 9
+        },
+        "photo": {
+          "first": 9,
+          "full": 9
+        },
+        "cta": {
+          "first": 9,
+          "full": 9
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 9,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3352,
+          "shown": true,
+          "scrollY": 1386
+        },
+        {
+          "t": 5368,
+          "shown": false,
+          "scrollY": 2255
+        },
+        {
+          "t": 7068,
+          "shown": true,
+          "scrollY": 2144
+        },
+        {
+          "t": 7551,
+          "shown": false,
+          "scrollY": 1305
+        }
+      ],
+      "ctaGapMs": []
+    }
+  ]
+}

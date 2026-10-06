@@ -8,7 +8,7 @@ const cdp = await p.context().newCDPSession(p);
 await cdp.send('DOM.enable'); await cdp.send('CSS.enable');
 const { root } = await cdp.send('DOM.getDocument', { depth: -1 });
 const out = {};
-for (const sel of ['h1 .ph', '.lead', '.sec .body p', '.vis-row span:last-child', '.vis-table td', '.btn-primary', '.steps h3', '.demo-bar']) {
+for (const sel of ['h1 .ph', '.lead', '.sec .body p', '.vis-row span:last-child', '.vis-table td', '.hero .btn-primary .w', '.hero-sub .ph', '.steps h3', '.demo-bar']) {
   const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: sel });
   if (!nodeId) continue;
   const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId });

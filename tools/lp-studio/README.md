@@ -20,8 +20,9 @@
 ```bash
 cd tools/lp-studio
 npm start                      # http://127.0.0.1:4173/ （127.0.0.1 のみ。公開用ではない）
-npm test                       # unit 58件
-npm run test:e2e               # ブラウザ統合 15件
+npm test                       # unit
+npm run test:e2e               # ブラウザ統合（ZIP 展開・自己完結版の検証を含む）
+node pack.mjs                  # コミット済みの版から dist/lp-studio-<commit>.zip を作る
 node examples/v2/build.mjs     # 2ケースを brief + response から作り直す（project / review / draft / check）
 node build-standalone.mjs      # dist/lp-studio-standalone.html を作り直す
 ```
@@ -50,7 +51,8 @@ node cli.mjs export --project /tmp/p2.json --kind review --out /tmp/review.html
 | ファイル | 中身 |
 |---|---|
 | `prompt.md` | ツールの出力した指示 |
-| `response.json` | このセッションの Claude Code が書いた JSON。中間レビューの指摘を受けた改訂版（rev2） |
+| `response.json` | このセッションの Claude Code が書いた JSON（最新。調査ブリーフとアートディレクションを反映） |
+| `response.rev*.json` | 途中の版（比較用） |
 | `response.rev1.json` | 最初の生成。比較用 |
 | `project.json` | 取り込み結果 |
 | `review.html` / `draft.html` | レビュー用 / 社内確認用の描画 |
@@ -73,7 +75,9 @@ node cli.mjs export --project /tmp/p2.json --kind review --out /tmp/review.html
   - **レビュー用プレビュー**: 停止条件がなければ描画します。デモ表示つき・noindex で、CTA はページ内の例へのリンクだけです。予約・登録・送信はしません。
   - **実販売の公開準備**: 次の条件をすべて満たしたときだけ書き出します。架空デモや条件が未確定の LP は商用公開不可です。
     - 区分が live
+    - 運営者を明示的に確認した（空・未定・仮・伏せ字は不可。確認後に名前が変わると未確認に戻る）
     - オファー・料金・所要時間・方法・URL が確定している
+    - 主張と数値の裏づけが実在・検証済みの根拠か確定した仕様（期間・単位まで一致）
     - example ドメインではない
     - 不明項目がない
     - 実在の台帳・根拠である
@@ -86,19 +90,22 @@ node cli.mjs export --project /tmp/p2.json --kind review --out /tmp/review.html
 
 ## 視覚と動きの仕様（実装値）
 
-- **文字**: 本文 16px / 1.8 / 400。H1 は SP 26（〜359px）・28（〜399px）・31（〜767px）・PC 52px、line-height 1.3、weight 800、letter-spacing -.02em。H2 は SP 28px / PC 36px。PC の段落幅は 640px。
-- **FV の構成**:
-  - デモ帯 → ブランド名と業態（1行）→ 対象者の呼びかけ（1回）→ 意味のまとまりで改行した H1 → 説明 → 価値の図 → CTA（右矢印）と、CTA の直近の「デモのため使えない」旨
-  - PC: 最大幅 1160px・2カラム。SP: 1カラムに再配置。
-- **改行**: 見出しは指定の改行候補、なければ `Intl.Segmenter` と文節まとめで、意味の区切りに沿って改行します。
+- **文字**: 本文 16px / 1.8 / 400。H2 は SP 28px / PC 36px（FV 直後の節は SP 24px）。PC の段落幅は 640px。
+- **FV（SP 基準で設計し、PC は min-width で広げる）**:
+  - 顔写真があるとき（michishirube）: ブランド名と「架空デモ」→ 商品ラベル → 大きな問いの H1（12vw: 400px で 48px・360px で 43px・320px で 38px、2行）→ 右に人物写真（元画像の決めた範囲を右端へ断ち切り）、顔の左に補助文（3行）と写真の注記 → CTA 1つ（60px）。グリッドと相対寸法で組み、200% 拡大では写真と文字を縦に並べる。
+  - 顔写真が無いとき（mitsumoriban）: 商品ラベル → H1 → 架空データの一覧（1行）→ CTA 1つ。顔写真は「必要素材」として警告する。
+  - FV の文字は目安 80 字以内（表の列名・注記・バッジも数える）。説明・デモの全文・無効の申込は FV の直下（CTA の移動先の後）。
+  - PC: 最大幅 1160px。
+- **生成の FV 仕様（次のブリーフにも適用）**: 生成指示と JSON 契約の `fvDesign`（SP 基準・顔の役割・視線・適合・文字量・主CTA1つ・必要素材・研究／仮説／設計条件の区別・将来の評価方法）。公開資料（`publicSources`）はインサイト仮説の材料だけで、LP の根拠には使えません。
+- **改行**: 見出し・補助文は指定の改行候補、なければ `Intl.Segmenter` と文節まとめで改行します。句の中も語の単位で包み、狭い幅でも語の途中（「ペー／ス」）で割りません。
 - **和文フォント**:
   - 指定順は、OS ごとの日本語ゴシック → この検証環境に実在する IPA ゴシックです。
   - 実際の描画フォントは `node docs/fonts.mjs <page.html>`（CDP の `getPlatformFontsForNode`）で確認しています。この環境では見出し・本文・図・ボタンとも IPA Pゴシックです。
   - IPA には太字がないため、この環境の見出しの太さはブラウザの合成です。実機（Hiragino・Yu Gothic 等）では未確認です。
 - **動き**:
-  - 見出し・本文・CTA は最初の描画から表示します。図だけが 280–880ms で登場し、700–1100ms に該当の行を一度だけ強調します。
+  - 見出し・本文・CTA・顔写真は最初の描画から表示します。図だけが 280–880ms で登場し、700–1100ms に該当の行を一度だけ強調します。
   - カウントアップ・無限の動きはありません。
-  - 固定CTAは、FV・インラインCTA・締めのCTAが見えている間は隠し、隠れている間はフォーカスも受けません。
+  - 固定CTAは、FV・インラインCTA・締めのCTAが見えている間は隠し、隠れている間はフォーカスも受けません。比較用の案（ページの半分を過ぎてから）は実際の描画にも反映します。
   - reduced-motion / JS 無効では、すべて最初から表示します。
 - **計測**: `node docs/record-motion.mjs <page.html> <名>` で、冷えた状態からの実録画（mp4 / gif）、0.3 / 0.7 / 1.2 秒の実描画、CLS、固定CTAの出入りを記録します。
 - **確認の範囲**: これらはブラウザ（Chromium）の指定 viewport での検証です。iPhone 等の実機テストはしていません。
@@ -117,7 +124,7 @@ node cli.mjs export --project /tmp/p2.json --kind review --out /tmp/review.html
 ## 未実装・制約
 
 - ブラウザから推論 API を呼ぶ生成はありません（未接続）。
-- 画像・動画のアップロードはありません（図は HTML/CSS で描画）。
+- 画像のアップロード画面はありません。顔写真は人が用意し、`assets.heroPortrait`（data:image の jpeg/png/webp のみ・由来と架空の記録・注記必須）として JSON に入れます。自動の画像生成は接続していません。
 - 主張の検出は語彙・パターンベースです。主たる防御は、人の承認と2段の判定です。
 - 承認・検証 hash は、内容との対応づけです。改ざんを防ぐ署名ではありません。
 - 実機テストはしていません。顧客インタビュー等による仮説の検証もしていません。

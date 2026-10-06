@@ -1,4 +1,4 @@
-// 実スクリーンショットを docs/screenshots/v2/ に撮る（実ブラウザ・実レンダリング）。
+// 実スクリーンショットを docs/screenshots/v5/ に撮る（v2・v3・v3-face・v5-sp-ad は比較用に残す）（実ブラウザ・実レンダリング）。
 //   node docs/take-screenshots.mjs
 // LP: examples/v2/<id>/review.html（brief → Claude Code の JSON → ingest → review 書き出し）
 // エディタ: serve.mjs を起動して実際の UI を撮る。全ページ画像は reduced-motion で撮る（スクロールで現れる要素も表示するため）。
@@ -8,7 +8,7 @@ import { mkdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
-const dir = `${root}docs/screenshots/v2/`;
+const dir = `${root}docs/screenshots/v5/`;
 mkdirSync(dir, { recursive: true });
 const b = await launch();
 for (const id of ['michishirube', 'mitsumoriban']) {

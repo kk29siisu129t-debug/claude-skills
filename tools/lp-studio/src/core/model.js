@@ -39,6 +39,8 @@ function sec(p, id) {
   if (i < 0) throw new Error(`セクション ${id} が見つかりません`);
   return p.sections[i];
 }
+/** FV に表示される名前（ブランド名・商品ラベル または 呼びかけ）。FV の承認 hash に含める */
+export const heroLabels = (d) => `${d.brandName || ''}|${d.productLabel || d.audienceLabel || ''}`;
 function touch(s) { s.origin = 'manual'; s.approved = false; s.approvedHash = ''; }
 const INPUT_GROUPS = { scene: ['who', 'timing', 'trying', 'stuckAt'], efforts: ['tried', 'whatHappened', 'alternatives'], mechanism: ['receive', 'withWhom', 'sequence', 'frequency', 'differentiation', 'differentiationBasisRef'] };
 
@@ -53,10 +55,11 @@ export function applyEdit(project, op) {
       else if (op.key === 'operatorConfirmed') {
         if (op.value && !isRealOperator(p.display.operator)) throw new Error('運営者（事業者名）を入力してから確認済みにしてください（未定・仮の値は不可）');
         p.display.operatorConfirmed = !!op.value;
+        p.display.operatorConfirmedAs = op.value ? p.display.operator : ''; // 確認した時点の名前を記録（読込で照合）
       } else if (lim[op.key]) {
         p.display[op.key] = txt(op.value, lim[op.key]);
-        if (op.key === 'operator') p.display.operatorConfirmed = false; // 運営者を変えたら確認し直す
-        if (op.key === 'productLabel') for (const s of p.sections) if (s.role === 'hero') touch(s); // FV に出る商品ラベルが変わったら FV の承認を外す
+        if (op.key === 'operator') { p.display.operatorConfirmed = false; p.display.operatorConfirmedAs = ''; } // 運営者を変えたら確認し直す
+        if (['productLabel', 'audienceLabel', 'brandName'].includes(op.key)) for (const s of p.sections) if (s.role === 'hero') touch(s); // FV に出る商品ラベルが変わったら FV の承認を外す
       }
       else throw new Error('不明な表示項目');
       if (p.display.demoMode !== 'live' && !p.display.demoNotice.trim()) throw new Error('デモ・試作ではデモ表示を空にできません');
@@ -243,7 +246,7 @@ export function applyEdit(project, op) {
     case 'approveSection': {
       const s = sec(p, op.id);
       s.approved = !!op.value;
-      s.approvedHash = op.value ? sectionHash(s, p.assets?.heroPortrait, p.display.productLabel) : '';
+      s.approvedHash = op.value ? sectionHash(s, p.assets?.heroPortrait, heroLabels(p.display)) : '';
       if (op.value) s.needsReview = false;
       break;
     }

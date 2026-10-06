@@ -7,6 +7,7 @@
     "demoNotice": "架空サービスのデモです。お申し込みは受け付けていません。",
     "operator": "",
     "operatorConfirmed": false,
+    "operatorConfirmedAs": "",
     "category": "education",
     "brandName": "ミチシルベ簿記",
     "serviceDescriptor": "学習計画の作成・見直しサポート",

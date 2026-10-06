@@ -1,0 +1,170 @@
+{
+  "input": "examples/v2/mitsumoriban/review.html",
+  "htmlSha256": "8e1dd774f52f",
+  "reduced": false,
+  "recordedAt": "2026-10-06T02:03:27.527Z",
+  "runs": [
+    {
+      "tag": "pc",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "visible": {
+        "h1": {
+          "first": 52,
+          "full": 52
+        },
+        "cta": {
+          "first": 52,
+          "full": 52
+        },
+        "visual": {
+          "first": 362,
+          "full": 812
+        },
+        "highlight": {
+          "first": 362,
+          "full": 812
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 52,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3346,
+          "shown": true,
+          "scrollY": 462
+        },
+        {
+          "t": 6329,
+          "shown": false,
+          "scrollY": 2065
+        },
+        {
+          "t": 7796,
+          "shown": true,
+          "scrollY": 1981
+        },
+        {
+          "t": 8729,
+          "shown": false,
+          "scrollY": 361
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp400",
+      "viewport": {
+        "width": 400,
+        "height": 760
+      },
+      "visible": {
+        "h1": {
+          "first": 56,
+          "full": 56
+        },
+        "cta": {
+          "first": 56,
+          "full": 56
+        },
+        "visual": {
+          "first": 358,
+          "full": 808
+        },
+        "highlight": {
+          "first": 358,
+          "full": 808
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 56,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3208,
+          "shown": true,
+          "scrollY": 431
+        },
+        {
+          "t": 6324,
+          "shown": false,
+          "scrollY": 2095
+        },
+        {
+          "t": 7741,
+          "shown": true,
+          "scrollY": 1995
+        },
+        {
+          "t": 8708,
+          "shown": false,
+          "scrollY": 360
+        }
+      ],
+      "ctaGapMs": []
+    },
+    {
+      "tag": "sp360",
+      "viewport": {
+        "width": 360,
+        "height": 800
+      },
+      "visible": {
+        "h1": {
+          "first": 45,
+          "full": 45
+        },
+        "cta": {
+          "first": 45,
+          "full": 45
+        },
+        "visual": {
+          "first": 355,
+          "full": 805
+        },
+        "highlight": {
+          "first": 355,
+          "full": 805
+        }
+      },
+      "cls": 0,
+      "sticky": [
+        {
+          "t": 45,
+          "shown": false,
+          "scrollY": 0
+        },
+        {
+          "t": 3238,
+          "shown": true,
+          "scrollY": 449
+        },
+        {
+          "t": 6305,
+          "shown": false,
+          "scrollY": 2100
+        },
+        {
+          "t": 7788,
+          "shown": true,
+          "scrollY": 2033
+        },
+        {
+          "t": 8705,
+          "shown": false,
+          "scrollY": 316
+        }
+      ],
+      "ctaGapMs": []
+    }
+  ]
+}

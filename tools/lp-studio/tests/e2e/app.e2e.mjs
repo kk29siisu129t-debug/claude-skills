@@ -357,7 +357,7 @@ test('LP: 2ケース × 320/375/390/400/430/1280px — 横スクロールなし�
         if (w < 768) {
           assert.ok(m.h1r.b <= m.photo.t + 1, `${id} ${w}: H1 が写真より先（上）`);
           assert.ok(m.ctar.t >= m.photo.b - 1, `${id} ${w}: CTA は写真の下`);
-          assert.ok(m.sub && m.sub.t >= m.photo.t && m.sub.b <= m.photo.b && m.sub.r <= m.photo.l + (m.photo.r - m.photo.l) * 0.2, `${id} ${w}: 補助文は顔の左（写真のぼかし部分まで）`);
+          assert.ok(m.sub && m.sub.t >= m.photo.t && m.sub.b <= m.photo.b && m.sub.r <= m.photo.l + (m.photo.r - m.photo.l) * 0.2, `${id} ${w}: 補助文は顔の左。写真の左端に幅の20%まで重なってよい（構図の判断: 顔の左の暗くない部分。顔には重ねない）`);
           assert.ok(m.photo.r >= w - 1 && m.photo.l >= w * 0.35, `${id} ${w}: 人物は右`);
           assert.ok(m.photo.b - m.photo.t >= Math.min(320, w * 0.8) - 1, `${id} ${w}: 顔写真が小さすぎる`);
         } else assert.ok(m.h1r.r <= w * 0.5 && (!m.sub || m.sub.r <= w * 0.5), `${id} ${w}: PC の見出しと補助文は左の余白側`);
@@ -653,7 +653,7 @@ test('エディタ: 運営者は明示的に確認したときだけ確定（未
   await tab(page, 'export');
   assert.match(await page.locator('#gate-commercial').innerText(), /運営者（事業者名）が確認されていません/);
   await tab(page, 'inputs');
-  await page.fill('#d-op', '株式会社サンプル（架空）');
+  await page.fill('#d-op', 'ミチシルベ学習株式会社');
   await page.locator('#d-op').press('Tab');
   await page.click('#d-op-ok');
   await page.waitForFunction(() => document.querySelector('#d-op-ok').checked);

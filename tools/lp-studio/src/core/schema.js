@@ -121,7 +121,7 @@ export const PROJECT_SPEC = {
       t: 'object',
       fields: {
         brandName: str(40), serviceDescriptor: str(60), audienceLabel: str(60), productLabel: str(30),
-        demoMode: { t: 'string', enum: DEMO_MODES }, demoNotice: str(100), operator: str(80), operatorConfirmed: { t: 'bool' },
+        demoMode: { t: 'string', enum: DEMO_MODES }, demoNotice: str(100), operator: str(80), operatorConfirmed: { t: 'bool' }, operatorConfirmedAs: str(80),
         category: { t: 'string', enum: CATEGORIES },
       },
       required: ['brandName', 'serviceDescriptor', 'audienceLabel', 'demoMode'],
@@ -408,9 +408,10 @@ export function validateProject(input) {
   const p = shape.value;
   if (errors.length || !p) return { ok: false, errors, warnings, project: null };
 
-  p.display = { demoNotice: '', operator: '', operatorConfirmed: false, category: 'general', ...p.display };
+  p.display = { demoNotice: '', operator: '', operatorConfirmed: false, operatorConfirmedAs: '', category: 'general', ...p.display };
   // 運営者は明示的に確認した場合だけ確定。空・仮の値（未定・TBD など）は確定にしない
-  if (p.display.operatorConfirmed && !isRealOperator(p.display.operator)) { p.display.operatorConfirmed = false; warnings.push('$.display.operatorConfirmed: 運営者が空か仮の値のため、未確認に戻しました'); }
+  if (p.display.operatorConfirmed && !isRealOperator(p.display.operator)) { p.display.operatorConfirmed = false; p.display.operatorConfirmedAs = ''; warnings.push('$.display.operatorConfirmed: 運営者が空か仮の値のため、未確認に戻しました'); }
+  if (p.display.operatorConfirmed && p.display.operatorConfirmedAs !== p.display.operator) { p.display.operatorConfirmed = false; p.display.operatorConfirmedAs = ''; warnings.push('$.display.operatorConfirmed: 確認した後に運営者名が変わっているため、未確認に戻しました'); }
   p.inputs = {
     scene: {}, efforts: {}, promiseLayers: { canDo: [], expectedChange: [], cannotGuarantee: [] }, mechanism: {},
     action: { confirmed: {} }, doNotAssert: [], ...p.inputs,
@@ -534,7 +535,7 @@ export function validateProject(input) {
     if (s.cta && !sectionIds.has(s.cta.target)) { warnings.push(`$.sections.${s.id}.cta: 移動先 "${s.cta.target}" が無いため外しました`); s.cta = null; }
     if (s.commercialPreview === undefined) s.commercialPreview = null;
     if (s.commercialPreview) s.commercialPreview = { note: '', ...s.commercialPreview };
-    if (s.approved && s.approvedHash !== sectionHash(s, p.assets?.heroPortrait, p.display?.productLabel || '')) {
+    if (s.approved && s.approvedHash !== sectionHash(s, p.assets?.heroPortrait, `${p.display?.brandName || ''}|${p.display?.productLabel || p.display?.audienceLabel || ''}`)) {
       s.approved = false; s.approvedHash = '';
       warnings.push(`$.sections.${s.id}: 承認後に内容が変わっているため承認を外しました`);
     }
@@ -552,7 +553,10 @@ export function validateProject(input) {
 export function isRealOperator(v) {
   const t = String(v || '').normalize('NFKC').replace(/[\s\u200b-\u200f\u2060\ufeff()\[\]「」【】『』〔〕<>]/g, '');
   if (t.length < 2) return false;
-  return !/^(未定|未確定|未設定|確認中|調整中|検討中|仮|仮称|tbd|tba|n\/?a|none|null|undefined|unknown|なし|無し|ー+|-+|―+|_+|\?+|？+|xxx+|○+|●+|\*+)$/i.test(t) && !/(未定|仮称|tbd|調整中|確認中)/i.test(t);
+  if (/^(未定|未確定|未設定|確認中|調整中|検討中|仮|仮称|tbd|tba|n\/?a|none|null|undefined|unknown|なし|無し|ー+|-+|―+|_+|\?+|？+|xxx+|○+|●+|\*+)$/i.test(t)) return false;
+  // 仮の値・伏せ字・見本: 未定・仮称・(仮)・仮の・〇〇・XX・テスト・サンプル・ダミー・example
+  const raw = String(v || '').normalize('NFKC');
+  return !/(未定|仮称|tbd|調整中|確認中|\(仮\)|^仮の|〇〇|○○|◯◯|xx|ｘｘ|テスト|サンプル|ダミー|sample|test|dummy|example|placeholder)/i.test(raw) && !/(未定|仮称|tbd|調整中|確認中|〇〇|○○|xx|テスト|サンプル|ダミー)/i.test(t);
 }
 
 export function parseProjectJson(text) {

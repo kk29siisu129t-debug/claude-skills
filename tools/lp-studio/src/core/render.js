@@ -319,7 +319,7 @@ function wordsHtml(text) {
     if (out.length && (/^[、。！？!?，．・）」』]+$/.test(segment) || /^[ぁ-ゖ]$/.test(segment))) out[out.length - 1] += segment;
     else out.push(segment);
   }
-  return out.length > 1 ? out.map((w) => `<span class="w">${e(w)}</span>`).join('') : e(text);
+  return out.length > 1 ? out.map((w) => (/^\s+$/.test(w) ? e(w) : `<span class="w">${e(w)}</span>`)).join('') : e(text); // 空白は span で包まない（幅 0 で消えないように）
 }
 
 function visualHtml(v, { hero = false } = {}) {

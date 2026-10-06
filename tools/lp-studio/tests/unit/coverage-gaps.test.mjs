@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { applyEdit } from '../../src/core/model.js';
 import { renderPage, renderWireframe, exportHtml, contrastChecks } from '../../src/core/render.js';
 import { checkProject, gates } from '../../src/core/editorial.js';
-import { ingestGenerated, applySkeleton } from '../../src/core/generate.js';
+import { ingestGenerated, applySkeleton, buildPrompt } from '../../src/core/generate.js';
 import { validateProject, serializeProject, parseProjectJson } from '../../src/core/schema.js';
 import { detectClaims, containsToken, metricMatches } from '../../src/core/claims.js';
 import { ROLES } from '../../src/core/roles.js';
@@ -236,7 +236,7 @@ test('再監査B 写真の alt・注記の職業・資格・役割・人名（�
 });
 
 test('再監査① 運営者は明示的に確認したときだけ確定。空・未定・仮の値は確定にできず、実販売の理由に残る', () => {
-  for (const v of ['', '未定', 'TBD', '（仮）', '調整中', '-', '?']) {
+  for (const v of ['', '未定', 'TBD', '（仮）', '調整中', '-', '?', '未　定', 'N/A', '株式会社〇〇（仮）', '仮の会社', 'XX株式会社', '○○株式会社', 'テスト', 'サンプル']) {
     const p = applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: v });
     assert.throws(() => applyEdit(p, { type: 'setDisplay', key: 'operatorConfirmed', value: true }), /運営者/, v);
     const raw = JSON.parse(serializeProject(p)); raw.display.operatorConfirmed = true;
@@ -245,13 +245,20 @@ test('再監査① 運営者は明示的に確認したときだけ確定。空�
     assert.ok(gates(r.project).commercialReady.reasons.some((x) => /運営者/.test(x)), v);
   }
   // 入力しただけでは確認済みにしない
-  let p = applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: '株式会社サンプル（架空）' });
+  let p = applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: 'ミチシルベ学習株式会社' });
   assert.ok(gates(p).commercialReady.reasons.some((x) => /運営者/.test(x)));
   p = applyEdit(p, { type: 'setDisplay', key: 'operatorConfirmed', value: true });
   assert.ok(!gates(p).commercialReady.reasons.some((x) => /運営者/.test(x)));
   // 運営者を変えたら確認し直し
-  p = applyEdit(p, { type: 'setDisplay', key: 'operator', value: '別の会社（架空）' });
+  p = applyEdit(p, { type: 'setDisplay', key: 'operator', value: 'みちしるべ教育株式会社' });
   assert.equal(p.display.operatorConfirmed, false);
+  // 確認した後に JSON で名前だけ差し替えて読み込むと、未確認に戻す
+  const ok = applyEdit(applyEdit(seed(), { type: 'setDisplay', key: 'operator', value: 'ミチシルベ学習株式会社' }), { type: 'setDisplay', key: 'operatorConfirmed', value: true });
+  const raw = JSON.parse(serializeProject(ok)); raw.display.operator = '別の実在らしい会社';
+  const r = validateProject(raw);
+  assert.equal(r.project.display.operatorConfirmed, false);
+  assert.ok(r.warnings.some((w) => /運営者名が変わって/.test(w)));
+  assert.equal(validateProject(JSON.parse(serializeProject(ok))).project.display.operatorConfirmed, true);
 });
 
 test('再監査② 台帳の文で裏づけても期間の取り違え（月4.2日・4.2日）は止める。数値の主張は実販売の理由に残る', () => {
@@ -285,4 +292,42 @@ test('再監査 小項目: 補助文の上限は編集・保存・再読込で�
   assert.ok(d.errors.some((e) => /重複/.test(e) && /s1-mechanism/.test(e)));
   const dup2 = JSON.parse(serializeProject(seed())); dup2.publicSources[1].id = dup2.publicSources[0].id;
   assert.equal(validateProject(dup2).ok, false);
+});
+
+
+// ---- 監査役 3回目（050af21）の指摘 ----
+test('再監査3 語の単位の span でも空白を消さない（表示テキストが元の文と一致）', () => {
+  let p = applyEdit(seed(), { type: 'setDisplay', key: 'productLabel', value: 'Team Quote Tracker 共有' });
+  p = applyEdit(p, { type: 'setField', id: 'empathy', field: 'heading', value: 'Excel と メール を、ひとつに。' });
+  const html = renderPage(p, { kind: 'review' }).html;
+  const visible = html.replace(/<style>[\s\S]*?<\/style>|<script>[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, '');
+  assert.ok(visible.includes('Team Quote Tracker 共有'), '商品ラベルの空白');
+  assert.ok(visible.includes('Excel と メール を、ひとつに。'), '見出しの空白');
+  assert.doesNotMatch(html, /<span class="w">\s+<\/span>/);
+});
+
+test('再監査3 A: 前の文で対象を言い、次の文や同じ文の後ろの節で数量だけ言う形も止める（学習の15分は止めない）', () => {
+  const f = (h, v) => checkProject(applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: h, body: v }] })).some((i) => i.code === 'unknown-filled');
+  for (const v of ['面談があります。毎晩15分です。', '面談は、15分の単位です。', '面談があります。15分単位で予約できます。']) assert.ok(f('質問', v), v);
+  for (const [h, v] of [['質問', '毎晩15分の単位に分けて、週ごとに見直します。'], ['質問', '学習計画は、毎晩15分の単位に分けます。'], ['面談では何をしますか？', '学習は15分ずつ進めます。']]) assert.ok(!f(h, v), v);
+});
+
+test('再監査3 小項目: 写真の追加の語・「お父さん」の誤検出・期間「1週間で」・数値の警告は数値ごとに1件・FV のブランド名と呼びかけも承認に含める', () => {
+  const b = seed();
+  const claim = (v) => checkProject(validateProject({ ...b, assets: { heroPortrait: { ...b.assets.heroPortrait, alt: v } } }).project).some((i) => i.code === 'portrait-claim');
+  for (const v of ['教え手', 'ガイド役', '先輩社会人', '2級ホルダー', '経理のベテラン']) assert.ok(claim(v), v);
+  assert.ok(!claim('お父さんと勉強する人'));
+  let p = applyEdit(seed(), { type: 'addLedger', text: '平均学習日数は週4.2日', kind: 'provider-claim' });
+  const lid = p.ledger.at(-1).id;
+  p = applyEdit(applyEdit(p, { type: 'setRefs', id: 'closing', value: [...p.sections.find((s) => s.role === 'closing').sourceRefs, lid] }), { type: 'setCtaLabel', id: 'closing', value: '1週間で4.2日の学習を見る' });
+  assert.ok(!checkProject(p).some((i) => i.code === 'metric-mismatch'));
+  assert.equal(checkProject(seed()).filter((i) => i.code === 'claim-unverified' && /15分/.test(i.message)).length, 1);
+  const ap = applyEdit(seed(), { type: 'approveSection', id: 'hero', value: true });
+  for (const key of ['brandName', 'audienceLabel']) {
+    assert.equal(applyEdit(ap, { type: 'setDisplay', key, value: '別の名前' }).sections.find((s) => s.role === 'hero').approved, false, key);
+    const raw = JSON.parse(serializeProject(ap)); raw.display[key] = '別の名前';
+    if (key === 'brandName' || !raw.display.productLabel) assert.equal(validateProject(raw).project.sections.find((s) => s.role === 'hero').approved, false, key);
+  }
+  // 生成指示: alt は場面の説明だけ
+  assert.match(buildPrompt(seed(), 'full'), /alt・注記は場面の説明だけにする/);
 });
