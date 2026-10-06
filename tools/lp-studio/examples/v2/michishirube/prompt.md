@@ -31,7 +31,7 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 ## 表示用の名前（display）
 - brandName: ミチシルベ簿記
 - serviceDescriptor: 学習計画の作成・見直しサポート
-- audienceLabel: 仕事をしながら、簿記2級を目指す方へ
+- audienceLabel: 働きながら、簿記2級へ。
 - demoMode: synthetic-demo
 - demoNotice: 架空サービスのデモです。お申し込みは受け付けていません。
 

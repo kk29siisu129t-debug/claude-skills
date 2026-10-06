@@ -23,6 +23,14 @@ export function autoPhrases(text) {
   let cur = '';
   let pendingOpen = '';
   for (const w of words(src)) {
+    // 接頭の「お」「ご」は次の語（漢字）に付ける（「お申し込み」を「お／申し込み」で割らない）
+    if ((w === 'お' || w === 'ご' || w === '御') && !pendingOpen) {
+      if (cur && /[、。，．！？!?]$/.test(cur)) { out.push(cur); cur = ''; }
+      if (cur && !/[\p{Script=Hiragana}」』]$/u.test(cur)) { pendingOpen = w; continue; }
+      if (cur) { out.push(cur); cur = ''; }
+      pendingOpen = w;
+      continue;
+    }
     if (OPEN.test(w)) {
       if (cur && PUNCT_END.test(cur) && !/[」』）)］】〉》]$/.test(cur)) { out.push(cur); cur = ''; }
       pendingOpen += w;

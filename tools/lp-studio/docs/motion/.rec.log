@@ -102,3 +102,316 @@
   "ctaGapMs": []
  }
 ]
+[
+ {
+  "tag": "pc",
+  "visible": {
+   "h1": {
+    "first": 60,
+    "full": 60
+   },
+   "lead": {
+    "first": 60,
+    "full": 60
+   },
+   "cta": {
+    "first": 60,
+    "full": 60
+   },
+   "visual": {
+    "first": 60,
+    "full": 60
+   },
+   "highlight": {
+    "first": 60,
+    "full": 60
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "60ms:hide@0",
+   "3107ms:show@575",
+   "5557ms:hide@1906",
+   "7040ms:show@1859",
+   "7940ms:hide@485"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp400",
+  "visible": {
+   "h1": {
+    "first": 38,
+    "full": 38
+   },
+   "lead": {
+    "first": 38,
+    "full": 38
+   },
+   "cta": {
+    "first": 38,
+    "full": 38
+   },
+   "visual": {
+    "first": 38,
+    "full": 38
+   },
+   "highlight": {
+    "first": 38,
+    "full": 38
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "38ms:hide@0",
+   "3097ms:show@649",
+   "5663ms:hide@2268",
+   "6980ms:show@2209",
+   "7946ms:hide@552"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp360",
+  "visible": {
+   "h1": {
+    "first": 42,
+    "full": 42
+   },
+   "lead": {
+    "first": 42,
+    "full": 42
+   },
+   "cta": {
+    "first": 42,
+    "full": 42
+   },
+   "visual": {
+    "first": 42,
+    "full": 42
+   },
+   "highlight": {
+    "first": 42,
+    "full": 42
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "42ms:hide@0",
+   "3089ms:show@658",
+   "5639ms:hide@2306",
+   "6972ms:show@2247",
+   "7922ms:hide@562"
+  ],
+  "ctaGapMs": []
+ }
+]
+[
+ {
+  "tag": "pc",
+  "visible": {
+   "h1": {
+    "first": 42,
+    "full": 42
+   },
+   "lead": {
+    "first": 42,
+    "full": 42
+   },
+   "cta": {
+    "first": 42,
+    "full": 42
+   },
+   "visual": {
+    "first": 358,
+    "full": 812
+   },
+   "highlight": {
+    "first": 358,
+    "full": 812
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "42ms:hide@0",
+   "3442ms:show@571",
+   "6375ms:hide@2403",
+   "7841ms:show@2310",
+   "8758ms:hide@491"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp400",
+  "visible": {
+   "h1": {
+    "first": 46,
+    "full": 46
+   },
+   "lead": {
+    "first": 46,
+    "full": 46
+   },
+   "cta": {
+    "first": 46,
+    "full": 46
+   },
+   "visual": {
+    "first": 365,
+    "full": 815
+   },
+   "highlight": {
+    "first": 365,
+    "full": 815
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "46ms:hide@0",
+   "3667ms:show@681",
+   "6349ms:hide@2466",
+   "7682ms:show@2393",
+   "8715ms:hide@501"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp360",
+  "visible": {
+   "h1": {
+    "first": 46,
+    "full": 46
+   },
+   "lead": {
+    "first": 46,
+    "full": 46
+   },
+   "cta": {
+    "first": 46,
+    "full": 46
+   },
+   "visual": {
+    "first": 344,
+    "full": 794
+   },
+   "highlight": {
+    "first": 344,
+    "full": 794
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "46ms:hide@0",
+   "3661ms:show@695",
+   "6344ms:hide@2536",
+   "7711ms:show@2447",
+   "8678ms:hide@520"
+  ],
+  "ctaGapMs": []
+ }
+]
+[
+ {
+  "tag": "pc",
+  "visible": {
+   "h1": {
+    "first": 48,
+    "full": 48
+   },
+   "lead": {
+    "first": 48,
+    "full": 48
+   },
+   "cta": {
+    "first": 48,
+    "full": 48
+   },
+   "visual": {
+    "first": 48,
+    "full": 48
+   },
+   "highlight": {
+    "first": 48,
+    "full": 48
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "48ms:hide@0",
+   "3101ms:show@588",
+   "5651ms:hide@2337",
+   "6985ms:show@2299",
+   "8002ms:hide@479"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp400",
+  "visible": {
+   "h1": {
+    "first": 52,
+    "full": 52
+   },
+   "lead": {
+    "first": 52,
+    "full": 52
+   },
+   "cta": {
+    "first": 52,
+    "full": 52
+   },
+   "visual": {
+    "first": 52,
+    "full": 52
+   },
+   "highlight": {
+    "first": 52,
+    "full": 52
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "52ms:hide@0",
+   "3151ms:show@669",
+   "5701ms:hide@2443",
+   "6984ms:show@2337",
+   "7934ms:hide@584"
+  ],
+  "ctaGapMs": []
+ },
+ {
+  "tag": "sp360",
+  "visible": {
+   "h1": {
+    "first": 47,
+    "full": 47
+   },
+   "lead": {
+    "first": 47,
+    "full": 47
+   },
+   "cta": {
+    "first": 47,
+    "full": 47
+   },
+   "visual": {
+    "first": 47,
+    "full": 47
+   },
+   "highlight": {
+    "first": 47,
+    "full": 47
+   }
+  },
+  "cls": 0,
+  "sticky": [
+   "47ms:hide@0",
+   "3155ms:show@678",
+   "5705ms:hide@2506",
+   "6988ms:show@2399",
+   "7938ms:hide@600"
+  ],
+  "ctaGapMs": []
+ }
+]
+REC-DONE

@@ -90,20 +90,22 @@ h1,h2,h3{margin:0;font-feature-settings:"palt" 1}
 .btn-primary:focus-visible,.sticky-cta a:focus-visible{outline:3px solid #ffbf00;outline-offset:3px}
 .arw{display:inline-block;width:.6em;height:.6em;border-top:2.5px solid currentColor;border-right:2.5px solid currentColor;transform:rotate(45deg);margin-left:2px}
 .btn-disabled{background:#fff;color:var(--sub);border:1.5px dashed var(--line);cursor:not-allowed;font-weight:700;min-height:48px;font-size:15px;padding:10px 18px}
-.cta-note{font-size:14px;line-height:1.7;color:var(--sub);margin:10px 0 0}
+.cta-note{font-size:14px;line-height:1.7;color:var(--sub);margin:10px 0 0;text-wrap:pretty}
 .vis{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 12px 32px color-mix(in srgb,var(--ink) 9%,transparent);padding:20px 22px}
 .vis-label{display:inline-block;font-size:12px;line-height:1.5;font-weight:700;color:var(--primary-ink);background:var(--tint);border-radius:6px;padding:3px 8px;margin-bottom:12px}
 .vis-title{font-size:20px;line-height:1.4;font-weight:800;margin:0 0 12px;font-variant-numeric:tabular-nums}
 .vis-row{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:14px 14px;font-size:16px;line-height:1.6;font-weight:700}
 .vis-box{flex:none;width:20px;height:20px;border-radius:5px;border:2px solid var(--primary-ink);margin-top:2px}
-.vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0}
+.vis-note{font-size:13px;line-height:1.6;color:var(--sub);margin:12px 0 0;text-wrap:pretty}
+.vis-filter{display:inline-block;font-size:13px;line-height:1.5;font-weight:700;border:1px solid var(--line);border-radius:8px;padding:4px 10px;margin:0 0 8px 8px}
 .vis-table{width:100%;border-collapse:collapse;font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
 .vis-table th{text-align:left;font-size:12px;color:var(--sub);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
 .vis-table td{padding:10px 8px;border-bottom:1px solid var(--line)}
 .vis-table tr.hl td{font-weight:700}
 .tag{display:inline-block;font-size:12px;line-height:1.4;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--tint);color:var(--primary-ink)}
 .flow{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:stretch}
-.flow-step{border:1px solid var(--line);border-radius:12px;padding:16px;font-size:15px;line-height:1.7;background:#fff}
+.flow-step{border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-size:15px;line-height:1.7;background:#fff;min-width:0}
+.vis-wrap{margin-top:24px}
 .flow-step.main{border:2px solid var(--primary-ink);font-weight:700}
 .flow-arrow{align-self:center;width:14px;height:14px;border-top:2.5px solid var(--sub);border-right:2.5px solid var(--sub);transform:rotate(45deg)}
 .check-list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
@@ -200,8 +202,57 @@ tr.hl td{background-color:var(--hl)}
 .vis-table tr.hl td{font-weight:700}
 .sticky-cta{left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));width:auto;height:56px}
 }
-@media (max-width:399px){.hero h1{font-size:28px}}
+@media (max-width:399px){.hero h1{font-size:28px}.hero-meta{white-space:normal}}
 @media (max-width:359px){.hero-in{padding:16px 16px 24px}.sec-in{padding:0 16px}.hero h1{font-size:26px}}
+/* ---- FV（v3: 1訴求・大きな図・1CTA） ---- */
+@property --p{syntax:'<number>';inherits:false;initial-value:25}
+.hero{background:var(--paper);border-bottom:0;overflow:hidden}
+.hero-bar{max-width:1160px;margin:0 auto;padding:16px 32px 0;display:flex;align-items:center;gap:10px}
+.logo{font-size:14px;font-weight:800;letter-spacing:.02em}
+.demo-badge{font-size:12px;line-height:1;font-weight:700;color:#fff;background:var(--ink);border-radius:999px;padding:5px 10px}
+.hero-in{max-width:1160px;margin:0 auto;padding:40px 32px 72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-areas:"copy visual" "cta visual";column-gap:56px;align-items:center}
+.hero-copy{grid-area:copy;align-self:end}
+.hero .aud{font-size:16px;line-height:1.5;font-weight:700;color:var(--accent-ink);margin:0 0 14px}
+.hero h1{font-size:64px;line-height:1.22;font-weight:800;letter-spacing:-.03em;margin:0}
+.hero-cta{grid-area:cta;align-self:start;margin-top:36px}
+.btn-hero{min-width:300px;min-height:64px;font-size:18px;border-radius:14px}
+.hero-visual{grid-area:visual;margin:0;align-self:center}
+.plan{padding:28px 30px 30px;border-radius:24px;box-shadow:0 24px 60px color-mix(in srgb,var(--ink) 14%,transparent);border:1px solid var(--line)}
+.plan .vis-label{font-size:13px;margin-bottom:18px}
+.plan-main{display:flex;align-items:center;gap:22px;margin-bottom:20px}
+.ring{flex:none;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--accent) calc(var(--p) * 1%),color-mix(in srgb,var(--accent) 10%,#fff) 0);display:grid;place-items:center;position:relative;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--accent) 25%,transparent)}
+.ring span{width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 0 0 3px var(--accent)}
+.ring::before{content:"";position:absolute;inset:6px;border-radius:50%;background:repeating-conic-gradient(from -1deg,rgba(255,255,255,.95) 0 2deg,transparent 2deg 30deg);-webkit-mask:radial-gradient(circle,transparent 82%,#000 83%);mask:radial-gradient(circle,transparent 82%,#000 83%)}
+.plan-title{font-size:34px;line-height:1.25;font-weight:800;margin:0;letter-spacing:-.02em}
+.plan-task{font-size:20px;padding:18px 20px;border-radius:14px;gap:14px}
+.plan-task .vis-box{width:24px;height:24px;margin-top:3px}
+.js .hero-visual .ring{animation:ring .6s cubic-bezier(.3,.7,.2,1) .35s both}
+@keyframes ring{from{--p:0}to{--p:25}}
+.after-fv{background:#fff;border-top:1px solid var(--line);padding:32px 0 8px}
+.after-fv .sec-in{max-width:760px}
+.after-notice{font-size:14px;line-height:1.7;border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:8px;padding:10px 14px;margin:0 0 18px;background:var(--paper)}
+.after-fv .lead{font-size:17px;line-height:1.8;margin:0 0 10px}
+.after-note{font-size:13px;color:var(--sub);margin:0 0 8px}
+.after-cp .cta-row{margin-top:8px}
+@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:48px}.hero-in{column-gap:32px}}
+@media (max-width:767px){
+.hero-bar{padding:12px 20px 0}
+.hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";padding:20px 20px 28px}
+.hero .aud{font-size:15px;margin-bottom:8px}
+.hero h1{font-size:36px;line-height:1.25}
+.hero-visual{margin-top:22px}
+.plan{padding:20px 20px 22px;border-radius:20px}
+.plan .vis-label{margin-bottom:14px}
+.plan-main{gap:16px;margin-bottom:16px}
+.ring{width:96px;height:96px}.ring span{width:12px;height:12px}
+.plan-title{font-size:28px}
+.plan-task{font-size:17px;padding:14px 16px}
+.hero-cta{margin-top:20px}
+.btn-hero{width:100%;min-width:0;min-height:58px;font-size:17px}
+.after-fv{padding:24px 0 0}
+.after-fv .lead{font-size:16px}
+}
+@media (max-width:359px){.hero-bar{padding:10px 16px 0}.hero-in{padding:16px 16px 24px}.hero h1{font-size:30px}.plan-title{font-size:24px}.ring{width:84px;height:84px}}
 `;
 }
 
@@ -217,19 +268,27 @@ function phrasesHtml(heading, preferred) {
 function visualHtml(v, { hero = false } = {}) {
   if (!v) return '';
   const label = `<span class="vis-label">${e(v.label)}</span>`;
-  const note = v.note ? `<p class="vis-note">${e(v.note)}</p>` : '';
+  const note = v.note ? `<p class="vis-note">${phrasesHtml(v.note)}</p>` : '';
+  if (v.kind === 'task-card' && hero) {
+    return `<div class="vis plan">${label}<div class="plan-main"><div class="ring" aria-hidden="true"><span></span></div><p class="vis-title plan-title">${e(v.title)}</p></div><div class="vis-row plan-task hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div></div>`;
+  }
+  if (v.kind === 'table' && hero) {
+    const cols = v.columns || [];
+    const rows = (v.rows || []).map((r, i) => `<tr${i === v.highlight ? ' class="hl"' : ''}>${r.map((c, j) => `<td data-label="${e(cols[j] || '')}">${j === 1 ? `<span class="tag">${e(c)}</span>` : e(c)}</td>`).join('')}</tr>`).join('');
+    return `<div class="vis vis-tablebox">${label}<table class="vis-table"><thead><tr>${cols.map((c) => `<th scope="col">${e(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></div>`;
+  }
   if (v.kind === 'task-card') {
     return `<div class="vis vis-taskcard">${label}${v.title ? `<p class="vis-title">${e(v.title)}</p>` : ''}<div class="vis-row hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div>${note}</div>`;
   }
   if (v.kind === 'flow') {
     const steps = [v.from, v.to, v.review].filter(Boolean);
-    const html = steps.map((s, i) => `<div class="flow-step${i === 1 ? ' main' : ''}">${e(s)}</div>`).join('<span class="flow-arrow" aria-hidden="true"></span>');
+    const html = steps.map((s, i) => `<div class="flow-step${i === 1 ? ' main' : ''}">${phrasesHtml(s)}</div>`).join('<span class="flow-arrow" aria-hidden="true"></span>');
     return `<div class="vis vis-flow">${label}<div class="flow" role="list">${html}</div>${note}</div>`;
   }
   if (v.kind === 'table') {
     const cols = v.columns || [];
     const rows = (v.rows || []).map((r, i) => `<tr${i === v.highlight ? ' class="hl"' : ''}>${r.map((c, j) => `<td data-label="${e(cols[j] || '')}">${j === 1 ? `<span class="tag">${e(c)}</span>` : e(c)}</td>`).join('')}</tr>`).join('');
-    return `<div class="vis vis-tablebox">${label}<table class="vis-table"><thead><tr>${cols.map((c) => `<th scope="col">${e(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>${note}</div>`;
+    return `<div class="vis vis-tablebox">${label}${v.title ? `<p class="vis-filter">${e(v.title)}</p>` : ''}<table class="vis-table"><thead><tr>${cols.map((c) => `<th scope="col">${e(c)}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table>${note}</div>`;
   }
   if (v.kind === 'checklist') {
     const items = [v.title, v.task, v.from, v.to, v.review].filter(Boolean);
@@ -271,14 +330,15 @@ function sectionHtml(project, s, mode) {
   const meta = draftMeta(s, mode);
   switch (s.role) {
     case 'hero': {
+      // FV は 1つの訴求・大きな図・1つのCTA。説明・デモの注意書き・実際の申込ボタンは FV の下（renderPage の after-fv）に置く
       const d = project.display;
-      return `<header class="hero cta-zone" id="${id}"><div class="hero-in">
-<div class="hero-copy">${meta}<p class="hero-meta"><b>${e(d.brandName)}</b>${e(d.serviceDescriptor)}</p>
-${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}
-<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>
-${s.body ? `<p class="lead">${e(s.body)}</p>` : ''}</div>
+      const badge = d.demoMode !== 'live' ? `<span class="demo-badge">${d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作'}</span>` : '';
+      const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>` : '';
+      return `<header class="hero cta-zone" id="${id}"><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
+<div class="hero-copy">${meta}${d.audienceLabel ? `<p class="aud">${e(d.audienceLabel)}</p>` : ''}
+<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1></div>
 ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</figure>` : ''}
-<div class="hero-cta">${ctaHtml(s, mode)}</div>
+<div class="hero-cta">${cta}</div>
 </div></header>`;
     }
     case 'closing':
@@ -299,7 +359,7 @@ ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${vi
     }
     default: {
       const items = s.items.filter((it) => it.heading || it.body);
-      return `<section class="sec sec-${e(s.role)}" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}${items.length ? `<ul class="points">${items.map((it) => `<li class="reveal">${it.heading ? `<b>${e(it.heading)}</b>` : ''}${it.body ? e(it.body) : ''}</li>`).join('')}</ul>` : ''}${s.visual ? `<div class="reveal">${visualHtml(s.visual)}</div>` : ''}${ctaHtml(s, mode)}</div></section>`;
+      return `<section class="sec sec-${e(s.role)}${s.visual ? ' illus' : ''}" id="${id}"><div class="sec-in${s.visual ? ' wide' : ''}">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}${items.length ? `<ul class="points">${items.map((it) => `<li class="reveal">${it.heading ? `<b>${e(it.heading)}</b>` : ''}${it.body ? e(it.body) : ''}</li>`).join('')}</ul>` : ''}${s.visual ? `<div class="reveal vis-wrap">${visualHtml(s.visual)}</div>` : ''}${ctaHtml(s, mode)}</div></section>`;
     }
   }
 }
@@ -309,6 +369,7 @@ ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${vi
  * options.reduceMotion: true なら動きなしで描画（プレビューの「動きを減らす」）
  */
 export function renderPage(project, { kind = 'review', reduceMotion = false } = {}) {
+  const d = project.display;
   const issues = checkProject(project);
   const g = gates(project, issues);
   const contrast = contrastChecks(project);
@@ -323,15 +384,20 @@ export function renderPage(project, { kind = 'review', reduceMotion = false } = 
   const parts = [];
   for (const s of project.sections) {
     if (!hasContent(s) && s.role !== 'hero') { removed.push({ id: s.id, role: s.role, reason: '本文が無い（見出し・CTAだけを残さない）' }); continue; }
-    const html = sectionHtml(project, s, mode);
+    let html = sectionHtml(project, s, mode);
+    if (s.role === 'hero') {
+      const notice = d.demoMode !== 'live' ? `<p class="after-notice" role="note"><b>${d.demoMode === 'synthetic-demo' ? '架空サービスのデモです。' : '試作のページです。'}</b>${phrasesHtml(d.demoNotice.replace(/^.*?デモです。|^.*?ページです。/, ''))}</p>` : '';
+      const cp = s.commercialPreview ? `<div class="after-cp">${ctaHtml({ ...s, cta: null }, mode)}</div>` : '';
+      const note = s.visual?.note ? `<p class="after-note">図: ${phrasesHtml(s.visual.note)}</p>` : '';
+      html += `<section class="after-fv" aria-label="このページについて"><div class="sec-in">${notice}${s.body ? `<p class="lead">${e(s.body)}</p>` : ''}${note}${cp}</div></section>`;
+    }
     if (!html) { removed.push({ id: s.id, role: s.role, reason: '出せる根拠が無い' }); continue; }
     parts.push(html);
   }
   const hero = project.sections.find((s) => s.role === 'hero');
   const stickyTarget = hero?.cta;
   const sticky = stickyTarget ? `<div class="sticky-cta" aria-hidden="true" inert><a href="#${e(stickyTarget.target)}">${e(stickyTarget.label)}<span class="arw" aria-hidden="true"></span></a></div>` : '';
-  const d = project.display;
-  const demoBar = d.demoMode !== 'live' ? `<div class="demo-bar" role="note"><b>${d.demoMode === 'synthetic-demo' ? 'デモ' : '試作'}</b> ${phrasesHtml(d.demoNotice)}</div>` : '';
+  const demoBar = d.demoMode !== 'live' && !hero ? `<div class="demo-bar" role="note"><b>${d.demoMode === 'synthetic-demo' ? 'デモ' : '試作'}</b> ${phrasesHtml(d.demoNotice)}</div>` : '';
   const stops = issues.filter((i) => i.level === 'stop');
   const warns = issues.filter((i) => i.level === 'warn');
   const banner = kind === 'draft' ? `<div class="draft-banner" role="note">社内確認用ドラフト — 停止条件 ${stops.length} 件 / 要確認 ${warns.length} 件。${stops.slice(0, 3).map((x) => e(x.message)).join(' ／ ')}</div>` : '';
