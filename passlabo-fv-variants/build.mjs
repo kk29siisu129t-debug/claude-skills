@@ -268,6 +268,98 @@ body[data-variant="a2"] .cta{font-size:17px}
 .x-gift{grid-column:1;margin:4px 0 0}.x-offer .cta{grid-column:2;grid-row:1/3}
 }`;
 
+// ---- 案A3（未公開のレビュー稿）: 白〜ウォームグレーの一続きの背景に、透過の本人写真と教材を同じ光で置く。仮置きの数値バッジを含む ----
+const portrait = asset('portrait');
+const A3 = () => `
+<div class="s-stage">
+<header class="s-top"><span class="s-brand">${e(C.brand)}</span><p class="s-target">${e(C.target)}</p></header>
+<section class="s-hero" aria-label="ファーストビュー">
+  <div class="s-copy">
+    <p class="s-cred">${e(C.credential)}</p>
+    <h1 class="s-title"><span class="s-t1">共テ数学</span><span class="s-t2">特別講義</span></h1>
+    <p class="s-sub">${phrases(C.subA)}</p>
+  </div>
+  <figure class="s-person"><img src="${portrait.uri}" alt="${e(portrait.alt)}" width="1330" height="1183"></figure>
+  <p class="s-sign"><span>${e(C.instructorRole)}</span>${e(C.instructorName)}</p>
+  <figure class="s-mats" aria-label="${e(C.materialLabel)}">
+    <span class="s-paper s-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
+    <span class="s-paper s-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
+    <figcaption>${e(C.materialLabel)}</figcaption>
+  </figure>
+</section>
+</div>
+<section class="s-offer">
+  <div class="s-badge" role="img" aria-label="${e(C.badgeLabel)} ${e(C.badgeValue + C.badgeUnit)}（${e(C.badgeNote.join('・').replace(/^※/, ''))}）">
+    <span class="s-medal" aria-hidden="true"><span class="s-ml">${e(C.badgeLabel)}</span><span class="s-mv">${e(C.badgeValue)}<small>${e(C.badgeUnit)}</small></span></span>
+    <span class="s-note" aria-hidden="true">${C.badgeNote.map((x) => `<span>${e(x)}</span>`).join('')}</span>
+  </div>
+  <p class="s-main"><span class="s-free">無料</span>特別講義</p>
+  <p class="s-gift">${e(C.offerSub)}</p>
+  ${cta('s-cta')}
+</section>
+<aside class="review" id="cta-note" role="note"><b>未公開のレビュー稿（案A3）</b>：バッジの「${e(C.badgeLabel)} ${e(C.badgeValue + C.badgeUnit)}」はユーザー指定の<b>仮置きの数値で、実績集計は未確認</b>（公開・本番反映はしない）。「${e(C.ctaLabel)}」は${e(C.ctaNote)}。LINE の実 URL は未確認。講師写真はユーザー提供のレタッチ済み透過写真、板書・配布テキストは現行 LP の画像から必要な範囲だけを切り出したもの（出典は REVIEW.md）。</aside>`;
+const A3_CSS = `
+body[data-variant="a3"]{--s-ink:#111111;--s-text:#2b2b2b;--s-mute:#5b5650;--s-blue:#1d4ed8;--s-blue-d:#1739a6;--s-shadow:rgba(64,52,40,.20);background:#fff}
+/* 一続きのスタジオ背景（上: 白 → 下: 明るいウォームグレー）。光は左上から、影は右下へ統一 */
+.s-stage{background:radial-gradient(120% 90% at 68% 28%,#ffffff 0%,#fbfaf8 38%,#f1eee9 72%,#e8e3dc 100%)}
+.s-top{padding:12px 16px 0}
+.s-brand{display:block;font-size:13px;font-weight:700;letter-spacing:.16em;color:var(--s-blue);line-height:1.2}
+.s-target{margin:3px 0 0;font-size:17px;font-weight:700;color:var(--s-ink);letter-spacing:.04em;line-height:1.35}
+.s-hero{position:relative;height:362px;overflow:hidden}
+.s-copy{position:absolute;z-index:3;left:16px;top:16px}
+.s-cred{margin:0;font-size:15px;font-weight:700;color:var(--s-blue);letter-spacing:.06em}
+.s-title{margin:6px 0 0;font-weight:900;color:var(--s-ink);line-height:1}
+.s-title span{display:block;white-space:nowrap}
+.s-t1{font-size:54px;letter-spacing:-.03em}
+.s-t2{margin-top:6px;font-size:39px;letter-spacing:.02em}
+.s-sub{margin:12px 0 0;font-size:15px;font-weight:500;line-height:1.65;color:var(--s-text);letter-spacing:.02em}
+.s-sub .nb{display:block}
+/* 透過写真: 縦横比 1330:1183 のまま等倍率で縮小（切り抜きなし・変形なし）。下端はヒーローの下端にそろえる */
+.s-person{position:absolute;z-index:1;right:-78px;bottom:0;height:332px;margin:0;aspect-ratio:1330/1183}
+.s-person img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(8px 6px 14px var(--s-shadow))}
+.s-sign{position:absolute;z-index:4;right:14px;top:10px;margin:0;font-size:14px;font-weight:700;color:var(--s-ink);letter-spacing:.06em}
+.s-sign span{font-size:13px;font-weight:500;margin-right:6px;color:var(--s-mute)}
+.s-mats{position:absolute;z-index:2;left:14px;bottom:20px;width:212px;height:122px;margin:0}
+.s-paper{position:absolute;background:#fff;padding:3px;box-shadow:5px 7px 14px var(--s-shadow),0 0 0 1px rgba(64,52,40,.06)}
+.s-paper img{width:100%;height:100%;object-fit:cover;object-position:0 0}
+.s-board{left:0;top:6px;width:114px;height:98px;transform:rotate(-2deg)}
+.s-sheet{left:94px;top:0;width:114px;height:98px;transform:rotate(1.5deg)}
+.s-mats figcaption{position:absolute;z-index:1;left:0;bottom:-8px;font-size:13px;font-weight:500;color:var(--s-text);white-space:nowrap;background:rgba(251,250,248,.92);padding:1px 8px 1px 2px;border-radius:0 4px 4px 0}
+/* 青の無料オファー面。バッジは面の右上にまたがせ、仮置きの注記をすぐ下に焼き込む */
+.s-offer{position:relative;background:linear-gradient(180deg,var(--s-blue) 0%,var(--s-blue-d) 100%);padding:12px 16px 16px;color:#fff}
+.s-badge{position:absolute;z-index:5;right:8px;top:-62px;width:96px;display:flex;flex-direction:column;align-items:center}
+.s-medal{width:96px;height:96px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#fffdf6 0%,#f7ecd0 55%,#e7d3a1 100%);box-shadow:inset 0 0 0 3px #c8a24e,inset 0 0 0 6px #fffaf0,inset 0 0 0 7px rgba(200,162,78,.55),5px 7px 14px var(--s-shadow);color:#3b2f17}
+.s-ml{font-size:13px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.s-mv{font-size:25px;font-weight:900;line-height:1.05;letter-spacing:-.02em}.s-mv small{font-size:14px;font-weight:700;margin-left:1px}
+.s-note{margin-top:4px;display:flex;flex-direction:column;align-items:center;font-size:13px;font-weight:700;line-height:1.3;color:#fff;letter-spacing:.02em}
+.s-main{margin:0;font-size:36px;font-weight:900;line-height:1.15;letter-spacing:.01em}
+.s-free{display:inline-block;background:#fff;color:var(--s-blue);border-radius:6px;padding:0 6px;margin-right:6px;line-height:1.15}
+.s-gift{margin:6px 0 14px;font-size:15px;font-weight:500;color:#e6ecff;letter-spacing:.02em}
+body[data-variant="a3"] .cta{background:var(--line);box-shadow:0 3px 0 #04913d;border-radius:12px;min-height:60px;font-size:19px;font-weight:700}
+body[data-variant="a3"] .cta:active{background:var(--line-d);box-shadow:none;transform:translateY(2px)}
+body[data-variant="a3"] .cta:focus-visible{outline:3px solid #fff;outline-offset:3px}
+@media (max-width:389px){
+.s-t1{font-size:49px}.s-t2{font-size:35px}
+.s-person{height:308px;right:-74px}
+.s-gift{font-size:14px}
+body[data-variant="a3"] .cta{font-size:17px}
+}
+@media (min-width:900px){
+.s-top{display:flex;align-items:baseline;gap:20px;padding:16px max(24px,calc((100% - 1160px)/2)) 0}
+.s-target{margin:0;font-size:22px}
+.s-hero{height:500px;max-width:1160px;margin:0 auto}
+.s-copy{left:24px;top:34px}
+.s-cred{font-size:22px}.s-t1{font-size:96px}.s-t2{font-size:68px;margin-top:10px}.s-sub{font-size:22px;margin-top:18px}.s-sub .nb{display:inline}
+.s-person{right:40px;height:480px}
+.s-sign{right:24px;top:20px;font-size:20px}.s-sign span{font-size:16px}
+.s-mats{left:24px;bottom:34px;width:440px;height:150px}
+.s-board{width:200px;height:124px}.s-sheet{left:186px;width:200px;height:124px}
+.s-mats figcaption{bottom:-26px}
+.s-offer{display:grid;grid-template-columns:auto minmax(0,440px) 120px;justify-content:center;align-items:center;column-gap:40px;padding:22px}
+.s-main,.s-gift{grid-column:1}.s-main{align-self:end;font-size:40px}.s-gift{margin:6px 0 0;align-self:start}.s-offer .cta{grid-column:2;grid-row:1/3}
+.s-badge{position:static;grid-column:3;grid-row:1/3}.s-note{color:#fff}
+}`;
+
 function page(id, title, body, css) {
   const text = body.replace(/<[^>]+>/g, '') + C.ctaLabel + '×';
   const fonts = fontFaces(text, [500, 700, 900]);
@@ -289,3 +381,5 @@ writeFileSync(join(root, 'out/passlabo-fv-a.html'), page('a', 'PASSLABO FV 案A�
 writeFileSync(join(root, 'out/passlabo-fv-b.html'), page('b', 'PASSLABO FV 案B（確認用）', B(), B_CSS));
 writeFileSync(join(root, 'out/passlabo-fv-a2.html'), page('a2', 'PASSLABO FV 案A 磨き直し（確認用）', A2(), A2_CSS));
 console.log('out/passlabo-fv-a.html, out/passlabo-fv-b.html, out/passlabo-fv-a2.html（現行 LP 由来の素材を内包）');
+writeFileSync(join(root, 'out/passlabo-fv-a3.html'), page('a3', 'PASSLABO FV 案A3（未公開レビュー稿・仮置き数値あり）', A3(), A3_CSS));
+console.log('out/passlabo-fv-a3.html（未公開レビュー稿。バッジの数値は仮置き）');

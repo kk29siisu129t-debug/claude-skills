@@ -52,5 +52,23 @@
   "fonts": 44,
   "ctaNoNav": true,
   "externalRequests": []
+ },
+ "a3": {
+  "ctaBottom": 570,
+  "h1": 32,
+  "h1Box": [
+   97,
+   196
+  ],
+  "photo": [
+   84,
+   416
+  ],
+  "material": null,
+  "hscroll": false,
+  "minFont": 13,
+  "fonts": 53,
+  "ctaNoNav": true,
+  "externalRequests": []
  }
 }
