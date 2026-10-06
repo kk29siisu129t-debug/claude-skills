@@ -437,8 +437,9 @@ body[data-variant^="a4"] .review{background:#f4f7f9}
 .f-with .f-sheet{left:86px;top:0;width:104px;height:92px;transform:rotate(2deg)}
 .f-with .f-mats figcaption{top:102px}
 .f-with .f-sign{left:22px;bottom:6px;flex-wrap:nowrap}
-.f-with .f-badge{right:10px;bottom:-20px}
-.f-with .f-offer{padding-top:8px}
+.f-with .f-badge{top:-60px;right:10px;bottom:auto;width:auto;flex-direction:row-reverse;align-items:flex-end;gap:6px}
+.f-with .f-medal{width:84px;height:84px}.f-with .f-note{margin:0 0 2px;align-items:flex-end}
+.f-with .f-offer{padding-top:4px}.f-with .f-cred{margin-top:20px}
 /* 人物なし: タイトルをさらに大きく、教材を前景の主役に。講師名と肩書は残す */
 .f-without .f-hero{height:398px}
 .f-without .f-title{font-size:86px}
@@ -454,7 +455,7 @@ body[data-variant^="a4"] .review{background:#f4f7f9}
 .f-with .f-title{font-size:67px}.f-without .f-title{font-size:78px}
 .f-person{height:226px;right:-70px}
 .f-with .f-sub{font-size:23px}
-.f-with .f-badge{right:6px;bottom:-44px}
+.f-with .f-cred{letter-spacing:.02em;margin-top:22px}.f-with .f-offer{padding-top:4px}
 .f-with .f-mats{transform:scale(.92);transform-origin:0 0}
 .f-without .f-mats{transform:scale(.9);transform-origin:0 0}
 .f-main{font-size:31px}.f-gift{font-size:14px}
@@ -476,7 +477,7 @@ body[data-variant^="a4"] .cta{font-size:17px;padding:0 12px;gap:8px;letter-spaci
 .f-with .f-board,.f-without .f-board{width:190px;height:120px}.f-with .f-sheet,.f-without .f-sheet{left:170px;width:190px;height:120px}
 .f-with .f-mats figcaption,.f-without .f-mats figcaption{top:132px}
 .f-with .f-sign,.f-without .f-sign{left:420px;top:auto;bottom:40px;max-width:none}
-.f-with .f-badge{right:420px;bottom:20px}.f-without .f-badge{right:auto;left:760px;top:auto;bottom:34px;transform:scale(1.2);transform-origin:50% 100%}
+.f-with .f-badge{top:auto;right:auto;left:470px;bottom:96px;flex-direction:row-reverse}.f-without .f-badge{right:auto;left:760px;top:auto;bottom:34px;transform:scale(1.2);transform-origin:50% 100%}
 .f-offer{display:grid;grid-template-columns:auto minmax(0,460px);justify-content:center;align-items:center;column-gap:48px;padding:20px 24px 30px;max-width:1160px;margin:0 auto}
 .f-main,.f-gift{grid-column:1}.f-main{align-self:end;font-size:40px}.f-gift{margin:6px 0 0;align-self:start}.f-offer .cta{grid-column:2;grid-row:1/3}
 }`;
