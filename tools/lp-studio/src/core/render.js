@@ -278,12 +278,12 @@ tr.hl td{background-color:var(--hl)}
 .hero-portrait{background:var(--paper)}
 .hero-portrait .hero-bar{position:absolute;top:0;left:0;right:0;z-index:2}
 .hero-portrait .logo{background:rgba(255,255,255,.86);border-radius:999px;padding:4px 10px}
-.hero-photo{position:relative;inset:auto;z-index:auto;height:min(380px,52vh)}
-.hero-photo img{object-position:var(--fx) var(--fy);transform:scale(var(--zs));transform-origin:var(--fx) var(--fy)}
+.hero-photo{position:relative;inset:auto;z-index:auto;height:300px}
+.hero-photo img{object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
 .hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
 .gaze-left .hero-photo::after,.gaze-right .hero-photo::after{display:none}
 .hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"visual" "copy" "cta";min-height:0;padding:0 20px 24px}
-.hero-visual.mini{margin:-64px 0 0;max-width:236px;position:relative;z-index:1}
+.hero-visual.mini{margin:14px 0 0;max-width:236px;position:relative;z-index:1}
 .gaze-right .hero-visual.mini{justify-self:end}
 .hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px}
 .hero-visual.mini .vis-label{font-size:11px;margin-bottom:8px;padding:2px 6px}
@@ -294,9 +294,9 @@ tr.hl td{background-color:var(--hl)}
 .hero-portrait .hero-copy{margin-top:18px}
 .hero-portrait h1{font-size:32px}
 .hero-portrait .hero-cta{margin-top:18px}
-.photo-cap{top:auto;bottom:auto;right:10px;top:calc(min(380px,52vh) - 30px);font-size:10px}
+.photo-cap{bottom:auto;right:10px;top:270px;font-size:10px}
 }
-@media (max-width:359px){.hero-photo{height:min(320px,50vh)}.photo-cap{top:calc(min(320px,50vh) - 30px)}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px}}
+@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding-bottom:16px}.hero-portrait .hero-visual.mini{margin-top:10px}.hero-portrait .hero-copy{margin-top:12px}.hero-portrait .hero-cta{margin-top:14px}.hero-portrait h1{font-size:28px}.hero-visual.mini{max-width:210px}}
 `;
 }
 
@@ -383,7 +383,7 @@ function sectionHtml(project, s, mode) {
       if (pt && pt.dataUri) {
         // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
         const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
-        const vars = `--fx:${num(pt.focusX, 50)}%;--fy:${num(pt.focusY, 30)}%;--fyp:${num(pt.focusYPc, num(pt.focusY, 30))}%;--zs:${num(pt.zoomSp, 1)};--zp:${num(pt.zoomPc, 1)}`;
+        const vars = `--fx:${num(pt.focusX, 50)}%;--fy:${num(pt.focusY, 30)}%;--fyp:${num(pt.focusYPc, num(pt.focusY, 30))}%;--fxs:${num(pt.focusXSp, num(pt.focusX, 50))}%;--zs:${num(pt.zoomSp, 1)};--zp:${num(pt.zoomPc, 1)}`;
         return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"></figure><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
 ${copy}
 ${s.visual ? `<div class="hero-visual mini" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</div>` : ''}

@@ -223,7 +223,7 @@ export const PROJECT_SPEC = {
             dataUri: str(1600000, { pattern: /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/ }),
             alt: str(80), caption: str(40), gaze: { t: 'string', enum: ['left', 'right'] }, flip: { t: 'bool' },
             focusX: { t: 'number', min: 0, max: 100 }, focusY: { t: 'number', min: 0, max: 100 },
-            zoomSp: { t: 'number', min: 1, max: 3 }, focusYPc: { t: 'number', min: 0, max: 100 }, zoomPc: { t: 'number', min: 1, max: 3 },
+            zoomSp: { t: 'number', min: 1, max: 3 }, focusYPc: { t: 'number', min: 0, max: 100 }, focusXSp: { t: 'number', min: 0, max: 100 }, zoomPc: { t: 'number', min: 1, max: 3 },
             origin: { t: 'string', enum: ['ai_generated', 'stock', 'own_photo'] }, fictional: { t: 'bool' },
             source: str(200),
           },

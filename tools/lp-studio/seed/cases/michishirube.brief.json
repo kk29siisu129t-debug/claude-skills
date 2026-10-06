@@ -255,13 +255,14 @@
       "gaze": "left",
       "flip": false,
       "focusX": 69,
-      "focusY": 32,
-      "zoomSp": 1.7,
+      "focusY": 48,
+      "zoomSp": 1.1,
       "zoomPc": 1,
       "origin": "ai_generated",
       "fictional": true,
       "source": "ユーザー提供のAI生成画像（1536×1024 PNG を 1200px WebP に縮小）。実在の顧客・講師・推薦者ではない",
-      "focusYPc": 8
+      "focusYPc": 22,
+      "focusXSp": 100
     }
   }
 }
