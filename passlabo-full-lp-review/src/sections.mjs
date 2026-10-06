@@ -9,7 +9,7 @@ const S_PATH = 'M14 0V90C14 162 142 150 142 250C142 274 139 287 132 298';
 const S_HEAD = 'translate(132 298) rotate(122.5)';
 const scurve = `<div class="lp-s" aria-hidden="true"><svg class="lp-s-svg" viewBox="0 0 170 340" width="170" height="340" focusable="false"><path class="lp-s-path" d="${S_PATH}"/><polygon class="lp-s-head" points="-2,-28 46,0 -2,28" transform="${S_HEAD}"/></svg></div>`;
 
-export const body = ({ board, sheet, zoom, profile, ctaBtn, stickyBtn }) => `
+export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
 <main class="lp" aria-label="講義の案内">
   <section class="lp-sec lp-about" aria-labelledby="h-about">
     <div class="lp-in">
@@ -18,7 +18,7 @@ export const body = ({ board, sheet, zoom, profile, ctaBtn, stickyBtn }) => `
       <p class="lp-text">共通テスト数学に取り組むときに必要な「時短戦略・思考法・問題の取り組み方」を、講師の手元をお見せしながら解説する無料の特別講義です。</p>
       <ol class="lp-layers">
         <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">1</span><div><p class="lp-layer-k">講義で見る</p><p class="lp-layer-v">講師の板書と手元での解説</p></div></li>
-        <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">2</span><div><p class="lp-layer-k">講義参加者向けの教材</p><p class="lp-layer-v">特別テキスト・講義板書／解説PDF</p></div></li>
+        <li class="lp-step" data-reveal><span class="lp-no" aria-hidden="true">2</span><div><p class="lp-layer-k">講義参加者向けの教材</p><p class="lp-layer-v">特別テキスト<small>（全員に配布）</small>・講義板書／解説PDF<small>（参加特典）</small></p></div></li>
         <li class="lp-step lp-step--sub" data-reveal><span class="lp-no" aria-hidden="true">3</span><div><p class="lp-layer-k">あわせて</p><p class="lp-layer-v">共テ数学プログラムの特別案内</p></div></li>
       </ol>
     </div>
@@ -94,14 +94,13 @@ export const body = ({ board, sheet, zoom, profile, ctaBtn, stickyBtn }) => `
         <figure class="lp-kit-item">
           <p class="lp-kit-tag">参加特典</p>
           <p class="lp-kit-name">講義板書／解説PDF</p>
-          <img class="lp-mat" data-reveal src="${zoom}" alt="講義の板書の一部を拡大したもの。二次関数の式の変形とグラフ" width="492" height="330">
-          <figcaption>講義の板書（見本・一部を拡大）。講義の板書と解説を PDF で受け取れます。</figcaption>
+          <div class="lp-kit-doc"><svg viewBox="0 0 48 60" width="48" height="60" aria-hidden="true" focusable="false"><path d="M4 2h28l12 12v44H4z" fill="#fff" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M32 2v12h12" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M12 26h24M12 34h24M12 42h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><p>講義の板書と解説の PDF です。</p></div>
         </figure>
       </div>
       <aside class="lp-prog" aria-label="あわせて">
         <p class="lp-prog-k">あわせて（参加特典）</p>
         <p class="lp-prog-name">共テ数学プログラムの特別案内</p>
-        <p class="lp-prog-text">今後の共テ数学プログラムについてのご案内です。プログラム本体の受講とは別のものです。</p>
+        <p class="lp-prog-text">プログラム本体の受講とは別の、案内です。</p>
       </aside>
     </div>
   </section>
@@ -148,6 +147,7 @@ export const css = `
 .lp-no{font-size:30px;font-weight:900;line-height:1;color:var(--b)}
 .lp-layer-k{margin:0;font-size:14px;font-weight:700;color:#3d4a52}
 .lp-layer-v{margin:2px 0 0;font-size:19px;font-weight:900;line-height:1.45;color:var(--n)}
+.lp-layer-v small{font-size:13px;font-weight:700;color:#3d4a52}
 .lp-step--sub .lp-no{font-size:22px;color:#8fb6c9}.lp-step--sub .lp-layer-v{font-size:16px;font-weight:700}
 /* 悩み: 紺の面に大きな白い文字 */
 .lp-feel{background:var(--n);color:#fff;padding-bottom:40px}
@@ -202,6 +202,7 @@ export const css = `
 .lp-kit-title{margin:4px 0 0;font-size:15px;font-weight:700;line-height:1.6;color:#3d4a52}
 .lp-kit-item img{display:block;width:100%;height:auto;margin-top:12px;border:1px solid #d6e4ec;box-shadow:0 8px 18px rgba(25,60,81,.18)}
 .lp-kit-item figcaption{margin-top:8px;font-size:15px;line-height:1.6;color:#3d4a52}
+.lp-kit-doc{display:flex;align-items:center;gap:14px;margin-top:12px;color:var(--n)}.lp-kit-doc svg{flex:none}.lp-kit-doc p{margin:0;font-size:16px;line-height:1.6;color:#3d4a52}
 .lp-prog{margin-top:22px;padding:14px 16px;border:1px solid #9cc3d6;border-radius:6px;background:#fff}
 .lp-prog-k{margin:0;font-size:13px;font-weight:700;color:var(--b)}
 .lp-prog-name{margin:2px 0 0;font-size:17px;font-weight:900;color:var(--n)}
