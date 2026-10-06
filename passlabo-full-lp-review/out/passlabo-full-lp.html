@@ -215,7 +215,9 @@ body[data-variant^="a4"] .cta{font-size:17px;padding:0 12px;gap:8px;letter-spaci
 .lp-role{display:grid;grid-template-columns:112px 1fr;gap:12px;align-items:baseline;padding:12px 0;border-bottom:1px solid #d6e4ec}
 .lp-role dt{font-size:15px;font-weight:900;color:var(--b)}
 .lp-role dd{margin:0;font-size:17px;font-weight:900;line-height:1.5;color:var(--n)}
-.lp-role dd small{font-size:13px;font-weight:700;color:#3d4a52}
+.lp-role dd small{display:inline-block;white-space:nowrap;font-size:13px;font-weight:700;color:#3d4a52}
+.lp-role-item{display:block}
+.lp-role dt{white-space:nowrap}
 .lp-role--sub dd{font-size:15px;font-weight:700}
 /* 悩み: 紺の面に大きな白い文字 */
 .lp-feel{background:var(--n);color:#fff;padding-bottom:40px}
@@ -307,7 +309,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .js .lp-mat.is-in,.js .lp-mat{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .js .lp-mat:not(.is-in){transform:translateY(12px)}
 }
-@media (max-width:389px){.lp-about-h{font-size:28px}.lp-role{grid-template-columns:96px 1fr}.lp-story-h{font-size:28px}.lp-h2{font-size:28px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-num-l{font-size:22px}.lp-story-fig{grid-template-columns:1fr}.lp-story-fig img{width:88px;height:88px}}
+@media (max-width:389px){.lp-about-h{font-size:28px}.lp-role{grid-template-columns:100px 1fr;gap:10px}.lp-role dt{font-size:14px}.lp-role--sub dd{font-size:14px}.lp-story-h{font-size:28px}.lp-h2{font-size:28px}.lp-feel-h{font-size:33px}.lp-final-h{font-size:34px}.lp-num-l{font-size:22px}.lp-story-fig{grid-template-columns:1fr}.lp-story-fig img{width:88px;height:88px}}
 @media (min-width:900px){
 .lp .sp{display:none}
 .lp-sec{padding:80px 40px}
@@ -367,7 +369,7 @@ html.has-sticky{scroll-padding-bottom:96px}
       <p class="lp-text">時短戦略・思考法・問題の取り組み方を、解答の手元を見せながら解説します。</p>
       <dl class="lp-roles">
         <div class="lp-role"><dt>講義</dt><dd>講師の板書と手元での解説</dd></div>
-        <div class="lp-role"><dt>教材</dt><dd>特別テキスト<small>（全員に配布）</small>・講義板書／解説PDF<small>（参加特典）</small></dd></div>
+        <div class="lp-role"><dt>教材</dt><dd><span class="lp-role-item">特別テキスト<small>（講義参加者に配布）</small></span><span class="lp-role-item">講義板書／解説PDF<small>（参加特典）</small></span></dd></div>
         <div class="lp-role lp-role--sub"><dt>あわせてご案内</dt><dd>共テ数学プログラムの特別案内</dd></div>
       </dl>
     </div>
