@@ -95,6 +95,11 @@ function dumpInputs(project) {
   if (!(project.publicSources || []).length) L.push('- （なし）');
   for (const ps of project.publicSources || []) L.push(`- ${ps.id} [${ps.kind} / ${ps.use}] ${ps.title} ${ps.url}\n  観察: ${ps.observation}\n  限界: ${ps.caveat}`);
   L.push('');
+  L.push('## FV の顔写真（assets.heroPortrait。人が用意する素材。画像そのものは渡さない）');
+  const pt = project.assets?.heroPortrait;
+  if (!pt) L.push('- なし（必要素材として fvDesign.requiredAssets に書く。無関係な写真・肩書・証言で埋めない）');
+  else L.push(`- あり / alt: ${pt.alt} / 注記: ${pt.caption} / 由来: ${pt.origin} / 架空: ${pt.fictional ? 'はい' : 'いいえ'} / 視線: ${pt.gaze === 'right' ? '右' : '左'}向き`, '- 写真の中身について書けるのは alt に書かれたことだけ。人物を講師・受講生・推薦者・実績として紹介しない');
+  L.push('');
   L.push('## A 読者と場面');
   for (const [k, v] of Object.entries(i.scene || {})) if (v) L.push(`- ${k}: ${v}`);
   L.push('## B 既存の努力と詰まり');
@@ -208,8 +213,8 @@ function toSection(g, idFor, report) {
     body: clean(g.body || '', `${g.role}.body`), sub: g.role === 'hero' ? clean(g.sub || '', 'hero.sub') : '', note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
     items: (g.items || []).map((it, i) => ({ heading: clean(it.heading || '', `${g.role}.items[${i}]`), body: clean(it.body || '', `${g.role}.items[${i}]`), sourceRefs: it.sourceRefs || [] })),
     visual: g.visual ? { title: '', task: '', from: '', to: '', review: '', columns: [], rows: [], highlight: -1, sourceRefs: [], ...g.visual, notEvidence: true } : null,
-    cta: g.cta || null,
-    commercialPreview: g.commercialPreview ? { note: '', ...g.commercialPreview } : null,
+    cta: g.cta && clean(g.cta.label, `${g.role}.cta.label`) ? { ...g.cta, label: g.cta.label } : null,
+    commercialPreview: g.commercialPreview ? { label: clean(g.commercialPreview.label, `${g.role}.commercialPreview.label`), note: clean(g.commercialPreview.note || '', `${g.role}.commercialPreview.note`) } : null,
   };
   if (s.visual) for (const k of ['label', 'title', 'task', 'note', 'from', 'to', 'review']) s.visual[k] = clean(s.visual[k] || '', `${g.role}.visual.${k}`);
   return s;

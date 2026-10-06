@@ -38,7 +38,7 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 - brandName: 見積もり番
 - serviceDescriptor: 見積もりの返事待ちを共有する、チーム用管理ツール
 - audienceLabel: 少人数で案件を進める制作会社へ
-- productLabel: （なし）
+- productLabel: 見積もり共有ツール
 - demoMode: synthetic-demo
 - demoNotice: 架空サービスのデモです。登録やお申し込みはできません。
 
@@ -64,6 +64,9 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 
 ## 公開資料（課題理解とインサイト仮説の材料。LP の根拠・口コミ・実績・優位性には使わない。sections の sourceRefs に入れない）
 - （なし）
+
+## FV の顔写真（assets.heroPortrait。人が用意する素材。画像そのものは渡さない）
+- なし（必要素材として fvDesign.requiredAssets に書く。無関係な写真・肩書・証言で埋めない）
 
 ## A 読者と場面
 - who: 少人数の制作会社で、見積もり送付後の確認を担当する人とチーム責任者

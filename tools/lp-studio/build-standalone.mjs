@@ -86,6 +86,16 @@ html = html.replace(/<meta http-equiv="Content-Security-Policy"[^>]*>/, `<meta h
 html = html.replace('<link rel="stylesheet" href="./styles.css">', () => `<style>${css}</style>`);
 html = html.replace('<script type="module" src="./app.js"></script>', () => `<script>${js}</script>`);
 html = html.replace('<title>LP Studio</title>', '<title>LP Studio（自己完結版）</title>');
+// 版の確認: 埋め込んだ入力（src・seed・アプリの HTML/CSS）の hash を meta に書く。--check はソースから作り直した結果と dist が同じかを調べる
+const source = createHash('sha256').update([...MODULES.map(([, p]) => read(p)), JSON.stringify(embed), css, read('src/app/index.html')].join('\0')).digest('hex');
+html = html.replace('<meta charset="utf-8">', `<meta charset="utf-8"><meta name="lp-studio-source" content="sha256:${source}">`);
+if (process.argv.includes('--check')) {
+  let current = '';
+  try { current = readFileSync(new URL('dist/lp-studio-standalone.html', root), 'utf8'); } catch { /* 無い */ }
+  if (current !== html) { console.error('dist/lp-studio-standalone.html はソースと一致しません（node build-standalone.mjs で作り直してください）'); process.exit(1); }
+  console.log(`一致: dist/lp-studio-standalone.html（source sha256:${source.slice(0, 12)}）`);
+  process.exit(0);
+}
 mkdirSync(new URL('dist/', root), { recursive: true });
 writeFileSync(new URL('dist/lp-studio-standalone.html', root), html);
 console.log(`dist/lp-studio-standalone.html (${(html.length / 1024).toFixed(0)} KB)`);

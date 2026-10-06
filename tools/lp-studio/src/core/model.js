@@ -234,7 +234,7 @@ export function applyEdit(project, op) {
     case 'approveSection': {
       const s = sec(p, op.id);
       s.approved = !!op.value;
-      s.approvedHash = op.value ? sectionHash(s) : '';
+      s.approvedHash = op.value ? sectionHash(s, p.assets?.heroPortrait) : '';
       if (op.value) s.needsReview = false;
       break;
     }

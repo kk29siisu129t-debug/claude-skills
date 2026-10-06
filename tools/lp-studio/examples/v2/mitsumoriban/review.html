@@ -163,15 +163,13 @@ tr.hl td{background-color:var(--hl)}
 .plan-title{font-size:34px;line-height:1.25;font-weight:800;margin:0;letter-spacing:-.02em}
 .plan-task{font-size:20px;padding:18px 20px;border-radius:14px;gap:14px}
 .plan-task .vis-box{width:24px;height:24px;margin-top:3px}
-.js .hero-visual .ring{animation:ring .6s cubic-bezier(.3,.7,.2,1) .35s both}
-@keyframes ring{from{--p:0}to{--p:25}}
 .after-fv{background:#fff;border-top:1px solid var(--line);padding:32px 0 8px}
 .after-fv .sec-in{max-width:760px}
 .after-notice{font-size:14px;line-height:1.7;border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:8px;padding:10px 14px;margin:0 0 18px;background:var(--paper)}
 .after-fv .lead{font-size:17px;line-height:1.8;margin:0 0 10px}
 .after-note{font-size:13px;color:var(--sub);margin:0 0 8px}
 .after-cp .cta-row{margin-top:8px}
-@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:48px}.hero-in{column-gap:32px}}
+@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:48px}.hero-in{column-gap:32px}.hero:not(.hero-portrait) .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta"}.hero:not(.hero-portrait) .hero-visual{margin-top:28px;max-width:640px}}
 @media (max-width:767px){
 .hero-bar{padding:12px 20px 0}
 .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";padding:20px 20px 28px}
@@ -197,7 +195,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-photo{position:relative;margin:0;overflow:hidden;height:300px}
 .hero-photo img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
 .hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
-.photo-cap{position:absolute;right:10px;top:270px;margin:0;font-size:10px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
+.photo-cap{position:absolute;z-index:1;right:10px;bottom:10px;margin:0;font-size:11px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
 .hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";min-height:0;padding:0 20px 24px;row-gap:0}
 .hero-portrait .hero-copy{margin-top:20px;align-self:auto}
 .hero-portrait h1{font-size:40px;line-height:1.25}
@@ -210,7 +208,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual.mini .ring{width:40px;height:40px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
 .hero-visual.mini .plan-title{font-size:18px}
 .hero-visual.mini .plan-task{font-size:14px;padding:8px 10px;gap:10px}
-@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
+@media (max-width:359px){.hero-photo{height:260px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
 @media (min-width:768px){
 .hero-portrait{background:#f4ece4}
 .hero-portrait .hero-bar{position:static;padding:16px 32px 0}
@@ -232,13 +230,13 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual.mini .ring{width:56px;height:56px}
 .hero-visual.mini .plan-title{font-size:22px}
 .hero-visual.mini .plan-task{font-size:15px;padding:10px 12px}
-.photo-cap{top:auto;bottom:12px;right:16px;font-size:11px}
+.photo-cap{bottom:12px;right:16px}
 }
 </style></head>
 <body data-kind="review" data-demo="synthetic-demo">
 <main><header class="hero cta-zone" id="hero"><div class="hero-bar"><span class="logo">見積もり番</span><span class="demo-badge">架空デモ</span></div><div class="hero-in">
-<div class="hero-copy"><p class="aud">少人数で案件を進める制作会社へ</p><h1><span class="ph">返事待ちの見積もりを、</span><span class="ph">チームで追える一覧に。</span></h1></div>
-<figure class="hero-visual" aria-label="共有一覧のイメージ・架空データ"><div class="vis vis-tablebox"><span class="vis-label">共有一覧のイメージ・架空データ</span><table class="vis-table"><thead><tr><th scope="col">案件</th><th scope="col">状況</th><th scope="col">担当者</th><th scope="col">次回確認日</th></tr></thead><tbody><tr class="hl"><td data-label="案件">サイト制作A</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月8日</td></tr><tr><td data-label="案件">バナー制作B</td><td data-label="状況"><span class="tag">条件を確認中</span></td><td data-label="担当者">担当B</td><td data-label="次回確認日">10月9日</td></tr></tbody></table></div></figure>
+<div class="hero-copy"><p class="aud">見積もり共有ツール</p><h1><span class="ph">返事待ちを、</span><span class="ph">チームで一覧に。</span></h1></div>
+<figure class="hero-visual" aria-label="架空の一覧の例"><div class="vis vis-tablebox"><span class="vis-label">架空の一覧の例</span><table class="vis-table"><thead><tr><th scope="col">案件</th><th scope="col">状況</th><th scope="col">担当者</th><th scope="col">次回確認日</th></tr></thead><tbody><tr class="hl"><td data-label="案件">サイト制作A</td><td data-label="状況"><span class="tag">返事待ち</span></td><td data-label="担当者">担当A</td><td data-label="次回確認日">10月8日</td></tr></tbody></table></div></figure>
 <div class="hero-cta"><a class="btn btn-primary btn-hero" href="#mechanism">絞り込みの例を見る<span class="arw" aria-hidden="true"></span></a></div>
 </div></header><section class="after-fv" aria-label="このページについて"><div class="sec-in"><p class="after-notice" role="note"><b>架空サービスのデモです。</b><span class="ph">登録や</span><span class="ph">お申し込みはできません。</span></p><p class="lead">見積もりの状況、担当者、次回の確認日をまとめて記録。誰が、どの案件を、いつ確認するかをチームで共有できます。</p><p class="after-note">図: <span class="ph">画面と</span><span class="ph">案件データは</span><span class="ph">説明用の</span><span class="ph">イメージです。</span><span class="ph">実際の</span><span class="ph">製品画面ではありません。</span></p></div></section>
 <section class="sec sec-empathy" id="empathy"><div class="sec-in"><h2><span class="ph">「あの見積もり、</span><span class="ph">その後どうなった？」から</span><span class="ph">始まる会議。</span></h2><div class="body reveal"><p>返事は担当者のメールに、次の予定はそれぞれのメモに。案件の状況をそろえるために、担当者へ一つずつ聞いていませんか。</p></div></div></section>

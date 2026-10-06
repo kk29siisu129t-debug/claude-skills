@@ -6,7 +6,7 @@
 
 import { refIndex } from './schema.js';
 import { ROLES } from './roles.js';
-import { canon, containsToken, detectClaims, PLACEHOLDER_RE } from './claims.js';
+import { canon, containsToken, detectClaims, metricMatches, PLACEHOLDER_RE } from './claims.js';
 import { headingPhrases } from './segment.js';
 import { safeUrl } from './util.js';
 
@@ -55,6 +55,9 @@ export function collectTexts(project) {
     if (s.cta) push('cta.label', s.cta.label);
     if (s.commercialPreview) { push('commercialPreview.label', s.commercialPreview.label); push('commercialPreview.note', s.commercialPreview.note); }
   }
+  // 固定CTAの文言案も公開される文言。FV と締めの参照で裏づける
+  const ctaRefs = project.sections.filter((s) => s.role === 'hero' || s.role === 'closing').flatMap((s) => s.sourceRefs || []);
+  for (const v of project.cta?.variants || []) if (v.label?.trim()) out.push({ sectionId: null, role: 'cta', field: `cta.variants.${v.id}`, text: v.label, refs: [...new Set(ctaRefs)] });
   return out;
 }
 
@@ -92,6 +95,7 @@ export function checkProject(project) {
     if (TOKEN_RE.test(t.text)) issues.push(ISSUE('stop', 'token', `${label}: 未展開の差込「${t.text.match(TOKEN_RE)[0]}」があります`, where));
     if (PLACEHOLDER_RE.test(t.text)) issues.push(ISSUE('stop', 'placeholder', `${label}: 【要記入】が残っています`, where));
     const refTexts = [];
+    const refHits = [];
     for (const r of t.refs) {
       const hit = idx.get(r);
       if (!hit) { issues.push(ISSUE('stop', 'ref-missing', `${label}: 参照ID「${r}」が台帳にありません`, where)); continue; }
@@ -99,24 +103,38 @@ export function checkProject(project) {
       if (hit.type === 'ledger' && hit.kind === 'unknown') issues.push(ISSUE('stop', 'unknown-as-fact', `${label}: 不明な項目「${hit.text}」を根拠にしています`, where));
       if (hit.type === 'evidence' && hit.kind === 'outcome-aggregate' && hit.reality !== 'real') issues.push(ISSUE('stop', 'synthetic-outcome', `${label}: 合成・未確認の成果データ「${hit.text.slice(0, 30)}」を根拠にしています（成果としては出せません）`, where));
       refTexts.push(hit.text);
+      refHits.push(hit);
     }
     const refJoined = refTexts.join('\n');
     // 数値は参照先にあること
     const ct = canon(t.text);
     for (const m of ct.matchAll(NUMBER_RE)) {
       const tok = m[0];
-      if (ct[m.index - 1] === '月' || /^[0-9]+月/.test(ct.slice(m.index))) continue; // 日付（10月8日）は数量の主張ではない
-      if (!refTexts.some((rt) => containsToken(rt, tok))) issues.push(ISSUE('stop', 'number-unsupported', `${label}: 数値「${tok}」が参照した事実にありません`, where));
+      if ((ct[m.index - 1] === '月' && /[0-9]/.test(ct[m.index - 2] || '')) || /^[0-9]{1,2}月[0-9]{1,2}日/.test(ct.slice(m.index))) continue; // 日付（10月8日）は数量の主張ではない（「月4.2日」は数量）
+      if (!refTexts.some((rt) => containsToken(rt, tok))) { issues.push(ISSUE('stop', 'number-unsupported', `${label}: 数値「${tok}」が参照した事実にありません`, where)); continue; }
+      // 指標つきの根拠と同じ数値なら、単位・期間（X/Y）まで一致すること（週4.2日 ≠ 月4.2日 ≠ 4.2時間）
+      const num = parseFloat(tok.replace(/[^0-9.]/g, ''));
+      for (const h of refHits.filter((x) => x.type === 'evidence' && x.item.metricValue === num && x.item.metricUnit)) {
+        if (!metricMatches(t.text, h.item.metricValue, h.item.metricUnit)) issues.push(ISSUE('stop', 'metric-mismatch', `${label}: 「${tok}」は根拠「${h.item.id}」の単位（${h.item.metricUnit}）と対象が合いません`, where));
+      }
     }
     // 未確定の条件を別の数値で埋めていないか（例: 学習の15分を面談の15分にする）
-    for (const c of clauses(t.text)) {
+    const cls = clauses(t.text);
+    const subjOf = (u, cc) => (u.subject ? synonymsOf(u.subject).some((w) => cc.includes(canon(w))) : true);
+    const filled = new Set();
+    cls.forEach((c, i) => {
       const cc = canon(c);
       for (const u of unknowns) {
-        const subjHit = u.subject ? synonymsOf(u.subject).some((w) => cc.includes(canon(w))) : true;
-        if (subjHit && u.test.test(cc)) {
-          issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${c}」と書いています（別の数値や条件で埋めない）`, where));
-        }
+        if (filled.has(u.id)) continue;
+        if (subjOf(u, cc) && u.test.test(cc)) { filled.add(u.id); issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${c}」と書いています（別の数値や条件で埋めない）`, where)); continue; }
+        // 読点で分けても同じ（「面談は、15分です。」）: 前の節が対象を言い、この節が対象を言い換えずに数量だけを述べる
+        const prev = i > 0 ? canon(cls[i - 1]) : '';
+        const ownNouns = (cc.replace(/[0-9０-９.]+\s*(分間|分|時間|日|円|万円|回|人|%|％)?/g, ' ').match(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu) || []);
+        if (prev && subjOf(u, prev) && u.test.test(cc) && ownNouns.length === 0) { filled.add(u.id); issues.push(ISSUE('stop', 'unknown-filled', `${label}: 「${u.text}」は未確定なのに「${cls[i - 1]}、${c}」と書いています（別の数値や条件で埋めない）`, where)); }
       }
+    });
+    for (const c of cls) {
+      const cc = canon(c);
       // 同じ対象に別々の数値が付いていないか
       for (const m of cc.matchAll(NUMBER_RE)) {
         const words = cc.replace(m[0], ' ').match(/[\p{Script=Han}\p{Script=Katakana}ー]{2,}/gu) || [];
@@ -132,7 +150,12 @@ export function checkProject(project) {
     for (const c of detectClaims(t.text, project.display.category)) {
       if (c.category === 'number') continue;
       if (c.severity === 'block') { issues.push(ISSUE('stop', 'claim-blocked', `${label}: ${c.label}「${c.match}」は出せません`, where)); continue; }
-      if (!containsToken(refJoined, c.match)) issues.push(ISSUE('stop', 'claim-unsupported', `${label}: ${c.label}「${c.match}」に裏づけがありません`, where));
+      if (!containsToken(refJoined, c.match)) { issues.push(ISSUE('stop', 'claim-unsupported', `${label}: ${c.label}「${c.match}」に裏づけがありません`, where)); continue; }
+      // 実販売では、主張の裏づけは実在・検証済みの根拠だけ（提供者の申告・未検証の根拠では出さない）
+      const verified = refHits.some((h) => h.type === 'evidence' && h.reality === 'real' && h.item.status === 'verified' && containsToken(h.text, c.match));
+      const at = t.text.indexOf(c.match);
+      const negated = at >= 0 && /^[^。！？]{0,12}?(ではありません|しません|はしない|ではない|できません)/.test(t.text.slice(at + c.match.length)); // 「保証するものではありません」は主張でなく断り書き
+      if (!verified && !negated) issues.push(ISSUE('warn', 'claim-unverified', `${label}: ${c.label}「${c.match}」の裏づけが実在・検証済みの根拠ではありません（実販売では出せません）`, where));
       if (c.category === 'testimonial' && !t.refs.some((r) => idx.get(r)?.type === 'quote')) issues.push(ISSUE('stop', 'invented-quote', `${label}: 顧客の原文が無いのに口コミ・声のような表現「${c.match}」があります`, where));
     }
     for (const d of doNot) if (canon(t.text).includes(canon(d))) issues.push(ISSUE('stop', 'do-not-assert', `${label}: 言わないと決めた「${d}」が入っています`, where));
@@ -151,6 +174,8 @@ export function checkProject(project) {
   // 構成
   const hero = project.sections.find((s) => s.role === 'hero');
   if (!hero) issues.push(ISSUE('stop', 'no-hero', 'FV（hero）がありません'));
+  else if (!hero.heading.trim()) issues.push(ISSUE('stop', 'empty-heading', 'FV の見出し（H1）が空です', { sectionId: hero.id }));
+  for (const s of project.sections) if (s.role === 'faq') s.items.forEach((it, i) => { if (!!it.heading.trim() !== !!it.body.trim()) issues.push(ISSUE('warn', 'faq-incomplete', `よくある質問/${i + 1}: 質問と答えの片方が空のため出力しません`, { sectionId: s.id })); });
   if (!project.sections.some((s) => s.role === 'closing')) issues.push(ISSUE('warn', 'no-closing', '締め（closing）がありません'));
   for (const s of project.sections) {
     const hasContent = s.body.trim() || (s.role === 'hero' && s.sub?.trim()) || s.items.some((i) => i.heading || i.body) || s.visual;
@@ -179,8 +204,17 @@ export function checkProject(project) {
     const pt = project.assets?.heroPortrait;
     if (!pt) issues.push(ISSUE('warn', 'asset-missing', `必要素材: FV の顔写真（架空・由来明記・対象者に合う場面）が未設定です${project.fvDesign?.requiredAssets?.length ? `（${project.fvDesign.requiredAssets.join(' / ')}）` : ''}`, { sectionId: hero.id }));
     else if (pt.fictional !== true && d.demoMode !== 'live') issues.push(ISSUE('stop', 'portrait-not-fictional', 'デモの顔写真が架空と記録されていません（実在の人物をデモに使わない）', { sectionId: hero.id }));
+    if (pt) {
+      // 写真を講師・受講生・推薦者・実績と結び付けない（alt と注記も検査する）
+      for (const [k, v] of [['alt', pt.alt], ['caption', pt.caption]]) {
+        const hit = String(v || '').match(PORTRAIT_ROLE_RE);
+        if (hit) issues.push(ISSUE('stop', 'portrait-claim', `FV の写真（${k}）に「${hit[0]}」とあります（人物を講師・受講生・推薦者・実績として紹介しない）`, { sectionId: hero.id }));
+      }
+      if (pt.origin !== 'ai_generated' && /AI生成/.test(pt.caption)) issues.push(ISSUE('stop', 'portrait-origin-mismatch', 'FV の写真の注記は「AI生成」ですが、由来が AI 生成と記録されていません', { sectionId: hero.id }));
+      if (pt.origin === 'ai_generated' && !/AI|イメージ|架空/.test(pt.caption)) issues.push(ISSUE('warn', 'portrait-origin-mismatch', 'AI 生成の写真であることが注記から分かりません', { sectionId: hero.id }));
+    }
     // 研究・心理学・CVR を FV の本文で主張しない（設計メモ fvDesign.researchNotes に書く）
-    if (/心理学|研究で|研究によ|CVR|離脱率|コンバージョン/.test(heroText)) issues.push(ISSUE('stop', 'research-in-copy', 'FV の本文で研究・心理学・CVR を主張しています（設計メモに書き、効果を約束しない）', { sectionId: hero.id }));
+    if (/心理学|研究で|研究によ|CVR|離脱率|コンバージョン/.test([heroText, hero.cta?.label, hero.commercialPreview?.label, hero.commercialPreview?.note, d.productLabel].join('\n'))) issues.push(ISSUE('stop', 'research-in-copy', 'FV の本文で研究・心理学・CVR を主張しています（設計メモに書き、効果を約束しない）', { sectionId: hero.id }));
   }
   if (!project.chosenAngleId) issues.push(ISSUE('warn', 'no-angle', '訴求が選ばれていません'));
   if (project.display.demoMode !== 'live' && !project.display.demoNotice.trim()) issues.push(ISSUE('stop', 'demo-unlabelled', 'デモ・試作の表示がありません'));
@@ -193,10 +227,12 @@ export function fvTextOf(project, hero = project.sections.find((s) => s.role ===
   if (!hero) return '';
   const d = project.display;
   const v = hero.visual;
-  const vis = !v ? [] : v.kind === 'task-card' ? [v.label, v.title, v.task] : v.kind === 'table' ? [v.label, v.title, ...(v.rows || []).flat()] : v.kind === 'flow' ? [v.label, v.from, v.to, v.review] : [v.label, v.title, ...(v.items || [])];
+  const vis = !v ? [] : v.kind === 'table' ? [v.label, v.title, ...(v.columns || []), ...(v.rows || []).flat()] : [v.label, v.title, v.task, v.from, v.to, v.review]; // 描画される欄をすべて数える
   const parts = [d.brandName, d.demoMode !== 'live' ? (d.demoMode === 'synthetic-demo' ? '架空デモ' : '試作') : '', d.productLabel || d.audienceLabel, hero.heading, hero.sub, ...vis, hero.cta?.label, project.assets?.heroPortrait?.caption];
   return parts.filter(Boolean).join('').replace(/\s/g, '');
 }
+
+const PORTRAIT_ROLE_RE = /講師|先生|受講生|受講者|合格者|合格|監修|専門家|お客様|利用者|ユーザーの声|の声|体験談|実績|さん|様|氏|代表|スタッフ|社員/;
 
 const EXAMPLE_HOST = /(^|\.)example\.(com|org|net)$/i;
 
@@ -207,6 +243,7 @@ export function gates(project, issues = checkProject(project)) {
   const d = project.display;
   const a = project.inputs.action;
   if (d.demoMode !== 'live') reasons.push(d.demoMode === 'synthetic-demo' ? '架空サービスのデモです' : '試作です');
+  if (!String(d.operator || '').trim()) reasons.push('運営者（事業者名）が確認されていません'); // v1 から引き継ぐ商用の必須条件
   if (!review.ok) reasons.push('重大な停止条件があります');
   if (a.behavior === 'none') reasons.push('CTAで何が起きるか（申込・予約など）が決まっていません');
   const labels = { offer: 'オファー', price: '料金', duration: '所要時間', method: '実施方法', url: 'リンク先' };
@@ -217,6 +254,7 @@ export function gates(project, issues = checkProject(project)) {
   for (const l of project.ledger.filter((x) => x.kind === 'unknown')) reasons.push(`未確定: ${l.text}`);
   if (project.ledger.some((l) => l.reality !== 'real') || project.evidence.some((e) => e.reality !== 'real')) reasons.push('台帳・根拠に実在でない（合成・不明）項目があります');
   for (const s of project.sections) if (!s.approved) reasons.push(`未承認: ${ROLES[s.role].label}`);
+  for (const i of issues.filter((x) => x.code === 'claim-unverified')) reasons.push(i.message);
   const v = project.cta.variants.find((x) => x.id === project.cta.activeVariant);
   if (v && v.timing !== 'spec') reasons.push('固定CTAの表示タイミングが比較用の案です（公開は仕様どおりの案だけ）');
   return { reviewPreview: review, commercialReady: { ok: reasons.length === 0, reasons: [...new Set(reasons)] } };

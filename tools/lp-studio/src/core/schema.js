@@ -243,7 +243,7 @@ export const PROJECT_SPEC = {
             alt: str(80), caption: str(40), gaze: { t: 'string', enum: ['left', 'right'] }, flip: { t: 'bool' },
             focusX: { t: 'number', min: 0, max: 100 }, focusY: { t: 'number', min: 0, max: 100 },
             zoomSp: { t: 'number', min: 1, max: 3 }, focusYPc: { t: 'number', min: 0, max: 100 }, focusXSp: { t: 'number', min: 0, max: 100 }, zoomPc: { t: 'number', min: 1, max: 3 },
-            origin: { t: 'string', enum: ['ai_generated', 'stock', 'own_photo'] }, fictional: { t: 'bool' },
+            origin: { t: 'string', enum: ['ai_generated', 'stock', 'own_photo', 'unknown'] }, fictional: { t: 'bool' },
             source: str(200),
           },
           required: ['dataUri', 'alt', 'caption'],
@@ -505,6 +505,13 @@ export function validateProject(input) {
   }
   if (p.chosenAngleId && !p.angles.some((a) => a.id === p.chosenAngleId)) { warnings.push('$.chosenAngleId: 存在しない訴求のため外しました'); p.chosenAngleId = ''; }
 
+  // 顔写真（承認 hash に含めるため、セクションより先に整える）
+  p.assets = { heroPortrait: null, ...(p.assets || {}) };
+  const hp = p.assets.heroPortrait;
+  if (hp) {
+    p.assets.heroPortrait = { gaze: 'left', flip: false, focusX: 50, focusY: 30, zoomSp: 1, zoomPc: 1, origin: 'unknown', fictional: false, source: '', ...hp }; // 由来と架空かどうかは明示が必要（既定は「不明・架空ではない」= デモでは停止）
+    if (!/架空|イメージ/.test(hp.caption)) { p.assets.heroPortrait.caption = '写真はイメージ（架空の人物）'; warnings.push('$.assets.heroPortrait.caption: 架空のイメージ人物である表示に置き換えました'); }
+  }
   // セクション
   for (const s of p.sections) {
     s.approved = !!s.approved; s.approvedHash = s.approvedHash || ''; s.needsReview = !!s.needsReview; s.origin = s.origin || 'manual';
@@ -517,19 +524,13 @@ export function validateProject(input) {
     if (s.cta && !sectionIds.has(s.cta.target)) { warnings.push(`$.sections.${s.id}.cta: 移動先 "${s.cta.target}" が無いため外しました`); s.cta = null; }
     if (s.commercialPreview === undefined) s.commercialPreview = null;
     if (s.commercialPreview) s.commercialPreview = { note: '', ...s.commercialPreview };
-    if (s.approved && s.approvedHash !== sectionHash(s)) {
+    if (s.approved && s.approvedHash !== sectionHash(s, p.assets?.heroPortrait)) {
       s.approved = false; s.approvedHash = '';
       warnings.push(`$.sections.${s.id}: 承認後に内容が変わっているため承認を外しました`);
     }
   }
   for (const [i, x] of (p.lpo?.dataset?.experiments || []).entries()) {
     for (const k of ['start', 'end', 'plannedEnd']) if (!isRealDate(x[k])) errors.push(`$.lpo.dataset.experiments[${i}].${k}: 実在しない日付です`);
-  }
-  p.assets = { heroPortrait: null, ...(p.assets || {}) };
-  const hp = p.assets.heroPortrait;
-  if (hp) {
-    p.assets.heroPortrait = { gaze: 'left', flip: false, focusX: 50, focusY: 30, zoomSp: 1, zoomPc: 1, origin: 'ai_generated', fictional: true, source: '', ...hp };
-    if (!/架空|イメージ/.test(hp.caption)) { p.assets.heroPortrait.caption = '写真はイメージ（架空の人物）'; warnings.push('$.assets.heroPortrait.caption: 架空のイメージ人物である表示に置き換えました'); }
   }
   if (!p.lpo) p.lpo = { dataset: null };
   if (p.lpo.dataset === undefined) p.lpo.dataset = null;

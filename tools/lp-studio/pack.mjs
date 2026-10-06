@@ -16,6 +16,7 @@ const opt = (k) => { const i = args.indexOf(k); return i >= 0 ? args[i + 1] : nu
 const git = (...a) => execFileSync('git', a, { cwd: root, encoding: 'utf8' }).trim();
 const dirty = git('status', '--porcelain', '--', '.') !== '';
 if (dirty && !args.includes('--allow-dirty')) { console.error('未コミットの変更があります。コミットしてから実行してください（ZIP と commit を一致させるため）'); process.exit(1); }
+try { execFileSync(process.execPath, ['build-standalone.mjs', '--check'], { cwd: root, stdio: 'pipe' }); } catch { console.error('dist/lp-studio-standalone.html がソースと一致しません。node build-standalone.mjs を実行してください'); process.exit(1); }
 const sha = git('rev-parse', 'HEAD');
 const files = git('ls-files', '-z', '--', '.').split('\0').filter(Boolean);
 const stage = mkdtempSync(join(tmpdir(), 'lp-pack-'));

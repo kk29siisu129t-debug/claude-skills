@@ -224,15 +224,13 @@ tr.hl td{background-color:var(--hl)}
 .plan-title{font-size:34px;line-height:1.25;font-weight:800;margin:0;letter-spacing:-.02em}
 .plan-task{font-size:20px;padding:18px 20px;border-radius:14px;gap:14px}
 .plan-task .vis-box{width:24px;height:24px;margin-top:3px}
-.js .hero-visual .ring{animation:ring .6s cubic-bezier(.3,.7,.2,1) .35s both}
-@keyframes ring{from{--p:0}to{--p:25}}
 .after-fv{background:#fff;border-top:1px solid var(--line);padding:32px 0 8px}
 .after-fv .sec-in{max-width:760px}
 .after-notice{font-size:14px;line-height:1.7;border:1px solid var(--line);border-left:4px solid var(--ink);border-radius:8px;padding:10px 14px;margin:0 0 18px;background:var(--paper)}
 .after-fv .lead{font-size:17px;line-height:1.8;margin:0 0 10px}
 .after-note{font-size:13px;color:var(--sub);margin:0 0 8px}
 .after-cp .cta-row{margin-top:8px}
-@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:48px}.hero-in{column-gap:32px}}
+@media (min-width:768px) and (max-width:1023px){.hero h1{font-size:48px}.hero-in{column-gap:32px}.hero:not(.hero-portrait) .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta"}.hero:not(.hero-portrait) .hero-visual{margin-top:28px;max-width:640px}}
 @media (max-width:767px){
 .hero-bar{padding:12px 20px 0}
 .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";padding:20px 20px 28px}
@@ -258,7 +256,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-photo{position:relative;margin:0;overflow:hidden;height:300px}
 .hero-photo img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
 .hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
-.photo-cap{position:absolute;right:10px;top:270px;margin:0;font-size:10px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
+.photo-cap{position:absolute;z-index:1;right:10px;bottom:10px;margin:0;font-size:11px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
 .hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";min-height:0;padding:0 20px 24px;row-gap:0}
 .hero-portrait .hero-copy{margin-top:20px;align-self:auto}
 .hero-portrait h1{font-size:40px;line-height:1.25}
@@ -271,7 +269,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual.mini .ring{width:40px;height:40px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
 .hero-visual.mini .plan-title{font-size:18px}
 .hero-visual.mini .plan-task{font-size:14px;padding:8px 10px;gap:10px}
-@media (max-width:359px){.hero-photo{height:260px}.photo-cap{top:230px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
+@media (max-width:359px){.hero-photo{height:260px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
 @media (min-width:768px){
 .hero-portrait{background:#f4ece4}
 .hero-portrait .hero-bar{position:static;padding:16px 32px 0}
@@ -293,7 +291,7 @@ tr.hl td{background-color:var(--hl)}
 .hero-visual.mini .ring{width:56px;height:56px}
 .hero-visual.mini .plan-title{font-size:22px}
 .hero-visual.mini .plan-task{font-size:15px;padding:10px 12px}
-.photo-cap{top:auto;bottom:12px;right:16px;font-size:11px}
+.photo-cap{bottom:12px;right:16px}
 }
 `;
 }
@@ -312,7 +310,7 @@ function visualHtml(v, { hero = false } = {}) {
   const label = `<span class="vis-label">${e(v.label)}</span>`;
   const note = v.note ? `<p class="vis-note">${phrasesHtml(v.note)}</p>` : '';
   if (v.kind === 'task-card' && hero) {
-    return `<div class="vis plan">${label}<div class="plan-main"><div class="ring" aria-hidden="true"><span></span></div><p class="vis-title plan-title">${e(v.title)}</p></div><div class="vis-row plan-task hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div></div>`;
+    return `<div class="vis plan">${label}<div class="plan-main"><p class="vis-title plan-title">${e(v.title)}</p></div><div class="vis-row plan-task hl"><span class="vis-box" aria-hidden="true"></span><span>${e(v.task)}</span></div></div>`;
   }
   if (v.kind === 'table' && hero) {
     const cols = v.columns || [];
@@ -383,11 +381,11 @@ function sectionHtml(project, s, mode) {
         // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
         const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
         const vars = `--fx:${num(pt.focusX, 50)}%;--fy:${num(pt.focusY, 30)}%;--fyp:${num(pt.focusYPc, num(pt.focusY, 30))}%;--fxs:${num(pt.focusXSp, num(pt.focusX, 50))}%;--zs:${num(pt.zoomSp, 1)};--zp:${num(pt.zoomPc, 1)}`;
-        return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"></figure><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
+        return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"><figcaption class="photo-cap">${e(pt.caption)}</figcaption></figure><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
 ${copy}
 ${s.visual ? `<div class="hero-visual mini" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</div>` : ''}
 <div class="hero-cta">${cta}</div>
-</div><p class="photo-cap">${e(pt.caption)}</p></header>`;
+</div></header>`;
       }
       return `<header class="hero cta-zone" id="${id}"><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
 ${copy}
@@ -398,13 +396,13 @@ ${s.visual ? `<figure class="hero-visual" aria-label="${e(s.visual.label)}">${vi
     case 'closing':
       return `<section class="closing" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}${ctaHtml(s, mode)}</div></section>`;
     case 'process':
-      return `<section class="sec sec-process" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}<ol class="steps">${s.items.map((it) => `<li class="reveal"><div><h3>${phrasesHtml(it.heading)}</h3>${it.body ? `<p>${e(it.body)}</p>` : ''}</div></li>`).join('')}</ol>${ctaHtml(s, mode)}</div></section>`;
+      return `<section class="sec sec-process" id="${id}"><div class="sec-in">${meta}${h2}${s.body ? `<div class="body reveal">${paras(s.body)}</div>` : ''}<ol class="steps">${s.items.filter((it) => it.heading || it.body).map((it) => `<li class="reveal"><div>${it.heading ? `<h3>${phrasesHtml(it.heading)}</h3>` : ''}${it.body ? `<p>${e(it.body)}</p>` : ''}</div></li>`).join('')}</ol>${ctaHtml(s, mode)}</div></section>`;
     case 'faq':
-      return `<section class="sec sec-faq" id="${id}"><div class="sec-in">${meta}<h2>${s.heading ? phrasesHtml(s.heading, s.headingPhrases) : 'よくある質問'}</h2>${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<dl class="faq">${s.items.map((it) => `<div class="reveal"><dt>${e(it.heading)}</dt><dd>${e(it.body)}</dd></div>`).join('')}</dl></div></section>`;
+      return `<section class="sec sec-faq" id="${id}"><div class="sec-in">${meta}<h2>${s.heading ? phrasesHtml(s.heading, s.headingPhrases) : 'よくある質問'}</h2>${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<dl class="faq">${s.items.filter((it) => it.heading && it.body).map((it) => `<div class="reveal"><dt>${e(it.heading)}</dt><dd>${e(it.body)}</dd></div>`).join('')}</dl></div></section>`;
     case 'illustration':
       return `<section class="sec sec-illus illus" id="${id}"><div class="sec-in wide">${meta}${h2}${s.body ? `<div class="body">${paras(s.body)}</div>` : ''}<div class="reveal">${visualHtml(s.visual)}</div>${ctaHtml(s, mode)}</div></section>`;
     case 'scope':
-      return `<section class="sec sec-scope" id="${id}"><div class="sec-in">${meta}${h2}<div class="scope-box reveal">${paras(s.body)}${s.items.length ? `<ul>${s.items.map((it) => `<li>${e(it.heading)}${it.body ? `：${e(it.body)}` : ''}</li>`).join('')}</ul>` : ''}</div>${ctaHtml(s, mode)}</div></section>`;
+      return `<section class="sec sec-scope" id="${id}"><div class="sec-in">${meta}${h2}<div class="scope-box reveal">${paras(s.body)}${s.items.some((it) => it.heading || it.body) ? `<ul>${s.items.filter((it) => it.heading || it.body).map((it) => `<li>${e(it.heading)}${it.heading && it.body ? '：' : ''}${e(it.body)}</li>`).join('')}</ul>` : ''}</div>${ctaHtml(s, mode)}</div></section>`;
     case 'proof': {
       const idx = refIndex(project);
       const ev = s.sourceRefs.map((r) => idx.get(r)).filter((x) => x && x.type === 'evidence' && x.reality === 'real' && x.item.status === 'verified' && !['illustrative', 'hypothesis'].includes(x.item.kind) && !(x.item.kind === 'customer-quote' && !x.item.consent) && ![x.item.claim, x.item.source].some((t) => detectClaims(t, project.display.category).some((c) => c.severity === 'block')));
@@ -434,6 +432,7 @@ export function renderPage(project, { kind = 'review', reduceMotion = false } = 
     commercialUrl: commercial ? safeUrl(project.inputs.action.url) : '#',
     demoNotice: project.display.demoMode !== 'live' ? project.display.demoNotice : '',
   };
+  const shown = kind === 'commercial' && !commercial ? 'review' : kind; // 判定に通らない実販売版は review として表示する
   const removed = [];
   const parts = [];
   // デモの声明・無効の申込は FV の直下に置く。FV の CTA の移動先が直後のセクションなら、その説明の後に置く（CTA で移動した先で読める）
@@ -469,11 +468,11 @@ export function renderPage(project, { kind = 'review', reduceMotion = false } = 
   const html = `<!doctype html>
 <html lang="ja"${reduceMotion ? ' data-reduce-motion' : ''}><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta http-equiv="Content-Security-Policy" content="${csp}"><meta name="referrer" content="no-referrer">${robots}
-<meta name="generator" content="lp-studio v2 (${kind})">
+<meta name="generator" content="lp-studio v2 (${shown})">
 <title>${e(d.brandName)}${d.serviceDescriptor ? `｜${e(d.serviceDescriptor)}` : ''}</title>
 <script>${HEAD_SCRIPT}</script>
 <style>${css(project)}</style></head>
-<body data-kind="${e(kind)}" data-demo="${e(d.demoMode)}">${banner}${demoBar}
+<body data-kind="${e(shown)}" data-demo="${e(d.demoMode)}">${banner}${demoBar}
 <main>${parts.join('\n')}</main>
 ${footer}
 ${sticky}

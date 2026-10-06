@@ -2,13 +2,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { applyEdit } from '../../src/core/model.js';
-import { exportHtml } from '../../src/core/render.js';
-import { checkProject } from '../../src/core/editorial.js';
-import { ingestGenerated } from '../../src/core/generate.js';
+import { exportHtml, renderPage } from '../../src/core/render.js';
+import { checkProject, fvTextOf } from '../../src/core/editorial.js';
+import { ingestGenerated, buildPrompt } from '../../src/core/generate.js';
 import { validateProject, serializeProject } from '../../src/core/schema.js';
 import { analyzeExperiment, comparability, analyzeLpo, buildHypotheses } from '../../src/core/lpo.js';
 import { detectClaims, containsToken, metricMatches } from '../../src/core/claims.js';
-import { seed } from './helpers.mjs';
+import { seed, seed2, brief, RESPONSE } from './helpers.mjs';
 
 const ZW = '​';
 const stops = (p) => checkProject(p).filter((i) => i.level === 'stop');
@@ -170,4 +170,98 @@ test('残5・新2 差が観測されたら再現確認（悪化なら配分停�
   assert.equal(new Set(hs.map((h) => h.id)).size, 2);
   assert.match(hs.find((h) => h.id.endsWith('-c')).title, /悪化/);
   assert.doesNotMatch(hs.find((h) => h.id.endsWith('-c')).hypothesis, /配分を上げる/);
+});
+
+// ---- 監査役 検品（3161eda）の指摘 A〜N ----
+const stopsOf = (p) => checkProject(p).filter((i) => i.level === 'stop');
+const withPortrait = (p, patch) => ({ ...p, assets: { heroPortrait: { ...p.assets.heroPortrait, ...patch } } });
+
+test('監査A 読点で区切っても、未確定の面談時間を数値で埋めたら止める（学習の15分は止めない）', () => {
+  for (const v of ['面談は、15分です。', '面談は15分。', '面談は、およそ30分。', '面談では、15分ほどで終わります。']) {
+    const p = applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: '面談について', body: v }] });
+    assert.ok(stopsOf(p).some((i) => i.code === 'unknown-filled'), v);
+  }
+  for (const v of ['面談で計画をつくり、毎晩15分の単位に分けます。', '15分は、学習内容を分ける単位です。']) {
+    const p = applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: '15分について', body: v }] });
+    assert.ok(!stopsOf(p).some((i) => i.code === 'unknown-filled'), v);
+  }
+});
+
+test('監査B 写真の alt・注記で、人物を講師・受講生・合格者・推薦者にしない／由来と注記の食い違い', () => {
+  const base = seed();
+  for (const [k, v] of [['caption', 'イメージ：講師の山田先生'], ['caption', '合格者の声（イメージ）'], ['alt', '受講生の田中さん（2級合格）'], ['alt', '監修の専門家']]) {
+    const p = validateProject(withPortrait(base, { [k]: v })).project;
+    assert.ok(stopsOf(p).some((i) => i.code === 'portrait-claim'), `${k}: ${v}`);
+    assert.equal(exportHtml(p, 'review').html, null, `${k}: review も出さない`);
+  }
+  const own = validateProject(withPortrait(base, { origin: 'own_photo', fictional: true })).project;
+  assert.ok(stopsOf(own).some((i) => i.code === 'portrait-origin-mismatch'));
+  // 由来・架空の記録が無い写真は「不明・架空ではない」として扱い、デモでは止める
+  const { origin, fictional, ...rest } = base.assets.heroPortrait;
+  const unknown = validateProject({ ...base, assets: { heroPortrait: rest } }).project;
+  assert.equal(unknown.assets.heroPortrait.origin, 'unknown');
+  assert.ok(stopsOf(unknown).some((i) => i.code === 'portrait-not-fictional'));
+  assert.ok(!stopsOf(base).some((i) => /portrait/.test(i.code)));
+});
+
+test('監査C 空の見出し・空の項目を出力しない', () => {
+  let p = applyEdit(seed(), { type: 'setItems', id: 'process', value: [{ heading: '', body: '本文だけの項目です。' }, { heading: '見出しだけ', body: '' }] });
+  let html = renderPage(p, { kind: 'review' }).html;
+  assert.doesNotMatch(html, /<h3>\s*<\/h3>|<dt>\s*<\/dt>|<dd>\s*<\/dd>|<h1>\s*<\/h1>|<h2>\s*<\/h2>/);
+  assert.match(html, /<p>本文だけの項目です。<\/p>/);
+  p = applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: '', body: '答えだけ。' }, { heading: '質問だけ？', body: '' }] });
+  html = renderPage(p, { kind: 'review' }).html;
+  assert.doesNotMatch(html, /<dt>\s*<\/dt>|<dd>\s*<\/dd>|答えだけ|質問だけ/);
+  assert.ok(checkProject(p).some((i) => i.code === 'faq-incomplete'));
+  p = applyEdit(seed(), { type: 'setField', id: 'hero', field: 'heading', value: '' });
+  assert.ok(stopsOf(p).some((i) => i.code === 'empty-heading'));
+  assert.equal(exportHtml(p, 'review').html, null);
+});
+
+test('監査D 承認の hash は FV の写真（画像・alt・注記・由来）と補助文を含む', () => {
+  const p = applyEdit(seed(), { type: 'approveSection', id: 'hero', value: true });
+  assert.ok(validateProject(JSON.parse(serializeProject(p))).project.sections.find((s) => s.role === 'hero').approved);
+  for (const patch of [{ caption: 'イメージ：講師の先生' }, { alt: '別の人物' }, { dataUri: 'data:image/png;base64,AAAA' }, { origin: 'stock' }, { fictional: false }]) {
+    const changed = withPortrait(p, patch);
+    const again = validateProject(JSON.parse(serializeProject(changed)));
+    assert.equal(again.project.sections.find((s) => s.role === 'hero').approved, false, JSON.stringify(patch));
+  }
+  const sub = JSON.parse(serializeProject(p));
+  sub.sections.find((s) => s.role === 'hero').sub = '別の補助文です。';
+  assert.equal(validateProject(sub).project.sections.find((s) => s.role === 'hero').approved, false);
+});
+
+test('監査E 生成指示に写真の有無・alt・注記・由来が入り、写真の中身は alt 以外から書かせない', () => {
+  const a = buildPrompt(seed(), 'full');
+  const pt = seed().assets.heroPortrait;
+  for (const w of [pt.alt, pt.caption, 'ai_generated', '講師・受講生・推薦者・実績として紹介しない']) assert.ok(a.includes(w), w);
+  assert.ok(!a.includes('base64'), '画像そのものは渡さない');
+  const b = buildPrompt(seed2(), 'full');
+  assert.match(b, /FV の顔写真[\s\S]*- なし（必要素材として fvDesign\.requiredAssets/);
+  // 設計メモは提供者の申告を「確認済み」と書かない
+  assert.doesNotMatch(seed().fvDesign.fit, /確認済み/);
+});
+
+test('監査F〜J 固定の量を示すリングなし・checklist の文字数・CTA の研究主張・ingest の CTA 検査・判定に落ちた実販売の札', () => {
+  assert.doesNotMatch(renderPage(seed2(), { kind: 'review' }).html, /class="ring"/);
+  const ck = { ...seed(), sections: seed().sections.map((s) => (s.role === 'hero' ? { ...s, visual: { kind: 'checklist', label: '例のイメージ', title: '確認すること', task: 'とても長い確認の項目をここに書いておく', from: '', to: '', review: '', note: '例です。', columns: [], rows: [], highlight: -1, sourceRefs: [], notEvidence: true } } : s)) };
+  assert.ok(fvTextOf(ck).includes('とても長い確認の項目'));
+  const cta = applyEdit(seed(), { type: 'setCtaLabel', id: 'hero', value: '離脱率が下がる計画' });
+  assert.ok(stopsOf(cta).some((i) => i.code === 'research-in-copy'));
+  const r = JSON.parse(RESPONSE('michishirube'));
+  r.sections[0].cta.label = 'https://evil.example';
+  r.sections[0].commercialPreview.label = '<b>予約</b>';
+  const g = ingestGenerated(brief('michishirube'), JSON.stringify(r), { mode: 'full' });
+  const hero = g.project.sections.find((s) => s.role === 'hero');
+  assert.equal(hero.cta, null);
+  assert.equal(hero.commercialPreview.label, '');
+  assert.ok(g.report.rejected.some((x) => /cta\.label/.test(x)));
+  const c = renderPage(seed(), { kind: 'commercial' }).html;
+  assert.match(c, /data-kind="review"/);
+  assert.doesNotMatch(c, /lp-studio v2 \(commercial\)/);
+});
+
+test('監査M 写真の注記は figure の中（figcaption）', () => {
+  const h = renderPage(seed(), { kind: 'review' }).html;
+  assert.match(h, /<figure class="hero-photo"><img [^>]+><figcaption class="photo-cap">写真はAI生成のイメージ<\/figcaption><\/figure>/);
 });

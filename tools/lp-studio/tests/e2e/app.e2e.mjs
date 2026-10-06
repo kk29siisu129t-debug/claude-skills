@@ -4,7 +4,7 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, readdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launch } from './pw.mjs';
@@ -143,8 +143,8 @@ test('2つ目の業種（見積もり共有ツール）も同じエディタで�
   await page.waitForFunction(() => document.querySelector('#project-name').value.includes('見積もり番'));
   await tab(page, 'design');
   const t = await frameText(page, '#pc-frame');
-  assert.match(t, /返事待ちの見積もりを/);
-  assert.match(t, /共有一覧のイメージ・架空データ/);
+  const hero = JSON.parse(readFileSync(join(ROOT, 'examples/v2/mitsumoriban/response.json'), 'utf8')).sections[0];
+  assert.ok(t.includes(hero.headingPhrases[0]) && t.includes(hero.visual.label) && t.includes(hero.visual.rows[0][0]), '見積もり番の見出し・架空の一覧が出る');
   for (const w of ['15分', '簿記', '合格']) assert.ok(!t.includes(w), w);
   assert.deepEqual(errors, []);
   await context.close();
@@ -429,7 +429,7 @@ test('自己完結版（dist/lp-studio-standalone.html）を file:// で開い�
   await page.waitForFunction(() => document.querySelector('#project-name').value.includes('見積もり番'));
   await tab(page, 'export');
   const review = await downloadText(page, '#btn-export-review');
-  assert.match(review.text, /返事待ちの見積もりを/);
+  assert.ok(review.text.includes(JSON.parse(readFileSync(join(ROOT, "examples/v2/mitsumoriban/response.json"), "utf8")).sections[0].headingPhrases[0]));
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -491,6 +491,13 @@ test('ZIP を展開しても同じ版が動く（自己完結版・書き出し�
   const head = await new Promise((res) => { let o = ''; const g = spawn('git', ['rev-parse', 'HEAD'], { cwd: ROOT }); g.stdout.on('data', (d) => { o += d; }); g.on('exit', () => res(o.trim())); });
   assert.match(readFileSync(join(base, 'VERSION.txt'), 'utf8'), new RegExp(`^commit ${head}`));
   for (const f of ['dist/lp-studio-standalone.html', 'examples/v2/michishirube/review.html', 'examples/v2/mitsumoriban/review.html', 'seed/michishirube.project.json', 'src/core/render.js']) assert.equal(readFileSync(join(base, f), 'utf8'), readFileSync(join(ROOT, f), 'utf8'), `ZIP の ${f} が作業ツリーと一致`);
+  // 展開した中身だけで: 自己完結版がソースから作り直したものと同じ・単体テストが通る
+  const run = (args) => new Promise((res) => { let o = ''; const env = { ...process.env }; delete env.NODE_TEST_CONTEXT; const c = spawn(process.execPath, args, { cwd: base, env }); /* 入れ子の node --test として扱われないように */ c.stdout.on('data', (d) => { o += d; }); c.stderr.on('data', (d) => { o += d; }); c.on('exit', (code) => res({ code, o })); });
+  const chk = await run(['build-standalone.mjs', '--check']);
+  assert.equal(chk.code, 0, chk.o);
+  const ut = await run(['--test', ...readdirSync(join(base, 'tests/unit')).filter((f) => f.endsWith('.test.mjs')).map((f) => `tests/unit/${f}`)]);
+  assert.equal(ut.code, 0, ut.o.slice(-800));
+  assert.match(ut.o, /# fail 0/);
   const ctx = await browser.newContext({ viewport: { width: 400, height: 760 } });
   const p = await ctx.newPage();
   const errors = [];
@@ -505,4 +512,82 @@ test('ZIP を展開しても同じ版が動く（自己完結版・書き出し�
   assert.equal(await p.locator('.hero-portrait img[src^="data:image/webp;base64,"]').count(), 1);
   assert.deepEqual(errors, []);
   await ctx.close();
+});
+
+test('エディタ: セクションの並べ替えは描画・保存・再読込で保たれる', async () => {
+  const context = await browser.newContext({ acceptDownloads: true });
+  const { page, errors } = await openApp(context);
+  await tab(page, 'plan');
+  const order = () => page.locator('ol.plan > li').evaluateAll((lis) => lis.map((li) => li.querySelector('[id^="pick-"]')?.id.replace('pick-', '')));
+  const before = await order();
+  const i = before.indexOf('faq');
+  await page.click('#up-faq');
+  const after = await order();
+  assert.equal(after.indexOf('faq'), i - 1);
+  await tab(page, 'design');
+  const ids = await page.frameLocator('#sp-frame').locator('main > section[id], main > header[id]').evaluateAll((els) => els.map((e) => e.id));
+  assert.ok(ids.indexOf('faq') < ids.indexOf(after[i]), `描画順 ${ids}`);
+  const saved = await downloadText(page, '#btn-save');
+  assert.deepEqual(JSON.parse(saved.text).sections.map((s) => s.id), after);
+  await page.reload();
+  await page.waitForSelector('body[data-ready="1"]');
+  await tab(page, 'plan');
+  assert.deepEqual(await order(), after);
+  await page.click('#btn-new');
+  await page.setInputFiles('#file-load', saved.path);
+  await tab(page, 'plan');
+  await page.waitForFunction((n) => document.querySelectorAll('ol.plan > li').length === n, after.length);
+  assert.deepEqual(await order(), after);
+  assert.equal(await page.locator(`#up-${after[0]}`).isDisabled(), true);
+  assert.deepEqual(errors, []);
+  await context.close();
+});
+
+test('エディタ: 根拠の検証は人の操作（確認者・実在の日付）。内容が変わると検証・承認は外れる', async () => {
+  const context = await browser.newContext({ acceptDownloads: true });
+  const { page, errors } = await openApp(context);
+  await tab(page, 'export');
+  await page.fill('#ev-claim', '架空の仕様メモ（検証の操作確認用）');
+  await page.fill('#ev-source', '架空の社内資料');
+  await page.click('#btn-add-ev');
+  const row = page.locator('tr[data-ev]').last();
+  const evId = await row.getAttribute('data-ev');
+  // 確認者なし・未来の日付は拒否
+  await page.fill(`#vat-${evId}`, '2026-10-01');
+  await page.click(`#verify-${evId}`);
+  await page.waitForSelector('#toast.show[data-kind="error"]');
+  await page.fill(`#vby-${evId}`, '確認者A');
+  await page.fill(`#vat-${evId}`, '2099-01-01');
+  await page.click(`#verify-${evId}`);
+  await page.waitForFunction(() => /確認日/.test(document.querySelector('#toast').textContent));
+  await page.fill(`#vby-${evId}`, '確認者A');
+  await page.fill(`#vat-${evId}`, '2026-10-01');
+  await page.click(`#verify-${evId}`);
+  await page.waitForSelector(`#unverify-${evId}`);
+  assert.match(await page.locator(`tr[data-ev="${evId}"]`).innerText(), /出典確認 確認者A 2026-10-01/);
+  // FV を承認 → 見出しを変えると承認が外れる
+  await tab(page, 'plan');
+  await page.click('#pick-hero');
+  await page.click('#btn-approve');
+  await page.waitForFunction(() => /承認を取り消す/.test(document.querySelector('#btn-approve').textContent));
+  await page.fill('#f-heading', 'このペースで、大丈夫かな。（編集）');
+  await page.locator('#f-heading').press('Tab');
+  await page.waitForFunction(() => /内容を確認して承認/.test(document.querySelector('#btn-approve').textContent));
+  // 検証・承認の後に JSON の中身を書き換えて読み込むと、未検証・未承認に戻る
+  await page.click('#btn-approve');
+  const saved = await downloadText(page, '#btn-save');
+  const j = JSON.parse(saved.text);
+  j.evidence.find((e) => e.id === evId).claim = '書き換えた主張';
+  j.assets.heroPortrait.caption = '写真はイメージ（差し替え）';
+  const edited = join(TMP, 'edited.json');
+  writeFileSync(edited, JSON.stringify(j));
+  await page.setInputFiles('#file-load', edited);
+  await tab(page, 'export');
+  await page.waitForSelector(`#verify-${evId}`);
+  assert.match(await page.locator(`tr[data-ev="${evId}"]`).innerText(), /未検証/);
+  await tab(page, 'plan');
+  await page.click('#pick-hero');
+  assert.match(await page.locator('#btn-approve').innerText(), /内容を確認して承認/); // 写真の注記を変えたので FV の承認も外れる
+  assert.deepEqual(errors.filter((e) => !/dialog/.test(e)), []);
+  await context.close();
 });

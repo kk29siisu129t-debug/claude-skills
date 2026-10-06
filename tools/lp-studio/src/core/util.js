@@ -156,9 +156,11 @@ export function isRealDate(s) {
 }
 
 /** 承認と内容を対応づける hash（v2: 役割・見出し・本文・項目・図解・CTA・参照） */
-export function sectionHash(s) {
+/** 承認・検証の hash。FV（hero）は顔写真（画像・alt・注記・由来）も含める: portrait = project.assets.heroPortrait */
+export function sectionHash(s, portrait = null) {
   if (s.role) {
-    return sha256Base64(JSON.stringify([s.role, s.heading || '', s.headingPhrases || [], s.body || '', s.note || '', s.items || [], s.visual || null, s.cta || null, s.commercialPreview || null, s.sourceRefs || [], s.media ? { ...s.media, dataUri: s.media.dataUri ? sha256Base64(s.media.dataUri) : '' } : null, ...(s.sub ? [s.sub] : [])]));
+    const pt = s.role === 'hero' && portrait ? [{ img: sha256Base64(portrait.dataUri || ''), alt: portrait.alt || '', caption: portrait.caption || '', origin: portrait.origin || '', fictional: portrait.fictional === true }] : [];
+    return sha256Base64(JSON.stringify([s.role, s.heading || '', s.headingPhrases || [], s.body || '', s.note || '', s.items || [], s.visual || null, s.cta || null, s.commercialPreview || null, s.sourceRefs || [], s.media ? { ...s.media, dataUri: s.media.dataUri ? sha256Base64(s.media.dataUri) : '' } : null, ...(s.sub ? [s.sub] : []), ...pt]));
   }
   const f = s.fields || {};
   return sha256Base64(JSON.stringify([s.type, f.heading || '', f.lead || '', f.body || '', f.note || '', f.items || [], f.itemsAlt || [], s.claimRefs || []]));
