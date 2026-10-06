@@ -38,8 +38,16 @@ STATE_JA = {VALUE: '値あり', ZERO: '0（実測）', BLANK: '空欄', UNAVAILA
 MEASURED = (VALUE, ZERO)
 DECLARABLE = (UNAVAILABLE, NA)
 
-UNITS = {'rows': '行数', 'unique_people': '人数（ユニーク）', 'currency': '金額'}
-BASES = {'occurrence': '発生日基準', 'registration_cohort': '登録cohort基準'}
+UNITS = {'rows': '行数', 'unique_people': '人数（ユニーク）', 'currency': '金額',
+         # 応募ID数: 異なる応募IDの数。同じ人の別応募は別に数え、人数とは言い換えない（後方互換の追加）
+         'application_ids': '応募ID数'}
+COUNT_UNITS = ('rows', 'unique_people', 'application_ids')
+# 子を足すと重複しうる単位。親子の突き合わせで合計を出さない
+NON_ADDITIVE_UNITS = ('unique_people', 'application_ids')
+BASES = {'occurrence': '発生日基準', 'registration_cohort': '登録cohort基準',
+         # 応募日コホート: 初回のフォーム回答日（報告 timezone の暦日）で集団を決める（後方互換の追加）
+         'application_cohort': '応募日コホート基準'}
+COHORT_BASES = ('registration_cohort', 'application_cohort')
 PURPOSES = {'marketing': 'マーケ計測', 'billing': '手数料請求の対象判定'}
 LEVELS = ('campaign', 'ad', 'creative')
 LEVEL_JA = {'campaign': 'キャンペーン', 'ad': '広告', 'creative': 'creative'}
@@ -162,7 +170,7 @@ def normalize(raw, declared_state=None, unit='rows'):
         return {'state': ERROR, 'value': None, 'detail': '負の値です'}
     if v > MAX_VALUE:
         return {'state': ERROR, 'value': None, 'detail': '上限（1000兆）を超えています'}
-    if unit in ('rows', 'unique_people') and v != v.to_integral_value():
+    if unit in COUNT_UNITS and v != v.to_integral_value():
         return {'state': ERROR, 'value': None, 'detail': '件数・人数が整数ではありません'}
     if v == 0:
         return {'state': ZERO, 'value': decimal.Decimal(0), 'detail': ''}
@@ -331,9 +339,9 @@ def validate(ds, now):
         if not (_s(d.get('id')) and _s(d.get('version')) and _s(d.get('label'))):
             ck.err('MISSING', w, 'id / version / label が必要です')
         if d.get('unit') not in UNITS:
-            ck.err('BAD_VALUE', w, 'unit は rows / unique_people / currency のどれかです')
+            ck.err('BAD_VALUE', w, 'unit は rows / unique_people / application_ids / currency のどれかです')
         if d.get('basis') not in BASES:
-            ck.err('BAD_VALUE', w, 'basis は occurrence / registration_cohort のどちらかです')
+            ck.err('BAD_VALUE', w, 'basis は occurrence / registration_cohort / application_cohort のどれかです')
         if d.get('purpose') not in PURPOSES:
             ck.err('BAD_VALUE', w, 'purpose は marketing / billing のどちらかです')
         if d.get('unit') == 'currency':
@@ -410,14 +418,14 @@ def validate(ds, now):
                 if normalize(o.get('raw'), o.get('declared_state'), d.get('unit'))['state'] == VALUE:
                     ck.err('DATE_ORDER', w, '期間の開始がデータ cutoff 以降なのに値があります（cutoff か期間のどちらかが誤り）')
         co = o.get('cohort')
-        if d is not None and d.get('basis') == 'registration_cohort':
+        if d is not None and d.get('basis') in COHORT_BASES:
             cs, ce, cx = (_date((co or {}).get(k)) for k in ('start', 'end', 'observation_end'))
             if cs is None or ce is None or cx is None:
-                ck.err('MISSING', w, '登録cohort基準には cohort の start / end / observation_end が必要です')
+                ck.err('MISSING', w, 'cohort 基準には cohort の start / end / observation_end が必要です')
             elif not (cs <= ce <= cx):
                 ck.err('DATE_ORDER', w, 'cohort は 開始 ≤ 終了 ≤ 観測終了 の順が必要です')
             elif (ps, pe) != (cs, ce):
-                ck.err('DATE_ORDER', w, '登録cohortの期間と報告期間が一致しません')
+                ck.err('DATE_ORDER', w, 'cohort の期間と報告期間が一致しません')
         elif co is not None:
             ck.err('BAD_VALUE', w, '発生日基準の行に cohort は付けません')
         lv = o.get('level')
@@ -523,7 +531,7 @@ class Dataset:
         # 報告 timezone での翌日 0:00 以降のときだけ（9/30 23:59 で切れば 9/30 は締まっていない）
         def complete(day):
             return day_closed(cut, day, zi)
-        if d['basis'] == 'registration_cohort':
+        if d['basis'] in COHORT_BASES:
             xe = _date(o['cohort']['observation_end'])
             if not complete(xe):
                 return True, 'open cohort（観測終了 %s ／ データ cutoff %s）' % (xe.isoformat(), cut.isoformat())
@@ -669,9 +677,6 @@ def evaluate_ratio(ds, r):
             return out
         out.update(kind='count_ratio', reasons=not_cvr)
         return out
-    win = obs_window(num)
-    out['notes'].append('観測期間: cohort 終了後 %d日（%s まで）。観測期間の長さが違う cohort とは並べて比べません'
-                        % (win, num['cohort']['observation_end']))
     if im or im2:
         zi = tz_status(ds.tz(num))[1]
         last = (ds.cutoff(num).astimezone(zi) - datetime.timedelta(microseconds=1)).date()  # 丸ごと入った最後の日
@@ -685,6 +690,9 @@ def evaluate_ratio(ds, r):
         out.update(kind='blocked', value=None, reasons=['分子が分母を超えています（部分集合になっていません）'])
         return out
     out['kind'] = 'cvr'
+    # 観測期間は、観測が終わった（確定した）率にだけ添える。暫定比には「予定のうち何日分」を理由に出している
+    out['notes'].append('観測期間: cohort 終了後 %d日（%s まで）。観測期間の長さが違う cohort とは並べて比べません'
+                        % (obs_window(num), num['cohort']['observation_end']))
     return out
 
 
@@ -715,8 +723,8 @@ def rollups(ds):
             res['no_rows'] = sorted(n['id'] for n in ds.nodes.values()
                                     if n.get('parent') == p['node'] and n['id'] not in have)
         bad = sorted({STATE_JA[ds.norm[o['id']]['state']] for o in kids if ds.norm[o['id']]['state'] not in MEASURED})
-        if d['unit'] == 'unique_people':
-            res['notes'].append('人数（ユニーク）は子を足すと重複する可能性があるため、合計を出しません')
+        if d['unit'] in NON_ADDITIVE_UNITS:
+            res['notes'].append('%sは子を足すと重複する可能性があるため、合計を出しません' % UNITS[d['unit']])
         elif bad:
             res['notes'].append('子の行に %s があるため、合計を出しません（0として足しません）' % '・'.join(bad))
         else:

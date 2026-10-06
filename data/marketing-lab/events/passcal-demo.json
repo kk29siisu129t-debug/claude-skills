@@ -1,0 +1,883 @@
+{
+ "schema": "marketing-lab/events/v1",
+ "dataset_id": "passcal-demo",
+ "demo": true,
+ "synthetic": true,
+ "business": {
+  "id": "demo-passcal",
+  "name": "PASSCAL 架空導線",
+  "brand": "架空（実事業の数値ではない）"
+ },
+ "note": "すべて架空のイベント。実在の応募者・生徒・保護者・担当者とは無関係。実事業の確定定義ではない",
+ "source": {
+  "id": "SRC-PC-EV",
+  "ref": "synthetic://passcal/events-v1",
+  "timezone": "Asia/Tokyo",
+  "data_cutoff": "2026-10-01T00:00:00+09:00",
+  "fetched_at": "2026-10-01T09:00:00+09:00"
+ },
+ "definition_version": "passcal-demo-def/v1",
+ "definitions": {
+  "application": "応募ID（APP-4桁）ごとの最初の有効な form_submitted。応募日は報告 timezone の暦日。同じ応募IDの再回答は数えず初回を採用。同じ event_id の再送は1回だけ数える",
+  "interview": "面談到達: コホート内の応募IDに、応募以降・観察窓内・cutoff 前の interview_held が1件以上あること。予約確定（interview_booked）だけでは数えない。複数回の面談も1つの応募IDとして1回。取消済み予約での実施や応募前の実施は矛盾として保留",
+  "enrollment": "入塾到達: コホート内の応募IDに、応募以降・観察窓内・cutoff 前の enrollment_completed（入塾手続き完了）があること。入金・売上・着金ではない",
+  "cohort": "応募日コホート: 初回フォーム回答の暦日（Asia/Tokyo）が期間内の応募ID",
+  "window": "観察窓: コホート開始から observation_end の 23:59:59（Asia/Tokyo）まで。cutoff が observation_end の翌日 0:00 に達するまで暫定"
+ },
+ "cohorts": [
+  {
+   "id": "C-2026-08",
+   "label": "2026年8月応募（架空）",
+   "start": "2026-08-01",
+   "end": "2026-08-31",
+   "observation_end": "2026-09-30"
+  },
+  {
+   "id": "C-2026-09",
+   "label": "2026年9月応募（架空）",
+   "start": "2026-09-01",
+   "end": "2026-09-30",
+   "observation_end": "2026-10-31"
+  }
+ ],
+ "plan_ref": {
+  "business_id": "passlabo",
+  "campaign_id": "PL-C01",
+  "flow": {
+   "id": "FL-PL-01",
+   "version": "v1"
+  }
+ },
+ "creatives_in_flight": [
+  "PL-CR-21",
+  "PL-CR-22",
+  "PL-CR-11"
+ ],
+ "spend": [
+  {
+   "id": "SP-2026-08",
+   "label": "8月の架空広告費",
+   "raw": 96000,
+   "currency": "JPY",
+   "cost_basis": "媒体費・税抜（架空）",
+   "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+   }
+  }
+ ],
+ "unconnected": [
+  "契約額",
+  "実入金",
+  "未収",
+  "会計売上",
+  "利益"
+ ],
+ "decisions": [
+  {
+   "id": "PC-D01",
+   "at": "2026-09-01T10:00:00+09:00",
+   "campaign_id": "PL-C01",
+   "hypothesis": "「部活と両立」の訴求（PL-CR-21）で、フォーム回答から面談到達までの離脱が減る",
+   "versions": {
+    "creative": {
+     "id": "PL-CR-21",
+     "version": "v1"
+    },
+    "lp": {
+     "id": "LP-PL-01",
+     "version": "v3"
+    },
+    "flow": {
+     "id": "FL-PL-01",
+     "version": "v1"
+    }
+   },
+   "decision": "架空: 8月コホートで計測を開始する",
+   "reason": "計測定義 passcal-demo-def/v1 を固定してから比べるため",
+   "evidence": [],
+   "next": "8月コホートの観察窓が閉じたら面談到達を確認する"
+  },
+  {
+   "id": "PC-D02",
+   "at": "2026-10-01T10:00:00+09:00",
+   "campaign_id": "PL-C01",
+   "hypothesis": "同上（8月コホートの観察窓が閉じた）",
+   "versions": {
+    "creative": {
+     "id": "PL-CR-21",
+     "version": "v1"
+    },
+    "lp": {
+     "id": "LP-PL-01",
+     "version": "v3"
+    },
+    "flow": {
+     "id": "FL-PL-01",
+     "version": "v1"
+    }
+   },
+   "decision": "架空: 判断保留（因果は未検証）",
+   "reason": "比較対象のコホートが閉じていない。CR別の差は観測値で、原因は検証していない",
+   "evidence": [
+    "R-INT-C-2026-08",
+    "R-ENR-C-2026-08",
+    "R-INT-C-2026-09",
+    "R-CPA-2026-08"
+   ],
+   "next": "9月コホートの観察窓（10/31）が閉じてから、同じ定義版で8月と並べる"
+  }
+ ],
+ "events": [
+  {
+   "event_id": "EV-0001",
+   "type": "form_submitted",
+   "application_id": "APP-0001",
+   "at": "2026-08-01T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0001",
+   "type": "form_submitted",
+   "application_id": "APP-0001",
+   "at": "2026-08-01T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0002",
+   "type": "form_submitted",
+   "application_id": "APP-0002",
+   "at": "2026-08-02T11:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0003",
+   "type": "form_submitted",
+   "application_id": "APP-0002",
+   "at": "2026-08-20T11:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0004",
+   "type": "form_submitted",
+   "application_id": "APP-0003",
+   "at": "2026-08-03T12:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0005",
+   "type": "form_submitted",
+   "application_id": "APP-0004",
+   "at": "2026-08-04T13:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0006",
+   "type": "form_submitted",
+   "application_id": "APP-0005",
+   "at": "2026-08-05T14:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0007",
+   "type": "form_submitted",
+   "application_id": "APP-0006",
+   "at": "2026-08-06T15:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0008",
+   "type": "form_submitted",
+   "application_id": "APP-0007",
+   "at": "2026-08-07T16:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0009",
+   "type": "form_submitted",
+   "application_id": "APP-0008",
+   "at": "2026-08-08T17:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0010",
+   "type": "form_submitted",
+   "application_id": "APP-0009",
+   "at": "2026-08-09T18:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0011",
+   "type": "form_submitted",
+   "application_id": "APP-0010",
+   "at": "2026-08-10T09:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0012",
+   "type": "form_submitted",
+   "application_id": "APP-0011",
+   "at": "2026-08-11T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0013",
+   "type": "form_submitted",
+   "application_id": "APP-0012",
+   "at": "2026-08-12T11:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0014",
+   "type": "form_submitted",
+   "application_id": "APP-0013",
+   "at": "2026-08-13T12:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0015",
+   "type": "form_submitted",
+   "application_id": "APP-0014",
+   "at": "2026-08-14T13:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0016",
+   "type": "form_submitted",
+   "application_id": "APP-0015",
+   "at": "2026-08-15T14:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0017",
+   "type": "form_submitted",
+   "application_id": "APP-0016",
+   "at": "2026-08-16T15:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0018",
+   "type": "form_submitted",
+   "application_id": "APP-0017",
+   "at": "2026-08-17T16:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0019",
+   "type": "form_submitted",
+   "application_id": "APP-0018",
+   "at": "2026-08-18T17:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-21"
+  },
+  {
+   "event_id": "EV-0020",
+   "type": "form_submitted",
+   "application_id": "APP-0019",
+   "at": "2026-08-20T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0021",
+   "type": "form_submitted",
+   "application_id": "APP-0020",
+   "at": "2026-08-20T09:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0022",
+   "type": "form_submitted",
+   "application_id": "APP-0021",
+   "at": "2026-08-21T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0023",
+   "type": "form_submitted",
+   "application_id": "APP-0022",
+   "at": "2026-08-22T11:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0024",
+   "type": "form_submitted",
+   "application_id": "APP-0023",
+   "at": "2026-08-23T12:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0025",
+   "type": "form_submitted",
+   "application_id": "APP-0024",
+   "at": "2026-08-24T13:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0026",
+   "type": "form_submitted",
+   "application_id": "APP-0025",
+   "at": "2026-08-25T14:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0027",
+   "type": "form_submitted",
+   "application_id": "APP-0026",
+   "at": "2026-08-26T15:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0028",
+   "type": "form_submitted",
+   "application_id": "APP-0027",
+   "at": "2026-08-27T16:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0029",
+   "type": "form_submitted",
+   "application_id": "APP-0028",
+   "at": "2026-08-28T17:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0030",
+   "type": "form_submitted",
+   "application_id": "APP-0029",
+   "at": "2026-08-01T18:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0031",
+   "type": "form_submitted",
+   "application_id": "APP-0030",
+   "at": "2026-08-02T09:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-22"
+  },
+  {
+   "event_id": "EV-0032",
+   "type": "form_submitted",
+   "application_id": "APP-0031",
+   "at": "2026-08-03T10:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0033",
+   "type": "form_submitted",
+   "application_id": "APP-0032",
+   "at": "2026-08-04T11:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0034",
+   "type": "form_submitted",
+   "application_id": "APP-0033",
+   "at": "2026-08-05T12:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0035",
+   "type": "form_submitted",
+   "application_id": "APP-0034",
+   "at": "2026-08-06T13:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0036",
+   "type": "form_submitted",
+   "application_id": "APP-0035",
+   "at": "2026-08-07T14:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0037",
+   "type": "form_submitted",
+   "application_id": "APP-0036",
+   "at": "2026-08-08T15:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0038",
+   "type": "form_submitted",
+   "application_id": "APP-0037",
+   "at": "2026-08-09T16:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-11"
+  },
+  {
+   "event_id": "EV-0039",
+   "type": "form_submitted",
+   "application_id": "APP-0038",
+   "at": "2026-08-10T17:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": ""
+  },
+  {
+   "event_id": "EV-0040",
+   "type": "form_submitted",
+   "application_id": "APP-0039",
+   "at": "2026-08-11T18:00:00+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0041",
+   "type": "form_submitted",
+   "application_id": "APP-0040",
+   "at": "2026-08-31T23:59:59+09:00",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3",
+   "creative_id": "PL-CR-99"
+  },
+  {
+   "event_id": "EV-0042",
+   "type": "interview_booked",
+   "application_id": "APP-0001",
+   "at": "2026-08-04T10:00:00+09:00",
+   "booking_id": "BK-0001-A"
+  },
+  {
+   "event_id": "EV-0043",
+   "type": "interview_held",
+   "application_id": "APP-0001",
+   "at": "2026-08-05T15:00:00+09:00",
+   "booking_id": "BK-0001-A"
+  },
+  {
+   "event_id": "EV-0044",
+   "type": "interview_booked",
+   "application_id": "APP-0002",
+   "at": "2026-08-05T10:00:00+09:00",
+   "booking_id": "BK-0002-A"
+  },
+  {
+   "event_id": "EV-0045",
+   "type": "interview_held",
+   "application_id": "APP-0002",
+   "at": "2026-08-06T15:00:00+09:00",
+   "booking_id": "BK-0002-A"
+  },
+  {
+   "event_id": "EV-0046",
+   "type": "interview_booked",
+   "application_id": "APP-0003",
+   "at": "2026-08-05T10:00:00+09:00",
+   "booking_id": "BK-0003-A"
+  },
+  {
+   "event_id": "EV-0047",
+   "type": "interview_cancelled",
+   "application_id": "APP-0003",
+   "at": "2026-08-06T10:00:00+09:00",
+   "booking_id": "BK-0003-A"
+  },
+  {
+   "event_id": "EV-0048",
+   "type": "interview_booked",
+   "application_id": "APP-0003",
+   "at": "2026-08-07T10:00:00+09:00",
+   "booking_id": "BK-0003-B"
+  },
+  {
+   "event_id": "EV-0049",
+   "type": "interview_held",
+   "application_id": "APP-0003",
+   "at": "2026-08-12T10:00:00+09:00",
+   "booking_id": "BK-0003-B"
+  },
+  {
+   "event_id": "EV-0050",
+   "type": "interview_held",
+   "application_id": "APP-0004",
+   "at": "2026-08-10T10:00:00+09:00",
+   "booking_id": "BK-0004-A"
+  },
+  {
+   "event_id": "EV-0051",
+   "type": "interview_held",
+   "application_id": "APP-0004",
+   "at": "2026-08-25T10:00:00+09:00",
+   "booking_id": "BK-0004-B"
+  },
+  {
+   "event_id": "EV-0052",
+   "type": "interview_held",
+   "application_id": "APP-0005",
+   "at": "2026-09-30T23:59:59+09:00",
+   "booking_id": "BK-0005-A"
+  },
+  {
+   "event_id": "EV-0053",
+   "type": "interview_booked",
+   "application_id": "APP-0006",
+   "at": "2026-08-09T10:00:00+09:00",
+   "booking_id": "BK-0006-A"
+  },
+  {
+   "event_id": "EV-0054",
+   "type": "interview_held",
+   "application_id": "APP-0006",
+   "at": "2026-08-10T15:00:00+09:00",
+   "booking_id": "BK-0006-A"
+  },
+  {
+   "event_id": "EV-0055",
+   "type": "interview_booked",
+   "application_id": "APP-0007",
+   "at": "2026-08-10T10:00:00+09:00",
+   "booking_id": "BK-0007-A"
+  },
+  {
+   "event_id": "EV-0056",
+   "type": "interview_held",
+   "application_id": "APP-0007",
+   "at": "2026-08-11T15:00:00+09:00",
+   "booking_id": "BK-0007-A"
+  },
+  {
+   "event_id": "EV-0057",
+   "type": "interview_booked",
+   "application_id": "APP-0008",
+   "at": "2026-08-11T10:00:00+09:00",
+   "booking_id": "BK-0008-A"
+  },
+  {
+   "event_id": "EV-0058",
+   "type": "interview_held",
+   "application_id": "APP-0008",
+   "at": "2026-08-12T15:00:00+09:00",
+   "booking_id": "BK-0008-A"
+  },
+  {
+   "event_id": "EV-0059",
+   "type": "interview_booked",
+   "application_id": "APP-0009",
+   "at": "2026-08-12T10:00:00+09:00",
+   "booking_id": "BK-0009-A"
+  },
+  {
+   "event_id": "EV-0060",
+   "type": "interview_held",
+   "application_id": "APP-0009",
+   "at": "2026-08-13T15:00:00+09:00",
+   "booking_id": "BK-0009-A"
+  },
+  {
+   "event_id": "EV-0061",
+   "type": "interview_booked",
+   "application_id": "APP-0010",
+   "at": "2026-08-13T10:00:00+09:00",
+   "booking_id": "BK-0010-A"
+  },
+  {
+   "event_id": "EV-0062",
+   "type": "interview_held",
+   "application_id": "APP-0010",
+   "at": "2026-08-14T15:00:00+09:00",
+   "booking_id": "BK-0010-A"
+  },
+  {
+   "event_id": "EV-0063",
+   "type": "interview_booked",
+   "application_id": "APP-0011",
+   "at": "2026-08-14T10:00:00+09:00",
+   "booking_id": "BK-0011-A"
+  },
+  {
+   "event_id": "EV-0064",
+   "type": "interview_held",
+   "application_id": "APP-0011",
+   "at": "2026-08-15T15:00:00+09:00",
+   "booking_id": "BK-0011-A"
+  },
+  {
+   "event_id": "EV-0065",
+   "type": "interview_booked",
+   "application_id": "APP-0012",
+   "at": "2026-08-15T10:00:00+09:00",
+   "booking_id": "BK-0012-A"
+  },
+  {
+   "event_id": "EV-0066",
+   "type": "interview_held",
+   "application_id": "APP-0012",
+   "at": "2026-08-16T15:00:00+09:00",
+   "booking_id": "BK-0012-A"
+  },
+  {
+   "event_id": "EV-0067",
+   "type": "interview_booked",
+   "application_id": "APP-0013",
+   "at": "2026-08-20T10:00:00+09:00",
+   "booking_id": "BK-0013-A"
+  },
+  {
+   "event_id": "EV-0068",
+   "type": "interview_held",
+   "application_id": "APP-0014",
+   "at": "2026-10-01T00:00:00+09:00",
+   "booking_id": "BK-0014-A"
+  },
+  {
+   "event_id": "EV-0069",
+   "type": "interview_booked",
+   "application_id": "APP-0015",
+   "at": "2026-08-20T10:00:00+09:00",
+   "booking_id": "BK-0015-A"
+  },
+  {
+   "event_id": "EV-0070",
+   "type": "interview_cancelled",
+   "application_id": "APP-0015",
+   "at": "2026-08-21T10:00:00+09:00",
+   "booking_id": "BK-0015-A"
+  },
+  {
+   "event_id": "EV-0071",
+   "type": "interview_held",
+   "application_id": "APP-0015",
+   "at": "2026-08-22T10:00:00+09:00",
+   "booking_id": "BK-0015-A"
+  },
+  {
+   "event_id": "EV-0072",
+   "type": "interview_held",
+   "application_id": "APP-0016",
+   "booking_id": "BK-0016-A"
+  },
+  {
+   "event_id": "EV-0073",
+   "type": "interview_held",
+   "application_id": "APP-0017",
+   "at": "2026-09-31T10:00:00+09:00",
+   "booking_id": "BK-0017-A"
+  },
+  {
+   "event_id": "EV-0074",
+   "type": "interview_held",
+   "application_id": "APP-0018",
+   "at": "2026-09-05T10:00:00",
+   "booking_id": "BK-0018-A"
+  },
+  {
+   "event_id": "EV-0075",
+   "type": "interview_held",
+   "application_id": "APP-0019",
+   "at": "2026-08-10T10:00:00+09:00",
+   "booking_id": "BK-0019-A"
+  },
+  {
+   "event_id": "EV-DUP-20",
+   "type": "interview_held",
+   "application_id": "APP-0020",
+   "at": "2026-08-28T10:00:00+09:00",
+   "booking_id": "BK-0020-A"
+  },
+  {
+   "event_id": "EV-DUP-20",
+   "type": "interview_held",
+   "application_id": "APP-0020",
+   "at": "2026-08-29T10:00:00+09:00",
+   "booking_id": "BK-0020-A"
+  },
+  {
+   "event_id": "EV-0078",
+   "type": "enrollment_completed",
+   "application_id": "APP-0001",
+   "at": "2026-08-20T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0079",
+   "type": "enrollment_completed",
+   "application_id": "APP-0003",
+   "at": "2026-08-30T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0080",
+   "type": "enrollment_completed",
+   "application_id": "APP-0004",
+   "at": "2026-09-15T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0081",
+   "type": "enrollment_completed",
+   "application_id": "APP-0006",
+   "at": "2026-10-02T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0082",
+   "type": "enrollment_completed",
+   "application_id": "APP-9999",
+   "at": "2026-08-25T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0083",
+   "type": "enrollment_completed",
+   "application_id": "APP-12A",
+   "at": "2026-08-25T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0084",
+   "type": "enrollment_completed",
+   "at": "2026-08-25T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0085",
+   "type": "payment_recorded",
+   "application_id": "APP-0001",
+   "at": "2026-08-25T10:00:00+09:00",
+   "amount_raw": 1
+  },
+  {
+   "event_id": "EV-0086",
+   "type": "page_view",
+   "application_id": "APP-0002",
+   "at": "2026-08-02T10:00:00+09:00"
+  },
+  {
+   "event_id": "EV-0087",
+   "type": "form_submitted",
+   "application_id": "APP-0041",
+   "at": "2026-08-31T15:00:00Z",
+   "creative_id": "PL-CR-21",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0088",
+   "type": "form_submitted",
+   "application_id": "APP-0042",
+   "at": "2026-09-12T10:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0089",
+   "type": "form_submitted",
+   "application_id": "APP-0043",
+   "at": "2026-09-13T10:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0090",
+   "type": "form_submitted",
+   "application_id": "APP-0044",
+   "at": "2026-09-14T10:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0091",
+   "type": "form_submitted",
+   "application_id": "APP-0045",
+   "at": "2026-09-15T10:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  },
+  {
+   "event_id": "EV-0092",
+   "type": "interview_held",
+   "application_id": "APP-0041",
+   "at": "2026-09-20T10:00:00+09:00",
+   "booking_id": "BK-0041-A"
+  },
+  {
+   "event_id": "EV-0093",
+   "type": "interview_held",
+   "application_id": "APP-0042",
+   "at": "2026-10-01T00:00:00+09:00",
+   "booking_id": "BK-0042-A"
+  },
+  {
+   "event_id": "EV-0094",
+   "type": "form_submitted",
+   "application_id": "APP-0046",
+   "at": "2026-10-01T09:00:00+09:00",
+   "creative_id": "PL-CR-22",
+   "lp_id": "LP-PL-01",
+   "lp_version": "v3"
+  }
+ ]
+}

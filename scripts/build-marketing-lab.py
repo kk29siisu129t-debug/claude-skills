@@ -6,7 +6,7 @@ claude-hub/scripts/build-marketing-lab.py
 hub の private データ（issues / people / mytasks / カレンダー等）は読まない。
 外部への接続もしない。
 
-  python scripts/build-marketing-lab.py [出力パス] [--fixtures ディレクトリ] [--measurement ディレクトリ]
+  python scripts/build-marketing-lab.py [出力パス] [--fixtures ディレクトリ] [--measurement ディレクトリ] [--events ディレクトリ]
 
 時刻は build-office.py と同じ環境変数で固定できる。
   OFFICE_NOW=2026-10-04T09:00:00+09:00 OFFICE_TODAY=2026-10-04
@@ -25,6 +25,7 @@ def main(argv):
     args = list(argv)
     fixtures = os.path.join(HUB, 'data', 'marketing-lab', 'fixtures')
     measure = os.path.join(HUB, 'data', 'marketing-lab', 'measurement')
+    events = os.path.join(HUB, 'data', 'marketing-lab', 'events')
     if '--fixtures' in args:
         i = args.index('--fixtures')
         fixtures = args[i + 1]
@@ -33,9 +34,13 @@ def main(argv):
         i = args.index('--measurement')
         measure = args[i + 1]
         del args[i:i + 2]
+    if '--events' in args:
+        i = args.index('--events')
+        events = args[i + 1]
+        del args[i:i + 2]
     out = args[0] if args else os.path.join(HUB, 'marketing-lab.html')
     now, today = marketing_lab.resolve_clock(os.environ.get('OFFICE_NOW'), os.environ.get('OFFICE_TODAY'))
-    doc, results = marketing_lab.build(fixtures, now, today, measurement_dir=measure)
+    doc, results = marketing_lab.build(fixtures, now, today, measurement_dir=measure, events_dir=events)
     with io.open(out, 'w', encoding='utf-8', newline='\n') as f:
         f.write(doc)
     print('wrote', out)
@@ -67,6 +72,22 @@ def main(argv):
         else:
             print('  計測 %s: 観測 %d行・比 %d・比較 %d' % (
                 ds['dataset_id'], len(ds['observations']), len(ds['ratios']), len(ds['comparisons'])))
+    plans = {b['business_id']: b for n, b, ck in results if b is not None and not ck.errors}
+    views = marketing_lab.pcf.build_view(events, now, plans)
+    if not views:
+        stopped += 1
+        print('  PASSCAL 架空イベントが1件もありません: 検証停止')
+    for name, v in views:
+        if not v.ok:
+            stopped += 1
+            print('  PASSCAL %s: 検証停止 %d件' % (name, len(v.errors)))
+            for x in v.errors[:20]:
+                print('    [%s] %s (%s)' % (x['code'], x['msg'], x['where']))
+        else:
+            for c in v.cohorts():
+                print('  PASSCAL %s %s: フォーム回答 %s ／ 面談到達 %s ／ 入塾到達 %s' % (
+                    name, c['id'], v.value('O-APP-%s' % c['id']), v.value('O-INT-%s' % c['id']),
+                    v.value('O-ENR-%s' % c['id'])))
     # 検証停止があっても画面は作る（止まった理由を見せるため）。終了コードで知らせる
     return 2 if stopped else 0
 

@@ -21,6 +21,7 @@ import os
 import re
 
 import measurement as ms
+import passcal_flow as pcf
 
 SCHEMA = 'marketing-lab/v1'
 
@@ -1124,6 +1125,9 @@ code{font-size:12px}
 .series{border:1px dashed var(--line);border-radius:8px;padding:8px 10px;margin:8px 0}
 .ratio{border-top:1px solid var(--line);padding:8px 0}.ratio .val{font-weight:700;margin-left:6px}
 tr.parent td{font-weight:700}tr.sum td{background:var(--bg)}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:8px 0}
+.kpi{border:1px solid var(--line);border-radius:8px;padding:8px 10px}.kpi .val{font-size:22px}
+.funnel li{margin:8px 0}.trace summary{cursor:pointer;font-size:13px;color:var(--acc)}
 footer{max-width:1080px;margin:24px auto;padding:0 16px 32px;color:var(--mut);font-size:12px}
 """
 
@@ -1133,9 +1137,13 @@ document.documentElement.classList.add('js');
  var secs=[].slice.call(document.querySelectorAll('section.biz'));
  var tabs=[].slice.call(document.querySelectorAll('nav.tabs a'));
  function show(id){
+  // 画面の中の要素（根拠の表など）へのリンクなら、その要素を含む画面を開いてそこへ移る
+  var el=id?document.getElementById(id):null, inner=null;
+  if(el&&!el.matches('section.biz')){var sec=el.closest('section.biz'); if(sec){inner=el; id=sec.id;}}
   if(!secs.some(function(s){return s.id===id;})) id=secs.length?secs[0].id:'';
   secs.forEach(function(s){s.classList.toggle('on',s.id===id);});
   tabs.forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id?'true':'false');});
+  if(inner){if(inner.tagName==='DETAILS')inner.open=true; inner.scrollIntoView();}
  }
  tabs.forEach(function(a){a.addEventListener('click',function(ev){ev.preventDefault();
   var id=a.getAttribute('href').slice(1);
@@ -1147,9 +1155,21 @@ document.documentElement.classList.add('js');
 """
 
 
-def render(results, today, now, source_label, measurement=None):
-    """measurement: measurement.validate_all の戻り値（無ければ計測タブを出さない）"""
+def render(results, today, now, source_label, measurement=None, flows=None):
+    """measurement: measurement.validate_all の戻り値（無ければ計測タブを出さない）
+    flows: passcal_flow.build_view の戻り値（無ければ PASSCAL 架空導線の6画面を出さない）"""
     secs, tabs = [], []
+    if flows is not None:
+        # PASSCAL 架空導線の経営画面を先頭に置く（最初に開くのは S0）
+        tabs.append('<span class="tabsep">PASSCAL 架空導線（経営画面・架空イベント）</span>')
+        frs = pcf.render_all(flows)
+        tabs += [t for t, _ in frs]
+        secs += [x for _, x in frs]
+        if not frs:
+            tabs.append('<a href="#pc-none">PASSCAL: なし ⚠</a>')
+            secs.append('<section class="biz pcf" id="pc-none"><div class="panel stopbox">%s<p>架空イベントの fixture が'
+                        '1件もありません。検証を止めています。</p></div></section>' % _badge('検証停止'))
+        tabs.append('<span class="tabsep">3事業の施策レビュー（架空）</span>')
     for name, biz, ck in results:
         bid = (biz or {}).get('business_id') or ck.biz or name
         label = (biz or {}).get('business_name') or bid
@@ -1203,9 +1223,13 @@ def resolve_clock(now_s=None, today_s=None):
     return now, today
 
 
-def build(fixture_dir, now, today, source_label=None, measurement_dir=None):
-    """measurement_dir を渡すと、計測の正規化（合成データ）のタブを足す"""
+def build(fixture_dir, now, today, source_label=None, measurement_dir=None, events_dir=None):
+    """measurement_dir を渡すと計測の正規化（合成データ）のタブ、events_dir を渡すと PASSCAL 架空導線の6画面を足す"""
     results = validate_all(load_dir(fixture_dir), now)
     mres = ms.validate_all(ms.load_dir(measurement_dir), now) if measurement_dir is not None else None
-    doc = render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir)), mres)
+    flows = None
+    if events_dir is not None:
+        plans = {b['business_id']: b for n, b, ck in results if b is not None and not ck.errors}
+        flows = pcf.build_view(events_dir, now, plans)
+    doc = render(results, today, now, source_label or os.path.basename(os.path.normpath(fixture_dir)), mres, flows)
     return doc, results

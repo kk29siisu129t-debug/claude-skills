@@ -709,12 +709,15 @@ class OfficeIntegration(unittest.TestCase):
             hub = os.path.realpath(os.path.join(tmp, 'hub'))
             os.makedirs(os.path.join(hub, 'scripts'))
             os.makedirs(os.path.join(hub, 'data', 'marketing-lab'))
-            for f in ('build-office.py', 'build-marketing-lab.py', 'marketing_lab.py', 'measurement.py'):
+            for f in ('build-office.py', 'build-marketing-lab.py', 'marketing_lab.py', 'measurement.py', 'passcal_flow.py'):
                 shutil.copy(os.path.join(ROOT, 'scripts', f), os.path.join(hub, 'scripts', f))
             shutil.copytree(FIX, os.path.join(hub, 'data', 'marketing-lab', 'fixtures'))
             # 計測の正規化は合成 fixture だけをコピーする（data 全体は複製しない）
             shutil.copytree(os.path.join(ROOT, 'data', 'marketing-lab', 'measurement'),
                             os.path.join(hub, 'data', 'marketing-lab', 'measurement'))
+            # PASSCAL 架空導線も架空イベントの fixture だけをコピーする
+            shutil.copytree(os.path.join(ROOT, 'data', 'marketing-lab', 'events'),
+                            os.path.join(hub, 'data', 'marketing-lab', 'events'))
             # build-office.py が必須で読むのは issues.json だけ。空の架空 stub を置く（実データはコピーしない）
             with io.open(os.path.join(hub, 'data', 'issues.json'), 'w', encoding='utf-8') as f:
                 json.dump({'issues': [], 'priority': {'weights': {}}}, f)
@@ -731,7 +734,8 @@ class OfficeIntegration(unittest.TestCase):
             self.assertEqual(self.outside(hub, opened), [])
             data_read = sorted({os.path.relpath(o, hub) for o in opened
                                 if o.startswith(os.path.join(hub, 'data') + os.sep)})
-            self.assertTrue(data_read and all(x.startswith(('data/marketing-lab/fixtures/', 'data/marketing-lab/measurement/'))
+            self.assertTrue(data_read and all(x.startswith(('data/marketing-lab/fixtures/', 'data/marketing-lab/measurement/',
+                                                            'data/marketing-lab/events/'))
                                               for x in data_read), data_read)
 
             office = read(os.path.join(hub, 'office.html'))
