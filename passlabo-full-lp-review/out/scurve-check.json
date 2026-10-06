@@ -1,0 +1,113 @@
+{
+ "360": {
+  "nonInteractive": {
+   "ariaHidden": "true",
+   "pe": "none",
+   "focusables": 0,
+   "cursor": "auto"
+  },
+  "overlap": 0,
+  "size": [
+   156,
+   300
+  ],
+  "samples": [
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°",
+   "0.001→drawn 0.001 head(14,0.5) path(14,0.5) 90°",
+   "0.251→drawn 0.251 head(14,89.6) path(14,89.6) 90°",
+   "0.501→drawn 0.501 head(68.4,154) path(68.4,154) 29.7°",
+   "0.751→drawn 0.751 head(134.2,211.9) path(134.2,211.9) 64.6°",
+   "1→drawn 1 head(132,298) path(132,298) 121.4°",
+   "1→drawn 1 head(132,298) path(132,298) 121.4°",
+   "0.751→drawn 0.751 head(134.2,211.9) path(134.2,211.9) 64.6°",
+   "0.251→drawn 0.251 head(14,89.6) path(14,89.6) 90°",
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°"
+  ],
+  "maxRatioErr": 0,
+  "maxHeadErr": 0,
+  "fastBottom": 1,
+  "fastTop": 0,
+  "reduce": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  },
+  "nojs": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  }
+ },
+ "400": {
+  "nonInteractive": {
+   "ariaHidden": "true",
+   "pe": "none",
+   "focusables": 0,
+   "cursor": "auto"
+  },
+  "overlap": 0,
+  "size": [
+   156,
+   300
+  ],
+  "samples": [
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°",
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°",
+   "0.249→drawn 0.249 head(14,88.9) path(14,88.9) 90°",
+   "0.499→drawn 0.499 head(67.9,153.7) path(67.9,153.7) 29.7°",
+   "0.749→drawn 0.749 head(134,211.3) path(134,211.3) 64.1°",
+   "0.999→drawn 0.999 head(132.2,297.7) path(132.2,297.7) 121.1°",
+   "1→drawn 1 head(132,298) path(132,298) 121.4°",
+   "0.749→drawn 0.749 head(134,211.3) path(134,211.3) 64.1°",
+   "0.249→drawn 0.249 head(14,88.9) path(14,88.9) 90°",
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°"
+  ],
+  "maxRatioErr": 0,
+  "maxHeadErr": 0,
+  "fastBottom": 1,
+  "fastTop": 0,
+  "reduce": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  },
+  "nojs": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  }
+ },
+ "1280": {
+  "nonInteractive": {
+   "ariaHidden": "true",
+   "pe": "none",
+   "focusables": 0,
+   "cursor": "auto"
+  },
+  "overlap": 0,
+  "size": [
+   156,
+   300
+  ],
+  "samples": [
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°",
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°",
+   "0.249→drawn 0.249 head(14,88.9) path(14,88.9) 90°",
+   "0.499→drawn 0.499 head(67.8,153.7) path(67.8,153.7) 29.7°",
+   "0.749→drawn 0.749 head(133.9,211.3) path(133.9,211.3) 64°",
+   "0.999→drawn 0.999 head(132.2,297.7) path(132.2,297.7) 121.1°",
+   "1→drawn 1 head(132,298) path(132,298) 121.4°",
+   "0.749→drawn 0.749 head(133.9,211.3) path(133.9,211.3) 64°",
+   "0.249→drawn 0.249 head(14,88.9) path(14,88.9) 90°",
+   "0→drawn 0 head(14,0.5) path(14,0.5) 90°"
+  ],
+  "maxRatioErr": 0,
+  "maxHeadErr": 0,
+  "fastBottom": 1,
+  "fastTop": 0,
+  "reduce": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  },
+  "nojs": {
+   "dash": "none",
+   "head": "translate(132 298) rotate(122.5)"
+  }
+ }
+}

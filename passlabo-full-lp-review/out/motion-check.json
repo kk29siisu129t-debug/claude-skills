@@ -8,16 +8,16 @@
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
+   "lp-about",
    "lp-feel",
    "lp-story",
-   "lp-turn",
-   "lp-themes",
+   "lp-nums",
    "lp-mats",
-   "lp-prof"
+   "lp-gift"
   ],
   "stickyHiddenSections": [
    "fv",
-   "lp-goal",
+   "lp-about",
    "lp-gift",
    "lp-final"
   ],
@@ -31,7 +31,7 @@
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
    ".lp-step: 0s / delay 0s",
-   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+   ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
   "stickyAtBottom": false,
@@ -127,12 +127,9 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
-    "lp-guide-track",
-    "lp-guide-track",
-    "lp-guide-track",
     "IMG"
    ],
-   "stepsOpacity": "111111111"
+   "stepsOpacity": "111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
@@ -169,16 +166,16 @@
   ],
   "stickyMismatches": [],
   "stickyShownSections": [
+   "lp-about",
    "lp-feel",
    "lp-story",
-   "lp-turn",
-   "lp-themes",
+   "lp-nums",
    "lp-mats",
-   "lp-prof"
+   "lp-gift"
   ],
   "stickyHiddenSections": [
    "fv",
-   "lp-goal",
+   "lp-about",
    "lp-gift",
    "lp-final"
   ],
@@ -192,7 +189,7 @@
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
    ".lp-step: 0s / delay 0s",
-   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+   ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
   "stickyAtBottom": false,
@@ -288,12 +285,9 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
-    "lp-guide-track",
-    "lp-guide-track",
-    "lp-guide-track",
     "IMG"
    ],
-   "stepsOpacity": "111111111"
+   "stepsOpacity": "111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [
@@ -332,13 +326,11 @@
   "stickyShownSections": [],
   "stickyHiddenSections": [
    "fv",
-   "lp-goal",
+   "lp-about",
    "lp-feel",
    "lp-story",
-   "lp-turn",
-   "lp-themes",
+   "lp-nums",
    "lp-mats",
-   "lp-prof",
    "lp-gift",
    "lp-final"
   ],
@@ -352,7 +344,7 @@
   "transitions": [
    ".lp-mark: 0.55s / delay 0.15s",
    ".lp-step: 0s / delay 0s",
-   ".lp-mat img: 0.5s, 0.5s / delay 0s, 0s"
+   ".lp-mat img: 0s / delay 0s"
   ],
   "infiniteAnimations": 0,
   "stickyAtBottom": false,
@@ -398,16 +390,11 @@
   "partialFailure": {
    "jsClass": true,
    "hiddenOrTransparent": [
-    "lp-guide-track",
-    "lp-guide-track",
-    "sp",
-    "lp-guide-track",
-    "sp",
     "sp",
     "sp",
     "IMG"
    ],
-   "stepsOpacity": "111111111"
+   "stepsOpacity": "111"
   },
   "fastScrollAllRevealed": true,
   "fastScrollStepsOpacity": [

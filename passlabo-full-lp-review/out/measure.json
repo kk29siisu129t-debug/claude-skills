@@ -1,6 +1,6 @@
 {
  "360": {
-  "height": 6315,
+  "height": 6149,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -22,7 +22,7 @@
   "consoleErrors": []
  },
  "400": {
-  "height": 6214,
+  "height": 6137,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -44,7 +44,7 @@
   "consoleErrors": []
  },
  "1280": {
-  "height": 5579,
+  "height": 5753,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
@@ -66,7 +66,7 @@
   "consoleErrors": []
  },
  "400-1x": {
-  "height": 6214,
+  "height": 6137,
   "hscroll": false,
   "clippedText": [],
   "minFont": 12,
