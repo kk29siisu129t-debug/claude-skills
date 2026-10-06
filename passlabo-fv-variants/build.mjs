@@ -270,7 +270,7 @@ body[data-variant="a2"] .cta{font-size:17px}
 
 // ---- 案A3（未公開のレビュー稿）: 白〜ウォームグレーの一続きの背景に、透過の本人写真と教材を同じ光で置く。仮置きの数値バッジを含む ----
 const portrait = asset('portrait');
-const portraitV3 = asset('portraitV3');
+const portraitV4 = asset('portraitV4');
 const A3 = () => `
 <div class="s-stage">
 <header class="s-top"><span class="s-brand">${e(C.brand)}</span><p class="s-target">${e(C.target)}</p></header>
@@ -370,7 +370,7 @@ const A4 = (withPerson) => `
     <p class="f-cred">${e(C.credential)}</p>
     <h1 class="f-title"><span>共テ数学</span><span>特別講義</span></h1>
     <p class="f-sub">${phrases(C.subA)}</p>
-    ${withPerson ? `<figure class="f-person"><img src="${portraitV3.uri}" alt="${e(portraitV3.alt)}" width="1330" height="1183"></figure>` : ''}
+    ${withPerson ? `<figure class="f-person"><img src="${portraitV4.uri}" alt="${e(portraitV4.alt)}" width="1330" height="1183"></figure>` : ''}
     <figure class="f-mats" aria-label="${e(C.materialLabel)}">
       <span class="f-paper f-board"><img src="${board.uri}" alt="${e(board.alt)}"></span>
       <span class="f-paper f-sheet"><img src="${sheet.uri}" alt="${e(sheet.alt)}"></span>
