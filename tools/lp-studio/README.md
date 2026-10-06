@@ -22,7 +22,8 @@ cd tools/lp-studio
 npm start                      # http://127.0.0.1:4173/ （127.0.0.1 のみ。公開用ではない）
 npm test                       # unit
 npm run test:e2e               # ブラウザ統合（ZIP 展開・自己完結版の検証を含む）
-node pack.mjs                  # コミット済みの版から dist/lp-studio-<commit>.zip を作る
+node pack.mjs [--lite]         # コミット済みの版から dist/lp-studio-<commit>[-lite].zip を作る（MANIFEST.json・VERSION.txt 付き）
+node verify-dist.mjs           # 展開した配布物で、VERSION・MANIFEST・全ファイルの一致を確かめる（--git <repo> で commit の内容とも照合）
 node examples/v2/build.mjs     # 2ケースを brief + response から作り直す（project / review / draft / check）
 node build-standalone.mjs      # dist/lp-studio-standalone.html を作り直す
 ```
@@ -120,6 +121,19 @@ node cli.mjs export --project /tmp/p2.json --kind review --out /tmp/review.html
 | 4 プレビュー | PC / SP 切替、レビュー用 / 社内確認、動きを減らす、登場の再生、実寸で開く、縮小率の表示 |
 | 5 検証・公開判定 | 停止条件、2段の判定、書き出し、根拠と検証用データ（合成データは LP に出さない） |
 | 6〜8 | CTA比較（配信なし）、LPO（架空データのみ）、生成（prompt / JSON 取り込み） |
+
+## 配布物の検証（ZIP）
+
+- `pack.mjs` は、検証済みの commit の内容（git の blob のバイト列）から ZIP を作ります。各ファイルの sha256 を `MANIFEST.json` に、commit（フルハッシュ）・branch・`MANIFEST.json` の sha256 を `VERSION.txt` に書きます。
+- `verify-dist.mjs` は git の無い展開先でも、次を確かめます。
+  - VERSION と MANIFEST の対応
+  - 全ファイルのハッシュ
+  - 欠けているファイル・余分なファイルが無いこと
+  - パスの安全性（絶対パス・`..`・大文字小文字の重複・シンボリックリンクと特殊ファイルは不可）
+  - 軽量配布で除外したパスが、決まった一覧（docs/screenshots・docs/motion）に収まっていること
+- git がある場所では、`--git <repo>` で commit の内容とも照合します。終了コードは 0 = 一致、2 = テスト用の dirty な版で一致、1 = 不一致です。
+- git の無い場所での `pack.mjs` は、検証に通った配布物だけを、同じ一覧のまま再梱包します。
+- **限界**: 署名ではありません。git の無い場所で、ファイル・MANIFEST・VERSION をすべて一貫して書き換えられると検出できません。また、許可された除外（画像・録画）の範囲で欠けたファイルも、git が無い場所では検出できません。どちらも `--git` で commit と照合すれば検出できます。
 
 ## 未実装・制約
 

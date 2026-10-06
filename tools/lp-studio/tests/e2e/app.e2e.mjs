@@ -4,7 +4,7 @@
 import test, { before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
-import { readFileSync, writeFileSync, mkdtempSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, mkdtempSync, readdirSync, existsSync, rmSync, symlinkSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { launch } from './pw.mjs';
@@ -499,35 +499,123 @@ test('LP: 主CTAのクリックと Enter で図解へ移動し、無効の予約
   }
 });
 
-test('ZIP を展開しても同じ版が動く（自己完結版・書き出し済みLP・VERSION）', async () => {
-  const zip = join(TMP, 'pkg.zip');
-  const r = spawn(process.execPath, ['pack.mjs', '--out', zip, '--allow-dirty'], { cwd: ROOT });
-  assert.equal(await new Promise((res) => r.on('exit', res)), 0);
-  const dir = join(TMP, 'unz');
-  const u = spawn('unzip', ['-q', zip, '-d', dir]);
-  assert.equal(await new Promise((res) => u.on('exit', res)), 0);
-  const base = join(dir, 'lp-studio');
-  const head = await new Promise((res) => { let o = ''; const g = spawn('git', ['rev-parse', 'HEAD'], { cwd: ROOT }); g.stdout.on('data', (d) => { o += d; }); g.on('exit', () => res(o.trim())); });
-  assert.match(readFileSync(join(base, 'VERSION.txt'), 'utf8'), new RegExp(`^commit ${head}`));
-  for (const f of ['dist/lp-studio-standalone.html', 'examples/v2/michishirube/review.html', 'examples/v2/mitsumoriban/review.html', 'seed/michishirube.project.json', 'src/core/render.js']) assert.equal(readFileSync(join(base, f), 'utf8'), readFileSync(join(ROOT, f), 'utf8'), `ZIP の ${f} が作業ツリーと一致`);
-  // 展開した中身だけで: 自己完結版がソースから作り直したものと同じ・単体テストが通る
-  const run = (args) => new Promise((res) => { let o = ''; const env = { ...process.env }; delete env.NODE_TEST_CONTEXT; const c = spawn(process.execPath, args, { cwd: base, env }); /* 入れ子の node --test として扱われないように */ c.stdout.on('data', (d) => { o += d; }); c.stderr.on('data', (d) => { o += d; }); c.on('exit', (code) => res({ code, o })); });
-  const chk = await run(['build-standalone.mjs', '--check']);
-  assert.equal(chk.code, 0, chk.o);
-  const ut = await run(['--test', ...readdirSync(join(base, 'tests/unit')).filter((f) => f.endsWith('.test.mjs')).map((f) => `tests/unit/${f}`)]);
-  assert.equal(ut.code, 0, ut.o.slice(-800));
-  assert.match(ut.o, /# fail 0/);
+test('ZIP を展開しても同じ版が動く（git の無い展開先で版と全ファイルを検証・再梱包・改変の検出）', async () => {
+  const sh = (cmd, args, cwd, env) => new Promise((res) => { let o = ''; const c = spawn(cmd, args, { cwd, env: env || (() => { const e = { ...process.env }; delete e.NODE_TEST_CONTEXT; return e; })() }); c.stdout.on('data', (d) => { o += d; }); c.stderr.on('data', (d) => { o += d; }); c.on('exit', (code) => res({ code, o })); });
+  const node = (args, cwd) => sh(process.execPath, args, cwd);
+  const unzipTo = async (zip, dir) => {
+    const names = (await sh('unzip', ['-Z1', zip], TMP)).o.split('\n').filter(Boolean);
+    assert.ok(names.length > 10);
+    assert.ok(names.every((n) => !n.startsWith('/') && !n.split('/').includes('..')), 'ZIP の項目名に絶対パス・.. が無い');
+    assert.equal(new Set(names).size, names.length, 'ZIP の項目名に重複が無い');
+    assert.equal((await sh('unzip', ['-q', zip, '-d', dir], TMP)).code, 0);
+    return join(dir, 'lp-studio');
+  };
+  // ROOT が git の作業ツリーか、展開した配布物（git なし）か。配布物なら、まず ROOT 自身を検証し、検証済みの commit を版とする
+  const inRepo = (await sh('git', ['rev-parse', '--is-inside-work-tree'], ROOT)).o.trim() === 'true';
+  let head, dirtyTree;
+  if (inRepo) {
+    head = (await sh('git', ['rev-parse', 'HEAD'], ROOT)).o.trim();
+    dirtyTree = (await sh('git', ['status', '--porcelain', '--', '.'], ROOT)).o.trim() !== '';
+  } else {
+    const self = await node(['verify-dist.mjs'], ROOT);
+    assert.ok([0, 2].includes(self.code), `展開した配布物そのものが検証に通らない\n${self.o}`);
+    head = /commit ([0-9a-f]{40})/.exec(self.o)[1];
+    dirtyTree = self.code === 2;
+  }
+  // 1) 作業ツリー（git）から full と lite を作る
+  for (const [flag, name] of [[[], 'full'], [['--lite'], 'lite']]) {
+    const p = await node(['pack.mjs', '--allow-dirty', ...flag, '--out', join(TMP, `${name}.zip`)], ROOT);
+    assert.equal(p.code, 0, p.o);
+  }
+  const full = await unzipTo(join(TMP, 'full.zip'), join(TMP, 'unz-full'));
+  const lite = await unzipTo(join(TMP, 'lite.zip'), join(TMP, 'unz-lite'));
+  for (const base of [full, lite]) {
+    // 2) 展開先（git の無い場所）で、VERSION・MANIFEST・全ファイルを検証
+    const v = await node(['verify-dist.mjs'], base);
+    assert.equal(v.code, dirtyTree ? 2 : 0, v.o);
+    assert.match(v.o, /整合のみ確認。commit の真正性は未検証（git が無い）/);
+    assert.match(readFileSync(join(base, 'VERSION.txt'), 'utf8'), new RegExp(`^commit ${head}\\n`));
+    // 3) この repo の commit とも照合（clean なら blob まで、dirty なら blob 照合をしていないことを明示）
+    const g = await node(['verify-dist.mjs', base, '--git', ROOT], ROOT);
+    assert.equal(g.code, dirtyTree ? 2 : 0, g.o);
+    assert.match(g.o, !inRepo ? /整合のみ確認。commit の真正性は未検証（git が無い）/ : dirtyTree ? /git の blob 照合はしていない/ : /git の commit の内容（blob）とも一致/);
+    // 4) 展開先だけで: 単一HTMLの作り直しが一致・単体テストが通る
+    const chk = await node(['build-standalone.mjs', '--check'], base);
+    assert.equal(chk.code, 0, chk.o);
+    const ut = await node(['--test', ...readdirSync(join(base, 'tests/unit')).filter((f) => f.endsWith('.test.mjs')).map((f) => `tests/unit/${f}`)], base);
+    assert.equal(ut.code, 0, ut.o.slice(-800));
+    assert.match(ut.o, /# fail 0/);
+  }
+  assert.ok(!existsSync(join(lite, 'docs/screenshots')) && !existsSync(join(lite, 'docs/motion')) && existsSync(join(lite, 'PACKAGING-NOTES.txt')));
+  // 5) 展開先（git なし）で再梱包 → もう一度展開すると、全ファイル（MANIFEST・VERSION を含む）がバイト単位で同じ
+  for (const [base, name] of [[full, 'full'], [lite, 'lite']]) {
+    const rp = await node(['pack.mjs', '--out', join(TMP, `re-${name}.zip`)], base);
+    assert.equal(rp.code, 0, rp.o);
+    assert.match(rp.o, /検証済みの配布物から再梱包/);
+    const again = await unzipTo(join(TMP, `re-${name}.zip`), join(TMP, `unz-re-${name}`));
+    assert.equal((await sh('diff', ['-r', base, again], TMP)).code, 0, `${name}: 再梱包で中身が変わった`);
+    assert.equal((await node(['verify-dist.mjs'], again)).code, dirtyTree ? 2 : 0);
+  }
+  // 6) 改変の検出: verify-dist は失敗（exit 1）し、git の無い場所での pack も拒否する
+  const fresh = async (label) => { const d = join(TMP, `tamper-${label}`); await sh('cp', ['-r', lite, d], TMP); return d; };
+  const manifestOf = (d) => JSON.parse(readFileSync(join(d, 'MANIFEST.json'), 'utf8'));
+  const { stableStringify, sha256 } = await import(join(ROOT, 'verify-dist.mjs'));
+  const writeConsistent = (d, m) => { // 偽造: MANIFEST と VERSION の両方を一貫して書き換える
+    const text = stableStringify(m) + '\n';
+    writeFileSync(join(d, 'MANIFEST.json'), text);
+    writeFileSync(join(d, 'VERSION.txt'), readFileSync(join(d, 'VERSION.txt'), 'utf8').replace(/^manifest-sha256 \S+/m, `manifest-sha256 ${sha256(Buffer.from(text))}`));
+  };
+  const cases = {
+    'ソースを1バイト変える': (d) => writeFileSync(join(d, 'src/core/editorial.js'), readFileSync(join(d, 'src/core/editorial.js'), 'utf8') + ' '),
+    'VERSION の commit を書き換える': (d) => writeFileSync(join(d, 'VERSION.txt'), readFileSync(join(d, 'VERSION.txt'), 'utf8').replace(/^commit \S+/m, `commit ${'0'.repeat(40)}`)),
+    'MANIFEST だけをソースに合わせて書き換える': (d) => { writeFileSync(join(d, 'src/core/editorial.js'), 'x'); const m = manifestOf(d); m.files['src/core/editorial.js'] = sha256(Buffer.from('x')); writeFileSync(join(d, 'MANIFEST.json'), stableStringify(m) + '\n'); },
+    'ファイルを1つ追加': (d) => writeFileSync(join(d, 'src/core/extra.js'), 'export const x = 1;\n'),
+    'ファイルを1つ削除': (d) => rmSync(join(d, 'seed/michishirube.project.json')),
+    'manifest に ../x': (d) => { const m = manifestOf(d); m.files['../x'] = sha256(Buffer.from('')); writeConsistent(d, m); },
+    'manifest に絶対パス': (d) => { const m = manifestOf(d); m.files['/etc/passwd'] = sha256(Buffer.from('')); writeConsistent(d, m); },
+    '大文字小文字だけ違う重複': (d) => { const m = manifestOf(d); writeFileSync(join(d, 'README.MD'), readFileSync(join(d, 'README.md'))); m.files['README.MD'] = m.files['README.md']; writeConsistent(d, m); },
+    'シンボリックリンク': (d) => symlinkSync('README.md', join(d, 'link.md')),
+  };
+  for (const [label, act] of Object.entries(cases)) {
+    const d = await fresh(label.replace(/[^\w]/g, '') || String(Math.random()).slice(2));
+    act(d);
+    const v = await node(['verify-dist.mjs'], d);
+    assert.equal(v.code, 1, `${label}: 検出できなかった\n${v.o}`);
+    const p = await node(['pack.mjs', '--out', join(TMP, 'never.zip')], d);
+    assert.equal(p.code, 1, `${label}: 改変した配布物を再梱包できてしまった`);
+  }
+  // lite の excluded を宣言外の欠落と入れ替える（MANIFEST・VERSION を一貫して偽造）→ git の照合で検出
+  {
+    const d = await fresh('excluded');
+    const m = manifestOf(d);
+    m.excluded = ['docs/screenshots', 'docs/motion', 'seed/assets'];
+    for (const k of Object.keys(m.files)) if (k.startsWith('seed/assets/')) { delete m.files[k]; rmSync(join(d, k)); }
+    writeConsistent(d, m);
+    const v = await node(['verify-dist.mjs'], d);
+    assert.equal(v.code, 1, v.o); // 除外してよい一覧（固定）に無い除外は、git が無くても拒否
+    assert.match(v.o, /除外してよい一覧.*seed\/assets/);
+    assert.equal((await node(['pack.mjs', '--out', join(TMP, 'never.zip')], d)).code, 1);
+    const m2 = manifestOf(lite); m2.excluded = ['docs/screenshots']; // docs/motion を宣言から外す（宣言外の欠落）
+    const d2 = await fresh('excluded2'); writeConsistent(d2, m2);
+    const g2 = await node(['verify-dist.mjs', d2, '--git', ROOT], ROOT);
+    if (inRepo) {
+      assert.equal(g2.code, 1, g2.o);
+      assert.match(g2.o, /宣言外の欠落.*docs\/motion/);
+    } else assert.match(g2.o, /整合のみ確認。commit の真正性は未検証（git が無い）/); // git が無い場所の限界（明記済み）
+    assert.equal((await node(['verify-dist.mjs'], d2)).code, dirtyTree ? 2 : 0, 'git が無い場所では、許可された除外の範囲の欠落は整合のみ（限界: PACKAGING-NOTES と README に明記）');
+  }
+  // 7) 展開した自己完結版がブラウザで動く
   const ctx = await browser.newContext({ viewport: { width: 400, height: 760 } });
   const p = await ctx.newPage();
   const errors = [];
   p.on('pageerror', (e) => errors.push(e.message));
   p.on('console', (m) => { if (m.type() === 'error') errors.push(m.text()); });
-  await p.goto(`file://${join(base, 'dist/lp-studio-standalone.html')}`);
+  await p.goto(`file://${join(lite, 'dist/lp-studio-standalone.html')}`);
   await p.waitForSelector('body[data-ready="1"]');
   await p.click('#tab-design');
   await p.waitForTimeout(600);
   assert.equal(await p.frameLocator('#sp-frame').locator('.hero-portrait').count(), 1, '展開後の自己完結版でも顔主体FV');
-  await p.goto(`file://${join(base, 'examples/v2/michishirube/review.html')}`);
+  await p.goto(`file://${join(lite, 'examples/v2/michishirube/review.html')}`);
   assert.equal(await p.locator('.hero-portrait img[src^="data:image/webp;base64,"]').count(), 1);
   assert.deepEqual(errors, []);
   await ctx.close();
