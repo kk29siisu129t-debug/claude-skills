@@ -683,7 +683,8 @@ def evaluate_ratio(ds, r):
         seen = max(0, (min(last, _date(num['cohort']['observation_end'])) - _date(num['cohort']['end'])).days)
         out.update(kind='provisional', reasons=list(dict.fromkeys([t for t in (txt, txt2) if t])) +
                    ['観測が終わっていないので、ここから増えます。確定したCVRとして扱いません',
-                    '予定の観測期間 cohort 終了後 %d日のうち、データ cutoff までに観測できたのは %d日分です'
+                    'cohort 終了後の追加観測（cohort 終了日の翌日から観測終了日まで）%d日のうち、データ cutoff までに経過したのは %d日分です'
+                    '（各応募日からの全観測日数ではありません。cohort 期間中の観測は含みません）'
                     % (obs_window(num), seen)])
         return out
     if nn['value'] > nd['value']:

@@ -101,6 +101,11 @@ class Baseline(unittest.TestCase):
             self.assertEqual(r['kind'], 'provisional')
             self.assertFalse(any(n.startswith('観測期間:') for n in r['notes']))  # 予定の窓を「観測済み」と書かない
         self.assertEqual(v.ds.norm['O-ENR-' + SEP]['state'], M.ZERO)  # 0 は 0（実測）。空欄にしない
+        # 再監査#8: 9月は面談到達 1 があっても「追加観測 0日分」。全観測日数ではないと明記されていること
+        r = v.ratio('R-INT-' + SEP)
+        txt = next(x for x in r['reasons'] if '追加観測' in x)
+        self.assertIn('データ cutoff までに経過したのは 0日分です', txt)
+        self.assertIn('各応募日からの全観測日数ではありません', txt)
 
     def test_cohort_closes_when_window_passes(self):
         d = doc()

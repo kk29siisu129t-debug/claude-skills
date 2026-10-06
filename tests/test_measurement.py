@@ -145,7 +145,14 @@ class Ratios(unittest.TestCase):
         self.assertTrue(any('open cohort' in x for x in r['reasons']))
         self.assertTrue(any('確定したCVRとして扱いません' in x for x in r['reasons']))
         self.assertEqual(len(r['reasons']), len(set(r['reasons'])))
-        self.assertIn('予定の観測期間 cohort 終了後 31日のうち、データ cutoff までに観測できたのは 1日分です', r['reasons'])
+        # 再監査#8: 日数は cohort 終了後の追加観測で、全観測日数ではないと明記する（計算は変えない）
+        self.assertIn('cohort 終了後の追加観測（cohort 終了日の翌日から観測終了日まで）31日のうち、データ cutoff までに経過したのは 1日分です'
+                      '（各応募日からの全観測日数ではありません。cohort 期間中の観測は含みません）', r['reasons'])
+        # 再監査#9: 暫定比には「観測期間: …」の注記を付けない（意図した挙動変更）。確定した率（A-R1）には付ける
+        self.assertFalse(any(n.startswith('観測期間:') for n in r['notes']))
+        r1 = ratio(ready(), 'A-R1')
+        self.assertEqual(r1['kind'], 'cvr')
+        self.assertIn('観測期間: cohort 終了後 30日（2026-09-30 まで）。観測期間の長さが違う cohort とは並べて比べません', r1['notes'])
 
     def test_cohort_closes_when_cutoff_passes(self):
         def mut(d):
