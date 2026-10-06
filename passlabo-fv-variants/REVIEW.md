@@ -25,7 +25,7 @@
 |---|---|---|
 | assets/instructor-from-current-fv.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/jtoJuKaUYxdEyDggrnb65Mhs4wg7BGVIIOkVunvF.png （現行 FV） | 人物部分だけ（x1050–1706, y0–585）。旧見出し・金帯は含めない |
 | assets/board-from-current-lp.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/OhTR9cBO4uh7lAsoDtfgD7emcnTeUQACQr4xYfZ6.png （教材） | 左の板書だけ（x30–658, y142–712）。見出しは含めない |
-| assets/text-from-current-lp.webp | 同上 | 右の配布テキストだけ（x730–1314, y146–712） |
+| assets/text-from-current-lp.webp | 同上 | 右の配布テキストだけ（x730–1314, y204–712）。時間の表示「（3分〜5分）」の行より下から切り出し、画像は加工しない |
 | assets/profile-circle-from-current-lp.webp | https://utagesystem.s3.ap-northeast-1.amazonaws.com/NpSJtgGvQWt9/ebTsOzDgIZTyBdRKIDLF0XmmySYZ9nY3FnbwPO05.png （講師プロフィール） | 丸写真だけ。今回の2案では未使用 |
 素材はユーザーが現行 LP から取得して添付したもの（この環境から現行ページへの接続はネットワーク方針で拒否されるため）。参考ページの人物・キャラクター・書籍・実績は使っていない。
 
