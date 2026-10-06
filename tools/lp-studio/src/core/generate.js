@@ -146,7 +146,7 @@ export function buildPrompt(project, mode = 'full', target = {}) {
     angles: [{ id: 'a1', statement: '訴求', insightId: 'i1', sourceRefs: ['s1-...'], rationale: '選んだ・選ばなかった理由', scores: { evidence: 0, fit: 0, specificity: 0, nextAction: 0 } }],
     chosenAngleId: 'a1',
     sections: [{
-      id: 'hero', role: 'hero', heading: '', headingPhrases: [''], sub: 'FV の補助文（H1 の問い・場面に、提供内容で答える短い1行）', body: '', note: '', sourceRefs: [],
+      id: 'hero', role: 'hero', heading: '', headingPhrases: [''], sub: 'FV の補助文（H1 の問い・場面に、提供内容で答える短い1行）', subPhrases: ['補助文の改行候補（連結すると sub と一致）'], body: '', note: '', sourceRefs: [],
       items: [{ heading: '', body: '', sourceRefs: [] }],
       visual: { kind: 'task-card', label: '〜のイメージ', title: '', task: '', note: '例であり実物・成果ではない旨', sourceRefs: [] },
       cta: { label: '', behavior: 'anchor', target: 'illustration' },
@@ -167,7 +167,7 @@ const GEN_SECTION = {
     id: { t: 'string', max: 40, pattern: /^[a-z][a-z0-9_-]{0,39}$/ },
     role: { t: 'string', enum: ROLE_IDS },
     heading: { t: 'string', max: 120 }, headingPhrases: { t: 'array', of: { t: 'string', max: 60 }, max: 8 },
-    body: { t: 'string', max: 1200 }, sub: { t: 'string', max: 60 }, note: { t: 'string', max: 200 },
+    body: { t: 'string', max: 1200 }, sub: { t: 'string', max: 60 }, subPhrases: { t: 'array', of: { t: 'string', max: 40 }, max: 6 }, note: { t: 'string', max: 200 },
     sourceRefs: { t: 'array', of: { t: 'string', max: 40 }, max: 20 },
     items: { t: 'array', of: item, max: 10 },
     visual: VISUAL_SPEC,
@@ -210,7 +210,7 @@ function toSection(g, idFor, report) {
   const s = {
     id: idFor(g), role: g.role, approved: false, approvedHash: '', needsReview: false, origin: 'claude-code',
     heading: clean(g.heading || '', `${g.role}.heading`), headingPhrases: (g.headingPhrases || []).map((x) => clean(x, `${g.role}.headingPhrases`)),
-    body: clean(g.body || '', `${g.role}.body`), sub: g.role === 'hero' ? clean(g.sub || '', 'hero.sub') : '', note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
+    body: clean(g.body || '', `${g.role}.body`), sub: g.role === 'hero' ? clean(g.sub || '', 'hero.sub') : '', subPhrases: g.role === 'hero' ? (g.subPhrases || []).map((x) => clean(x, 'hero.subPhrases')) : [], note: clean(g.note || '', `${g.role}.note`), sourceRefs: g.sourceRefs || [],
     items: (g.items || []).map((it, i) => ({ heading: clean(it.heading || '', `${g.role}.items[${i}]`), body: clean(it.body || '', `${g.role}.items[${i}]`), sourceRefs: it.sourceRefs || [] })),
     visual: g.visual ? { title: '', task: '', from: '', to: '', review: '', columns: [], rows: [], highlight: -1, sourceRefs: [], ...g.visual, notEvidence: true } : null,
     cta: g.cta && clean(g.cta.label, `${g.role}.cta.label`) ? { ...g.cta, label: g.cta.label } : null,

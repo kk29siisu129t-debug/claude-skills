@@ -1,5 +1,6 @@
 // docs/TESTS.md の「未カバー」の項目を埋めるテスト（v1 にあり、v2 で検査が抜けていたもの）
 import test from 'node:test';
+import { readFileSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { applyEdit } from '../../src/core/model.js';
 import { renderPage, renderWireframe, exportHtml, contrastChecks } from '../../src/core/render.js';
@@ -22,7 +23,15 @@ test('根拠の検証: 確認者・実在する日付・出典が必須、取り
   // 読込: 実在しない確認日は未検証に戻す
   const raw = JSON.parse(serializeProject(v));
   raw.evidence.at(-1).verifiedAt = '2026-02-30';
-  assert.equal(validateProject(raw).project.evidence.at(-1).status, 'unverified');
+  const re = validateProject(raw);
+  assert.equal(re.project.evidence.at(-1).status, 'unverified');
+  assert.ok(re.warnings.some((w) => /未検証/.test(w)), JSON.stringify(re.warnings));
+  // 検証後に主張を書き換えて読み込むと、未検証に戻し、その旨を警告する
+  const raw2 = JSON.parse(serializeProject(v));
+  raw2.evidence.at(-1).claim = '書き換えた主張';
+  const re2 = validateProject(raw2);
+  assert.equal(re2.project.evidence.at(-1).status, 'unverified');
+  assert.ok(re2.warnings.some((w) => /未検証/.test(w)), JSON.stringify(re2.warnings));
 });
 
 test('schema: 重複したセクション id・型違い・null・v0 移行・未知キーと HTML 風の文字列の警告・架空でない LPO データ', () => {
@@ -41,13 +50,24 @@ test('schema: 重複したセクション id・型違い・null・v0 移行・�
   assert.ok(!renderPage(again.project, { kind: 'review' }).html.includes('<b>太字</b>'), '描画ではエスケープ');
   const lpo = JSON.parse(JSON.stringify(p)); lpo.lpo.dataset.fictional = false;
   assert.equal(validateProject(lpo).ok, false);
-  const v0 = validateProject({ schemaVersion: 0, product: '架空の商品', audience: '架空の読者', operator: '' });
-  if (v0.ok) assert.equal(v0.project.schemaVersion, 2); else assert.ok(v0.errors.length);
+  // v0（版番号なし・ブリーフ値が素の文字列）→ v1 → v2 と移行し、未確認・未承認として扱う。未対応の版は拒否
+  const v0src = JSON.parse(readFileSync(new URL('../../examples/v1/claude-code-run/project.reviewed.json', import.meta.url), 'utf8'));
+  delete v0src.schemaVersion;
+  for (const k of Object.keys(v0src.brief)) if (k !== 'category' && v0src.brief[k] && typeof v0src.brief[k] === 'object') v0src.brief[k] = v0src.brief[k].value;
+  const v0 = validateProject(v0src);
+  assert.ok(v0.ok, v0.errors.join());
+  assert.equal(v0.project.schemaVersion, 2);
+  assert.ok(v0.warnings.some((w) => /v0 → v1/.test(w)) && v0.warnings.some((w) => /v1 → v2/.test(w)));
+  assert.ok(v0.project.sections.every((s) => !s.approved && s.needsReview));
+  assert.equal(validateProject({ ...v0src, schemaVersion: 99 }).ok, false);
 });
 
 test('編集段階でも危険な色・キーを拒否する', () => {
   assert.throws(() => applyEdit(seed(), { type: 'setBrand', key: 'primary', value: 'red;background:url(x)' }));
   assert.throws(() => applyEdit(seed(), { type: 'setBrand', key: '__proto__', value: '#000000' }));
+  const vid = seed().cta.variants[0].id;
+  for (const c of ['red', '#fff', 'url(x)', '#12345g']) assert.throws(() => applyEdit(seed(), { type: 'setCtaVariant', id: vid, color: c }), /#RRGGBB/, c);
+  assert.throws(() => applyEdit(seed(), { type: 'setCtaVariant', id: vid, timing: 'always' }), /タイミング/);
 });
 
 test('ingest: URL を含む欄は除外、骨組みは必須セクションを揃える', () => {
@@ -83,7 +103,19 @@ test('数値の照合: 4 は 4.2 に無い・120人は 12 を裏付けない・X
   assert.equal(metricMatches('満足度9%', 92, '%'), false);
   assert.equal(containsToken('91%', '1%'), false);
   assert.equal(containsToken('2026年', '202'), false);
-  assert.ok(detectClaims('十分に注意します。').every((c) => c.kind !== 'duration'));
+  // 「十分」は熟語のときだけ除外し、所要時間の主張（十分で終わる）は数値として扱う
+  assert.equal(detectClaims('十分に注意します。').length, 0);
+  const ten = applyEdit(seed(), { type: 'setItems', id: 'faq', value: [{ heading: '面談について', body: '面談は十分で終わります。' }] });
+  assert.ok(checkProject(ten).some((i) => i.level === 'stop'), '十分（10分）の面談');
+  // 根拠の追加: 主張文に無い数値・単位の組は拒否（120人 に 12人 は無い）
+  assert.throws(() => applyEdit(seed(), { type: 'addEvidence', claim: '参加者は120人', kind: 'outcome-aggregate', reality: 'real', source: '例', metricValue: 12, metricUnit: '人' }), /主張文/);
+  assert.throws(() => applyEdit(seed(), { type: 'addEvidence', claim: '平均4.2日', kind: 'outcome-aggregate', reality: 'real', source: '例', metricValue: 4.2, metricUnit: '日/週' }), /主張文/);
+  // 読込: 主張文と合わない指標は外して警告
+  const raw = JSON.parse(serializeProject(seed()));
+  raw.evidence[0].metricValue = 9.9;
+  const r = validateProject(raw);
+  assert.ok(r.ok);
+  assert.ok(r.project.evidence[0].metricValue === null || r.warnings.some((w) => /metric|指標|数値/.test(w)), JSON.stringify(r.warnings));
 });
 
 test('XSS: 根拠の文言・プロジェクト名からも注入されない', () => {
@@ -174,4 +206,11 @@ test('XSS: project のすべての文字列欄（約200か所）から、タグ�
     }
   }
   assert.ok(rendered > 150, `描画まで通った欄 ${rendered}`);
+});
+
+test('保存→再読込で、インサイトの公開資料の参照に誤った警告を出さず、そのまま保つ', () => {
+  const r = validateProject(JSON.parse(serializeProject(seed())));
+  assert.ok(r.ok);
+  assert.deepEqual(r.warnings, []);
+  assert.deepEqual(r.project, seed());
 });

@@ -19,7 +19,8 @@ var els=document.querySelectorAll('.reveal');function showAll(){for(var i=0;i<el
 if(!d.classList.contains('js')||!io){showAll()}else{var ob=new IntersectionObserver(function(es){es.forEach(function(x){if(x.isIntersecting){x.target.classList.add('in');ob.unobserve(x.target)}})},{rootMargin:'0px 0px -6% 0px'});for(var j=0;j<els.length;j++)ob.observe(els[j])}
 addEventListener('hashchange',showAll);addEventListener('beforeprint',showAll);if(location.hash)showAll();
 var bar=document.querySelector('.sticky-cta');if(!bar)return;var zones=document.querySelectorAll('.cta-zone'),vis=[];
-function upd(){var any=false;for(var i=0;i<vis.length;i++)if(vis[i])any=true;var show=!any;bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
+var half=document.body.getAttribute('data-timing')==='after-half';function past(){return !half||scrollY>(d.scrollHeight-innerHeight)/2}if(half)addEventListener('scroll',function(){upd()},{passive:true});
+function upd(){var any=false;for(var i=0;i<vis.length;i++)if(vis[i])any=true;var show=!any&&past();bar.classList.toggle('show',show);if(show){bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}else{bar.setAttribute('inert','');bar.setAttribute('aria-hidden','true')}}
 if(io){var z=new IntersectionObserver(function(es){es.forEach(function(x){vis[Array.prototype.indexOf.call(zones,x.target)]=x.isIntersecting});upd()});Array.prototype.forEach.call(zones,function(x,i){vis[i]=true;z.observe(x)});upd()}else{bar.classList.add('show');bar.removeAttribute('inert');bar.removeAttribute('aria-hidden')}})();`;
 
 // 日本語ゴシックを OS ごとに指定し、最後にこの検証環境に実在する IPA ゴシックを置く。
@@ -249,49 +250,52 @@ tr.hl td{background-color:var(--hl)}
 .after-fv .lead{font-size:16px}
 }
 @media (max-width:359px){.hero-bar{padding:10px 16px 0}.hero-in{padding:16px 16px 24px}.hero h1{font-size:30px}.plan-title{font-size:24px}.ring{width:84px;height:84px}}
-/* ---- FV 人物写真版（SP基準で書き、PC は min-width で広げる）: 顔が主役・短い1訴求・CTA1つ。補助の図は任意 ---- */
-.hero-portrait{position:relative;background:var(--paper);isolation:isolate}
-.hero-portrait .hero-bar{position:absolute;top:0;left:0;right:0;z-index:2;padding:12px 20px 0}
-.hero-portrait .logo{background:rgba(255,255,255,.86);border-radius:999px;padding:4px 10px}
-.hero-photo{position:relative;margin:0;overflow:hidden;height:300px}
-.hero-photo img{width:100%;height:100%;object-fit:cover;display:block;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy)}
+/* ---- FV 人物写真版（SP基準・1枚の構図）: 大きな問い → 右の顔と左の解決 → 1つの行動。PC は min-width で広げる ---- */
+.hero-portrait{position:relative;background:var(--paper);isolation:isolate;border-bottom:0}
+.hero-portrait .hero-bar{padding:20px 20px 0;justify-content:space-between;align-items:center;min-height:40px}
+.hero-portrait .logo{font-size:14px;font-weight:800;line-height:20px}
+.hero-portrait .demo-badge{font-size:11px;padding:4px 8px}
+.hero-portrait .hero-in,.gaze-right .hero-in{display:block;padding:0 20px 28px;max-width:none}
+.hero-portrait .hero-copy{margin-top:26px}
+.hero-portrait .aud{font-size:15px;line-height:22px;font-weight:700;margin:0}
+.hero-portrait h1{font-size:clamp(36px,12vw,48px);line-height:1.2;font-weight:900;letter-spacing:-.01em;margin:6px 0 0}
+.hero-portrait h1 .ph{display:block}
+.hero-stage{--ph:clamp(240px,80vw,320px);display:grid;grid-template-columns:minmax(0,1fr);margin:8px -20px 0 -20px;min-height:var(--ph)}
+.hero-stage>*{grid-area:1/1}
+.hero-photo{position:relative;margin:0;justify-self:end;width:57.5%;align-self:start}
+.hero-photo img{display:block;width:100%;height:var(--ph);object-fit:cover;object-position:var(--fxs) var(--fy);transform:scale(var(--zs));transform-origin:var(--fxs) var(--fy);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 40px),linear-gradient(to bottom,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);-webkit-mask-composite:source-in;mask-image:linear-gradient(to right,transparent 0,#000 40px),linear-gradient(to bottom,transparent 0,#000 12px,#000 calc(100% - 20px),transparent 100%);mask-composite:intersect}
 .hero-photo img.flip{transform:scale(var(--zs)) scaleX(-1)}
-.photo-cap{position:absolute;z-index:1;right:10px;bottom:10px;margin:0;font-size:11px;line-height:1.4;color:#fff;background:rgba(20,22,30,.55);border-radius:6px;padding:3px 8px}
-.hero-portrait .hero-in,.gaze-right .hero-in{grid-template-columns:minmax(0,1fr);grid-template-areas:"copy" "visual" "cta";min-height:0;padding:0 20px 24px;row-gap:0}
-.hero-portrait .hero-copy{margin-top:20px;align-self:auto}
-.hero-portrait h1{font-size:40px;line-height:1.25}
-.hero-sub{font-size:16px;line-height:1.7;font-weight:700;color:var(--ink);margin:12px 0 0}
-.hero-portrait .hero-cta{margin-top:20px}
-.hero-visual.mini{grid-area:visual;margin:16px 0 0;max-width:236px}
-.hero-visual.mini .plan{padding:12px 14px 14px;border-radius:14px;box-shadow:0 18px 40px color-mix(in srgb,var(--ink) 18%,transparent)}
-.hero-visual.mini .vis-label{font-size:11px;margin-bottom:8px;padding:2px 6px}
-.hero-visual.mini .plan-main{gap:10px;margin-bottom:10px}
-.hero-visual.mini .ring{width:40px;height:40px}.hero-visual.mini .ring span{width:8px;height:8px;box-shadow:0 0 0 2px var(--accent)}
-.hero-visual.mini .plan-title{font-size:18px}
-.hero-visual.mini .plan-task{font-size:14px;padding:8px 10px;gap:10px}
-@media (max-width:359px){.hero-photo{height:260px}.hero-portrait .hero-in{padding:0 16px 16px}.hero-portrait .hero-copy{margin-top:14px}.hero-portrait .hero-cta{margin-top:16px}.hero-portrait h1{font-size:36px}.hero-visual.mini{max-width:210px;margin-top:10px}}
+.photo-cap{margin:2px 0 0;padding-left:17.8%;font-size:11px;line-height:16px;color:#5b6170}
+.gaze-right .hero-photo{justify-self:start}
+.gaze-right .photo-cap{padding-left:20px}
+.hero-sub{position:relative;z-index:1;align-self:start;justify-self:start;margin:calc(var(--ph) * .3) 0 0 20px;width:45%;font-size:clamp(18px,5vw,20px);line-height:1.6;font-weight:700;color:var(--ink)}
+.hero-sub .ph{display:block}
+.gaze-right .hero-sub{justify-self:end;margin-right:20px;margin-left:0}
+.hero-portrait .hero-cta{margin-top:12px}
+.hero-portrait .btn-hero{width:100%;min-height:60px;font-size:18px;border-radius:12px;box-shadow:none}
+.hero-portrait + .sec{padding-top:32px}
+@media (max-width:279px){.hero-stage>*{grid-area:auto}.hero-photo{width:100%}.hero-stage{min-height:0}.hero-sub,.gaze-right .hero-sub{margin:12px 20px 0;width:auto;justify-self:stretch}.photo-cap{padding-left:20px}} /* 200%以上の拡大: 文字を写真に重ねず縦に並べる */
+.hero-portrait + .sec h2{font-size:24px;line-height:34px}
 @media (min-width:768px){
 .hero-portrait{background:#f4ece4}
-.hero-portrait .hero-bar{position:static;padding:16px 32px 0}
-.hero-portrait .logo{background:none;padding:0}
-.hero-photo{position:absolute;inset:0;z-index:-1;height:auto}
-.hero-photo img{object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp)}
+.hero-portrait .hero-bar{max-width:1160px;margin:0 auto;padding:16px 32px 0;justify-content:flex-start}
+.hero-portrait .hero-in{display:grid;max-width:1160px;margin:0 auto;grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:"copy ." "visual ." "cta .";min-height:min(640px,calc(100vh - 56px));align-content:center;padding:24px 32px 56px}
+.gaze-right .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,500px);grid-template-areas:". copy" ". visual" ". cta"}
+.hero-portrait .hero-copy{margin-top:0}
+.hero-portrait h1{font-size:56px;margin-top:10px}
+.hero-stage{display:contents}
+.hero-photo{position:absolute;inset:0;z-index:-1;width:auto;justify-self:stretch;align-self:stretch}
+.hero-photo img{height:100%;object-position:var(--fx) var(--fyp);transform:scale(var(--zp));transform-origin:var(--fx) var(--fyp);-webkit-mask-image:none;mask-image:none}
 .hero-photo img.flip{transform:scale(var(--zp)) scaleX(-1)}
 .gaze-left .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
 .gaze-right .hero-photo::after{content:"";position:absolute;inset:0;background:linear-gradient(270deg,rgba(250,246,241,.92) 0%,rgba(250,246,241,.78) 34%,rgba(250,246,241,0) 56%)}
-.hero-portrait .hero-in{grid-template-columns:minmax(0,500px) minmax(0,1fr);grid-template-areas:"copy ." "visual ." "cta .";min-height:min(640px,calc(100vh - 56px));align-content:center;padding:24px 32px 56px}
-.gaze-right .hero-in{grid-template-columns:minmax(0,1fr) minmax(0,500px);grid-template-areas:". copy" ". visual" ". cta"}
-.hero-portrait .hero-copy{margin-top:0}
-.hero-portrait h1{font-size:56px}
-.hero-sub{font-size:20px;margin-top:18px}
+.photo-cap{position:absolute;z-index:1;right:16px;bottom:12px;margin:0;padding:3px 8px;color:#fff;background:rgba(20,22,30,.55);border-radius:6px}
+.hero-sub{grid-area:visual;margin:20px 0 0;width:auto;font-size:22px}
+.hero-sub .ph{display:inline}
 .hero-portrait .hero-cta{margin-top:32px}
-.hero-visual.mini{margin:28px 0 0;max-width:340px}
-.hero-visual.mini .plan{padding:16px 18px 18px;border-radius:18px}
-.hero-visual.mini .vis-label{font-size:12px;margin-bottom:10px}
-.hero-visual.mini .ring{width:56px;height:56px}
-.hero-visual.mini .plan-title{font-size:22px}
-.hero-visual.mini .plan-task{font-size:15px;padding:10px 12px}
-.photo-cap{bottom:12px;right:16px}
+.hero-portrait .btn-hero{width:auto;min-width:300px;min-height:64px}
+.hero-portrait + .sec{padding-top:72px}
+.hero-portrait + .sec h2{font-size:36px;line-height:1.35}
 }
 `;
 }
@@ -376,13 +380,15 @@ function sectionHtml(project, s, mode) {
       const cta = s.cta ? `<a class="btn btn-primary btn-hero" href="#${e(s.cta.target)}">${e(s.cta.label)}<span class="arw" aria-hidden="true"></span></a>` : '';
       const pt = project.assets?.heroPortrait;
       const label = d.productLabel || d.audienceLabel;
-      const copy = `<div class="hero-copy">${meta}${label ? `<p class="aud">${e(label)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>${s.sub ? `<p class="hero-sub">${phrasesHtml(s.sub)}</p>` : ''}</div>`;
+      const sub = s.sub ? `<p class="hero-sub">${phrasesHtml(s.sub, s.subPhrases)}</p>` : '';
+      const copy = `<div class="hero-copy">${meta}${label ? `<p class="aud">${e(label)}</p>` : ''}<h1>${phrasesHtml(s.heading, s.headingPhrases)}</h1>${pt && pt.dataUri ? '' : sub}</div>`;
       if (pt && pt.dataUri) {
         // 顔が主役。写真を全面に敷き、視線（gaze）の先に見出し・小さな計画カード・CTA を置く。人物は架空のイメージで、口コミ・実績・肩書と結び付けない
         const num = (v, d) => (Number.isFinite(Number(v)) ? Number(v) : d);
         const vars = `--fx:${num(pt.focusX, 50)}%;--fy:${num(pt.focusY, 30)}%;--fyp:${num(pt.focusYPc, num(pt.focusY, 30))}%;--fxs:${num(pt.focusXSp, num(pt.focusX, 50))}%;--zs:${num(pt.zoomSp, 1)};--zp:${num(pt.zoomPc, 1)}`;
-        return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"><figcaption class="photo-cap">${e(pt.caption)}</figcaption></figure><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
+        return `<header class="hero hero-portrait gaze-${pt.gaze === 'right' ? 'right' : 'left'} cta-zone" id="${id}" style="${vars}"><div class="hero-bar"><span class="logo">${e(d.brandName)}</span>${badge}</div><div class="hero-in">
 ${copy}
+<div class="hero-stage"><figure class="hero-photo"><img src="${e(pt.dataUri)}" alt="${e(pt.alt)}"${pt.flip ? ' class="flip"' : ''} decoding="async"><figcaption class="photo-cap">${e(pt.caption)}</figcaption></figure>${sub}</div>
 ${s.visual ? `<div class="hero-visual mini" aria-label="${e(s.visual.label)}">${visualHtml(s.visual, { hero: true })}</div>` : ''}
 <div class="hero-cta">${cta}</div>
 </div></header>`;
@@ -472,7 +478,7 @@ export function renderPage(project, { kind = 'review', reduceMotion = false } = 
 <title>${e(d.brandName)}${d.serviceDescriptor ? `｜${e(d.serviceDescriptor)}` : ''}</title>
 <script>${HEAD_SCRIPT}</script>
 <style>${css(project)}</style></head>
-<body data-kind="${e(shown)}" data-demo="${e(d.demoMode)}">${banner}${demoBar}
+<body data-kind="${e(shown)}" data-demo="${e(d.demoMode)}" data-timing="${e(tokens(project).timing)}">${banner}${demoBar}
 <main>${parts.join('\n')}</main>
 ${footer}
 ${sticky}

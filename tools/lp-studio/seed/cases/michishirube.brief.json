@@ -11,13 +11,13 @@
     "demoNotice": "架空サービスのデモです。お申し込みは受け付けていません。",
     "operator": "",
     "category": "education",
-    "productLabel": "簿記2級 学習サポート"
+    "productLabel": "簿記2級の学習計画サポート"
   },
   "brand": {
     "primary": "#2741b8",
-    "accent": "#c42f57",
-    "ink": "#1b1f2b",
-    "paper": "#fbf8f3",
+    "accent": "#c32952",
+    "ink": "#17212d",
+    "paper": "#f7f3ec",
     "font": "sans"
   },
   "inputs": {
@@ -258,7 +258,7 @@
       {
         "id": "a",
         "label": "",
-        "color": "#c42f57",
+        "color": "#c32952",
         "timing": "spec"
       }
     ]
@@ -274,14 +274,14 @@
       "gaze": "left",
       "flip": false,
       "focusX": 69,
-      "focusY": 48,
-      "zoomSp": 1.1,
+      "focusY": 50,
+      "zoomSp": 1,
       "zoomPc": 1,
       "origin": "ai_generated",
       "fictional": true,
       "source": "ユーザー提供のAI生成画像（1536×1024 PNG を 1200px WebP に縮小）。実在の顧客・講師・推薦者ではない",
       "focusYPc": 22,
-      "focusXSp": 100
+      "focusXSp": 80
     }
   },
   "publicSources": [

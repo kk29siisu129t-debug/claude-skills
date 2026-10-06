@@ -98,7 +98,8 @@ export const SECTION_SPEC = {
     heading: str(120),
     headingPhrases: strList(60, 8),
     body: str(1200),
-    sub: str(60), // FV の補助文（hero だけ。H1 の直下に1行）
+    sub: str(60), // FV の補助文（hero だけ）
+    subPhrases: strList(40, 6), // 補助文の改行候補（連結すると sub と一致）
     note: str(200),
     sourceRefs: refs,
     items: { t: 'array', of: itemSpec, max: 10 },
@@ -493,7 +494,7 @@ export function validateProject(input) {
     else if (e.verifiedHash !== evidenceHash(e)) why = '検証後に内容が変わっている';
     if (why) {
       e.status = 'unverified'; e.verifiedBy = ''; e.verifiedAt = ''; e.verifiedHash = '';
-      warnings.push(`$.evidence.${e.id}: ${why}ため unverified に降格しました`);
+      warnings.push(`$.evidence.${e.id}: ${why}ため未検証（unverified）に戻しました`);
     }
   }
 
@@ -501,7 +502,7 @@ export function validateProject(input) {
   for (const ins of p.insights) {
     const supported = ins.sourceRefs.some((r) => quoteIds.has(r) || p.ledger.some((l) => l.id === r && (l.kind === 'customer-observation' || l.kind === 'customer-quote') && l.reality === 'real'));
     if (ins.status === 'supported' && !supported) { ins.status = 'hypothesis'; warnings.push(`$.insights.${ins.id}: 実在の顧客の原文・観察に基づかないため仮説に戻しました`); }
-    for (const r of ins.sourceRefs) if (!allRefs.has(r)) warnings.push(`$.insights.${ins.id}: 参照 "${r}" が台帳にありません`);
+    for (const r of ins.sourceRefs) if (!allRefs.has(r) && !(p.publicSources || []).some((x) => x.id === r)) warnings.push(`$.insights.${ins.id}: 参照 "${r}" が台帳にありません`);
   }
   if (p.chosenAngleId && !p.angles.some((a) => a.id === p.chosenAngleId)) { warnings.push('$.chosenAngleId: 存在しない訴求のため外しました'); p.chosenAngleId = ''; }
 
@@ -516,6 +517,7 @@ export function validateProject(input) {
   for (const s of p.sections) {
     s.approved = !!s.approved; s.approvedHash = s.approvedHash || ''; s.needsReview = !!s.needsReview; s.origin = s.origin || 'manual';
     for (const k of ['heading', 'body', 'sub', 'note']) s[k] = s[k] || '';
+    s.subPhrases = s.subPhrases || [];
     s.headingPhrases = s.headingPhrases || []; s.sourceRefs = s.sourceRefs || [];
     s.items = (s.items || []).map((it) => ({ heading: it.heading || '', body: it.body || '', sourceRefs: it.sourceRefs || [] }));
     if (s.visual === undefined) s.visual = null;

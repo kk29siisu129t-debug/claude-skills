@@ -160,7 +160,7 @@ export function isRealDate(s) {
 export function sectionHash(s, portrait = null) {
   if (s.role) {
     const pt = s.role === 'hero' && portrait ? [{ img: sha256Base64(portrait.dataUri || ''), alt: portrait.alt || '', caption: portrait.caption || '', origin: portrait.origin || '', fictional: portrait.fictional === true }] : [];
-    return sha256Base64(JSON.stringify([s.role, s.heading || '', s.headingPhrases || [], s.body || '', s.note || '', s.items || [], s.visual || null, s.cta || null, s.commercialPreview || null, s.sourceRefs || [], s.media ? { ...s.media, dataUri: s.media.dataUri ? sha256Base64(s.media.dataUri) : '' } : null, ...(s.sub ? [s.sub] : []), ...pt]));
+    return sha256Base64(JSON.stringify([s.role, s.heading || '', s.headingPhrases || [], s.body || '', s.note || '', s.items || [], s.visual || null, s.cta || null, s.commercialPreview || null, s.sourceRefs || [], s.media ? { ...s.media, dataUri: s.media.dataUri ? sha256Base64(s.media.dataUri) : '' } : null, ...(s.sub ? [s.sub, s.subPhrases || []] : []), ...pt]));
   }
   const f = s.fields || {};
   return sha256Base64(JSON.stringify([s.type, f.heading || '', f.lead || '', f.body || '', f.note || '', f.items || [], f.itemsAlt || [], s.claimRefs || []]));

@@ -245,8 +245,21 @@ test('LPO と CTA 比較（配信しない）', async () => {
   assert.match(await page.locator('#panel').innerText(), /AB配信・広告設定は行いません/);
   await page.click('#btn-add-cta');
   await page.selectOption('#cta-b-timing', 'after-half');
+  // 色を変えると、その案のプレビュー（実際の描画）に反映される
+  await page.locator('#cta-b-color').evaluate((el) => { el.value = '#0f5c4a'; el.dispatchEvent(new Event('change', { bubbles: true })); });
+  await page.waitForFunction(() => /#0f5c4a/i.test(document.querySelector('#cta-frame-b')?.srcdoc || ''));
+  assert.ok(!/#0f5c4a/i.test(await page.locator('#cta-frame-a').getAttribute('srcdoc')), '案Aのプレビューは変わらない');
+  assert.match(await page.locator('#cta-frame-b').getAttribute('srcdoc'), /data-timing="after-half"/);
+  assert.match(await page.locator('#cta-frame-a').getAttribute('srcdoc'), /data-timing="spec"/);
   await page.click('#cta-b-use');
   await page.waitForSelector('[data-variant="b"].active');
+  // 比較用のタイミングを採用すると、実販売の理由に出る（配信はしない）
+  await tab(page, 'export');
+  assert.match(await page.locator('#gate-commercial').innerText(), /固定CTAの表示タイミングが比較用の案/);
+  // LPO 画面: 未接続の一覧・観測と推測の分離・guardrail・停止条件
+  await tab(page, 'lpo');
+  const lpo = await page.locator('#panel').innerText();
+  for (const w of ['未接続:', '観測（架空集計）', '仮説と検証計画', 'guardrail', '停止条件']) assert.ok(lpo.includes(w), w);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -267,8 +280,8 @@ test('キーボード: タブは矢印キーで移動し、入力欄へ Tab で�
   await context.close();
 });
 
-test('エディタ: 320/375/390/430/1280px で横スクロールなし', async () => {
-  for (const width of [320, 375, 390, 430, 1280]) {
+test('エディタ: 320/375/390/400/430/1280px で横スクロールなし', async () => {
+  for (const width of [320, 375, 390, 400, 430, 1280]) {
     const context = await browser.newContext();
     const { page, errors } = await openApp(context, { width, height: 800 });
     for (const t of ['inputs', 'insight', 'plan', 'design', 'export', 'cta', 'lpo', 'gen']) {
@@ -320,16 +333,16 @@ test('LP: 2ケース × 320/375/390/400/430/1280px — 横スクロールなし�
         const hero = document.querySelector('.hero');
         return { sw: document.documentElement.scrollWidth, cw: document.documentElement.clientWidth, broken, fs: cs.fontSize, lh: parseFloat(cs.lineHeight) / parseFloat(cs.fontSize), h1: parseFloat(getComputedStyle(h1el).fontSize), h1Lines: Math.round(h1el.getBoundingClientRect().height / parseFloat(getComputedStyle(h1el).lineHeight)), ctaBottom: cta.bottom, heroBottom: hero.getBoundingClientRect().bottom, fw: getComputedStyle(document.querySelector('.ph')).fontWeight, bodyW: getComputedStyle(document.body).fontWeight,
           portrait: hero.classList.contains('hero-portrait'), ctas: hero.querySelectorAll('.btn').length, disabled: hero.querySelectorAll('[aria-disabled],[disabled]').length,
-          chars: hero.innerText.replace(/\s/g, '').length, vis: r('.hero-visual'), h1r: r('.hero h1'), ctar: r('.hero .btn-primary'), photo: r('.hero-photo'), cap: r('.photo-cap'), badge: hero.querySelector('.demo-badge')?.textContent };
+          chars: hero.innerText.replace(/\s/g, '').length, vis: r('.hero-visual'), h1r: r('.hero h1'), ctar: r('.hero .btn-primary'), photo: r('.hero-photo img'), cap: r('.photo-cap'), sub: r('.hero-sub'), badge: hero.querySelector('.demo-badge')?.textContent };
       });
       assert.ok(m.sw <= m.cw, `${id} ${w}: h-scroll`);
       assert.deepEqual(m.broken, [], `${id} ${w}: 見出しの文節が途中で割れた`);
       assert.equal(m.fs, '16px');
       assert.ok(Math.abs(m.lh - 1.8) < 0.05);
       assert.equal(m.bodyW, '400');
-      // FV v3（ユーザーレビューで旧 FV は不合格）: H1 は顔写真版 PC 56 / SP 40 / 〜359px 36、図版 PC 64 / SP 36 / 〜359px 30
-      const expectH1 = m.portrait ? (w < 360 ? 36 : w < 768 ? 40 : 56) : (w < 360 ? 30 : w < 768 ? 36 : 64);
-      assert.equal(m.h1, expectH1, `${id} ${w}: h1 ${m.h1}`);
+      // FV v3（ユーザーレビューで旧 FV は不合格）: H1 は顔写真版 PC 56 / SP 12vw（400px で 48・360px で 43.2・320px で 38.4）、図版 PC 64 / SP 36 / 〜359px 30
+      const expectH1 = m.portrait ? (w < 768 ? Math.min(48, Math.max(36, w * 0.12)) : 56) : (w < 360 ? 30 : w < 768 ? 36 : 64);
+      assert.ok(Math.abs(m.h1 - expectH1) < 0.1, `${id} ${w}: h1 ${m.h1}`);
       assert.ok(m.h1Lines <= 2, `${id} ${w}: H1 ${m.h1Lines}行`);
       assert.equal(m.ctas, 1, `${id} ${w}: FV の CTA は1つ`);
       assert.equal(m.disabled, 0, `${id} ${w}: FV に無効の予約ボタンを置かない`);
@@ -340,13 +353,15 @@ test('LP: 2ケース × 320/375/390/400/430/1280px — 横スクロールなし�
       const overlap = (x, y) => !!(x && y) && x.l < y.r && y.l < x.r && x.t < y.b && y.t < x.b;
       assert.ok(!overlap(m.vis, m.h1r) && !overlap(m.vis, m.ctar) && !overlap(m.h1r, m.ctar), `${id} ${w}: 図・見出し・CTA が重なった`);
       if (m.portrait) {
-        // 顔が主役。SP は 写真 → 見出し → （補助の図）→ CTA の順で、写真に文字を重ねない。PC は顔の反対側（視線の先）の余白に置く
-        assert.ok(m.h1r.t >= m.photo.b || w >= 768, `${id} ${w}: SP で見出しが写真に重なった`);
-        if (w < 768) assert.ok(m.ctar.t >= m.h1r.b && (!m.vis || (m.vis.t >= m.h1r.b && m.ctar.t >= m.vis.b)), `${id} ${w}: SP の順序`);
-        else assert.ok(m.h1r.r <= w * 0.5 && (!m.vis || m.vis.r <= w * 0.5), `${id} ${w}: PC の見出しと図は左の余白側`);
-        if (m.vis) assert.ok((m.vis.r - m.vis.l) * (m.vis.b - m.vis.t) < (m.photo.r - m.photo.l) * (m.photo.b - m.photo.t) * 0.5, '補助の図は写真より小さい');
-        assert.ok(m.cap && m.cap.b <= m.photo.b + 1 && !overlap(m.cap, m.vis) && !overlap(m.cap, m.h1r), `${id} ${w}: 写真の注記`);
-        assert.ok(m.photo.b - m.photo.t >= (w < 360 ? 250 : w < 768 ? 290 : 600), `${id} ${w}: 顔写真が小さすぎる`);
+        // SP アートディレクション: 大きな問い（H1）→ 右の顔と左の解決（補助文）→ 1つの CTA。写真を文字の上に重ねない
+        if (w < 768) {
+          assert.ok(m.h1r.b <= m.photo.t + 1, `${id} ${w}: H1 が写真より先（上）`);
+          assert.ok(m.ctar.t >= m.photo.b - 1, `${id} ${w}: CTA は写真の下`);
+          assert.ok(m.sub && m.sub.t >= m.photo.t && m.sub.b <= m.photo.b && m.sub.r <= m.photo.l + (m.photo.r - m.photo.l) * 0.2, `${id} ${w}: 補助文は顔の左（写真のぼかし部分まで）`);
+          assert.ok(m.photo.r >= w - 1 && m.photo.l >= w * 0.35, `${id} ${w}: 人物は右`);
+          assert.ok(m.photo.b - m.photo.t >= Math.min(320, w * 0.8) - 1, `${id} ${w}: 顔写真が小さすぎる`);
+        } else assert.ok(m.h1r.r <= w * 0.5 && (!m.sub || m.sub.r <= w * 0.5), `${id} ${w}: PC の見出しと補助文は左の余白側`);
+        assert.ok(m.cap && !overlap(m.cap, m.h1r) && !overlap(m.cap, m.ctar), `${id} ${w}: 写真の注記`);
       } else if (w === 400) assert.ok(m.heroBottom <= 720 && m.vis.b < m.ctaBottom, `${id} 400: FV ${m.heroBottom}`);
       assert.deepEqual(errors, []);
       await context.close();
@@ -430,6 +445,10 @@ test('自己完結版（dist/lp-studio-standalone.html）を file:// で開い�
   await tab(page, 'export');
   const review = await downloadText(page, '#btn-export-review');
   assert.ok(review.text.includes(JSON.parse(readFileSync(join(ROOT, "examples/v2/mitsumoriban/response.json"), "utf8")).sections[0].headingPhrases[0]));
+  assert.match(review.text, /<meta http-equiv="Content-Security-Policy" content="default-src 'none';[^"]*form-action 'none'/);
+  const saved = await downloadText(page, '#btn-save');
+  assert.equal(JSON.parse(saved.text).schemaVersion, 2);
+  assert.match(await page.locator('meta[name="lp-studio-source"]').getAttribute('content'), /^sha256:[0-9a-f]{64}$/);
   assert.deepEqual(errors, []);
   await context.close();
 });
@@ -590,4 +609,34 @@ test('エディタ: 根拠の検証は人の操作（確認者・実在の日付
   assert.match(await page.locator('#btn-approve').innerText(), /内容を確認して承認/); // 写真の注記を変えたので FV の承認も外れる
   assert.deepEqual(errors.filter((e) => !/dialog/.test(e)), []);
   await context.close();
+});
+
+test('LP: 固定CTAの比較用タイミング（ページの半分を過ぎてから）が実際の表示に反映される', async () => {
+  // 途中の CTA 帯（無効の申込）が無い版で比べる: spec は FV を過ぎたら表示、after-half は半分を過ぎるまで出さない
+  const make = async (timing) => {
+    const j = JSON.parse(readFileSync(join(ROOT, 'seed/michishirube.project.json'), 'utf8'));
+    j.cta.variants[0].timing = timing;
+    for (const sec of j.sections) if (sec.role === 'hero') sec.commercialPreview = null;
+    const pj = join(TMP, `t-${timing}.json`); writeFileSync(pj, JSON.stringify(j));
+    const out = join(TMP, `t-${timing}.html`);
+    const r = spawn(process.execPath, ['cli.mjs', 'export', '--project', pj, '--kind', 'review', '--out', out], { cwd: ROOT });
+    assert.equal(await new Promise((res) => r.on('exit', res)), 0);
+    return out;
+  };
+  for (const [timing, early] of [['spec', true], ['after-half', false]]) {
+    const f = await make(timing);
+    const ctx = await browser.newContext({ viewport: { width: 400, height: 760 } });
+    const page = await ctx.newPage();
+    await page.goto(`file://${f}`);
+    assert.equal(await page.getAttribute('body', 'data-timing'), timing);
+    const y = await page.evaluate(() => { const max = document.documentElement.scrollHeight - innerHeight; for (let t = 0.05; t < 0.5; t += 0.01) { window.scrollTo({ top: max * t, behavior: 'instant' }); if (![...document.querySelectorAll('.cta-zone')].some((z) => { const b = z.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight; })) return t; } return -1; });
+    assert.ok(y > 0 && y < 0.5, `CTA の帯が見えない前半の位置 ${y}`);
+    await page.waitForTimeout(700);
+    assert.equal((await sticky(page)).shown, early, `${timing}: 前半`);
+    const y2 = await page.evaluate(() => { const max = document.documentElement.scrollHeight - innerHeight; for (let t = 0.52; t < 0.95; t += 0.01) { window.scrollTo({ top: max * t, behavior: 'instant' }); if (![...document.querySelectorAll('.cta-zone')].some((z) => { const b = z.getBoundingClientRect(); return b.bottom > 0 && b.top < innerHeight; })) return t; } return -1; });
+    assert.ok(y2 > 0.5, `後半の位置 ${y2}`);
+    await page.waitForTimeout(700);
+    assert.equal((await sticky(page)).shown, true, `${timing}: 後半`);
+    await ctx.close();
+  }
 });

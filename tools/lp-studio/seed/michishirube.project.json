@@ -11,13 +11,13 @@
     "serviceDescriptor": "学習計画の作成・見直しサポート",
     "audienceLabel": "働きながら、簿記2級へ。",
     "demoMode": "synthetic-demo",
-    "productLabel": "簿記2級 学習サポート"
+    "productLabel": "簿記2級の学習計画サポート"
   },
   "brand": {
     "primary": "#2741b8",
-    "accent": "#c42f57",
-    "ink": "#1b1f2b",
-    "paper": "#fbf8f3",
+    "accent": "#c32952",
+    "ink": "#17212d",
+    "paper": "#f7f3ec",
     "font": "sans"
   },
   "inputs": {
@@ -356,6 +356,11 @@
       ],
       "body": "",
       "sub": "学習計画を一緒につくり、週ごとに見直す。",
+      "subPhrases": [
+        "学習計画を",
+        "一緒につくり、",
+        "週ごとに見直す。"
+      ],
       "note": "",
       "sourceRefs": [
         "s1-target",
@@ -388,6 +393,7 @@
       ],
       "body": "ここに並べたのは、サービスで行う内容です。実績や効果を示すものではありません。",
       "sub": "",
+      "subPhrases": [],
       "note": "",
       "sourceRefs": [
         "s1-process",
@@ -436,6 +442,7 @@
       ],
       "body": "平日に進まなかった分は、週末にまとめてやろうと思う。けれど、予定していた分を終えられないまま次の週へ。今の進み方でよいのかも、分からなくなっていきます。",
       "sub": "",
+      "subPhrases": [],
       "note": "",
       "sourceRefs": [
         "s1-scene"
@@ -460,6 +467,7 @@
       ],
       "body": "取り組む内容を15分の単位に分けておき、進み具合に合わせて、次の週の計画を調整します。",
       "sub": "",
+      "subPhrases": [],
       "note": "",
       "sourceRefs": [
         "s1-mechanism"
@@ -496,6 +504,7 @@
       "headingPhrases": [],
       "body": "",
       "sub": "",
+      "subPhrases": [],
       "note": "",
       "sourceRefs": [],
       "items": [
@@ -527,6 +536,7 @@
       ],
       "body": "面談で今の進み具合を確認し、学習計画を一緒につくります。",
       "sub": "",
+      "subPhrases": [],
       "note": "",
       "sourceRefs": [
         "s1-process",
@@ -582,7 +592,7 @@
       {
         "id": "a",
         "label": "",
-        "color": "#c42f57",
+        "color": "#c32952",
         "timing": "spec"
       }
     ]
@@ -729,8 +739,8 @@
       "gaze": "left",
       "flip": false,
       "focusX": 69,
-      "focusY": 48,
-      "zoomSp": 1.1,
+      "focusY": 50,
+      "zoomSp": 1,
       "zoomPc": 1,
       "origin": "ai_generated",
       "fictional": true,
@@ -739,7 +749,7 @@
       "alt": "夜、自宅の机でノートに書き込みながら学習する大人",
       "caption": "写真はAI生成のイメージ",
       "focusYPc": 22,
-      "focusXSp": 100
+      "focusXSp": 80
     }
   },
   "publicSources": [

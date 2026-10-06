@@ -38,7 +38,7 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
 - brandName: ミチシルベ簿記
 - serviceDescriptor: 学習計画の作成・見直しサポート
 - audienceLabel: 働きながら、簿記2級へ。
-- productLabel: 簿記2級 学習サポート
+- productLabel: 簿記2級の学習計画サポート
 - demoMode: synthetic-demo
 - demoNotice: 架空サービスのデモです。お申し込みは受け付けていません。
 
@@ -210,6 +210,9 @@ CTAが何をするか、料金、時間、提供方法、契約条件に未確�
         ""
       ],
       "sub": "FV の補助文（H1 の問い・場面に、提供内容で答える短い1行）",
+      "subPhrases": [
+        "補助文の改行候補（連結すると sub と一致）"
+      ],
       "body": "",
       "note": "",
       "sourceRefs": [],

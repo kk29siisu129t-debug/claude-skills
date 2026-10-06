@@ -203,10 +203,11 @@ test('render: 視覚仕様の契約（文字・見出し・CTA・固定CTA・動
   }
   // 顔写真版は写真の上に文字を重ねない SP 配置と、PC での見出し 56px
   const { html } = renderPage(seed(), { kind: 'review' });
-  assert.match(html, /\.hero-portrait h1\{font-size:56px\}/);
-  assert.match(html, /\.hero-portrait h1\{font-size:40px;line-height:1\.25\}/); // 内心の問いを SP で2行・大きく（調査ブリーフ版）
-  assert.match(html, /\.hero-portrait h1\{font-size:36px\}/);
-  assert.match(html, /\.hero-sub\{font-size:16px/);
+  // SP アートディレクション（10:13 承認）: 400px で H1 48px・360px 約43px・320px 約38px（12vw）、補助文 20px（18px 未満にしない）、CTA 60px、PC は 56px
+  assert.match(html, /\.hero-portrait h1\{font-size:clamp\(36px,12vw,48px\);line-height:1\.2;font-weight:900/);
+  assert.match(html, /\.hero-sub\{[^}]*font-size:clamp\(18px,5vw,20px\)/);
+  assert.match(html, /\.hero-portrait \.btn-hero\{width:100%;min-height:60px;font-size:18px;border-radius:12px/);
+  assert.match(html, /\.hero-portrait h1\{font-size:56px/);
   assert.match(html, /\.js \.hero-visual\{animation:vin \.6s cubic-bezier\(\.2,\.7,\.2,1\) \.28s both\}/);
 });
 
