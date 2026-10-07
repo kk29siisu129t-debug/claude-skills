@@ -73,7 +73,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
       <figure class="lp-mat lp-mat--board" data-reveal>
         <figcaption class="lp-mat-h">グラフと式を、講師の板書で追う。</figcaption>
         <img src="${board}" alt="講義の板書。二次関数のグラフを描き、式を変形しながら解説している" width="628" height="570">
-        <p class="lp-mat-cap">講義の板書（見本）。グラフと式を書き込みながら、解き進める過程を解説します。</p>
+        <p class="lp-mat-cap">講義の板書（見本）。グラフと式を書き込みながら、解き進める過程を解説します。講義では、この過程を講師の手元で見ていきます。</p>
       </figure>
       <p class="lp-mat-topic"><span>見本の題材</span>2024年 共通テスト本試の二次関数の問題</p>
       <p class="lp-themes-line"><span>講義で扱う</span>時短戦略／思考法／問題の取り組み方</p>
@@ -90,12 +90,12 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
           <p class="lp-kit-name">特別テキスト</p>
           <p class="lp-kit-title">「PASSLABO 共通テスト対策 数学特別講義（関数の徹底攻略）」</p>
           <img class="lp-mat" data-reveal src="${sheet}" alt="特別テキストの設問ページ。2024年 共通テスト本試の二次関数のグラフと設問" width="584" height="508">
-          <figcaption>設問ページ（見本）。2024年 共通テスト本試の二次関数の問題です。</figcaption>
+          <figcaption>設問ページ（見本）。2024年 共通テスト本試の二次関数の問題です。講義で扱う考え方を、設問に沿って見直すためのテキストです。</figcaption>
         </figure>
         <figure class="lp-kit-item">
           <p class="lp-kit-tag">参加特典</p>
           <p class="lp-kit-name">講義板書／解説PDF</p>
-          <div class="lp-kit-doc"><svg viewBox="0 0 48 60" width="48" height="60" aria-hidden="true" focusable="false"><path d="M4 2h28l12 12v44H4z" fill="#fff" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M32 2v12h12" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M12 26h24M12 34h24M12 42h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><p>講義の板書と解説の PDF です。</p></div>
+          <div class="lp-kit-doc"><svg viewBox="0 0 48 60" width="48" height="60" aria-hidden="true" focusable="false"><path d="M4 2h28l12 12v44H4z" fill="#fff" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M32 2v12h12" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"/><path d="M12 26h24M12 34h24M12 42h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg><p>講義の板書と解説の PDF です。講義のあとに、解き方の流れを見直すために使えます。</p></div>
         </figure>
       </div>
       <aside class="lp-prog" aria-label="あわせて">
@@ -112,12 +112,24 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
       <p class="lp-final-lead">目指すのは、時間内に解き切ること。<br>まずは、無料の特別講義から。</p>
       <p class="lp-final-free"><span>無料</span></p>
       <h2 id="h-final" class="lp-final-h">共テ数学 特別講義</h2>
+      <dl class="lp-event">
+        <div><dt>日時</dt><dd>2026年10月17日（土）20:00〜22:00</dd></div>
+        <div><dt>形式</dt><dd>オンライン（Zoom）</dd></div>
+        <div><dt>参加費</dt><dd>無料</dd></div>
+        <div><dt>講師</dt><dd>宇佐見 天彗（PASSLABO）</dd></div>
+      </dl>
+      <ol class="lp-flow">
+        <li><b>1</b>下のボタンから PASSLABO の LINE を追加</li>
+        <li><b>2</b>LINE 内で参加申込。予習課題と Zoom の URL を LINE で受け取る</li>
+        <li><b>3</b>10/17（土）20:00、Zoom で参加</li>
+      </ol>
       <ul class="lp-sum">
         <li>時短戦略・思考法・問題の取り組み方を、講師の板書と手元で解説</li>
         <li>講義参加者全員に特別テキストを配布</li>
         <li>参加特典：講義板書／解説PDF、共テ数学プログラムの特別案内</li>
       </ul>
       ${ctaBtn}
+      <p class="lp-cta-note">※LINE（PASSLABO 公式アカウント）に移動します。参加申込は LINE 内で行います。</p>
     </div>
   </section>
 </main>
@@ -125,7 +137,7 @@ export const body = ({ board, sheet, profile, ctaBtn, stickyBtn }) => `
 <footer class="lp-foot">
   <p class="lp-foot-brand">PASSLABO</p>
   <ul class="lp-foot-links" aria-label="運営情報"><li>運営会社：<a href="https://passlabo.jp/">株式会社ペイ・フォワード</a></li><li><a href="https://utage-system.com/p/jFyT8LCb2fti">プライバシーポリシー</a></li><li><a href="https://utage-system.com/p/S4us61iIRJc4">特定商取引法に基づく表記</a></li></ul>
-  <p class="lp-review" id="cta-note" role="note">確認用・未公開。LINEボタンは未接続です。3,000人は仮置きで、実績未確認です。</p>
+  <p class="lp-review" id="cta-note" role="note">確認用・未公開。ボタンは PASSLABO の LINE（https://lin.ee/rTgblIH）への通常のリンクです。3,000人は仮置きで、実績未確認です。</p>
 `;
 
 export const css = `
@@ -223,6 +235,14 @@ export const css = `
 .lp-sum li{position:relative;padding-left:24px;font-size:16px;font-weight:500;line-height:1.6;color:var(--pale)}
 .lp-sum li::before{content:"";position:absolute;left:2px;top:.5em;width:10px;height:6px;border-left:3px solid #9fd3ea;border-bottom:3px solid #9fd3ea;transform:rotate(-45deg)}
 .lp-cta{max-width:520px}
+.lp-event{margin:18px 0 0;border-top:1px solid rgba(255,255,255,.25)}
+.lp-event div{display:grid;grid-template-columns:64px 1fr;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.18)}
+.lp-event dt{font-size:14px;font-weight:900;color:#9fd3ea}.lp-event dd{margin:0;font-size:16px;font-weight:700;color:#fff}
+.lp-flow{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:8px}
+.lp-flow li{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;font-size:15px;line-height:1.6;color:var(--pale)}
+.lp-flow b{width:26px;height:26px;border-radius:50%;background:var(--b);color:#fff;font-size:14px;display:flex;align-items:center;justify-content:center}
+.lp-cta-note{margin:8px 0 0;font-size:13px;line-height:1.6;color:#c9d6dd}
+.f-when{margin:2px 0 10px;font-size:15px;font-weight:700;color:#fff}.f-when b{font-size:17px;font-weight:900;color:#9fd3ea}
 /* SP の追従 CTA: FV の CTA が見えなくなった後だけ（JS が hidden を外す）。safe-area 込みの余白 */
 .lp-sticky{position:fixed;z-index:50;left:0;right:0;bottom:0;padding:10px 16px calc(10px + env(safe-area-inset-bottom,0px));background:rgba(13,26,34,.94);box-shadow:0 -6px 18px rgba(0,0,0,.25)}
 .lp-sticky[hidden]{display:none}
@@ -260,7 +280,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .lp-num-v{font-size:120px}
 .lp-mat--board{max-width:760px}
 .lp-kit{grid-template-columns:1fr 1fr;align-items:start}
-.lp-final{text-align:center}.lp-final-h{font-size:48px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}
+.lp-final{text-align:center}.lp-event,.lp-flow{max-width:560px;margin-left:auto;margin-right:auto;text-align:left}.lp-final-h{font-size:48px}.lp-sum{justify-items:center}.lp-sum li{text-align:left}.lp-cta{margin:0 auto}
 .lp-final-bg img{width:900px}
 .lp-sticky{display:none!important}
 }
