@@ -30,6 +30,7 @@ const BODY = `
   <div class="ts-fv-in">
     <p class="ts-brand">PASSLABO <span>無料特別講義</span></p>
     <p class="ts-target">共テ数学で、時間が足りない人へ</p>
+    <p class="ts-fv-for">共テ数学で8割を目指す人に向けた内容</p>
     <h1 class="ts-h1"><span class="ts-h1-a">共テ数学</span><span class="ts-h1-b">時間内に<br>解き切るための<br>考え方を学ぶ</span></h1>
     <p class="ts-fv-sub">共通テスト形式の問題で、<br>時間短縮の考え方を実戦解説する2時間。</p>
     <figure class="ts-fv-person"><img src="${portrait}" alt="講師の宇佐見天彗さん" width="1330" height="1183"></figure>
@@ -57,7 +58,7 @@ const BODY = `
       </ol>
       <figure class="ts-board">
         <img src="${board}" alt="PASSLABO の公開教材の板書。二次関数のグラフを描き、式を変形しながら解説している" width="628" height="570">
-        <figcaption><b>板書の例：グラフと式を行き来しながら、解き進める過程を追う。</b><span>PASSLABO の公開教材より・2024年本試の解説例。10/17 の講義で扱う問題・配布物ではありません。</span></figcaption>
+        <figcaption><b>板書の例：グラフと式を行き来しながら、解き進める過程を追う。</b><span>PASSLABO の公開教材より。2024年共通テスト本試の公開解説例です。10/17 の出題内容・配布教材を示すものではありません。</span></figcaption>
       </figure>
     </div>
   </section>
@@ -78,7 +79,8 @@ const BODY = `
     ${scurve}
     <div class="ts-in">
       <p class="ts-kicker">講師 宇佐見 天彗</p>
-      <h2 id="h-who" class="ts-h2">70分の試験を、<br>約60分で解き終える。</h2>
+      <h2 id="h-who" class="ts-h2">2026年 数学ⅡBCを、<br>約60分で解答。</h2>
+      <p class="ts-who-sub">試験時間70分</p>
       <p class="ts-text">2026年の共通テスト数学ⅡBCを、本番の会場で約60分で解答。そのとき、どこを見て、何を省き、どう処理しているのか。その一部を、この講義で実戦解説します。</p>
       <div class="ts-nums">
         <div class="ts-num"><p class="ts-num-v"><span lang="en">6</span><small>年連続</small></p><p class="ts-num-l">共通テスト数学を会場受験</p></div>
@@ -156,7 +158,8 @@ p,li,h1,h2,h3,dd,figcaption{word-break:auto-phrase}
 .ts-h1{position:relative;z-index:2;margin:12px 0 0;font-weight:900;line-height:1.1}
 .ts-h1-a{display:block;font-size:30px;color:#9fd3ea;letter-spacing:.04em}
 .ts-h1-b{display:block;margin-top:6px;font-size:40px;letter-spacing:-.02em;line-height:1.18;text-shadow:0 3px 0 rgba(0,0,0,.35)}
-.ts-fv-sub{position:relative;z-index:2;margin:12px 0 0;font-size:15px;font-weight:700;line-height:1.6;color:var(--pale);max-width:230px}
+.ts-fv-sub{position:relative;z-index:2;margin:12px 0 0;font-size:15px;font-weight:700;line-height:1.6;color:var(--pale);max-width:205px}
+.ts-fv-for{position:relative;z-index:2;margin:6px 0 0;display:table;font-size:13px;font-weight:700;color:#0d1a22;background:#9fd3ea;border-radius:3px;padding:1px 8px}
 .ts-fv-person{position:absolute;z-index:1;right:-58px;bottom:0;height:230px;margin:0;aspect-ratio:1330/1183}
 .ts-fv-person img{width:100%;height:100%;object-fit:contain;filter:drop-shadow(6px 10px 18px rgba(0,0,0,.5))}
 .ts-fv-name{position:absolute;z-index:2;right:12px;bottom:8px;margin:0;font-size:15px;font-weight:900;background:rgba(13,26,34,.8);padding:2px 8px;border-radius:4px}.ts-fv-name span{font-size:12px;font-weight:700;color:#9fd3ea;margin-right:6px}
@@ -193,6 +196,7 @@ p,li,h1,h2,h3,dd,figcaption{word-break:auto-phrase}
 .ts-s-svg{display:block;width:170px;height:340px;overflow:visible}
 .ts-s-path{fill:none;stroke:var(--b);stroke-width:26;stroke-linecap:butt;stroke-linejoin:round}
 .ts-s-head{fill:var(--b)}
+.ts-who-sub{margin:8px 0 0;display:inline-block;font-size:15px;font-weight:900;color:#fff;background:var(--n);border-radius:4px;padding:2px 10px}
 .ts-nums{margin:24px 0 0;border-top:1px solid #cfe3ee}
 .ts-num{padding:18px 0 16px;border-bottom:1px solid #cfe3ee;text-align:center}
 .ts-num-v{margin:0;color:var(--b);line-height:1;display:flex;justify-content:center;align-items:baseline;gap:6px}
@@ -222,7 +226,7 @@ html.has-sticky{scroll-padding-bottom:96px}
 .ts-foot{background:#0d1a22;color:#c9d6dd;padding:20px 22px 36px;font-size:13px}
 .ts-foot p{max-width:1000px;margin:0 auto}
 .ts-review{margin-top:10px!important;padding:10px 12px;border:1px dashed #6f8794;border-radius:6px;line-height:1.6}
-@media (max-width:389px){.ts-h1-b{font-size:36px}.ts-fv-person{height:210px;right:-62px}.ts-h2{font-size:27px}.ts-feel-h{font-size:29px}.ts-num-v span{font-size:76px}.cta{font-size:17px}}
+@media (max-width:389px){.ts-fv-for{font-size:12px;padding:1px 6px}.ts-h1-b{font-size:36px}.ts-fv-person{height:210px;right:-62px}.ts-h2{font-size:27px}.ts-feel-h{font-size:29px}.ts-num-v span{font-size:76px}.cta{font-size:17px}}
 @media (min-width:900px){
 .sp{display:none}
 .ts-fv-in{max-width:1160px;margin:0 auto;min-height:520px;padding:28px 24px 0}
