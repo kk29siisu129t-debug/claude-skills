@@ -12,7 +12,7 @@ const root = dirname(fileURLToPath(import.meta.url));
 const [ref1, ref2] = process.argv.slice(2);
 const tmp = mkdtempSync(join(tmpdir(), 'cmp-'));
 const ff = (...a) => execFileSync('ffmpeg', ['-v', 'error', '-y', ...a]);
-const b = await launch(); const p = await b.newPage({ viewport: { width: 400, height: 800 }, reducedMotion: 'reduce' });
+const b = await launch(); /* CTA は実リンクのため、外部への通信はすべて遮断する */ { const _nc = b.newContext.bind(b); b.newContext = async (o) => { const c = await _nc(o); await c.route(/^(https?|wss?):/, (r) => r.abort()); return c; }; b.newPage = async (o) => (await b.newContext(o)).newPage(); } const p = await b.newPage({ viewport: { width: 400, height: 800 }, reducedMotion: 'reduce' });
 await p.goto(`file://${join(root, 'out/passlabo-full-lp.html')}`); await p.evaluate(() => document.fonts.ready);
 const y = async (s) => p.evaluate((s) => document.querySelector(s).getBoundingClientRect().top + scrollY, s);
 const nums = await y('.lp-nums'); const sTop = await y('.lp-s');

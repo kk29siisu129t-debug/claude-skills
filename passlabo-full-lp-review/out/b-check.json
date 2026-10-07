@@ -1,0 +1,290 @@
+{
+ "360": {
+  "height": 6364,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://www.kadokawa.co.jp/product/322003000286/",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 690,
+  "minFont": 12,
+  "errors": []
+ },
+ "400": {
+  "height": 6236,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://www.kadokawa.co.jp/product/322003000286/",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 672,
+  "minFont": 12,
+  "errors": []
+ },
+ "1280": {
+  "height": 6155,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://www.kadokawa.co.jp/product/322003000286/",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://passlabo.jp/",
+   "https://utage-system.com/p/jFyT8LCb2fti",
+   "https://utage-system.com/p/S4us61iIRJc4"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 611,
+  "minFont": 12,
+  "errors": []
+ },
+ "blockedRequests": [],
+ "sticky360": {
+  "mismatches": [],
+  "firstShownY": 720,
+  "shownCount": 32,
+  "keyboard": [
+   {
+    "el": "cta f-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:KADOKAWA 商",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta lp-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:株式会社ペイ・フォワ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:プライバシーポリシー",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:特定商取引法に基づく",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO共テ",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "focusExit": {
+   "shownBefore": true,
+   "whileFocused": true,
+   "afterTab": false
+  },
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "sticky400": {
+  "mismatches": [],
+  "firstShownY": 720,
+  "shownCount": 31,
+  "keyboard": [
+   {
+    "el": "cta f-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:KADOKAWA 商",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta lp-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:株式会社ペイ・フォワ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:プライバシーポリシー",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:特定商取引法に基づく",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO共テ",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "focusExit": {
+   "shownBefore": true,
+   "whileFocused": true,
+   "afterTab": false
+  },
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "sticky1280": {
+  "mismatches": [],
+  "firstShownY": null,
+  "shownCount": 0,
+  "keyboard": [
+   {
+    "el": "cta f-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:KADOKAWA 商",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta lp-cta:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:株式会社ペイ・フォワ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:プライバシーポリシー",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "A:特定商取引法に基づく",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO共テ",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "lineHrefOk": true
+}

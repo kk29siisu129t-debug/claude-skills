@@ -1,0 +1,218 @@
+{
+ "360": {
+  "height": 5594,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 572,
+  "minFont": 12,
+  "errors": []
+ },
+ "400": {
+  "height": 5474,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 572,
+  "minFont": 12,
+  "errors": []
+ },
+ "1280": {
+  "height": 5063,
+  "hscroll": false,
+  "clipped": [],
+  "ctas": [
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   },
+   {
+    "tag": "A",
+    "href": "https://lin.ee/rTgblIH",
+    "target": null,
+    "text": "LINEで参加申込へ進む"
+   }
+  ],
+  "links": [
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH",
+   "https://lin.ee/rTgblIH"
+  ],
+  "forms": 0,
+  "buttons": 0,
+  "fvCtaBottom": 603,
+  "minFont": 12,
+  "errors": []
+ },
+ "blockedRequests": [],
+ "sticky360": {
+  "mismatches": [],
+  "firstShownY": 600,
+  "shownCount": 31,
+  "keyboard": [
+   {
+    "el": "cta ts-cta ts-cta-fv:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta ts-cta ts-cta-final:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO 無",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "focusExit": {
+   "shownBefore": true,
+   "whileFocused": true,
+   "afterTab": false
+  },
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "sticky400": {
+  "mismatches": [],
+  "firstShownY": 600,
+  "shownCount": 31,
+  "keyboard": [
+   {
+    "el": "cta ts-cta ts-cta-fv:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta ts-cta ts-cta-final:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO 無",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "focusExit": {
+   "shownBefore": true,
+   "whileFocused": true,
+   "afterTab": false
+  },
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "sticky1280": {
+  "mismatches": [],
+  "firstShownY": null,
+  "shownCount": 0,
+  "keyboard": [
+   {
+    "el": "cta ts-cta ts-cta-fv:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "cta ts-cta ts-cta-final:LINEで参加申込へ",
+    "covered": false,
+    "focusVisible": true
+   },
+   {
+    "el": "BODY:PASSLABO 無",
+    "covered": false,
+    "focusVisible": false
+   }
+  ],
+  "keyboardCovered": 0,
+  "reduce": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  },
+  "nojs": {
+   "stickyHidden": true,
+   "transparentText": 0,
+   "sPathDash": "none"
+  }
+ },
+ "lineHrefOk": true
+}

@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import { rmSync, readdirSync, renameSync } from 'node:fs';
 const root = dirname(fileURLToPath(import.meta.url));
 const dir = join(root, 'out/video-rec'); rmSync(dir, { recursive: true, force: true });
-const b = await launch();
+const b = await launch(); /* CTA は実リンクのため、外部への通信はすべて遮断する */ { const _nc = b.newContext.bind(b); b.newContext = async (o) => { const c = await _nc(o); await c.route(/^(https?|wss?):/, (r) => r.abort()); return c; }; b.newPage = async (o) => (await b.newContext(o)).newPage(); }
 const ctx = await b.newContext({ viewport: { width: 400, height: 700 }, reducedMotion: 'no-preference', recordVideo: { dir, size: { width: 400, height: 700 } } });
 const p = await ctx.newPage();
 await p.goto(`file://${join(root, 'out/passlabo-full-lp.html')}`); await p.evaluate(() => document.fonts.ready);

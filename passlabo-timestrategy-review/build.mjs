@@ -147,7 +147,7 @@ p,li,h1,h2,h3,dd,figcaption{word-break:auto-phrase}
 .cta:hover{background:#05b84e}.cta:active{background:var(--line-d);box-shadow:none;transform:translateY(3px)}
 .cta:focus-visible{outline:3px solid #fff;outline-offset:3px;box-shadow:0 0 0 6px var(--n)}
 .cta .ico{width:26px;height:26px;flex:none}
-.cta-note{margin:8px 0 0;font-size:13px;line-height:1.6;color:inherit;opacity:.9}
+.cta-note{margin:8px 0 0;font-size:13px;line-height:1.6;color:#d8e4ea}
 /* FV: 紺の面。学ぶ目的を大きく、本人は右下に。日時・形式・CTA を一望 */
 .ts-fv{position:relative;background:linear-gradient(180deg,#0d1a22 0%,#193c51 100%);color:#fff;overflow:hidden}
 .ts-fv-in{position:relative;padding:16px 20px 0;min-height:420px}

@@ -6,7 +6,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = dirname(fileURLToPath(import.meta.url));
 const out = (f) => join(root, 'out', f);
-const b = await launch();
+const b = await launch(); /* CTA は実リンクのため、外部への通信はすべて遮断する */ { const _nc = b.newContext.bind(b); b.newContext = async (o) => { const c = await _nc(o); await c.route(/^(https?|wss?):/, (r) => r.abort()); return c; }; b.newPage = async (o) => (await b.newContext(o)).newPage(); }
 const measure = {};
 for (const [w, scale, name] of [[400, 2, '400'], [360, 2, '360'], [1280, 1, '1280'], [400, 1, '400-1x']]) {
   const ctx = await b.newContext({ viewport: { width: w, height: w > 900 ? 800 : 640 }, deviceScaleFactor: scale, reducedMotion: 'reduce' }); // 静止画は演出なしの最終状態で撮る（演出は check-motion.mjs で検査）

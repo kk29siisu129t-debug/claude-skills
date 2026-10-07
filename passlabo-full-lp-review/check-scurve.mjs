@@ -9,7 +9,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = dirname(fileURLToPath(import.meta.url));
 const url = `file://${join(root, 'out/passlabo-full-lp.html')}`;
-const b = await launch();
+const b = await launch(); /* CTA は実リンクのため、外部への通信はすべて遮断する */ { const _nc = b.newContext.bind(b); b.newContext = async (o) => { const c = await _nc(o); await c.route(/^(https?|wss?):/, (r) => r.abort()); return c; }; b.newPage = async (o) => (await b.newContext(o)).newPage(); }
 const probe = () => {
   const box = document.querySelector('.lp-s'), path = box.querySelector('.lp-s-path'), head = box.querySelector('.lp-s-head'), vh = innerHeight;
   const L = path.getTotalLength(), top = box.getBoundingClientRect().top;
